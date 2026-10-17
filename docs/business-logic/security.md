@@ -43,7 +43,7 @@ Owner authentication, sessions, CSRF, step-up, the authorization policy, service
 | SE-033 | The credential KEK is mounted only into `broker-gateway`; records carry `kek_id` so the KEK can be rotated by re-wrapping data keys. | Implemented | `services/broker-gateway/internal/credstore` (`ParseKeyRing`, `RewrapAll`), `rewrap-keys` subcommand; `TestSE030StoreIntegration` |
 | SE-040 | Internal calls MUST carry a service token (Ed25519, ≤ 60 s lifetime, audience = receiving service); receivers MUST check the caller against a per-method allowlist. `broker-gateway`'s `CredentialService` accepts only `api-gateway`. | Implemented | `libs/go/svcauth`, `services/broker-gateway/internal/credsvc`; `TestSE040TokenVerification`, `TestSE040CallerAllowlistAndSE012ErrorPath` |
 | SE-041 | Security events (failed logins, lockouts, step-up failures, audit-chain mismatch) MUST be published to `alert.security`. | Implemented | `services/api-gateway/internal/gateway/server.go` (`securityAlert`), `cmd/api-gateway` (NATS publisher) |
-| SE-050 | Each service MUST connect to Postgres as its own `svc_<service>` login role with only the grants its migrations give it; schemas are owned by NOLOGIN `<schema>_owner` roles. | Implemented | `libs/go/db/bootstrap.go`; `TestSE032SchemaIsolation` |
+| SE-050 | Each service MUST connect to Postgres as its own `svc_<service>` login role with only the grants its migrations give it; schemas are owned by NOLOGIN `<schema>_owner` roles. The metrics exporter uses `svc_metrics` with only the built-in `pg_monitor` role (statistics, no table data). | Implemented | `libs/go/db/bootstrap.go`; `TestSE032SchemaIsolation` |
 
 ## Invariants
 

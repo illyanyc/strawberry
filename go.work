@@ -5,4 +5,9 @@ use (
 	./libs/go
 	./services/api-gateway
 	./services/broker-gateway
+	./services/execution
+	./services/ledger
+	./services/marketdata
+	./tests/e2e
+	./tools/tbctl
 )

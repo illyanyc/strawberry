@@ -4,6 +4,12 @@ requires-python = "==3.12.*"
 
 [manifest]
 members = [
+    "assistant",
+    "backtest",
+    "context-data",
+    "ml",
+    "monitor",
+    "optimizer",
     "strawberry-workspace",
     "tbcontracts",
     "tbcore",
@@ -39,6 +45,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/a9/d2/f4d173e22df740bc3
 wheels = [
     { url = "https://files.pythonhosted.org/packages/12/b8/4bd346e22b28902df4d651910f5242c28d84e4a5c2435ca5c3f797ed7e2e/anyio-4.15.1-py3-none-any.whl", hash = "sha256:6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101", size = 132079, upload-time = "2026-09-05T10:42:37.923Z" },
 ]
+
+[[package]]
+name = "assistant"
+version = "0.0.0"
+source = { editable = "services/assistant" }
+dependencies = [
+    { name = "tbcore" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "tbcore", editable = "libs/py/tbcore" }]
 
 [[package]]
 name = "ast-serialize"
@@ -85,6 +102,17 @@ wheels = [
 ]
 
 [[package]]
+name = "backtest"
+version = "0.0.0"
+source = { editable = "services/backtest" }
+dependencies = [
+    { name = "tbcore" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "tbcore", editable = "libs/py/tbcore" }]
+
+[[package]]
 name = "certifi"
 version = "2026.7.22"
 source = { registry = "https://pypi.org/simple" }
@@ -110,6 +138,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335, upload-time = "2022-10-25T02:36:20.889Z" },
 ]
+
+[[package]]
+name = "context-data"
+version = "0.0.0"
+source = { editable = "services/context-data" }
+dependencies = [
+    { name = "tbcore" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "tbcore", editable = "libs/py/tbcore" }]
 
 [[package]]
 name = "fastapi"
@@ -207,6 +246,28 @@ wheels = [
 ]
 
 [[package]]
+name = "ml"
+version = "0.0.0"
+source = { editable = "services/ml" }
+dependencies = [
+    { name = "tbcore" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "tbcore", editable = "libs/py/tbcore" }]
+
+[[package]]
+name = "monitor"
+version = "0.0.0"
+source = { editable = "services/monitor" }
+dependencies = [
+    { name = "tbcore" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "tbcore", editable = "libs/py/tbcore" }]
+
+[[package]]
 name = "mypy"
 version = "2.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -248,6 +309,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/2e/02/6e0ae9cc61bd3169d
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1e/41/f7dcf80b81ee8e71c1a2b59f14208bc723edbd89ed027a73b175abf6348e/opentelemetry_api-1.45.1-py3-none-any.whl", hash = "sha256:b31553efa588ae44bc306f863c785c5333a9ecc091248c6ee68b4b6c87fdedfb", size = 60256, upload-time = "2026-10-06T17:32:33.506Z" },
 ]
+
+[[package]]
+name = "optimizer"
+version = "0.0.0"
+source = { editable = "services/optimizer" }
+dependencies = [
+    { name = "tbcore" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "tbcore", editable = "libs/py/tbcore" }]
 
 [[package]]
 name = "packaging"

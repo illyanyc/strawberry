@@ -31,6 +31,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | Path | Status | Purpose |
 |---|---|---|
 | `tools/versions.env` | Exists | Pinned toolchain versions (Go, Python, Node, pnpm, uv, buf, protoc, protoc plugins, golangci-lint, gitleaks); single source for scripts and CI |
+| `tools/tbctl/` | Exists | Go operator CLI (runs in the ops image): `secrets init`, `db init`, `db checksum`, `bus init`, `audit verify`, `audit head` |
 | `scripts/bootstrap-tools.sh` | Exists | Installs pinned tools into `.tools/bin` (gitignored); used by `make tools` and CI |
 | `scripts/docs_check.py` | Exists | Documentation gate: file-map coverage and same-commit doc rules for a diff (N6) |
 | `scripts/test-integration.sh` | Exists | Runs Go tests with a throwaway Postgres (`make test-integration`) |
@@ -118,6 +119,15 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 |---|---|---|
 | `services/api-gateway/` | Exists | Go: owner auth (passkeys, TOTP, recovery), sessions, CSRF, step-up, settings, audit API, credential write-through, SSE status stream, static UI. Layout in [`services/api-gateway/AGENTS.md`](../services/api-gateway/AGENTS.md) |
 | `services/broker-gateway/` | Exists | Go: broker-credential custody (envelope encryption, KEK ring, write-only gRPC `CredentialService`); broker adapters from Phase 1. Layout in [`services/broker-gateway/AGENTS.md`](../services/broker-gateway/AGENTS.md) |
+| `services/marketdata/` | Exists (placeholder) | Go: ops surface + NATS; ingestion in Phase 1. [`AGENTS.md`](../services/marketdata/AGENTS.md) |
+| `services/execution/` | Exists (placeholder) | Go: ops surface + NATS + clock-skew check; `tb_trading_enabled=0` until Phase 2. [`AGENTS.md`](../services/execution/AGENTS.md) |
+| `services/ledger/` | Exists (placeholder) | Go: ops surface + NATS; ledgers in Phase 2. [`AGENTS.md`](../services/ledger/AGENTS.md) |
+| `services/context-data/` | Exists (placeholder) | Python on `tbcore`: ops surface; context data in Phase 3 |
+| `services/monitor/` | Exists (placeholder) | Python on `tbcore`: ops surface; monitoring in Phases 2/5 |
+| `services/assistant/` | Exists (placeholder) | Python on `tbcore`: ops surface; assistant in Phase 4 |
+| `services/ml/` | Exists (placeholder) | Python on `tbcore`: ops surface; native launchd worker on macOS (D29), Phase 4 |
+| `services/backtest/` | Exists (placeholder) | Python on `tbcore`: ops surface; backtester in Phase 3 |
+| `services/optimizer/` | Exists (placeholder) | Python on `tbcore`: ops surface; optimizer in Phase 4 |
 
 ## Apps: `apps/`
 
@@ -125,27 +135,29 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 |---|---|---|
 | `apps/web/` | Exists | Vite + React 19 SPA: login/setup, dashboard, security, broker connections, platform settings, audit log; step-up dialog; SSE status. Layout in [`apps/web/AGENTS.md`](../apps/web/AGENTS.md) |
 
-## Code (all Planned)
+## Tests: `tests/`
 
-| Path | Purpose | Agent notes |
+| Path | Status | Purpose |
 |---|---|---|
-| `services/broker-gateway-ibkr/` | IBKR adapter (Python, `ib_async`) next to IB Gateway + IBC (D1, D18; Phase 1) | `AGENTS.md` in dir |
-| `services/marketdata/` | Backfill, streaming, bar building, lake/cache writes | `AGENTS.md` in dir |
-| `services/ledger/` | Real + virtual portfolios, lots, reconciliation | `AGENTS.md` in dir |
-| `services/execution/` | OMS, pre-trade risk, kill switches, strategy runtime | `AGENTS.md` in dir |
-| `services/context-data/` | News, sentiment, macro, earnings, regime | `AGENTS.md` in dir |
-| `services/ml/` | Training and inference entrypoints | `AGENTS.md` in dir |
-| `services/backtest/` | Vectorized and event-driven backtests, validation | `AGENTS.md` in dir |
-| `services/optimizer/` | Studies, holdout discipline, champion/challenger | `AGENTS.md` in dir |
-| `services/assistant/` | LLM agent with constrained tools | `AGENTS.md` in dir |
-| `services/monitor/` | Drift, divergence, alerts, auto-demotion | `AGENTS.md` in dir |
-| `infra/compose/` | `docker-compose.yml` and profiles | `infra/AGENTS.md` |
-| `infra/docker/` | Hardened base images | `infra/AGENTS.md` |
-| `infra/terraform/` | Remote server provisioning | `infra/AGENTS.md` |
-| `infra/observability/` | Prometheus rules, Grafana dashboards, Loki/Tempo config | `infra/AGENTS.md` |
-| `infra/secrets/` | SOPS-encrypted files only | `infra/AGENTS.md` |
-| `tests/e2e/` | Full-stack scenarios against the paper broker simulator | — |
-| `tests/fixtures/` | Recorded market data and broker messages (no real account data) | — |
-| `.github/workflows/` | CI: lint, test, leakage, contract, docs-check gates | — |
+| `tests/python/` | Exists | Cross-package Python tests (placeholder services' ops surface) |
+| `tests/e2e/` | Planned | Go end-to-end test against the running stack |
+| `tests/fixtures/` | Planned | Recorded market data and broker messages (no real account data; Phase 1) |
+
+## Infra: `infra/` (agent notes in `infra/AGENTS.md`)
+
+| Path | Status | Purpose |
+|---|---|---|
+| `infra/compose/` | Planned | `docker-compose.yml` and profiles |
+| `infra/docker/` | Planned | Hardened images |
+| `infra/observability/` | Planned | Prometheus, Alertmanager, Alloy, Grafana config |
+| `infra/secrets/` | Planned | SOPS-encrypted files only |
+| `infra/terraform/` | Planned | Remote server provisioning (Phase 6) |
+
+## Planned code
+
+| Path | Status | Purpose |
+|---|---|---|
+| `services/broker-gateway-ibkr/` | Planned | IBKR adapter (Python, `ib_async`) next to IB Gateway + IBC (D1, D18; Phase 1) |
+| `.github/workflows/` | Planned | CI: lint, test, contract, docs-check, image, scan, smoke gates |
 
 When a Planned path is created, change its status to Exists (or move it into the matching section) and add any new paths.

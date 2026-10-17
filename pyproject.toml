@@ -20,6 +20,12 @@ package = false
 members = [
   "contracts/gen/python",
   "libs/py/tbcore",
+  "services/assistant",
+  "services/backtest",
+  "services/context-data",
+  "services/ml",
+  "services/monitor",
+  "services/optimizer",
 ]
 
 [tool.uv.sources]
@@ -27,13 +33,13 @@ tbcontracts = { workspace = true }
 tbcore = { workspace = true }
 
 [tool.pytest.ini_options]
-testpaths = ["contracts/tests", "libs/py/tbcore/tests"]
+testpaths = ["contracts/tests", "libs/py/tbcore/tests", "tests/python"]
 addopts = "-q"
 
 [tool.ruff]
 line-length = 120
 target-version = "py312"
-extend-exclude = ["contracts/gen"]
+extend-exclude = ["contracts/gen", "docs"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "S", "SIM", "RUF"]
@@ -48,9 +54,9 @@ known-first-party = ["tbcore", "tb"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-mypy_path = "contracts/gen/python/src:libs/py/tbcore/src"
+mypy_path = "contracts/gen/python/src:libs/py/tbcore/src:services/assistant/src:services/backtest/src:services/context-data/src:services/ml/src:services/monitor/src:services/optimizer/src"
 explicit_package_bases = true
-files = ["libs/py/tbcore/src", "libs/py/tbcore/tests", "contracts/tests"]
+files = ["libs/py/tbcore/src", "libs/py/tbcore/tests", "contracts/tests", "services/*/src", "tests/python"]
 exclude = ["contracts/gen/"]
 
 [[tool.mypy.overrides]]
