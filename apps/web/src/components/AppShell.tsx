@@ -1,0 +1,97 @@
+import { Link, Outlet, useNavigate } from "@tanstack/react-router";
+import { useCallback } from "react";
+
+import { EnvironmentBanner } from "@/components/EnvironmentBanner";
+import { Badge } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api";
+import { STALE_AFTER_MS, useNow, useTradingStatus } from "@/lib/events";
+import { cn, formatTime } from "@/lib/utils";
+
+const nav = [
+  { to: "/", label: "Dashboard", short: "Home" },
+  { to: "/settings/security", label: "Security", short: "Security" },
+  { to: "/settings/brokers", label: "Broker connections", short: "Brokers" },
+  { to: "/settings/platform", label: "Platform settings", short: "Settings" },
+  { to: "/audit", label: "Audit log", short: "Audit" },
+] as const;
+
+/** Authenticated layout: environment banner, trading status bar, navigation (sidebar / bottom bar). */
+export function AppShell() {
+  const navigate = useNavigate();
+  const onSessionEnded = useCallback(() => void navigate({ to: "/login" }), [navigate]);
+  const { status, connected, lastEventAt } = useTradingStatus(onSessionEnded);
+  const now = useNow();
+  const stale = lastEventAt === null || now - lastEventAt > STALE_AFTER_MS;
+
+  const logout = async () => {
+    await api("/auth/logout", { method: "POST" }).catch(() => undefined);
+    void navigate({ to: "/login" });
+  };
+
+  return (
+    <div className="flex min-h-full flex-col">
+      <EnvironmentBanner mode={status?.mode ?? null} environment={status?.environment} />
+      <header className="flex items-center gap-3 border-b border-border bg-panel px-4 py-2 text-xs">
+        <span className="font-semibold tracking-tight text-fg">🍓 Strawberry</span>
+        <span className="hidden text-muted sm:inline">·</span>
+        <span className="flex items-center gap-1.5" title={lastEventAt ? `last update ${formatTime(new Date(lastEventAt).toISOString())}` : "no updates yet"}>
+          <span className={cn("size-2 rounded-full", connected && !stale ? "bg-ok" : "bg-warn")} aria-hidden />
+          <span className="text-muted">{connected && !stale ? "Live status" : "Status stale"}</span>
+        </span>
+        <span className="hidden gap-2 md:flex">
+          <Badge tone="neutral">Brokers: Phase 1</Badge>
+          <Badge tone="neutral">Recon: Phase 2</Badge>
+        </span>
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            variant="danger"
+            size="sm"
+            disabled
+            title="Kill switches arrive with the execution service (Phase 2)"
+            aria-label="Global kill switch (available in Phase 2)"
+          >
+            Kill switch
+          </Button>
+          <Button variant="ghost" size="sm" onClick={logout}>
+            Log out
+          </Button>
+        </div>
+      </header>
+      <div className="flex flex-1">
+        <nav aria-label="Main" className="hidden w-56 shrink-0 border-r border-border bg-panel p-3 md:block">
+          <ul className="space-y-1">
+            {nav.map((n) => (
+              <li key={n.to}>
+                <Link
+                  to={n.to}
+                  activeOptions={{ exact: n.to === "/" }}
+                  className="block rounded-lg px-3 py-2 text-sm text-muted hover:bg-panel-2 hover:text-fg"
+                  activeProps={{ className: "bg-panel-2 text-fg font-medium" }}
+                >
+                  {n.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <main className="flex-1 overflow-x-hidden p-4 pb-24 md:p-8 md:pb-8">
+          <Outlet />
+        </main>
+      </div>
+      <nav aria-label="Main mobile" className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-5 border-t border-border bg-panel md:hidden">
+        {nav.map((n) => (
+          <Link
+            key={n.to}
+            to={n.to}
+            activeOptions={{ exact: n.to === "/" }}
+            className="px-1 py-3 text-center text-[11px] text-muted"
+            activeProps={{ className: "text-fg font-semibold" }}
+          >
+            {n.short}
+          </Link>
+        ))}
+      </nav>
+    </div>
+  );
+}

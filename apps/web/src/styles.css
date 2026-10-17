@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --color-bg: #0b0f14;
+  --color-panel: #121821;
+  --color-panel-2: #18202b;
+  --color-border: #243041;
+  --color-fg: #e6edf3;
+  --color-muted: #8b98a9;
+  --color-accent: #e5484d;
+  --color-ok: #46a758;
+  --color-warn: #f5a524;
+  --color-paper: #3b82f6;
+  --color-live: #ff2d55;
+}
+
+@layer base {
+  html.light {
+    --color-bg: #f7f8fa;
+    --color-panel: #ffffff;
+    --color-panel-2: #f0f2f5;
+    --color-border: #d8dee6;
+    --color-fg: #0f172a;
+    --color-muted: #5b6676;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  dialog::backdrop {
+    background: rgb(0 0 0 / 0.6);
+    backdrop-filter: blur(2px);
+  }
+}
+
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.live-pulse {
+  animation: live-pulse 1.6s ease-in-out infinite;
+}

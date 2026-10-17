@@ -69,6 +69,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/business-logic/strategies-and-model-lifecycle.md` | Exists | `SM-` rules: modes, promotion, demotion, holdout, reproducibility |
 | `docs/business-logic/data-and-features.md` | Exists | `DF-` rules: timestamps, point-in-time, adjustments, feature parity |
 | `docs/business-logic/operations.md` | Exists | `OP-` rules: build, run, deploy, backup/restore, host and toolchain behavior |
+| `docs/business-logic/ui.md` | Exists | `UI-` rules: page inventory, PAPER/LIVE banner, step-up UX, write-only credentials, staleness, CSP-safe frontend |
 | `docs/business-logic/security.md` | Exists | `SE-` rules: policy, step-up, sessions, CSRF, secrets, credential encryption, redaction, audit, DB privileges |
 | `docs/adr/README.md` | Exists | ADR process and index |
 | `docs/adr/template.md` | Exists | ADR template |
@@ -81,6 +82,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0007-service-to-service-auth.md` | Exists | ADR (D33): Ed25519 service tokens with per-method allowlists |
 | `docs/adr/0009-owner-authentication.md` | Exists | ADR (D15): passkeys + TOTP + recovery codes, setup token, sessions, CSRF, step-up, lockout |
 | `docs/adr/0011-secrets-management.md` | Exists | ADR (D16): `/run/secrets` files, SOPS + age at rest, envelope-encrypted broker credentials, KEK rotation |
+| `docs/adr/0012-web-ui-spa-sse-pwa.md` | Exists | ADR (D11, D13, D14): static Vite + React SPA, SSE, PWA + Pushover |
 | `docs/adr/0010-account-routing-and-day-trade-policy.md` | Exists | ADR (D30): horizon-based account routing, PDT guard off by default, intraday-margin guard, halt on margin events |
 | `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2): NATS JetStream, `sync_interval: always`, stream layout, outbox |
 | `docs/runbooks/` | Planned | Kill switch, broker outage, reconciliation break, restore |
@@ -117,6 +119,12 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `services/api-gateway/` | Exists | Go: owner auth (passkeys, TOTP, recovery), sessions, CSRF, step-up, settings, audit API, credential write-through, SSE status stream, static UI. Layout in [`services/api-gateway/AGENTS.md`](../services/api-gateway/AGENTS.md) |
 | `services/broker-gateway/` | Exists | Go: broker-credential custody (envelope encryption, KEK ring, write-only gRPC `CredentialService`); broker adapters from Phase 1. Layout in [`services/broker-gateway/AGENTS.md`](../services/broker-gateway/AGENTS.md) |
 
+## Apps: `apps/`
+
+| Path | Status | Purpose |
+|---|---|---|
+| `apps/web/` | Exists | Vite + React 19 SPA: login/setup, dashboard, security, broker connections, platform settings, audit log; step-up dialog; SSE status. Layout in [`apps/web/AGENTS.md`](../apps/web/AGENTS.md) |
+
 ## Code (all Planned)
 
 | Path | Purpose | Agent notes |
@@ -131,7 +139,6 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `services/optimizer/` | Studies, holdout discipline, champion/challenger | `AGENTS.md` in dir |
 | `services/assistant/` | LLM agent with constrained tools | `AGENTS.md` in dir |
 | `services/monitor/` | Drift, divergence, alerts, auto-demotion | `AGENTS.md` in dir |
-| `apps/web/` | Web UI, desktop + mobile PWA | `AGENTS.md` in dir |
 | `infra/compose/` | `docker-compose.yml` and profiles | `infra/AGENTS.md` |
 | `infra/docker/` | Hardened base images | `infra/AGENTS.md` |
 | `infra/terraform/` | Remote server provisioning | `infra/AGENTS.md` |
