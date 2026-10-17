@@ -26,3 +26,4 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0008](0008-event-bus-nats-jetstream.md) | NATS JetStream as the event bus | Accepted (research) | 2026-10-17 |
 | [0009](0009-owner-authentication.md) | Owner authentication with built-in passkeys, TOTP fallback, and server-side sessions | Accepted (research) | 2026-10-17 |
 | [0010](0010-account-routing-and-day-trade-policy.md) | Account routing, PDT guard off by default, and an intraday-margin guard | Accepted (research) | 2026-10-17 |
+| [0011](0011-secrets-management.md) | Secrets: mounted files, SOPS + age at rest, envelope encryption for broker credentials | Accepted (research) | 2026-10-17 |

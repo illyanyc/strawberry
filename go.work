@@ -4,4 +4,5 @@ use (
 	./contracts/gen/go
 	./libs/go
 	./services/api-gateway
+	./services/broker-gateway
 )
