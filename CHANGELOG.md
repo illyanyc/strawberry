@@ -26,6 +26,7 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 - Tests: route inventory (SE-004), CSRF and headers, and an end-to-end Postgres test driving real WebAuthn ceremonies through a software authenticator.
 - `services/broker-gateway` (Go): envelope-encrypted broker credentials (per-record AES-256-GCM data key, AAD bound to account + environment, KEK ring with `rewrap-keys` rotation), write-only gRPC `CredentialService` restricted to `api-gateway` by service token, credential writes audited in the same transaction, clock-skew metric (SE-030..SE-033, SE-040; [ADR-0011](docs/adr/0011-secrets-management.md), D16). Tests cover the paper→live relabel attack, KEK rotation, caller allowlist, and secret redaction on the error path.
 - `apps/web`: static Vite + React 19 SPA (TanStack Router/Query, Tailwind 4, shadcn/ui-style primitives) with first-run setup, passkey/TOTP/recovery login, dashboard, security settings (passkeys, authenticator app with QR, recovery codes, sessions), write-only broker credential forms, platform settings with step-up, audit log viewer with chain verification, global step-up dialog, SSE trading-status bar with staleness indicator, PAPER/LIVE banner, PWA manifest; unit tests for the API client and banner (UI-001..UI-008; [ADR-0012](docs/adr/0012-web-ui-spa-sse-pwa.md), D11/D13/D14). New business-logic domain `docs/business-logic/ui.md`.
+- `libs/go/webauthntest`: shared software passkey authenticator (moved from the gateway's tests) for gateway and end-to-end tests.
 - `contracts/openapi/gateway.yaml` (REST + SSE API); `audit.AppendWith` for transactional audit appends.
 - `.golangci.yml` shared lint config; `make test-integration` (`scripts/test-integration.sh`) runs Postgres-backed tests in a throwaway container.
 
@@ -35,6 +36,10 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 - Decision register: every research decision D1–D31 is now **Accepted (research)** with its chosen option and research link (`docs/decisions.md`). Provisional ADR-0003 (D3), ADR-0004 (D1: IBKR adapter becomes a Python service), ADR-0005 (D5), and ADR-0008 (D2: `sync_interval: always`, Postgres outbox) gain research-outcome sections; ADR-0007 (D33) is accepted. `AGENTS.md` system map, `.cursor/rules/` (backend, frontend, python-ml, infra), the architecture overview, and VP model text now state the accepted stack (Vite SPA, SSE, Colima on the Mac Mini, native ML workers, VictoriaLogs + Alloy, no MinIO, Valkey 9).
 - Repo-local decision IDs renumbered to avoid the research report's new D28–D31: monorepo/toolchain D28 → D32, service-to-service auth D29 → D33, audit log design D30 → D34 (ADR-0002, ADR-0007, ADR-0006).
 - `docs/file-map.md` now uses full repo-relative paths in every row so `make docs-check` can verify coverage.
+
+### Fixed
+
+- api-gateway panicked at startup when serving the UI: `GET /` conflicted with the `/api/` catch-all in Go's ServeMux. The SPA handler now registers on `/` and rejects non-GET/HEAD itself; `TestStaticUIServing` covers SPA fallback, assets, unknown API paths, traversal, and CSP.
 
 ### Removed
 

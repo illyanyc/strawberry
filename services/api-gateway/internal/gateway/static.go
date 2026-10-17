@@ -20,6 +20,11 @@ type webUI struct {
 func newWebUI(dir string, log *slog.Logger) *webUI { return &webUI{dir: dir, log: log} }
 
 func (u *webUI) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		w.Header().Set("Allow", "GET, HEAD")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 	clean := path.Clean("/" + r.URL.Path)
 	full := filepath.Join(u.dir, filepath.FromSlash(clean))
 	if !strings.HasPrefix(full, filepath.Clean(u.dir)) {

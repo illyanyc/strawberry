@@ -109,7 +109,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 
 | Path | Status | Purpose |
 |---|---|---|
-| `libs/go/` | Exists | Go module: config, logging/redaction, secrets, ops, telemetry, svc template, svcauth, policy, audit, db (+ embedded migrations), bus, clock. Internal layout in [`libs/go/AGENTS.md`](../libs/go/AGENTS.md) |
+| `libs/go/` | Exists | Go module: config, logging/redaction, secrets, ops, telemetry, svc template, svcauth, policy, audit, db (+ embedded migrations), bus, clock, webauthntest (software passkey authenticator for tests). Internal layout in [`libs/go/AGENTS.md`](../libs/go/AGENTS.md) |
 | `libs/py/tbcore/` | Exists | Python package: service template, JSON logging with redaction, secrets (later: features, labels, strategy API). Layout in [`libs/py/tbcore/AGENTS.md`](../libs/py/tbcore/AGENTS.md) |
 
 ## Services: `services/`

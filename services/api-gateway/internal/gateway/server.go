@@ -192,7 +192,9 @@ func (s *Server) Handler(metrics func(http.Handler) http.Handler) http.Handler {
 		writeError(w, http.StatusNotFound, "not_found", "no such route")
 	})
 	if s.web != nil {
-		mux.Handle("GET /", s.web)
+		// Registered without a method so it does not conflict with the /api/ and /auth/ catch-alls;
+		// webUI itself rejects anything but GET and HEAD.
+		mux.Handle("/", s.web)
 	}
 	var h http.Handler = mux
 	if metrics != nil {

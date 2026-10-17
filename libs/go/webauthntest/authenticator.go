@@ -1,7 +1,7 @@
-package gateway
-
-// A minimal software WebAuthn authenticator (ES256, "none" attestation, UV) so tests drive real
-// registration and assertion ceremonies through go-webauthn, exactly as a browser passkey would.
+// Package webauthntest is a minimal software WebAuthn authenticator (ES256, "none" attestation, user
+// verification) so tests drive real registration and assertion ceremonies end to end, exactly as a
+// browser passkey would. Test use only.
+package webauthntest
 
 import (
 	"crypto/ecdsa"
@@ -11,13 +11,12 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
-	"testing"
 
 	"github.com/fxamacker/cbor/v2"
 )
 
-type softAuthenticator struct {
-	t          *testing.T
+// Authenticator holds one ES256 credential.
+type Authenticator struct {
 	rpID       string
 	origin     string
 	key        *ecdsa.PrivateKey
@@ -26,24 +25,25 @@ type softAuthenticator struct {
 	signCount  uint32
 }
 
-func newSoftAuthenticator(t *testing.T, rpID, origin string) *softAuthenticator {
+// New returns an authenticator for rpID that reports origin in its client data.
+func New(rpID, origin string) *Authenticator {
 	k, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
-		t.Fatal(err)
+		panic(err)
 	}
 	id := make([]byte, 32)
 	_, _ = rand.Read(id)
-	return &softAuthenticator{t: t, rpID: rpID, origin: origin, key: k, credID: id}
+	return &Authenticator{rpID: rpID, origin: origin, key: k, credID: id}
 }
 
 var b64 = base64.RawURLEncoding
 
-func (a *softAuthenticator) clientData(typ, challenge string) []byte {
+func (a *Authenticator) clientData(typ, challenge string) []byte {
 	b, _ := json.Marshal(map[string]any{"type": typ, "challenge": challenge, "origin": a.origin, "crossOrigin": false})
 	return b
 }
 
-func (a *softAuthenticator) authData(flags byte, attested []byte) []byte {
+func (a *Authenticator) authData(flags byte, attested []byte) []byte {
 	rp := sha256.Sum256([]byte(a.rpID))
 	out := append([]byte{}, rp[:]...)
 	out = append(out, flags)
@@ -53,13 +53,13 @@ func (a *softAuthenticator) authData(flags byte, attested []byte) []byte {
 	return append(out, attested...)
 }
 
-// create answers PublicKeyCredentialCreationOptions JSON.
-func (a *softAuthenticator) create(options map[string]any) json.RawMessage {
+// Create answers PublicKeyCredentialCreationOptions JSON with a registration response.
+func (a *Authenticator) Create(options map[string]any) json.RawMessage {
 	pk := options
 	user := pk["user"].(map[string]any)
 	handle, err := b64.DecodeString(user["id"].(string))
 	if err != nil {
-		a.t.Fatal(err)
+		panic(err)
 	}
 	a.userHandle = handle
 	x := a.key.X.FillBytes(make([]byte, 32))
@@ -82,8 +82,8 @@ func (a *softAuthenticator) create(options map[string]any) json.RawMessage {
 	return out
 }
 
-// get answers PublicKeyCredentialRequestOptions.
-func (a *softAuthenticator) get(options map[string]any) json.RawMessage {
+// Get answers PublicKeyCredentialRequestOptions JSON with an assertion response.
+func (a *Authenticator) Get(options map[string]any) json.RawMessage {
 	pk := options
 	a.signCount++
 	ad := a.authData(0x05, nil) // UP | UV
@@ -92,7 +92,7 @@ func (a *softAuthenticator) get(options map[string]any) json.RawMessage {
 	digest := sha256.Sum256(append(append([]byte{}, ad...), h[:]...))
 	sig, err := ecdsa.SignASN1(rand.Reader, a.key, digest[:])
 	if err != nil {
-		a.t.Fatal(err)
+		panic(err)
 	}
 	out, _ := json.Marshal(map[string]any{
 		"id": b64.EncodeToString(a.credID), "rawId": b64.EncodeToString(a.credID), "type": "public-key",

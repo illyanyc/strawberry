@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"testing"
@@ -96,5 +98,49 @@ func TestSE006CSRFAndSE013Headers(t *testing.T) {
 	h.ServeHTTP(rec, httptest.NewRequest("GET", "/api/v1/nope", nil))
 	if rec.Code != http.StatusNotFound {
 		t.Errorf("unknown API path: %d", rec.Code)
+	}
+}
+
+// The SPA handler coexists with the API catch-alls: client routes fall back to index.html, unknown
+// API paths stay 404, hashed assets are cacheable, and non-GET methods are rejected.
+func TestStaticUIServing(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(dir, "assets"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	_ = os.WriteFile(filepath.Join(dir, "index.html"), []byte("<!doctype html><div id=root></div>"), 0o644)
+	_ = os.WriteFile(filepath.Join(dir, "assets", "app-abc.js"), []byte("console.log(1)"), 0o644)
+	cfg := testConfig("http://localhost:8080")
+	cfg.WebDir = dir
+	srv, err := New(cfg, Deps{MasterKey: make([]byte, 32), Log: slog.New(slog.NewTextHandler(io.Discard, nil))})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := srv.Handler(nil)
+	get := func(method, path string) *httptest.ResponseRecorder {
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, httptest.NewRequest(method, path, nil))
+		return rec
+	}
+	if r := get("GET", "/settings/security"); r.Code != 200 || !strings.Contains(r.Body.String(), "root") {
+		t.Fatalf("SPA fallback: %d", r.Code)
+	}
+	if r := get("GET", "/assets/app-abc.js"); r.Code != 200 || !strings.Contains(r.Header().Get("Cache-Control"), "immutable") {
+		t.Fatalf("asset: %d %q", r.Code, r.Header().Get("Cache-Control"))
+	}
+	if r := get("GET", "/assets/missing.js"); r.Code != 404 {
+		t.Fatalf("missing asset: %d", r.Code)
+	}
+	if r := get("GET", "/api/v1/nope"); r.Code != 404 {
+		t.Fatalf("unknown API path: %d", r.Code)
+	}
+	if r := get("GET", "/../../etc/passwd"); r.Code == 200 && strings.Contains(r.Body.String(), "root:") {
+		t.Fatal("path traversal")
+	}
+	if r := get("DELETE", "/"); r.Code != http.StatusMethodNotAllowed && r.Code != http.StatusForbidden {
+		t.Fatalf("DELETE /: %d", r.Code)
+	}
+	if r := get("GET", "/"); !strings.Contains(r.Header().Get("Content-Security-Policy"), "script-src 'self';") {
+		t.Fatalf("CSP on UI: %q", r.Header().Get("Content-Security-Policy"))
 	}
 }

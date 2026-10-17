@@ -39,7 +39,7 @@ The only service reachable from outside the host. Owns owner authentication, ses
 | `internal/gateway/credentials.go` | gRPC client to broker-gateway and credential endpoints |
 | `internal/gateway/events.go` | SSE `trading-status` stream and status snapshot |
 | `internal/gateway/static.go` | SPA file server with index fallback |
-| `internal/gateway/*_test.go` | Route inventory, CSRF/headers, software WebAuthn authenticator, end-to-end integration tests |
+| `internal/gateway/*_test.go` | Route inventory, CSRF/headers, static UI serving, end-to-end integration tests (passkeys via `libs/go/webauthntest`) |
 
 ## Configuration
 | Variable | Default | Notes |
@@ -67,4 +67,5 @@ The only service reachable from outside the host. Owns owner authentication, ses
 ## Gotchas
 - WebAuthn RP ID must be a domain (not an IP); use `localhost` locally.
 - The SSE stream re-checks the session each tick without sliding the idle timeout.
+- The SPA handler is registered on `/` without a method (Go's ServeMux rejects `GET /` next to the `/api/` catch-all); `webUI` rejects non-GET/HEAD itself.
 - `setup-token` prints to the terminal, never to logs. Run it via `make setup-token`.

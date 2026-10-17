@@ -1,7 +1,7 @@
 package gateway
 
 // End-to-end auth tests against real Postgres (TB_TEST_PG_SUPER_DSN; skipped when unset) with real
-// WebAuthn ceremonies from softAuthenticator. Covers SE-003..SE-011, SE-014, SE-020..SE-025.
+// WebAuthn ceremonies from libs/go/webauthntest. Covers SE-003..SE-011, SE-014, SE-020..SE-025.
 
 import (
 	"bufio"
@@ -26,6 +26,7 @@ import (
 
 	brokerv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/broker/v1"
 	"github.com/illyanyc/strawberry/libs/go/db"
+	"github.com/illyanyc/strawberry/libs/go/webauthntest"
 )
 
 type fakeCreds struct {
@@ -176,8 +177,8 @@ func (h *harness) auditActions() []string {
 func TestSEAuthEndToEnd(t *testing.T) {
 	h := newHarness(t)
 	ctx := context.Background()
-	laptop := newSoftAuthenticator(t, "localhost", h.base)
-	phone := newSoftAuthenticator(t, "localhost", h.base)
+	laptop := webauthntest.New("localhost", h.base)
+	phone := webauthntest.New("localhost", h.base)
 
 	// SE-007: setup requires a valid token; registration closes afterwards.
 	h.do("POST", "/auth/setup/begin", map[string]string{"setup_token": "nope"}, 401)
@@ -187,7 +188,7 @@ func TestSEAuthEndToEnd(t *testing.T) {
 	}
 	begin := h.do("POST", "/auth/setup/begin", map[string]string{"setup_token": tok, "display_name": "Illya"}, 200)
 	fin := h.do("POST", "/auth/setup/finish", map[string]any{"setup_token": tok, "ceremony_id": begin["ceremony_id"],
-		"display_name": "Illya", "passkey_name": "laptop", "credential": laptop.create(begin["options"].(map[string]any))}, 200)
+		"display_name": "Illya", "passkey_name": "laptop", "credential": laptop.Create(begin["options"].(map[string]any))}, 200)
 	codes := fin["recovery_codes"].([]any)
 	if len(codes) != 10 {
 		t.Fatalf("SE-009: want 10 recovery codes, got %d", len(codes))
@@ -203,7 +204,7 @@ func TestSEAuthEndToEnd(t *testing.T) {
 	// Second passkey (fresh step-up from setup) — the owner should register two authenticators.
 	rb := h.do("POST", "/auth/webauthn/register/begin", nil, 200)
 	h.do("POST", "/auth/webauthn/register/finish", map[string]any{"ceremony_id": rb["ceremony_id"], "name": "phone",
-		"credential": phone.create(rb["options"].(map[string]any))}, 201)
+		"credential": phone.Create(rb["options"].(map[string]any))}, 201)
 
 	// SE-008: TOTP enrollment and confirmation.
 	enroll := h.do("POST", "/auth/totp/enroll", nil, 200)
@@ -216,9 +217,9 @@ func TestSEAuthEndToEnd(t *testing.T) {
 
 	// Passkey login from the phone (discoverable credential).
 	lb := h.do("POST", "/auth/webauthn/login/begin", nil, 200)
-	h.do("POST", "/auth/webauthn/login/finish", map[string]any{"ceremony_id": lb["ceremony_id"], "credential": phone.get(lb["options"].(map[string]any))}, 200)
+	h.do("POST", "/auth/webauthn/login/finish", map[string]any{"ceremony_id": lb["ceremony_id"], "credential": phone.Get(lb["options"].(map[string]any))}, 200)
 	// Replay of the same ceremony is rejected (single use).
-	h.do("POST", "/auth/webauthn/login/finish", map[string]any{"ceremony_id": lb["ceremony_id"], "credential": phone.get(lb["options"].(map[string]any))}, 400)
+	h.do("POST", "/auth/webauthn/login/finish", map[string]any{"ceremony_id": lb["ceremony_id"], "credential": phone.Get(lb["options"].(map[string]any))}, 400)
 
 	// SE-003: after the step-up window, enabling live trading requires a passkey step-up.
 	h.clock.advance(6 * time.Minute)
@@ -229,7 +230,7 @@ func TestSEAuthEndToEnd(t *testing.T) {
 	// Lowering-risk changes need no step-up.
 	h.do("PUT", "/api/v1/settings/ui.theme", map[string]any{"value": "light", "version": 0}, 200)
 	sb := h.do("POST", "/auth/step-up/begin", nil, 200)
-	h.do("POST", "/auth/step-up/finish", map[string]any{"ceremony_id": sb["ceremony_id"], "credential": laptop.get(sb["options"].(map[string]any))}, 200)
+	h.do("POST", "/auth/step-up/finish", map[string]any{"ceremony_id": sb["ceremony_id"], "credential": laptop.Get(sb["options"].(map[string]any))}, 200)
 	h.do("PUT", "/api/v1/settings/trading.live_enabled", map[string]any{"value": true, "version": 0}, 200)
 	// SE-025: optimistic concurrency.
 	h.do("PUT", "/api/v1/settings/trading.live_enabled", map[string]any{"value": false, "version": 0}, 409)
@@ -260,9 +261,9 @@ func TestSEAuthEndToEnd(t *testing.T) {
 	}
 	// ...but it does allow account recovery (register a new passkey).
 	rb = h.do("POST", "/auth/webauthn/register/begin", nil, 200)
-	spare := newSoftAuthenticator(t, "localhost", h.base)
+	spare := webauthntest.New("localhost", h.base)
 	h.do("POST", "/auth/webauthn/register/finish", map[string]any{"ceremony_id": rb["ceremony_id"], "name": "spare",
-		"credential": spare.create(rb["options"].(map[string]any))}, 201)
+		"credential": spare.Create(rb["options"].(map[string]any))}, 201)
 
 	// SE-008: TOTP code replay is rejected.
 	h.do("POST", "/auth/logout", nil, 204)
@@ -302,10 +303,10 @@ func TestSEAuthEndToEnd(t *testing.T) {
 func TestSSEStreamRequiresSessionAndEndsOnRevoke(t *testing.T) {
 	h := newHarness(t)
 	h.do("GET", "/api/v1/events", nil, 401)
-	a := newSoftAuthenticator(t, "localhost", h.base)
+	a := webauthntest.New("localhost", h.base)
 	tok, _ := h.srv.IssueSetupToken(context.Background())
 	b := h.do("POST", "/auth/setup/begin", map[string]string{"setup_token": tok}, 200)
-	h.do("POST", "/auth/setup/finish", map[string]any{"setup_token": tok, "ceremony_id": b["ceremony_id"], "credential": a.create(b["options"].(map[string]any))}, 200)
+	h.do("POST", "/auth/setup/finish", map[string]any{"setup_token": tok, "ceremony_id": b["ceremony_id"], "credential": a.Create(b["options"].(map[string]any))}, 200)
 
 	r, _ := http.NewRequest("GET", h.base+"/api/v1/events", nil)
 	resp, err := h.c.Do(r)

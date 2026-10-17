@@ -24,6 +24,7 @@ Shared Go module `github.com/illyanyc/strawberry/libs/go` used by every Go servi
 | `db/migrations/<schema>/` | SQL migrations, applied as `<schema>_owner` by `tbctl db init` | — |
 | `bus/` | NATS connect, JetStream stream definitions, proto publish with dedupe + correlation headers | OP-030 |
 | `clock/` | NTP skew checker, `tb_clock_skew_seconds`, fail-closed `Healthy()` | OP-020 |
+| `webauthntest/` | Software WebAuthn authenticator (ES256, none attestation, UV) for gateway and end-to-end tests; test use only | SE-003..SE-009 tests |
 
 ## Run and test
 - Unit: `cd libs/go && go test -race ./...`
