@@ -18,11 +18,12 @@ Presentation rules for the web UI on desktop and mobile: page inventory, PAPER/L
 | UI-001 | Every authenticated page MUST show a persistent environment banner: **PAPER** (calm) or **LIVE** (high-contrast, pulsing, labelled in text). Unknown state shows "connecting", never PAPER by default. | Implemented | `apps/web/src/components/EnvironmentBanner.tsx`; `EnvironmentBanner.test.tsx` |
 | UI-002 | A `403 step_up_required` response MUST open the step-up dialog (passkey; TOTP only when the server says `any`) and retry the original request once on success; cancel surfaces an error, never a silent failure. | Implemented | `apps/web/src/lib/api.ts`, `StepUpDialog.tsx`; `api.test.ts` |
 | UI-003 | Broker credential forms MUST be write-only: secret inputs are cleared after submit and stored values are never displayed; status shows only field names and timestamps. LIVE submissions use the danger style. | Implemented | `apps/web/src/routes/settings.tsx` |
-| UI-004 | Live values MUST show staleness: if no SSE event arrived within 45 s the status indicator turns to "stale". | Implemented | `apps/web/src/lib/events.ts`, `AppShell.tsx` |
+| UI-004 | Live values MUST show staleness: if no SSE event arrived within 45 s the status indicator turns to "stale". The banner shows the most recent of the SSE stream and the REST snapshot (refetched after any settings change), so a mode change is visible immediately. | Implemented | `apps/web/src/lib/events.ts`, `AppShell.tsx`; `apps/web/e2e/shell.spec.ts` |
 | UI-005 | The SPA MUST NOT use inline scripts, inline `<style>`, or raw HTML injection, so the gateway's strict CSP needs no exceptions. | Implemented | `apps/web/eslint.config.js`, `vite.config.ts`; build output check |
 | UI-006 | The global kill switch MUST be reachable from every authenticated screen in at most two taps on mobile (engage: confirmation; release: step-up). Phase 0 shows it disabled until execution exists. | Specified | `apps/web/src/components/AppShell.tsx` (placeholder) |
 | UI-007 | Every data view MUST render loading, empty, and error states, and layouts MUST work at 360, 768, 1280, and 1920 px. | Implemented | `apps/web/src/routes/*` |
-| UI-008 | Timestamps are shown in local time with the zone label; money is shown from server decimal strings (no float math). | Implemented | `apps/web/src/lib/utils.ts` (`formatTime`) |
+| UI-008 | Timestamps are shown in local time with the zone label; money is shown from server decimal strings (no float math). | Implemented | `apps/web/src/lib/utils.ts` (`formatTime`); `utils.test.ts` |
+| UI-009 | Cached server data MUST be discarded on logout and login, so one session's data is never shown to the next. | Implemented | `apps/web/src/components/AppShell.tsx`, `src/routes/auth.tsx`; `e2e/shell.spec.ts` |
 
 ## Invariants
 

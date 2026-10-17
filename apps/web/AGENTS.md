@@ -32,11 +32,13 @@ The only human interface: a static Vite + React 19 SPA served by `api-gateway`. 
 | `src/lib/events.ts` | SSE status hook and staleness clock |
 | `src/components/` | App shell, environment banner, step-up dialog, `ui/` primitives |
 | `src/routes/` | Login/setup, dashboard, security, broker connections, platform settings, audit log |
+| `e2e/`, `playwright.config.ts` | Playwright browser test against the running stack |
 
 ## Run and test
 - Dev: `pnpm --filter @strawberry/web dev` (proxies `/api` and `/auth` to `TB_GATEWAY_URL`, default `http://localhost:8080`); WebAuthn needs the origin in `TB_AUTH_ORIGINS`.
 - Build: `pnpm --filter @strawberry/web build` → `dist/` (copied into the api-gateway image).
 - Test: `pnpm --filter @strawberry/web test`, `typecheck`, `lint`. Needs Node ≥ 22.15.
+- Browser e2e against a fresh running stack: `make e2e-ui` (Playwright + Chrome virtual authenticator: setup, TOTP enrollment and login, passkey step-up for live trading, LIVE banner, write-only credentials, audit verification, mobile layout, passkey login, zero CSP violations). First time: `pnpm --filter @strawberry/web exec playwright install --with-deps chromium`.
 
 ## Gotchas
 - The gateway's CSP is `script-src 'self'; style-src 'self'`: no inline `<script>`/`<style>`, no `dangerouslySetInnerHTML`. React `style` props are fine (CSSOM).

@@ -1,10 +1,11 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useCallback } from "react";
 
 import { EnvironmentBanner } from "@/components/EnvironmentBanner";
 import { Badge } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { api } from "@/lib/api";
+import { api, type TradingStatus } from "@/lib/api";
 import { STALE_AFTER_MS, useNow, useTradingStatus } from "@/lib/events";
 import { cn, formatTime } from "@/lib/utils";
 
@@ -19,13 +20,21 @@ const nav = [
 /** Authenticated layout: environment banner, trading status bar, navigation (sidebar / bottom bar). */
 export function AppShell() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const onSessionEnded = useCallback(() => void navigate({ to: "/login" }), [navigate]);
-  const { status, connected, lastEventAt } = useTradingStatus(onSessionEnded);
+  const stream = useTradingStatus(onSessionEnded);
+  const { connected, lastEventAt } = stream;
+  // The REST snapshot is refetched right after a settings change; the SSE stream updates periodically.
+  // Show whichever the server produced most recently so the banner never lags a change.
+  const snapshot = useQuery({ queryKey: ["status"], queryFn: () => api<TradingStatus>("/api/v1/system/status") });
+  const status = latest(stream.status, snapshot.data ?? null);
   const now = useNow();
   const stale = lastEventAt === null || now - lastEventAt > STALE_AFTER_MS;
 
   const logout = async () => {
     await api("/auth/logout", { method: "POST" }).catch(() => undefined);
+    // Never show one session's data to the next one.
+    queryClient.clear();
     void navigate({ to: "/login" });
   };
 
@@ -94,4 +103,10 @@ export function AppShell() {
       </nav>
     </div>
   );
+}
+
+function latest(a: TradingStatus | null, b: TradingStatus | null): TradingStatus | null {
+  if (!a) return b;
+  if (!b) return a;
+  return Date.parse(a.server_time) >= Date.parse(b.server_time) ? a : b;
 }

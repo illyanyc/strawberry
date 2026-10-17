@@ -26,6 +26,7 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 - Tests: route inventory (SE-004), CSRF and headers, and an end-to-end Postgres test driving real WebAuthn ceremonies through a software authenticator.
 - `services/broker-gateway` (Go): envelope-encrypted broker credentials (per-record AES-256-GCM data key, AAD bound to account + environment, KEK ring with `rewrap-keys` rotation), write-only gRPC `CredentialService` restricted to `api-gateway` by service token, credential writes audited in the same transaction, clock-skew metric (SE-030..SE-033, SE-040; [ADR-0011](docs/adr/0011-secrets-management.md), D16). Tests cover the paper→live relabel attack, KEK rotation, caller allowlist, and secret redaction on the error path.
 - `apps/web`: static Vite + React 19 SPA (TanStack Router/Query, Tailwind 4, shadcn/ui-style primitives) with first-run setup, passkey/TOTP/recovery login, dashboard, security settings (passkeys, authenticator app with QR, recovery codes, sessions), write-only broker credential forms, platform settings with step-up, audit log viewer with chain verification, global step-up dialog, SSE trading-status bar with staleness indicator, PAPER/LIVE banner, PWA manifest; unit tests for the API client and banner (UI-001..UI-008; [ADR-0012](docs/adr/0012-web-ui-spa-sse-pwa.md), D11/D13/D14). New business-logic domain `docs/business-logic/ui.md`.
+- `apps/web/e2e/shell.spec.ts`: Playwright browser test of the whole Phase 0 UI flow with Chrome's virtual authenticator; `utils.test.ts`.
 - `libs/go/webauthntest`: shared software passkey authenticator (moved from the gateway's tests) for gateway and end-to-end tests.
 - `contracts/openapi/gateway.yaml` (REST + SSE API); `audit.AppendWith` for transactional audit appends.
 - `.golangci.yml` shared lint config; `make test-integration` (`scripts/test-integration.sh`) runs Postgres-backed tests in a throwaway container.
@@ -39,6 +40,7 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 
 ### Fixed
 
+- Web UI bugs found by the first real-browser run: `formatTime` combined `dateStyle`/`timeStyle` with `timeZoneName` (rejected by browsers, crashing the security page); the dashboard showed the previous session's data after logout/login (query cache now cleared, UI-009); the SSE hook re-subscribed on every render; the PAPER/LIVE banner lagged a settings change by up to 15 s (UI-004).
 - api-gateway panicked at startup when serving the UI: `GET /` conflicted with the `/api/` catch-all in Go's ServeMux. The SPA handler now registers on `/` and rejects non-GET/HEAD itself; `TestStaticUIServing` covers SPA fallback, assets, unknown API paths, traversal, and CSP.
 
 ### Removed

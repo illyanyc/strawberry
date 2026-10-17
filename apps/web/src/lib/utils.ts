@@ -11,5 +11,14 @@ export function formatTime(value: string | number | null | undefined): string {
   if (value === null || value === undefined || value === "") return "—";
   const d = typeof value === "number" ? new Date(value / 1e6) : new Date(value);
   if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "medium", timeZoneName: "short" });
+  // dateStyle/timeStyle cannot be combined with timeZoneName, so list the fields explicitly.
+  return d.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZoneName: "short",
+  });
 }

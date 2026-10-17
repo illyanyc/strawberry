@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
@@ -33,6 +34,7 @@ function AuthFrame({ title, subtitle, children }: { title: string; subtitle: str
 /** Login: passkey first; TOTP and recovery codes as reduced-assurance fallbacks (SE-014). */
 export function LoginPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [mode, setMode] = useState<"passkey" | "totp" | "recovery">("passkey");
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +45,7 @@ export function LoginPage() {
     setError(null);
     try {
       await fn();
+      queryClient.clear();
       await navigate({ to: "/" });
     } catch (e) {
       setError(message(e));

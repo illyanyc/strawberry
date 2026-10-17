@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { TradingStatus } from "./api";
 
@@ -17,6 +17,11 @@ export interface StatusStream {
  */
 export function useTradingStatus(onSessionEnded: () => void): StatusStream {
   const [state, setState] = useState<StatusStream>({ status: null, connected: false, lastEventAt: null });
+  // Keep the latest callback without re-opening the stream when its identity changes.
+  const onEnded = useRef(onSessionEnded);
+  useEffect(() => {
+    onEnded.current = onSessionEnded;
+  }, [onSessionEnded]);
 
   useEffect(() => {
     const es = new EventSource("/api/v1/events", { withCredentials: true });
@@ -28,10 +33,10 @@ export function useTradingStatus(onSessionEnded: () => void): StatusStream {
     });
     es.addEventListener("session-ended", () => {
       es.close();
-      onSessionEnded();
+      onEnded.current();
     });
     return () => es.close();
-  }, [onSessionEnded]);
+  }, []);
 
   return state;
 }
