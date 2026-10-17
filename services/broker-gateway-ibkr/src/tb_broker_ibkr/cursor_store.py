@@ -16,6 +16,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from tb_broker_ibkr.events import ReconciliationRequest
+from tb_broker_ibkr.models import AccountSnapshot, BrokerOrder, ExecutionReport
+
 _NS_PER_DAY = 86_400 * 1_000_000_000
 
 
@@ -26,7 +29,10 @@ class _AccountCursor:
 
 
 class CursorStore:
-    """In-memory cursor; :class:`FileCursorStore` adds persistence."""
+    """In-memory cursor (a :class:`~tb_broker_ibkr.journal.Journal` that does not publish);
+    :class:`FileCursorStore` adds persistence."""
+
+    publishes = False
 
     def __init__(self, retention_days: int = 8) -> None:
         self._accounts: dict[str, _AccountCursor] = {}
@@ -55,7 +61,22 @@ class CursorStore:
             del cursor.seen[old]
         self._persist()
 
-    def mark_ready(self, when: int) -> None:
+    async def record_execution(self, report: ExecutionReport) -> bool:
+        if self.seen(report.broker_account_id, report.broker_exec_id):
+            return False
+        self.mark(report.broker_account_id, report.broker_exec_id, report.event_time)
+        return True
+
+    async def record_order(self, order: BrokerOrder) -> None:
+        return None
+
+    async def record_snapshot(self, snapshot: AccountSnapshot) -> None:
+        return None
+
+    async def record_reconciliation(self, request: ReconciliationRequest) -> None:
+        return None
+
+    async def mark_ready(self, when: int) -> None:
         self.last_ready_at = when
         self._persist()
 

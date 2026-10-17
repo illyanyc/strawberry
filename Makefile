@@ -142,6 +142,10 @@ ibkr-vnc: ## Publish IB Gateway VNC on 127.0.0.1:5900 for a manual login (IBKR_E
 ibkr-vnc-stop: ## Remove the on-demand VNC proxy (the gateway keeps running)
 	COMPOSE_PROFILES=ibkr-vnc $(COMPOSE) rm -sf ibkr-vnc
 
+.PHONY: test-ibkr-contract
+test-ibkr-contract: ## Shared Go broker contract suite (BR-001) against the IBKR adapter over its fake gateway
+	scripts/ibkr-contract.sh
+
 .PHONY: test-ibkr-paper
 test-ibkr-paper: ## Opt-in tests against a real IB Gateway paper session, incl. spike V1 (TB_IBKR_PAPER_* env)
 	TB_IBKR_PAPER_TEST=1 uv run pytest services/broker-gateway-ibkr/tests/paper -m ibkr_paper -v

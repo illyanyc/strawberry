@@ -59,4 +59,5 @@ IBC is archived; treat any image change as a planned change. Pin a new tag **and
 2. `TB_IBKR_PAPER_ACCOUNT=DU… TB_IBKR_PAPER_PORT=4002 make test-ibkr-paper` (writes `v1-order-ref.json`; add `TB_IBKR_SPIKE_FILLS=1` to also test executions).
 3. Restart the paper gateway, then `TB_IBKR_SPIKE_PHASE=after_restart make test-ibkr-paper` to check persistence by `permId`.
 4. Record the result in the "Spike V1" section of [brokers-ibkr.md](../business-logic/brokers-ibkr.md).
-5. Rehearse one Sunday cold restart on paper and confirm the reminder, recovery, and reconciliation request.
+5. Run the shared contract suite against the paper adapter (IB-063): from a container on the `ibkr`/`backend` network or with the adapter's gRPC port reachable, `cd services/broker-gateway && TB_BROKER_CONTRACT_ADDR=<host>:9090 TB_BROKER_CONTRACT_ACCOUNT=ibkr-paper-bot TB_BROKER_CONTRACT_SEED_FILE=../../.secrets/svc_execution_ed25519 go test -run TestBR001ContractRemote ./internal/contract/`.
+6. Rehearse one Sunday cold restart on paper and confirm the reminder, recovery, and reconciliation request.

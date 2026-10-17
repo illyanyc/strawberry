@@ -14,7 +14,7 @@ IBKR adapter: supervises the IB Gateway API session (daily restart, weekly 2FA l
 | in | gRPC `:9090` | `tb.broker.v1.BrokerGatewayService` (callers per method: execution, ledger, marketdata, api-gateway; service tokens SE-040) | `contracts/proto/tb/broker/v1/gateway.proto` |
 | out | TWS API socket | `ib-gateway-<env>:4004` (paper) / `:4003` (live), network `ibkr` only | IBKR TWS API via `ib_async` |
 | out | NATS JetStream | `ord.update.<acct>`, `exec.<acct>` (`tb.orders.v1.ExecutionReport`), `acct.snapshot.<acct>`, `recon.request.<acct>`, `alert.<severity>` (`tb.alerts.v1.Alert`), `sys.health.broker-gateway-ibkr` | ADR-0018, ADR-0008 |
-| out | Postgres | `audit.append` only (role `svc_broker_gateway_ibkr`) | SE-020, BR-014 |
+| out | Postgres (role `svc_broker_gateway_ibkr`) | `audit.append`; schema `broker_ibkr` (executions, order events, outbox, state); `broker.live_enablement` read-only | SE-020, BR-014, ADR-0023 |
 | in | HTTP (internal) | `/healthz`, `/readyz` (`gateway_session`, `nats`, `live_enablement`), `/metrics` on `:8081` | OP-010 |
 
 ## Business rules enforced here
@@ -37,8 +37,9 @@ IBKR adapter: supervises the IB Gateway API session (daily restart, weekly 2FA l
 | `src/tb_broker_ibkr/codec.py` | Domain ↔ protobuf, IBKR reject-code mapping |
 | `src/tb_broker_ibkr/grpc_service.py`, `svcauth.py` | gRPC servicer, stream hub, service-token interceptor (Go-compatible tokens) |
 | `src/tb_broker_ibkr/audit.py`, `bus.py`, `metrics.py`, `events.py` | Audit log, NATS publisher, Prometheus metrics, event sink fan-out |
-| `src/tb_broker_ibkr/cursor_store.py`, `pacing.py`, `backoff.py`, `clock.py`, `instruments.py` | Execution cursor, historical pacing + line budget, backoff, injectable clock, instrument map |
-| `src/tb_broker_ibkr/fakes/` | `gateway.py` (port-level fake), `wire.py` (socket-level TWS fake for real `ib_async`), `replay.py` (fixture format, replay, recorder) |
+| `src/tb_broker_ibkr/journal.py`, `relay.py` | `Journal` protocol, Postgres journal (`broker_ibkr` + outbox), DB live enablement; outbox relay to JetStream |
+| `src/tb_broker_ibkr/cursor_store.py`, `pacing.py`, `backoff.py`, `clock.py`, `instruments.py` | File cursor (no-DB fallback journal), historical pacing + line budget, backoff, injectable clock, instrument map + IBKR contract resolver |
+| `src/tb_broker_ibkr/fakes/` | `gateway.py` (port-level fake), `wire.py` (socket-level TWS fake for real `ib_async`), `replay.py` (fixture format, replay, recorder), `serve.py` (gRPC over the fake gateway for the Go contract suite) |
 | `tests/` | Unit/behavior tests on virtual time, wire tests, gRPC and entrypoint tests; `fixtures/*.jsonl` recorded-format messages; `paper/` opt-in real-gateway suite and spike V1 |
 
 ## Configuration
@@ -55,13 +56,13 @@ IBKR adapter: supervises the IB Gateway API session (daily restart, weekly 2FA l
 | `TB_IBKR_STATE_DIR` | `/var/lib/broker-gateway-ibkr` | Execution cursor (named volume) |
 | `TB_IBKR_RECORD_PATH` | — | Opt-in: append gateway callbacks as fixture JSONL (account codes replaced) |
 | `TB_TRADING_LIVE_ENABLED` | `false` | Live gate 1 (BR-013) |
-| `TB_NATS_USER` / `TB_DB_USER` | — | `broker_gateway_ibkr` / `svc_broker_gateway_ibkr`; without a DB user every order request fails (SE-021) |
+| `TB_NATS_USER` / `TB_DB_USER` | — | `broker_gateway_ibkr` / `svc_broker_gateway_ibkr`. With a DB: audit, outbox journal, live gate. Without: every order request fails (SE-021) and a file cursor replaces the outbox (dev only) |
 | `TB_GRPC_ADDR` / `TB_GRPC_CALLERS` | `0.0.0.0:9090` / `execution,ledger,marketdata,api-gateway` | Callers' public keys from `svc_<caller>_ed25519.pub` |
 | Secrets | — | `nats_broker_gateway_ibkr_password`, `pg_svc_broker_gateway_ibkr_password`, `svc_*_ed25519.pub` |
 
 ## Run and test
 - Run: `make up PROFILES=core,observability,ibkr` (paper; add `ibkr-live` for live). Setup and weekly login: [runbook](../../docs/runbooks/ibkr-weekly-2fa.md).
-- Test: `uv run pytest services/broker-gateway-ibkr/tests` (no IBKR needed; ~7 s). Opt-in real paper gateway and spike V1: `make test-ibkr-paper` with `TB_IBKR_PAPER_ACCOUNT`, `TB_IBKR_PAPER_HOST`, `TB_IBKR_PAPER_PORT`.
+- Test: `uv run pytest services/broker-gateway-ibkr/tests` (no IBKR needed; ~8 s; Postgres journal tests need `TB_TEST_PG_SUPER_DSN`). Shared Go contract suite over the fake gateway: `make test-ibkr-contract`. Opt-in real paper gateway and spike V1: `make test-ibkr-paper` with `TB_IBKR_PAPER_ACCOUNT`, `TB_IBKR_PAPER_HOST`, `TB_IBKR_PAPER_PORT`.
 - Lint: `make lint-py`.
 
 ## Operational notes

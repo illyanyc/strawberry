@@ -34,6 +34,7 @@ var Schemas = []Schema{
 	{Name: "broker", Owner: "broker_owner"},
 	{Name: "refdata", Owner: "refdata_owner"},
 	{Name: "marketdata", Owner: "marketdata_owner"},
+	{Name: "broker_ibkr", Owner: "broker_ibkr_owner"},
 }
 
 // LoginRoles are the service roles that may log in to the platform database. Their passwords are
@@ -45,7 +46,7 @@ var LoginRoles = []string{
 
 // GroupRoles are NOLOGIN roles granted to login roles.
 var GroupRoles = map[string][]string{
-	// svc_broker_gateway_ibkr only appends order-path audit events (BR-014); it has no table grants.
+	// svc_broker_gateway_ibkr appends order-path audit events (BR-014); its tables are in broker_ibkr.
 	"audit_writer": {"svc_api_gateway", "svc_broker_gateway", "svc_broker_gateway_ibkr", "svc_marketdata", "svc_execution", "svc_ledger"},
 	"audit_reader": {"svc_api_gateway", "svc_ops"},
 	// Read-only reference data (instrument master, calendar, corporate actions, universes).

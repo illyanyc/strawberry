@@ -43,6 +43,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `scripts/check-arm64.sh` | Exists | Verifies every pinned image has a linux/arm64 variant (OP-043) |
 | `scripts/gen_calendar.py` | Exists | Generates the shared XNYS session table (Go + Python copies) from `exchange_calendars`; `--check` fails on drift (MD-005) |
 | `scripts/spike_v4_reader.py` | Exists | Spike V4 native macOS reader for `make spike-v4` |
+| `scripts/ibkr-contract.sh` | Exists | Runs the shared Go broker contract suite (BR-001) against the IBKR adapter served over its fake gateway (`make test-ibkr-contract`, CI python job) |
 | `scripts/backup-drill.sh` | Exists | Backup → wipe → fresh stack → restore → verify drill (OP-051) |
 
 ## Agent rules: `.cursor/rules/`

@@ -5,6 +5,7 @@ Also the IBKR rows of the shared reject-code mapping (BR-005).
 
 from __future__ import annotations
 
+import time
 from decimal import Decimal, InvalidOperation
 
 from tb.broker.v1 import gateway_pb2 as gw
@@ -201,6 +202,7 @@ def order_request_from_proto(req: gw.BrokerOrderRequest) -> OrderRequest:
         extended_hours=req.extended_hours,
         correlation_id=req.correlation_id,
         instrument=instrument,
+        symbol=inst.symbol,
     )
 
 
@@ -330,3 +332,23 @@ def account_proto(account: BrokerAccount, status: SessionStatus) -> gw.BrokerAcc
         capabilities=capabilities_proto(account.capabilities),
         session=session_status_proto(status),
     )
+
+
+def subject_token(broker_account_id: str) -> str:
+    """NATS subject tokens cannot contain '.', '*', '>' or whitespace."""
+    return "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in broker_account_id)
+
+
+def order_update_proto(order: BrokerOrder) -> gw.BrokerOrderUpdate:
+    return gw.BrokerOrderUpdate(
+        broker_account_id=order.broker_account_id,
+        event=order.state.value,
+        order=broker_order_proto(order),
+        event_time=order.updated_at,
+        received_at=time.time_ns(),
+    )
+
+
+def order_dedupe_key(order: BrokerOrder) -> str:
+    """Same shape as the Go adapter's ``OrderDedupeKey``: id|status|filled|updated_at."""
+    return f"{order.broker_order_id}|{order.raw_status}|{order.filled_qty}|{order.updated_at}"

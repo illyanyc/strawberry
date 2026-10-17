@@ -7,8 +7,9 @@ import asyncio
 import contextlib
 import logging
 from pathlib import Path
-from typing import IO
+from typing import IO, Any
 
+import asyncpg
 import uvicorn
 from prometheus_client import CollectorRegistry
 
@@ -22,8 +23,11 @@ from tb_broker_ibkr.events import EventSink, FanoutSink, LogSink
 from tb_broker_ibkr.fakes.replay import Recorder
 from tb_broker_ibkr.grpc_service import AUDIENCE, BrokerGatewayServicer, StreamHub, build_server
 from tb_broker_ibkr.ib_async_port import IbAsyncPort
-from tb_broker_ibkr.instruments import StaticInstrumentResolver
+from tb_broker_ibkr.instruments import IbkrContractResolver, StaticInstrumentResolver
+from tb_broker_ibkr.journal import Journal, PostgresJournal, PostgresLiveEnablement
 from tb_broker_ibkr.metrics import PrometheusMetrics
+from tb_broker_ibkr.models import Environment
+from tb_broker_ibkr.relay import OutboxRelay
 from tb_broker_ibkr.svcauth import Verifier
 from tbcore.logging import configure
 from tbcore.secrets import get_secret
@@ -37,6 +41,7 @@ def build_adapter(
     sink: EventSink,
     metrics: PrometheusMetrics,
     audit: AuditLog,
+    journal: Journal,
     recording: IO[str] | None,
 ) -> IbkrAdapter:
     clock = SystemClock()
@@ -68,8 +73,8 @@ def build_adapter(
         md_port=md_port,
         clock=clock,
         sink=sink,
-        resolver=StaticInstrumentResolver.from_file(settings.ibkr_instruments_path),
-        cursor=FileCursorStore(Path(settings.ibkr_state_dir) / f"cursor-{env.value}.json"),
+        resolver=IbkrContractResolver(StaticInstrumentResolver.from_file(settings.ibkr_instruments_path), orders_port),
+        cursor=journal,
         schedule=settings.schedule(),
         metrics=metrics,
         audit=audit,
@@ -87,12 +92,36 @@ async def serve(settings: IbkrSettings, enablement: LiveEnablement | None = None
     ref: list[IbkrAdapter] = []
     hub = StreamHub(env, lambda: ref[0].supervisor.state)
     sinks: list[EventSink] = [LogSink(), metrics, hub]
+    background: list[asyncio.Future[None]] = []
+
+    audit: AuditLog
+    journal: Journal
+    pool: asyncpg.Pool | None = None
+    if settings.db_user:
+        password = get_secret(f"pg_{settings.db_user}_password", settings.secrets_dir).decode()
+        pool = await asyncpg.create_pool(settings.db_dsn(password), min_size=1, max_size=6, command_timeout=5)  # type: ignore[no-untyped-call]
+        audit = PostgresAuditLog(pool)
+        pg_journal = PostgresJournal(pool, env)
+        await pg_journal.load()
+        journal = pg_journal
+        if enablement is None:
+            enablement = await PostgresLiveEnablement.load(pool)
+    else:
+        log.error("TB_DB_USER not set: no audit log or outbox; every order request will be refused (SE-021)")
+        audit = UnavailableAuditLog()
+        journal = FileCursorStore(Path(settings.ibkr_state_dir) / f"cursor-{env.value}.json")
+
+    nats_sink: NatsSink | None = None
     if settings.nats_user:
         password = get_secret(f"nats_{settings.nats_user}_password", settings.secrets_dir).decode()
-        nats_sink = NatsSink(settings.nats_url, settings.nats_user, password, env)
+        nats_sink = NatsSink(settings.nats_url, settings.nats_user, password, env, durable_via_outbox=journal.publishes)
         await nats_sink.connect()
         sinks.append(nats_sink)
         closers.append(nats_sink)
+        if pool is not None and isinstance(journal, PostgresJournal):
+            relay = OutboxRelay(pool, nats_sink)
+            journal.set_kick(relay.kick)
+            background.append(asyncio.ensure_future(relay.run()))
 
         async def nats_connected() -> None:
             if not nats_sink.is_connected():
@@ -100,26 +129,18 @@ async def serve(settings: IbkrSettings, enablement: LiveEnablement | None = None
 
         checks["nats"] = nats_connected
 
-    audit: AuditLog
-    if settings.db_user:
-        password = get_secret(f"pg_{settings.db_user}_password", settings.secrets_dir).decode()
-        postgres_audit = await PostgresAuditLog.connect(settings.db_dsn(password))
-        closers.append(postgres_audit)
-        audit = postgres_audit
-    else:
-        log.error("TB_DB_USER not set: no audit log, every order request will be refused (SE-021)")
-        audit = UnavailableAuditLog()
-
     recording: IO[str] | None = None
     if settings.ibkr_record_path:
         recording = Path(settings.ibkr_record_path).open("a", encoding="utf-8")  # noqa: SIM115
-    adapter = build_adapter(settings, FanoutSink(*sinks), metrics, audit, recording)
+    adapter = build_adapter(settings, FanoutSink(*sinks), metrics, audit, journal, recording)
     ref.append(adapter)
 
     blocked = live_gate(settings, enablement or NoLiveEnablement(), accounts)
     if blocked is not None:
         log.warning("live IBKR adapter stopped", extra={"reason": blocked})
         await adapter.supervisor.mark_stopped(blocked)
+    elif pool is not None and settings.ibkr_environment is Environment.LIVE:
+        background.append(asyncio.ensure_future(watch_live_enablement(settings, adapter, pool, accounts)))
 
     async def gateway_session() -> None:
         if not adapter.supervisor.is_ready:
@@ -141,7 +162,11 @@ async def serve(settings: IbkrSettings, enablement: LiveEnablement | None = None
             access_log=False,
         )
     )
-    tasks = [asyncio.ensure_future(ops.serve()), asyncio.ensure_future(grpc_server.wait_for_termination())]
+    tasks: list[asyncio.Future[Any]] = [
+        asyncio.ensure_future(ops.serve()),
+        asyncio.ensure_future(grpc_server.wait_for_termination()),
+        *background,
+    ]
     if blocked is None:
         tasks.append(asyncio.ensure_future(adapter.run()))
     try:
@@ -155,8 +180,29 @@ async def serve(settings: IbkrSettings, enablement: LiveEnablement | None = None
         for closer in closers:
             with contextlib.suppress(Exception):
                 await closer.close()  # type: ignore[attr-defined]
+        if pool is not None:
+            await pool.close()  # type: ignore[no-untyped-call]
         if recording is not None:
             recording.close()
+
+
+async def watch_live_enablement(
+    settings: IbkrSettings, adapter: IbkrAdapter, pool: asyncpg.Pool, accounts: dict[str, str], interval: float = 60
+) -> None:
+    """IB-007: a revoked live enablement stops the live adapter within ``interval`` seconds."""
+    while True:
+        await asyncio.sleep(interval)
+        try:
+            gate = await PostgresLiveEnablement.load(pool)
+        except Exception:
+            log.warning("live enablement re-check failed", exc_info=True)
+            continue
+        reason = live_gate(settings, gate, accounts)
+        if reason is not None:
+            log.error("live enablement revoked; stopping the live IBKR adapter", extra={"reason": reason})
+            await adapter.supervisor.mark_stopped(reason)
+            adapter.disconnect()
+            return
 
 
 def main() -> None:

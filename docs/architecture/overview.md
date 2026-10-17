@@ -168,7 +168,7 @@ flowchart LR
 
 - The TWS API socket is unauthenticated, so it is never published and only the adapters share the internal `ibkr` network with the gateways; the gateways reach IBKR through `ibkr-egress` (IB-071). The IBKR login is mounted only into the gateway (SE-034).
 - IBC restarts the gateway daily (session reused) and cold-restarts it on Sunday (full login, 2FA). The adapter classifies outages against that calendar and pages only when the owner must act (IB-013..IB-015).
-- Until the shared outbox is adopted for IBKR, the adapter publishes executions directly with `Nats-Msg-Id = exec|<acct>|<execId>` and a durable cursor (IB-031, ADR-0023).
+- The IBKR adapter keeps its own outbox in schema `broker_ibkr` and relays it with the same subjects, payloads, and `Nats-Msg-Id` values as broker-gateway, so consumers cannot tell the adapters apart (IB-031, ADR-0023).
 
 ## Bus subjects
 

@@ -25,6 +25,7 @@ from tb_broker_ibkr.port import (
     PortAccountValue,
     PortBar,
     PortConnectError,
+    PortContract,
     PortHandlers,
     PortPosition,
 )
@@ -280,6 +281,29 @@ class IbAsyncPort:
     async def account_values(self, account: str) -> list[PortAccountValue]:
         values = await self._ib.accountSummaryAsync(account)
         return [PortAccountValue(v.account, v.tag, v.value, v.currency) for v in values]
+
+    async def contract_details(self, *, symbol: str = "", con_id: int = 0) -> list[PortContract]:
+        query = (
+            Contract(conId=con_id)
+            if con_id
+            else Contract(symbol=symbol, secType="STK", exchange="SMART", currency="USD")
+        )
+        out = []
+        for d in await self._ib.reqContractDetailsAsync(query):
+            c = d.contract
+            if c is None or c.secType != "STK" or c.currency != "USD":
+                continue
+            out.append(
+                PortContract(
+                    con_id=int(c.conId),
+                    symbol=c.symbol,
+                    primary_exchange=c.primaryExchange or "",
+                    currency=c.currency,
+                    min_tick=dec(d.minTick) if d.minTick else Decimal("0.01"),
+                    long_name=d.longName or "",
+                )
+            )
+        return out
 
     async def historical_bars(self, request: HistoricalRequest) -> list[PortBar]:
         contract = Contract(conId=request.con_id, exchange=request.exchange, secType="STK")

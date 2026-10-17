@@ -17,6 +17,7 @@ from tb_broker_ibkr.cursor_store import CursorStore
 from tb_broker_ibkr.events import EventSink, FanoutSink, RecordingSink
 from tb_broker_ibkr.fakes.gateway import FakeGateway
 from tb_broker_ibkr.instruments import StaticInstrumentResolver
+from tb_broker_ibkr.journal import Journal
 from tb_broker_ibkr.models import Environment, Instrument, OrderRequest, OrderType, SessionState, Side, TimeInForce
 from tb_broker_ibkr.schedule import ET
 
@@ -56,7 +57,7 @@ class Harness:
     gateway: FakeGateway
     sink: RecordingSink
     adapter: IbkrAdapter
-    cursor: CursorStore
+    cursor: Journal
     audit: MemoryAuditLog
     task: asyncio.Task[None] | None = None
 
@@ -103,7 +104,7 @@ def make_harness(
     managed: list[str] | None = None,
     accounts: dict[str, str] | None = None,
     environment: Environment = Environment.PAPER,
-    cursor: CursorStore | None = None,
+    cursor: Journal | None = None,
     gateway: FakeGateway | None = None,
     clock: FakeClock | None = None,
     extra_sinks: list[EventSink] | None = None,

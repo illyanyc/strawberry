@@ -7,6 +7,7 @@ IB-001/IB-002 (orderRef limit and echo), IB-005 (explicit account), IB-021..IB-0
 from __future__ import annotations
 
 import re
+from dataclasses import replace
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,7 @@ import pytest
 import tb_broker_ibkr
 from tb_broker_ibkr.adapter import build_place_order
 from tb_broker_ibkr.fakes.gateway import GatewayState
+from tb_broker_ibkr.instruments import IbkrContractResolver, StaticInstrumentResolver, UnknownInstrumentError
 from tb_broker_ibkr.models import (
     AccountNotFoundError,
     BrokerUnavailableError,
@@ -397,5 +399,43 @@ def test_br013_stopped_adapter_refuses_orders() -> None:
         with pytest.raises(BrokerUnavailableError):
             await h.adapter.submit_order(order())
         assert h.gateway.connect_attempts == 0
+
+    run(body)
+
+
+def test_ib027_symbol_only_orders_resolve_through_ibkr_contract_details() -> None:
+    async def body() -> None:
+        h = await ready_harness()
+        resolver = IbkrContractResolver(StaticInstrumentResolver([]), h.gateway.ports[0])
+        h.adapter._resolver = resolver
+        ack = await h.drive(h.adapter.submit_order(order(instrument_id="", symbol="SPY")))
+        placed = h.gateway.placements[-1]
+        assert (placed.con_id, placed.primary_exchange) == (756733, "ARCA")
+        assert ack.broker_order_id
+        with pytest.raises(InvalidOrderError, match="unknown instrument") as err:
+            await h.drive(h.adapter.submit_order(order(cid(attempt=1), instrument_id="", symbol="NOPE")))
+        assert err.value.reason == "unknown_instrument"
+        h.gateway.contracts.append(replace(h.gateway.contracts[-1], con_id=1))  # ambiguous SPY now
+        resolver._cache.clear()
+        with pytest.raises(UnknownInstrumentError):
+            await resolver.resolve_symbol("SPY")
+        await h.stop()
+
+    run(body)
+
+
+def test_ib022_replaced_attempt_visible_by_its_own_id() -> None:
+    async def body() -> None:
+        h = await ready_harness()
+        await h.drive(h.adapter.submit_order(order()))
+        await h.adapter.replace_order(ACCT, cid(), OrderChanges(qty=Decimal(20)))
+        await h.clock.settle()
+        old = await h.adapter.get_order(ACCT, client_order_id=cid())
+        new = await h.adapter.get_order(ACCT, client_order_id=cid(attempt=1))
+        assert old is not None and old.state is OrderState.REPLACED
+        assert new is not None and new.state is OrderState.ACCEPTED and new.qty == Decimal(20)
+        listed = {(o.client_order_id, o.state) for o in await h.adapter.list_orders(ACCT)}
+        assert (cid(), OrderState.REPLACED) in listed and (cid(attempt=1), OrderState.ACCEPTED) in listed
+        await h.stop()
 
     run(body)

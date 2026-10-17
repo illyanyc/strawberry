@@ -109,6 +109,18 @@ class PortAccountValue:
 
 
 @dataclass(frozen=True, slots=True)
+class PortContract:
+    """``contractDetails`` for one US stock/ETF (SMART-routed, USD)."""
+
+    con_id: int
+    symbol: str
+    primary_exchange: str
+    currency: str
+    min_tick: Decimal
+    long_name: str = ""
+
+
+@dataclass(frozen=True, slots=True)
 class HistoricalRequest:
     con_id: int
     exchange: str
@@ -196,3 +208,7 @@ class IbPort(Protocol):
     async def account_values(self, account: str) -> list[PortAccountValue]: ...
 
     async def historical_bars(self, request: HistoricalRequest) -> list[PortBar]: ...
+
+    async def contract_details(self, *, symbol: str = "", con_id: int = 0) -> list[PortContract]:
+        """US stock/ETF contracts matching ``symbol`` (SMART, USD) or ``con_id``."""
+        ...

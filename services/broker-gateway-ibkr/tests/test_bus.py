@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from tb_broker_ibkr.bus import execution_proto, subject_token
+from tb_broker_ibkr.codec import execution_proto, subject_token
 from tb_broker_ibkr.models import Environment, ExecutionReport, OwnerKind, Side
 
 from tb.common.v1 import common_pb2

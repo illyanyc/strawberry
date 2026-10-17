@@ -29,10 +29,10 @@ from tb_broker_ibkr.attribution import (
 )
 from tb_broker_ibkr.audit import AuditEvent, AuditLog, MemoryAuditLog
 from tb_broker_ibkr.clock import Clock, to_ns, with_timeout
-from tb_broker_ibkr.cursor_store import CursorStore
 from tb_broker_ibkr.error_codes import Action, Category, classify, is_pacing_message
 from tb_broker_ibkr.events import RUNBOOK_OUTAGE, AlertEvent, EventSink, ReconciliationRequest
 from tb_broker_ibkr.instruments import InstrumentResolver, UnknownInstrumentError
+from tb_broker_ibkr.journal import Journal
 from tb_broker_ibkr.models import (
     TERMINAL_STATES,
     AccountNotFoundError,
@@ -255,7 +255,7 @@ class IbkrAdapter:
         clock: Clock,
         sink: EventSink,
         resolver: InstrumentResolver,
-        cursor: CursorStore,
+        cursor: Journal,
         schedule: MaintenanceSchedule | None = None,
         metrics: SessionMetrics | None = None,
         md_port: IbPort | None = None,
@@ -268,7 +268,7 @@ class IbkrAdapter:
         self._clock = clock
         self._sink = sink
         self._resolver = resolver
-        self._cursor = cursor
+        self._journal = cursor
         self._schedule = schedule or MaintenanceSchedule()
         self._pacer = pacer or HistoricalPacer(clock)
         self._audit = audit or MemoryAuditLog()
@@ -282,6 +282,7 @@ class IbkrAdapter:
         self._malformed_alerted: set[int] = set()
         self._holds: dict[str, set[str]] = {acct: set() for acct in config.accounts}
         self._background: set[asyncio.Task[None]] = set()
+        self._unrecorded: dict[str, ExecutionReport] = {}
         self._validate_accounts_config()
         self.supervisor = SessionSupervisor(
             config=SupervisorConfig(
@@ -446,7 +447,7 @@ class IbkrAdapter:
             client_order_id=req.client_order_id,
             owner=attribution.owner,
             strategy_short_id=attribution.short_id if attribution.owner is OwnerKind.STRATEGY else "",
-            instrument_id=req.instrument_id,
+            instrument_id=req.instrument_id or instrument.instrument_id,
             placed_at=self._clock.now(),
             request=req,
             placed=placed,
@@ -473,17 +474,25 @@ class IbkrAdapter:
         )
 
     async def _instrument_for(self, req: OrderRequest) -> Instrument:
-        try:
-            known = await self._resolver.resolve(req.instrument_id)
-        except UnknownInstrumentError:
-            known = None
+        """IB-027: instrument_id (map) > caller's conId > symbol via the map or IBKR contract details."""
+        known = None
+        if req.instrument_id:
+            try:
+                known = await self._resolver.resolve(req.instrument_id)
+            except UnknownInstrumentError:
+                known = None
         if req.instrument is not None:
             if known is not None and known.con_id != req.instrument.con_id:
                 raise InvalidOrderError(f"conId mismatch for {req.instrument_id}", "unknown_instrument")
             return known or req.instrument
-        if known is None:
-            raise InvalidOrderError(f"unknown instrument {req.instrument_id!r}", "unknown_instrument")
-        return known
+        if known is not None:
+            return known
+        if req.symbol:
+            try:
+                return await self._resolver.resolve_symbol(req.symbol)
+            except UnknownInstrumentError:
+                pass
+        raise InvalidOrderError(f"unknown instrument {req.instrument_id or req.symbol!r}", "unknown_instrument")
 
     async def _audit_reject(self, target: str, broker_account_id: str, reason: str, message: str, local: bool) -> None:
         await self._audit.append(
@@ -634,7 +643,7 @@ class IbkrAdapter:
         record.ref_checked = False
         self._by_cid[new_cid] = record
         self._port.modify_order(record.ib_order_id, placed)
-        await self._sink.order_update(self._replaced_view(record, old_cid))
+        await self._emit_order(self._replaced_view(record, old_cid))
         await self._publish_order(record)
         return ReplaceAck(
             client_order_id=old_cid,
@@ -672,24 +681,26 @@ class IbkrAdapter:
     ) -> BrokerOrder | None:
         """One order by attribution ID or permId, open or closed (contract GetOrder)."""
         self._account_code(broker_account_id)
-        try:
-            return self._view(self._find(broker_account_id, client_order_id, broker_order_id))
-        except OrderNotFoundError:
-            pass
-        if not self._port.is_connected():
-            return None
-        await self.list_orders(broker_account_id)
-        try:
-            return self._view(self._find(broker_account_id, client_order_id, broker_order_id))
-        except OrderNotFoundError:
-            return None
+        for attempt in range(2):
+            if attempt:
+                if not self._port.is_connected():
+                    return None
+                await self.list_orders(broker_account_id)
+            try:
+                record = self._find(broker_account_id, client_order_id, broker_order_id)
+            except OrderNotFoundError:
+                continue
+            if client_order_id and client_order_id in record.aliases:
+                return self._replaced_view(record, client_order_id)
+            return self._view(record)
+        return None
 
     def order_view(self, client_order_id: str) -> BrokerOrder | None:
         record = self._by_cid.get(client_order_id)
         return self._view(record) if record is not None else None
 
     def last_exec_time(self, broker_account_id: str) -> int:
-        return self._cursor.last_exec_time(broker_account_id)
+        return self._journal.last_exec_time(broker_account_id)
 
     @property
     def environment(self) -> Environment:
@@ -720,6 +731,8 @@ class IbkrAdapter:
             record = await self._ingest_and_publish(snap)
             if since is None or record.placed_at >= since:
                 out.append(self._view(record))
+                # IB-022: earlier attempts of an in-place replace are listed as replaced orders.
+                out.extend(self._replaced_view(record, alias) for alias in record.aliases)
         return out
 
     async def list_executions(self, broker_account_id: str, since: datetime | None = None) -> list[ExecutionReport]:
@@ -784,7 +797,7 @@ class IbkrAdapter:
                     )
                 )
         elif await self._set_hold(acct, "margin_deficit", False):
-            await self._sink.request_reconciliation(ReconciliationRequest(acct, "margin_restored"))
+            await self._emit_recon(ReconciliationRequest(acct, "margin_restored"))
             await self._sink.resolve_alert(key, f"{acct} margin deficit cleared")
 
     async def historical_bars(self, instrument_id: str, request: HistoricalRequest) -> list[Bar]:
@@ -818,7 +831,7 @@ class IbkrAdapter:
         now = self._clock.now()
         gap = self._execution_gap(now)
         for acct in self._cfg.accounts:
-            await self._sink.account_snapshot(await self.get_account_snapshot(acct))
+            await self._emit_snapshot(await self.get_account_snapshot(acct))
             if gap:
                 await self._sink.alert(
                     AlertEvent(
@@ -832,21 +845,19 @@ class IbkrAdapter:
                         runbook=RUNBOOK_OUTAGE,
                     )
                 )
-            await self._sink.request_reconciliation(
-                ReconciliationRequest(acct, "execution_gap" if gap else "reconnect")
-            )
-        self._cursor.mark_ready(to_ns(now))
+            await self._emit_recon(ReconciliationRequest(acct, "execution_gap" if gap else "reconnect"))
+        await self._journal.mark_ready(to_ns(now))
 
     def _resync_since(self) -> datetime | None:
         """BR-011: executions since the last acknowledged one minus a 5-minute overlap."""
-        times = [self._cursor.last_exec_time(a) for a in self._cfg.accounts]
+        times = [self._journal.last_exec_time(a) for a in self._cfg.accounts]
         if not times or min(times) == 0:
             return None
         return datetime.fromtimestamp(min(times) / 1e9, tz=UTC) - RESYNC_OVERLAP
 
     def _execution_gap(self, now: datetime) -> bool:
         """IB-033: reqExecutions only reaches back to the start of the current (ET) day."""
-        last = self._cursor.last_ready_at
+        last = self._journal.last_ready_at
         if not last:
             return False
         day_start = datetime.combine(now.astimezone(ET).date(), datetime.min.time(), tzinfo=ET)
@@ -858,10 +869,11 @@ class IbkrAdapter:
             await self._clock.sleep(self._cfg.snapshot_interval)
             if not self.supervisor.is_ready:
                 continue
+            await self._retry_unrecorded()
             try:
                 for acct in self._cfg.accounts:
-                    await self._sink.account_snapshot(await self.get_account_snapshot(acct))
-                self._cursor.mark_ready(to_ns(self._clock.now()))
+                    await self._emit_snapshot(await self.get_account_snapshot(acct))
+                await self._journal.mark_ready(to_ns(self._clock.now()))
             except Exception:
                 log.warning("account snapshot failed", exc_info=True)
 
@@ -869,7 +881,12 @@ class IbkrAdapter:
     def _spawn(self, coro: object) -> None:
         task = asyncio.ensure_future(coro)  # type: ignore[call-overload]
         self._background.add(task)
-        task.add_done_callback(self._background.discard)
+        task.add_done_callback(self._task_done)
+
+    def _task_done(self, task: asyncio.Task[None]) -> None:
+        self._background.discard(task)
+        if not task.cancelled() and task.exception() is not None:
+            log.error("adapter event handling failed", exc_info=task.exception())
 
     def _on_error(self, req_id: int, code: int, message: str) -> None:
         info = classify(code)
@@ -1017,7 +1034,7 @@ class IbkrAdapter:
     def _on_execution(self, fill: ExecFill) -> None:
         if fill.account not in self._code_to_id:
             return
-        if fill.exec_id in self._pending_execs or self._cursor.seen(self._code_to_id[fill.account], fill.exec_id):
+        if fill.exec_id in self._pending_execs or self._journal.seen(self._code_to_id[fill.account], fill.exec_id):
             return  # duplicate delivery (OE-006, IB-031)
         commission = self._early_commissions.pop(fill.exec_id, None)
         if commission is not None:
@@ -1033,7 +1050,7 @@ class IbkrAdapter:
             timer.cancel()
             self._spawn(self._publish_execution(fill, commission, source="stream"))
             return
-        if any(self._cursor.seen(acct, commission.exec_id) for acct in self._cfg.accounts):
+        if any(self._journal.seen(acct, commission.exec_id) for acct in self._cfg.accounts):
             self._late_fees[commission.exec_id] = commission
             log.info("late commission report", extra={"broker_exec_id": commission.exec_id})
             return
@@ -1046,14 +1063,49 @@ class IbkrAdapter:
 
     async def _publish_execution(self, fill: ExecFill, commission: CommissionFill | None, *, source: str) -> None:
         acct = self._code_to_id[fill.account]
-        if self._cursor.seen(acct, fill.exec_id):
+        if self._journal.seen(acct, fill.exec_id):
             return
         report = self._execution_report(fill, commission)
-        await self._sink.execution(report)
-        # Mark after publishing: a crash in between re-publishes (consumers dedupe, OE-006) rather
-        # than losing the execution.
-        self._cursor.mark(acct, fill.exec_id, report.event_time)
+        await self._record_and_emit(report)
         log.info("execution published", extra={"broker_exec_id": fill.exec_id, "source": source})
+
+    async def _record_and_emit(self, report: ExecutionReport) -> None:
+        """IB-031: the journal decides exactly-once (outbox) or at-least-once (file cursor) publication."""
+        try:
+            if self._journal.publishes:
+                # The transactional insert + outbox row is the durable publication.
+                if not await self._journal.record_execution(report):
+                    return
+                await self._sink.execution(report)
+            else:
+                # Mark after publishing: a crash in between re-publishes (consumers dedupe, OE-006)
+                # rather than losing the execution.
+                await self._sink.execution(report)
+                await self._journal.record_execution(report)
+        except Exception:
+            self._unrecorded[report.broker_exec_id] = report
+            log.warning("execution not recorded; will retry", extra={"broker_exec_id": report.broker_exec_id})
+            return
+        self._unrecorded.pop(report.broker_exec_id, None)
+
+    async def _retry_unrecorded(self) -> None:
+        for report in list(self._unrecorded.values()):
+            await self._record_and_emit(report)
+
+    async def _emit_order(self, view: BrokerOrder) -> None:
+        try:
+            await self._journal.record_order(view)
+        except Exception:
+            log.warning("order event not journaled", extra={"broker_order_id": view.broker_order_id})
+        await self._sink.order_update(view)
+
+    async def _emit_snapshot(self, snapshot: AccountSnapshot) -> None:
+        await self._journal.record_snapshot(snapshot)
+        await self._sink.account_snapshot(snapshot)
+
+    async def _emit_recon(self, request: ReconciliationRequest) -> None:
+        await self._journal.record_reconciliation(request)
+        await self._sink.request_reconciliation(request)
 
     def _execution_report(self, fill: ExecFill, commission: CommissionFill | None) -> ExecutionReport:
         acct = self._code_to_id[fill.account]
@@ -1065,7 +1117,7 @@ class IbkrAdapter:
         if revision:
             prior = [
                 e
-                for e in self._cursor.seen_with_base(acct, base)
+                for e in self._journal.seen_with_base(acct, base)
                 if exec_base_and_revision(e)[1] < revision and e != fill.exec_id
             ]
             corrects = max(prior, key=lambda e: exec_base_and_revision(e)[1], default="")
@@ -1092,7 +1144,7 @@ class IbkrAdapter:
 
     # ---- views ---------------------------------------------------------------------------------
     async def _publish_order(self, record: _OrderRecord) -> None:
-        await self._sink.order_update(self._view(record))
+        await self._emit_order(self._view(record))
 
     def _view(self, record: _OrderRecord) -> BrokerOrder:
         snap = record.snapshot
@@ -1140,6 +1192,11 @@ class IbkrAdapter:
 
     def stop(self) -> None:
         self.supervisor.stop()
+
+    def disconnect(self) -> None:
+        self._port.disconnect()
+        if self._md_port is not self._port:
+            self._md_port.disconnect()
 
     def accounts(self) -> Sequence[str]:
         return list(self._cfg.accounts)

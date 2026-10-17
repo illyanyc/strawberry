@@ -24,6 +24,7 @@ from tb_broker_ibkr.port import (
     PortAccountValue,
     PortBar,
     PortConnectError,
+    PortContract,
     PortHandlers,
     PortPosition,
 )
@@ -93,6 +94,10 @@ class FakeGateway:
         self.positions: dict[tuple[str, int], tuple[str, Decimal, Decimal]] = {}
         self.account_values: dict[str, dict[str, str]] = {}
         self.bars: list[PortBar] = []
+        self.contracts: list[PortContract] = [
+            PortContract(265598, "AAPL", "NASDAQ", "USD", Decimal("0.01"), "APPLE INC"),
+            PortContract(756733, "SPY", "ARCA", "USD", Decimal("0.01"), "SPDR S&P 500 ETF TRUST"),
+        ]
         self.historical_requests: list[tuple[datetime, HistoricalRequest]] = []
         self.ports: list[FakePort] = []
         self.placements: list[PlaceOrder] = []
@@ -384,6 +389,10 @@ class FakePort:
         self._check()
         values = self.gateway.account_values.get(account, {"NetLiquidation": "100000", "ExcessLiquidity": "50000"})
         return [PortAccountValue(account, tag, value, "USD") for tag, value in values.items()]
+
+    async def contract_details(self, *, symbol: str = "", con_id: int = 0) -> list[PortContract]:
+        self._check()
+        return [c for c in self.gateway.contracts if (con_id and c.con_id == con_id) or (symbol and c.symbol == symbol)]
 
     async def historical_bars(self, request: HistoricalRequest) -> list[PortBar]:
         self._check()

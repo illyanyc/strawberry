@@ -79,6 +79,7 @@ Prerequisites: Docker (Colima on the Mac Mini, ADR-0013), `make`, `git`. Develop
 | `make secrets-encrypt` / `make secrets-decrypt` | SOPS + age bundle of `.secrets/` |
 | `make up PROFILES=core,observability,ibkr` | Adds the paper IB Gateway and IBKR adapter (`ibkr-live` for live; setup in [`docs/runbooks/ibkr-weekly-2fa.md`](docs/runbooks/ibkr-weekly-2fa.md)) |
 | `make ibkr-vnc` / `make ibkr-vnc-stop` | On-demand loopback VNC to IB Gateway for a manual login |
+| `make test-ibkr-contract` | Shared Go broker contract suite against the IBKR adapter over its fake gateway |
 | `make test-ibkr-paper` | Opt-in tests and spike V1 against a real IB Gateway paper session |
 | `make port-check` / `make check-arm64` | Loopback-only ports / arm64 availability of every image |
 | `make docs-check` | File-map coverage and same-commit documentation rules |

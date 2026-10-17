@@ -320,10 +320,14 @@ class BrokerGatewayServicer:
         self, req: gw.GetInstrumentInfoRequest, ctx: grpc.aio.ServicerContext
     ) -> gw.GetInstrumentInfoResponse:
         self._a.session_status(req.broker_account_id)
+        symbol = req.symbol or req.instrument.symbol
         try:
-            inst = await self._a.resolver.resolve(req.instrument.instrument_id)
+            if req.instrument.instrument_id:
+                inst = await self._a.resolver.resolve(req.instrument.instrument_id)
+            else:
+                inst = await self._a.resolver.resolve_symbol(symbol)
         except UnknownInstrumentError:
-            raise _Abort(_status(code_pb2.NOT_FOUND, "instrument not in the IBKR instrument map")) from None
+            raise _Abort(_status(code_pb2.NOT_FOUND, "instrument not found at IBKR or in the map")) from None
         return gw.GetInstrumentInfoResponse(
             info=gw.InstrumentInfo(
                 instrument=common.Instrument(
