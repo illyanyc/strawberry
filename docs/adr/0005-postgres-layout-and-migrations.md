@@ -1,6 +1,6 @@
 # ADR-0005: PostgreSQL layout, least-privilege roles, and migrations
 
-- **Status:** Accepted (provisional: default, pending research §7, §10)
+- **Status:** Accepted (research)
 - **Date:** 2026-10-17
 - **Decision register:** D5
 - **Related:** rules SE-032, SE-050; section 01 Stage A; [ADR-0006](0006-audit-log-hash-chain.md)
@@ -35,3 +35,7 @@ Transactional state (users, sessions, audit, credentials, later orders and ledge
 ## Validation
 
 `TestSE032SchemaIsolation` and `TestSE020AuditChainEndToEnd` run against real Postgres in CI.
+
+## Research outcome (2026-10-17)
+
+Research [09 §D5](../research/09-decisions.md#d5) confirms PostgreSQL, which also hosts the MLflow, Optuna, Prefect, and (later) DuckLake catalogs. Because it concentrates risk, backups are mandatory (`make backup`, OP- rules).

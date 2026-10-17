@@ -26,6 +26,7 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 
 ### Changed
 
+- Decision register: every research decision D1–D31 is now **Accepted (research)** with its chosen option and research link (`docs/decisions.md`). Provisional ADR-0003 (D3), ADR-0004 (D1: IBKR adapter becomes a Python service), ADR-0005 (D5), and ADR-0008 (D2: `sync_interval: always`, Postgres outbox) gain research-outcome sections; ADR-0007 (D33) is accepted. `AGENTS.md` system map, `.cursor/rules/` (backend, frontend, python-ml, infra), the architecture overview, and VP model text now state the accepted stack (Vite SPA, SSE, Colima on the Mac Mini, native ML workers, VictoriaLogs + Alloy, no MinIO, Valkey 9).
 - Repo-local decision IDs renumbered to avoid the research report's new D28–D31: monorepo/toolchain D28 → D32, service-to-service auth D29 → D33, audit log design D30 → D34 (ADR-0002, ADR-0007, ADR-0006).
 - `docs/file-map.md` now uses full repo-relative paths in every row so `make docs-check` can verify coverage.
 

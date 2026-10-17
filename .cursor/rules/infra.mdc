@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Infra
 
-Tooling is `DECISION PENDING` where not recorded in `docs/decisions.md` (defaults: Docker Compose with profiles D21, Terraform for DigitalOcean, Prometheus/Grafana/Loki/Tempo D22, SOPS + age D16, Tailscale D17). Read `infra/AGENTS.md` once it exists.
+Stack (accepted, see `docs/decisions.md`): Docker Compose on the **Mac Mini under Colima** with a boot-time LaunchDaemon (D21, D28); the same Compose on a droplet later. All images must run on **linux/arm64**. ML workers run **natively on macOS** under launchd, no GPU profile (D25, D29). Observability: Grafana + Prometheus + VictoriaLogs + Alloy; Tempo from Phase 5 (D22). Secrets: SOPS + age, `/run/secrets` files only (D16). Remote access: `tailscaled` on the host, optional Cloudflare Tunnel + Access (D17). No MinIO (D8). Read `infra/AGENTS.md`.
 
 ## Network
 

@@ -1,43 +1,45 @@
 # Decision register
 
-One row per platform decision. Defaults come from the build plan and are used until the research report lands and an ADR accepts or replaces them. When a decision is made: write the ADR ([`adr/`](adr/README.md)), set the status to Accepted with the ADR link, and update the `DECISION PENDING` markers in `AGENTS.md`, `.cursor/rules/`, and `architecture/overview.md`.
+One row per platform decision. IDs D1–D31 follow the master prompt and the [research report](research/09-decisions.md); repo-local decisions start at D32. The research report has landed and its recommendations are accepted by the owner. When a decision is implemented, its ADR ([`adr/`](adr/README.md)) is linked here and the `DECISION PENDING` markers in `AGENTS.md`, `.cursor/rules/`, and `architecture/overview.md` are replaced.
 
-Status values: **Pending** (not yet relied on; use the default behind an interface when needed), **Provisional** (default adopted and built on, pending the research report; ADR linked and marked provisional), **Accepted** (settled; ADR linked), **Superseded** (link the replacing ADR).
+Status values: **Pending** (not yet decided), **Provisional** (default adopted ahead of research), **Accepted (research)** (settled by the research report and accepted by the owner), **Accepted** (repo-local decision, settled), **Superseded** (link the replacing ADR).
 
-IDs D1–D31 follow the master prompt and the [research report](research/09-decisions.md); repo-local decisions start at D32.
+"Research" links point to the evidence in [`research/09-decisions.md`](research/09-decisions.md). An ADR is written when a phase first implements the decision; until then the research section is the reasoning of record.
 
-When the research report lands, each Provisional row is either confirmed (status → Accepted, ADR updated) or replaced by a new superseding ADR.
-
-| ID | Decision | Default | Status | ADR |
+| ID | Decision | Chosen option | Status | ADR / reasoning |
 |---|---|---|---|---|
-| D1 | Core language (ingestion, broker adapters, OMS/risk, ledger) | Go core; Python for ML/research | Provisional (default, pending research) | [ADR-0004](adr/0004-core-language-split.md) |
-| D2 | Event bus | NATS JetStream | Provisional (default, pending research) | [ADR-0008](adr/0008-event-bus-nats-jetstream.md) |
-| D3 | Service RPC and schemas | gRPC + Protobuf via `buf`; REST + WebSocket to UI | Provisional (default, pending research) | [ADR-0003](adr/0003-contracts-protobuf-buf.md) |
-| D4 | Analytical market-data store | Parquet lake queried by DuckDB, single writer | Pending | — |
-| D5 | Transactional state | PostgreSQL (one `platform` DB, schema per area, `svc_*` least-privilege roles) | Provisional (default, pending research) | [ADR-0005](adr/0005-postgres-layout-and-migrations.md) |
-| D6 | Hot cache / online features | Redis-compatible (Valkey/Redis) | Pending | — |
-| D7 | Backtesting engine | Vectorized research tier + event-driven tier sharing live strategy code | Pending | — |
-| D8 | Experiment tracking / registry | MLflow (self-hosted) | Pending | — |
-| D9 | Hyperparameter optimization | Optuna | Pending | — |
-| D10 | Job orchestration | Prefect (self-hosted) | Pending | — |
-| D11 | Frontend | Next.js + TypeScript + Tailwind + shadcn/ui | Pending | — |
-| D12 | Charting | TradingView Lightweight Charts; ECharts/uPlot; Perspective | Pending | — |
-| D13 | Mobile | Responsive PWA + Web Push | Pending | — |
-| D14 | Real-time UI transport | WebSocket (SSE fallback) | Pending | — |
-| D15 | Authentication | Passkeys (WebAuthn) + TOTP; OIDC if multi-user | Pending | — |
-| D16 | Secrets | SOPS + age; envelope encryption for broker credentials | Pending | — |
-| D17 | Remote network access | Tailscale, no public inbound ports | Pending | — |
-| D18 | IBKR connectivity | IB Gateway + IBC (TWS API); Client Portal Web API fallback | Pending | — |
-| D19 | Virtual portfolio model | One account per broker, internal virtual ledgers + order tagging | Pending | — |
-| D20 | Market data vendors | Alpaca (IEX/SIP) + IBKR; optional vendor adapters | Pending | — |
-| D21 | Remote orchestration | Single droplet with Docker Compose | Pending | — |
-| D22 | Observability | Prometheus + Grafana + Loki + OpenTelemetry/Tempo | Pending | — |
-| D23 | MVP model families | Logistic regression baseline + LightGBM | Pending | — |
-| D24 | Default labeling | Triple-barrier + meta-labeling; fixed-horizon baseline | Pending | — |
-| D25 | GPU strategy | CPU first; optional GPU profile; on-demand cloud GPU | Pending | — |
-| D26 | Assistant LLM provider | Pluggable (local or API); no secrets/account data leave the box by default | Pending | — |
-| D27 | Price adjustments | Store raw bars + corporate actions; adjust at read time as of decision date | Pending | — |
+| D1 | Core language | Go for api-gateway, marketdata, execution, ledger, broker-gateway (Alpaca adapter, credential custody); **Python for the IBKR adapter (`broker-gateway-ibkr`, `ib_async`)**, ML, backtest, optimizer, assistant, context data | Accepted (research) | [ADR-0004](adr/0004-core-language-split.md), [research](research/09-decisions.md#d1) |
+| D2 | Event bus | NATS JetStream 2.x, **`sync_interval: always`**, replication 1; Postgres is the system of record; order and fill events via a transactional outbox (Phase 2); idempotent consumers | Accepted (research) | [ADR-0008](adr/0008-event-bus-nats-jetstream.md), [research](research/09-decisions.md#d2) |
+| D3 | Service RPC and schemas | gRPC + Protobuf via `buf` between services; **REST + SSE** to the UI | Accepted (research) | [ADR-0003](adr/0003-contracts-protobuf-buf.md), [research](research/09-decisions.md#d3) |
+| D4 | Analytical market-data store | Hive-partitioned Parquet + DuckDB 1.5.x (pinned), single writer (temp file + atomic rename, Postgres manifest); DuckLake-on-Postgres upgrade path; **lake on host APFS**, bind-mounted for the writer | Accepted (research) | [research](research/09-decisions.md#d4) (ADR in Phase 1, section 03) |
+| D5 | Transactional state | PostgreSQL (OMS, ledger, users, audit, MLflow/Optuna/Prefect catalogs); one `platform` DB, schema per area, `svc_*` least-privilege roles | Accepted (research) | [ADR-0005](adr/0005-postgres-layout-and-migrations.md), [research](research/09-decisions.md#d5) |
+| D6 | Hot cache / online features | **Valkey 9** (not Redis 8); optional at MVP if NATS KV suffices | Accepted (research) | [research](research/09-decisions.md#d6) |
+| D7 | Backtesting engine | **Custom two-tier on `tbcore`** (vectorized Polars/NumPy + event-driven replay through the live strategy API); NautilusTrader not adopted | Accepted (research) | [research](research/09-decisions.md#d7) (ADR in Phase 3) |
+| D8 | Experiment tracking / registry | MLflow 3 + Postgres backend + **filesystem artifact store (restic-backed); no MinIO** (RustFS if S3 is ever needed) | Accepted (research) | [research](research/09-decisions.md#d8) |
+| D9 | Hyperparameter optimization | Optuna 5 (RDB on Postgres) + trial ledger; LLM advisor only | Accepted (research) | [research](research/09-decisions.md#d9) (ADR in Phase 4) |
+| D10 | Job orchestration | Prefect 3 | Accepted (research) | [research](research/09-decisions.md#d10) |
+| D11 | Frontend | **Static Vite + React 19 SPA** + TanStack Router/Query + Tailwind + shadcn/ui, served by the Go gateway | Accepted (research) | [research](research/09-decisions.md#d11) |
+| D12 | Charting | Lightweight Charts 5 (Apache-2.0, attribution); uPlot / ECharts 6; Perspective 4; **Advanced Charts ruled out (licence)** | Accepted (research) | [research](research/09-decisions.md#d12) (ADR in Phase 1 chart slice) |
+| D13 | Mobile | Installed PWA + Web Push; **Pushover emergency priority for critical alerts** | Accepted (research) | [research](research/09-decisions.md#d13) |
+| D14 | Real-time UI transport | **SSE primary** (HTTP/2), REST for commands; WebSocket only for a proven bidirectional need | Accepted (research) | [research](research/09-decisions.md#d14) |
+| D15 | Authentication | Built-in passkeys (go-webauthn) + TOTP + recovery codes; server-side sessions; step-up; Pocket ID / Keycloak if multi-user | Accepted (research) | [research](research/09-decisions.md#d15) |
+| D16 | Secrets | SOPS + age for deploy secrets; app-level AES-256-GCM envelope encryption for broker credentials; `/run/secrets` files only; OpenBao if a server is ever needed | Accepted (research) | [research](research/09-decisions.md#d16) |
+| D17 | Remote network access | **Tailscale via the open-source `tailscaled` system daemon** on the Mac (runs before login); optional **Cloudflare Tunnel + Access** (independent passkey MFA) for a public UI URL and webhooks; never tunnel IB Gateway or databases | Accepted (research) | [research](research/09-decisions.md#d17) |
+| D18 | IBKR connectivity | IB Gateway + IBC (gnzsnz arm64 image, pinned *stable*, IBC 3.24.2; IBC archived 2026-09-01); Python `ib_async` adapter; weekly 2FA runbook; fallback = manual VNC login over Tailscale (not CPAPI) | Accepted (research) | [research](research/09-decisions.md#d18) (ADR in Phase 1, section 04) |
+| D19 | Virtual portfolio model | Virtual ledgers always **+ dedicated IBKR linked "bot" account** + Alpaca symbol segregation (owner to decide on opening the account) | Accepted (research) | [research](research/09-decisions.md#d19) (ADR in Phase 2) |
+| D20 | Market data vendors | Alpaca Algo Trader Plus (SIP) + FMP (fundamentals, calendars, universe, daily reconciliation) + one-off survivorship-free intraday history; IBKR data minimal | Accepted (research) | [research](research/09-decisions.md#d20) (ADR in Phase 1, section 05) |
+| D21 | Primary host / orchestration | **Mac Mini + Docker Compose (Colima)**; the same Compose later on a DigitalOcean droplet; no k3s/Nomad | Accepted (research) | [research](research/09-decisions.md#d21) |
+| D22 | Observability | Grafana + Prometheus + **VictoriaLogs** + **Grafana Alloy** as the only agent; Tempo from Phase 5; Pushover contact point | Accepted (research) | [research](research/09-decisions.md#d22) |
+| D23 | MVP model families | Linear baseline + LightGBM (regression intraday, LambdaRank swing) + rule + meta-label challenger | Accepted (research) | [research](research/09-decisions.md#d23) (ADR in Phase 4) |
+| D24 | Default labeling | Volatility-scaled residual forward returns (regression / rank); triple barrier and meta-labeling as tested alternatives | Accepted (research) | [research](research/09-decisions.md#d24) (ADR in Phase 4) |
+| D25 | GPU strategy | **No GPU Compose profile**; native macOS workers (CPU GBDT, MPS/MLX small nets); cloud GPU bursts | Accepted (research) | [research](research/09-decisions.md#d25) |
+| D26 | Assistant LLM provider | Pluggable hybrid: API planner on de-identified, masked data + local MLX/Ollama model for sensitive roles; Pydantic AI + MCP; egress allowlist | Accepted (research) | [research](research/09-decisions.md#d26) (ADR in Phase 4) |
+| D27 | Price adjustments | Raw unadjusted bars + corporate actions, adjusted as of the decision date; **`adjustment_basis` column** (`raw`/`split`/`split_div`) | Accepted (research) | [research](research/09-decisions.md#d27) (ADR in Phase 1) |
+| D28 | Container runtime on macOS | **Colima on Lima with a boot-time LaunchDaemon** (starts before login); not Docker Desktop; OrbStack only with auto-login | Accepted (research) | [research](research/09-decisions.md#d28) |
+| D29 | ML worker placement | **Native launchd workers on macOS** from the same `uv` lockfile, over loopback to NATS/Postgres; containerized on Linux | Accepted (research) | [research](research/09-decisions.md#d29) |
+| D30 | Account routing and day-trade policy | **PDT guard off by default** (per-account `pdt_guard: off|legacy`); intraday → Alpaca at margin multiplier 1; swing → IBKR bot account with GTC stops; intraday-margin guard; IMD / margin call halts the account | Accepted (research) | [research](research/09-decisions.md#d30) |
+| D31 | Autonomous optimization governance | 12-rule honest-optimization policy (trial ledger, DSR, PBO ≤ 0.2, MinBTL budgets, sealed holdout service, human gates) | Accepted (research) | [research](research/09-decisions.md#d31) (ADR in Phase 4) |
 | D32 | Monorepo layout, workspaces, pinned toolchain | `go.work` + `uv` + `pnpm` workspaces; versions in `tools/versions.env`; `make` entry point | Accepted | [ADR-0002](adr/0002-monorepo-layout-and-toolchain.md) |
-| D33 | Service-to-service authentication | Short-lived Ed25519 service tokens with per-method allowlists (mTLS deferred to Phase 6) | Provisional (default, pending research) | [ADR-0007](adr/0007-service-to-service-auth.md) |
+| D33 | Service-to-service authentication | Short-lived Ed25519 service tokens with per-method allowlists (mTLS deferred to Phase 6) | Accepted | [ADR-0007](adr/0007-service-to-service-auth.md) |
 | D34 | Audit log design | Postgres hash chain computed by a SECURITY DEFINER function; Go verifier | Accepted | [ADR-0006](adr/0006-audit-log-hash-chain.md) |
 | — | Agent documentation structure and protocol | — | Accepted | [ADR-0001](adr/0001-agent-documentation-structure.md) |

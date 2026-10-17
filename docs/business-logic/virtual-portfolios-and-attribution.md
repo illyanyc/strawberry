@@ -12,7 +12,7 @@ Ownership of every position, lot, and order inside real broker accounts: the ful
 - **Owner:** a `strategy_id` or `manual`. Each lot has exactly one owner.
 - **Virtual portfolio:** a strategy's allocated capital, lots, P&L, and limits within one real account.
 - **Manual bucket:** everything not attributed to a strategy, including activity outside the platform.
-- Default model (D19, DECISION PENDING): one account per broker with internal ledgers; data model allows mapping a strategy to a dedicated sub-account later.
+- Model (D19, accepted): virtual ledgers in every account, plus a dedicated IBKR linked "bot" account for bot capital (owner to open) and Alpaca symbol segregation from manual holdings; the data model also allows mapping a strategy to a dedicated sub-account later.
 
 ## Rules
 

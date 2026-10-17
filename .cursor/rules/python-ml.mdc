@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Python ML and research
 
-Tooling is `DECISION PENDING` where not yet recorded in `docs/decisions.md` (defaults: `uv` workspace, MLflow D8, Optuna D9, Prefect D10, two-tier backtester D7). Read the service's `AGENTS.md` first.
+Tooling (accepted, see `docs/decisions.md`): `uv` workspace; MLflow 3 with filesystem artifacts (D8); Optuna 5 (D9); Prefect 3 (D10); custom two-tier backtester on `tbcore` (D7); LightGBM + linear baseline + rule/meta-label challenger (D23); volatility-scaled residual forward-return targets (D24); honest-optimization policy (D31). On macOS, ML workers run **natively under launchd** (MPS/MLX available), not in containers (D25, D29). Read the service's `AGENTS.md` first.
 
 ## Shared library is the only source of trading logic
 
@@ -30,6 +30,7 @@ Tooling is `DECISION PENDING` where not yet recorded in `docs/decisions.md` (def
 ## Assistant and automation
 
 - The assistant cannot place orders, change live config or risk limits, read the holdout, or see credentials or account identifiers. Its tools are allowlisted and budgeted.
+- API-hosted LLMs only see de-identified, ticker-masked, date-shifted data; account-sensitive roles use the local model (D26). Outbound LLM calls go through an egress allowlist.
 
 ## Notebooks
 

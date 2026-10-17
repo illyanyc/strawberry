@@ -1,6 +1,6 @@
 # ADR-0004: Go for core services, Python for ML and research
 
-- **Status:** Accepted (provisional: default, pending research §7)
+- **Status:** Accepted (research)
 - **Date:** 2026-10-17
 - **Decision register:** D1
 - **Related:** [ADR-0002](0002-monorepo-layout-and-toolchain.md), [ADR-0003](0003-contracts-protobuf-buf.md)
@@ -33,3 +33,7 @@ The order path (broker adapters, OMS, risk, ledger, gateway) needs predictable l
 ## Validation
 
 Phase 2 latency measurements (U8) on the Mac Mini; revisit if the Go/Python seam causes duplicated logic.
+
+## Research outcome (2026-10-17)
+
+Research [09 §D1](../research/09-decisions.md#d1) refines the split: there is no maintained official IBKR Go API, so the **IBKR adapter is a separate Python service** (`broker-gateway-ibkr`, `ib_async`) behind the same contracts. `broker-gateway` (Go) keeps the Alpaca adapter and credential custody. Everything else above stands.

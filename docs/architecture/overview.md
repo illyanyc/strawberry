@@ -1,6 +1,6 @@
 # Architecture overview
 
-**Status:** target design, not built. Components and stack are `DECISION PENDING` per [`../decisions.md`](../decisions.md) until ADRs accept them. The service list with paths and owners is in the [root `AGENTS.md` system map](../../AGENTS.md#system-map); this doc covers how the pieces connect.
+**Status:** Phase 0 in progress. Stack decisions are accepted per [`../decisions.md`](../decisions.md) (research report); ADRs are added as each phase implements them. The service list with paths and owners is in the [root `AGENTS.md` system map](../../AGENTS.md#system-map); this doc covers how the pieces connect.
 
 ## Components and data flow
 
@@ -86,7 +86,7 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 | Modes | `mode ∈ {backtest, paper, live}` and `broker_account_id` on every strategy, order, and fill | — |
 | Security | Authenticated gateway, step-up for dangerous actions, encrypted credentials only in broker-gateway, private network only, hash-chained audit log | D15–D17 |
 | Observability | Metrics, logs, traces per service; trade audit trail | D22 |
-| Deployment | Docker Compose profiles locally; same Compose on one remote droplet | D21 |
+| Deployment | Mac Mini host: Docker Compose under Colima (boot-time LaunchDaemon), native launchd ML workers; same Compose on a droplet later | D21, D28, D29 |
 
 ## Contracts
 

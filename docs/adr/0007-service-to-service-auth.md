@@ -1,6 +1,6 @@
 # ADR-0007: Service-to-service authentication with short-lived Ed25519 tokens
 
-- **Status:** Accepted (provisional: default, pending research §7, §12)
+- **Status:** Accepted
 - **Date:** 2026-10-17
 - **Decision register:** D33
 - **Related:** section 02 "Service-to-service auth"; rule SE-040
@@ -33,3 +33,7 @@ Section 02 requires that `execution` accepts intents only from authorized produc
 ## Validation
 
 `TestSE040TokenVerification`; `broker-gateway` rejects calls from callers other than `api-gateway` (tested in the service).
+
+## Research outcome (2026-10-17)
+
+The research report does not address internal service authentication; the owner delegated the decision. Accepted as written (D33).

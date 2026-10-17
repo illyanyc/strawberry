@@ -6,13 +6,13 @@ alwaysApply: false
 
 # Frontend
 
-Framework is `DECISION PENDING` (D11 default Next.js + TypeScript + Tailwind + shadcn/ui; charts D12 TradingView Lightweight Charts; mobile D13 responsive PWA; transport D14 WebSocket). Follow `docs/decisions.md` and `apps/web/AGENTS.md` once they exist.
+Stack (accepted, see `docs/decisions.md`): static **Vite + React 19 SPA** with TanStack Router/Query, Tailwind, shadcn/ui, served by the Go gateway (D11); no SSR, no React Server Components. Charts: Lightweight Charts, uPlot/ECharts, Perspective; Advanced Charts is ruled out by licence (D12). Mobile: installed PWA + Web Push; critical alerts also via Pushover (D13). Real-time: **SSE** for server-to-client streams, REST for commands (D14). Read `apps/web/AGENTS.md`.
 
 ## Security
 
 - The browser never receives broker credentials, API keys, or full account numbers. It talks only to the API gateway.
 - Every request is authenticated. Dangerous actions (enable live, raise limits, change allocations, disable a kill switch) trigger step-up re-auth in the UI and are enforced server-side; the UI check is never the only check.
-- No secrets in client bundles or `NEXT_PUBLIC_*`-style variables.
+- No secrets in client bundles or `VITE_*` variables. No inline scripts or styles (the gateway's CSP forbids them).
 
 ## Trading UX
 

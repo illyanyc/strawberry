@@ -1,6 +1,6 @@
 # ADR-0003: Contracts in Protobuf, managed with buf, generated for Go, Python, and TypeScript
 
-- **Status:** Accepted (provisional: default, pending research §7)
+- **Status:** Accepted (research)
 - **Date:** 2026-10-17
 - **Decision register:** D3
 - **Related:** master prompt "Service contracts", section 01 Stage A, rules OP-003, DF-001, VP-002, SE-030, SE-031
@@ -36,3 +36,7 @@ Go core services, Python ML/research services, and the TypeScript UI must agree 
 ## Validation
 
 `make gen-check`, `make lint-proto`, and the round-trip tests in Go, Python, and TypeScript pass in CI; a proto edit without `make gen` fails CI.
+
+## Research outcome (2026-10-17)
+
+Research [09 §D3](../research/09-decisions.md#d3) confirms the decision. The UI transport is REST + **SSE** (D14), not WebSocket; the gateway's streams are specified in `contracts/openapi/gateway.yaml`.

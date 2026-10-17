@@ -58,7 +58,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/research-report.md` | Exists | Deep research report (executive summary, decisions that differ from defaults); index for `docs/research/` |
 | `docs/research/` | Exists | Research sections `01`–`10`; `09-decisions.md` resolves D1–D27 and proposes D28–D31 (accepted by the owner) |
 | `docs/glossary.md` | Exists | Domain terms |
-| `docs/decisions.md` | Exists | Decision register (D1–D27 plus later rows): status, default, ADR link |
+| `docs/decisions.md` | Exists | Decision register D1–D34: status (Accepted (research) / Accepted), chosen option, ADR or research link |
 | `docs/architecture/overview.md` | Exists | Components, data flows, the two loops, cross-cutting design, bus subjects |
 | `docs/architecture/service-agents.md` | Exists | Convention and template for per-service `AGENTS.md` |
 | `docs/business-logic/README.md` | Exists | Index of domain docs, rule-ID scheme, how to write rules |
@@ -74,12 +74,12 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/template.md` | Exists | ADR template |
 | `docs/adr/0001-agent-documentation-structure.md` | Exists | ADR: this documentation structure and protocol |
 | `docs/adr/0002-monorepo-layout-and-toolchain.md` | Exists | ADR (D32): monorepo layout, workspaces, pinned toolchain, docs gate |
-| `docs/adr/0003-contracts-protobuf-buf.md` | Exists | ADR (D3, provisional): Protobuf contracts, buf, local-plugin codegen, committed generated code |
-| `docs/adr/0004-core-language-split.md` | Exists | ADR (D1, provisional): Go core services, Python ML/research |
-| `docs/adr/0005-postgres-layout-and-migrations.md` | Exists | ADR (D5, provisional): one `platform` DB, schema per area, `svc_*` roles, owner-role migrations |
+| `docs/adr/0003-contracts-protobuf-buf.md` | Exists | ADR (D3): Protobuf contracts, buf, local-plugin codegen, committed generated code |
+| `docs/adr/0004-core-language-split.md` | Exists | ADR (D1; IBKR adapter in Python): Go core services, Python ML/research |
+| `docs/adr/0005-postgres-layout-and-migrations.md` | Exists | ADR (D5): one `platform` DB, schema per area, `svc_*` roles, owner-role migrations |
 | `docs/adr/0006-audit-log-hash-chain.md` | Exists | ADR (D34): audit hash chain computed in Postgres, verified in Go |
-| `docs/adr/0007-service-to-service-auth.md` | Exists | ADR (D33, provisional): Ed25519 service tokens with per-method allowlists |
-| `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2, provisional): NATS JetStream, stream layout |
+| `docs/adr/0007-service-to-service-auth.md` | Exists | ADR (D33): Ed25519 service tokens with per-method allowlists |
+| `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2): NATS JetStream, `sync_interval: always`, stream layout, outbox |
 | `docs/runbooks/` | Planned | Kill switch, broker outage, reconciliation break, restore |
 | `docs/threat-model.md` | Planned | Assets, actors, STRIDE, mitigations |
 
@@ -113,6 +113,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 |---|---|---|
 | `services/api-gateway/` | Auth, sessions, REST/WebSocket, TradingView webhook intake | `AGENTS.md` in dir |
 | `services/broker-gateway/` | Alpaca/IBKR adapters, simulator, sessions | `AGENTS.md` in dir |
+| `services/broker-gateway-ibkr/` | IBKR adapter (Python, `ib_async`) next to IB Gateway + IBC (D1, D18; Phase 1) | `AGENTS.md` in dir |
 | `services/marketdata/` | Backfill, streaming, bar building, lake/cache writes | `AGENTS.md` in dir |
 | `services/ledger/` | Real + virtual portfolios, lots, reconciliation | `AGENTS.md` in dir |
 | `services/execution/` | OMS, pre-trade risk, kill switches, strategy runtime | `AGENTS.md` in dir |

@@ -6,13 +6,14 @@ alwaysApply: false
 
 # Backend core
 
-Language is `DECISION PENDING` (D1; default Go, alternatives Rust or Python asyncio). Follow the conventions of whatever `docs/decisions.md` records; until then keep these rules language-agnostic. Read the service's `AGENTS.md` first.
+Language (D1, accepted): **Go** for api-gateway, broker-gateway (Alpaca adapter, credential custody), marketdata, execution, ledger; the **IBKR adapter is Python** (`broker-gateway-ibkr`, `ib_async`) behind the same contracts. Read the service's `AGENTS.md` first.
 
 ## Contracts
 
 - All cross-service messages live in `contracts/` (D3 default Protobuf + `buf`). Change the contract, regenerate, then implement.
 - Breaking changes need a new message version and a migration note in the changelog.
 - Consumers on order-path subjects (`ord.*`, `exec.*`, `risk.kill`) are idempotent on `intent_id`, `client_order_id`, `broker_exec_id`.
+- Postgres is the system of record; order and fill events reach NATS through a transactional outbox (D2). NATS runs with `sync_interval: always`.
 
 ## Order path (execution, broker-gateway, ledger)
 

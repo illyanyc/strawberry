@@ -1,6 +1,6 @@
 # ADR-0008: NATS JetStream as the event bus
 
-- **Status:** Accepted (provisional: default, pending research §7)
+- **Status:** Accepted (research)
 - **Date:** 2026-10-17
 - **Decision register:** D2
 - **Related:** master "Bus subjects"; rules OE-006, OP-030
@@ -31,3 +31,7 @@ The platform needs durable, at-least-once delivery for the order path (`ord.*`, 
 ## Validation
 
 Compose smoke test checks NATS health and stream creation; Phase 1/2 gates measure latency and redelivery behavior.
+
+## Research outcome (2026-10-17)
+
+Research [09 §D2](../research/09-decisions.md#d2) refines the configuration, and these settings are mandatory: JetStream **`sync_interval: always`** (Jepsen lost about 14% of acknowledged writes on power loss with the default 2-minute fsync); replication factor 1; **Postgres is the system of record** and order/fill events are published through a transactional outbox (Phase 2); consumers stay idempotent and can reconcile from brokers.

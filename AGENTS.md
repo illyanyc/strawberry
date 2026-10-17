@@ -12,30 +12,31 @@ A self-hosted platform for researching, training, backtesting, deploying, and mo
 - Runs each strategy in its own **virtual sub-portfolio** inside the real broker account. Strategies trade only their own positions and **never touch manual holdings**.
 - Desktop and mobile UI; local first (Docker Compose), later a remote server reachable only over a private network.
 
-**Status:** pre-code. Only the documentation and agent structure exist. Stack choices are pending a research report; see [`docs/decisions.md`](docs/decisions.md).
+**Status:** Phase 0 (foundation) in progress. Stack choices are accepted from the research report; see [`docs/decisions.md`](docs/decisions.md). Build prompts live in [`docs/prompts/`](docs/prompts/00-master-prompt.md) and the owner's inputs in [`docs/project-context.md`](docs/project-context.md).
 
 ## System map
 
-Defaults come from the build plan and stay `DECISION PENDING` until an ADR accepts them. Isolate every pending choice behind an interface.
+Stack choices are accepted per [`docs/decisions.md`](docs/decisions.md) (research report in [`docs/research/`](docs/research-report.md)). Keep each choice behind an interface so it can be swapped.
 
-| Area | Path (planned) | Responsibility | Stack |
+| Area | Path | Responsibility | Stack |
 |---|---|---|---|
-| Contracts | `contracts/` | Cross-service schemas (single source of truth) | Protobuf + gRPC via `buf` (D3, DECISION PENDING) |
-| API gateway | `services/api-gateway/` | Auth, sessions, authorization policy, REST/WebSocket for UI, TradingView webhook intake | Core language (D1, DECISION PENDING; default Go) |
-| Broker gateway | `services/broker-gateway/` | Alpaca/IBKR adapters, sessions, order submit/cancel, execution + account streams, simulator | D1 (default Go); IBKR via IB Gateway + IBC (D18, DECISION PENDING) |
-| Market data | `services/marketdata/` | Backfill, streaming, bar building, gap repair, lake + cache writes | D1 (default Go) |
-| Ledger | `services/ledger/` | Real account snapshots, virtual strategy ledgers, `manual` bucket, lots, reconciliation | D1 (default Go) |
-| Execution | `services/execution/` | Strategy runtime / signal intake, OMS state machine, pre-trade risk, kill switches | D1 (default Go) |
+| Contracts | `contracts/` | Cross-service schemas (single source of truth) | Protobuf + gRPC via `buf`; REST + SSE to the UI (D3) |
+| API gateway | `services/api-gateway/` | Auth, sessions, authorization policy, REST + SSE for UI, static UI, TradingView webhook intake (later) | Go (D1), go-webauthn (D15) |
+| Broker gateway | `services/broker-gateway/` | Credential custody (envelope encryption), Alpaca adapter, order submit/cancel, execution + account streams, simulator | Go (D1) |
+| IBKR adapter | `services/broker-gateway-ibkr/` (Planned, Phase 1) | IBKR sessions and orders via IB Gateway + IBC | Python `ib_async` (D1, D18) |
+| Market data | `services/marketdata/` | Backfill, streaming, bar building, gap repair, lake + cache writes | Go (D1); Alpaca SIP + FMP (D20) |
+| Ledger | `services/ledger/` | Real account snapshots, virtual strategy ledgers, `manual` bucket, lots, reconciliation | Go (D1); IBKR bot account + Alpaca symbol segregation (D19) |
+| Execution | `services/execution/` | Strategy runtime / signal intake, OMS state machine, pre-trade risk, kill switches, routing and margin guard | Go (D1); routing per D30 |
 | Context data | `services/context-data/` | News, sentiment, macro, earnings, regime series | Python |
-| ML | `services/ml/` | Training jobs, model zoo, inference | Python; MLflow (D8), Optuna (D9), DECISION PENDING |
-| Backtest | `services/backtest/` | Vectorized + event-driven backtests, validation stats | Python (D7, DECISION PENDING) |
-| Optimizer | `services/optimizer/` | Studies, search spaces, holdout discipline, champion/challenger | Python |
-| Assistant | `services/assistant/` | LLM agent with constrained tools | Python; provider pluggable (D26, DECISION PENDING) |
+| ML | `services/ml/` | Training jobs, model zoo, inference | Python; MLflow 3 (D8), Optuna 5 (D9), LightGBM (D23); native launchd workers on macOS (D29) |
+| Backtest | `services/backtest/` | Vectorized + event-driven backtests, validation stats | Python, custom two-tier on `tbcore` (D7) |
+| Optimizer | `services/optimizer/` | Studies, search spaces, holdout discipline, champion/challenger | Python; honest-optimization policy (D31) |
+| Assistant | `services/assistant/` | LLM agent with constrained tools | Python, Pydantic AI + MCP; hybrid API/local LLM (D26) |
 | Monitor | `services/monitor/` | Drift, divergence, health, alerts, auto-demotion | Python |
-| Shared libs | `libs/go/`, `libs/py/tbcore/` | Config, logging, bus client, calendar; **features, labels, splitters, cost models, strategy API** (shared by train, backtest, and live) | Go / Python |
-| Web UI | `apps/web/` | Desktop + mobile PWA, charts, order entry, research dashboards | Next.js + Tailwind + shadcn/ui (D11, DECISION PENDING) |
-| Infra | `infra/` | Compose profiles, images, Terraform, observability config, encrypted secrets | Docker Compose (D21), Prometheus/Grafana/Loki/Tempo (D22), SOPS+age (D16) |
-| Storage | — | Bars/ticks: Parquet lake + DuckDB (D4); state: PostgreSQL (D5); cache: Redis/Valkey (D6); bus: NATS JetStream (D2) | all DECISION PENDING |
+| Shared libs | `libs/go/`, `libs/py/tbcore/` | Config, logging, secrets, policy, audit, bus, clock; **features, labels, splitters, cost models, strategy API** (shared by train, backtest, and live) | Go / Python |
+| Web UI | `apps/web/` | Desktop + mobile PWA, charts, order entry, research dashboards | Vite + React 19 SPA, TanStack, Tailwind, shadcn/ui (D11); SSE (D14); PWA + Pushover (D13) |
+| Infra | `infra/` | Compose profiles, images, macOS host setup, observability config, encrypted secrets | Docker Compose on Mac Mini via Colima (D21, D28); Grafana/Prometheus/VictoriaLogs/Alloy (D22); SOPS + age (D16); Tailscale + optional Cloudflare Access (D17) |
+| Storage | — | Bars/ticks: Parquet lake + DuckDB on host APFS (D4); state: PostgreSQL (D5); cache: Valkey 9 (D6); bus: NATS JetStream (D2); artifacts: filesystem (D8) | |
 
 Data flows and the research/trading loops are in [`docs/architecture/overview.md`](docs/architecture/overview.md).
 
