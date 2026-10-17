@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-10-17
-- **Decision register:** D30
+- **Decision register:** D34
 - **Related:** master N1; section 02 "Audit log"; rules SE-020..SE-025; [ADR-0005](0005-postgres-layout-and-migrations.md)
 
 ## Context

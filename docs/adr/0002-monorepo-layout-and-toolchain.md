@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-10-17
-- **Decision register:** D28
+- **Decision register:** D32
 - **Related:** master prompt "Repository layout", section 01 Stage A, [ADR-0001](0001-agent-documentation-structure.md), rules OP-001..OP-006
 
 ## Context

@@ -4,6 +4,8 @@ One row per platform decision. Defaults come from the build plan and are used un
 
 Status values: **Pending** (not yet relied on; use the default behind an interface when needed), **Provisional** (default adopted and built on, pending the research report; ADR linked and marked provisional), **Accepted** (settled; ADR linked), **Superseded** (link the replacing ADR).
 
+IDs D1–D31 follow the master prompt and the [research report](research/09-decisions.md); repo-local decisions start at D32.
+
 When the research report lands, each Provisional row is either confirmed (status → Accepted, ADR updated) or replaced by a new superseding ADR.
 
 | ID | Decision | Default | Status | ADR |
@@ -35,7 +37,7 @@ When the research report lands, each Provisional row is either confirmed (status
 | D25 | GPU strategy | CPU first; optional GPU profile; on-demand cloud GPU | Pending | — |
 | D26 | Assistant LLM provider | Pluggable (local or API); no secrets/account data leave the box by default | Pending | — |
 | D27 | Price adjustments | Store raw bars + corporate actions; adjust at read time as of decision date | Pending | — |
-| D28 | Monorepo layout, workspaces, pinned toolchain | `go.work` + `uv` + `pnpm` workspaces; versions in `tools/versions.env`; `make` entry point | Accepted | [ADR-0002](adr/0002-monorepo-layout-and-toolchain.md) |
-| D29 | Service-to-service authentication | Short-lived Ed25519 service tokens with per-method allowlists (mTLS deferred to Phase 6) | Provisional (default, pending research) | [ADR-0007](adr/0007-service-to-service-auth.md) |
-| D30 | Audit log design | Postgres hash chain computed by a SECURITY DEFINER function; Go verifier | Accepted | [ADR-0006](adr/0006-audit-log-hash-chain.md) |
+| D32 | Monorepo layout, workspaces, pinned toolchain | `go.work` + `uv` + `pnpm` workspaces; versions in `tools/versions.env`; `make` entry point | Accepted | [ADR-0002](adr/0002-monorepo-layout-and-toolchain.md) |
+| D33 | Service-to-service authentication | Short-lived Ed25519 service tokens with per-method allowlists (mTLS deferred to Phase 6) | Provisional (default, pending research) | [ADR-0007](adr/0007-service-to-service-auth.md) |
+| D34 | Audit log design | Postgres hash chain computed by a SECURITY DEFINER function; Go verifier | Accepted | [ADR-0006](adr/0006-audit-log-hash-chain.md) |
 | — | Agent documentation structure and protocol | — | Accepted | [ADR-0001](adr/0001-agent-documentation-structure.md) |

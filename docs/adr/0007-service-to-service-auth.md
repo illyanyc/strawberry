@@ -2,7 +2,7 @@
 
 - **Status:** Accepted (provisional: default, pending research §7, §12)
 - **Date:** 2026-10-17
-- **Decision register:** D29
+- **Decision register:** D33
 - **Related:** section 02 "Service-to-service auth"; rule SE-040
 
 ## Context

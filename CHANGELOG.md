@@ -11,7 +11,7 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 - Business-logic docs with initial specified rules: orders and execution (`OE-`), virtual portfolios and attribution (`VP-`), risk management (`RM-`), strategies and model lifecycle (`SM-`), data and features (`DF-`), plus a template.
 - ADR process, template, and [ADR-0001](docs/adr/0001-agent-documentation-structure.md) (documentation structure and protocol).
 - Project `README.md`.
-- Repo tooling: `Makefile` (`make help`, `tools`, `docs-check`), pinned toolchain in `tools/versions.env`, `scripts/bootstrap-tools.sh` (installs buf, protoc, protoc plugins, golangci-lint, gitleaks into `.tools/bin`), `.gitignore`, `.gitattributes`, `.editorconfig` ([ADR-0002](docs/adr/0002-monorepo-layout-and-toolchain.md), D28, OP-001).
+- Repo tooling: `Makefile` (`make help`, `tools`, `docs-check`), pinned toolchain in `tools/versions.env`, `scripts/bootstrap-tools.sh` (installs buf, protoc, protoc plugins, golangci-lint, gitleaks into `.tools/bin`), `.gitignore`, `.gitattributes`, `.editorconfig` ([ADR-0002](docs/adr/0002-monorepo-layout-and-toolchain.md), D32, OP-001).
 - Documentation gate `scripts/docs_check.py`: file-map coverage and same-commit doc rules (OP-002..OP-006).
 - `docs/business-logic/operations.md` (`OP-` rules).
 - Contracts (`contracts/`): Protobuf packages `tb.common/marketdata/context/features/signals/orders/ledger/ml/alerts/audit/broker.v1` with the master prompt's minimum fields; `buf` lint/breaking; local-plugin codegen to Go (`contracts/gen/go`), Python (`tbcontracts`), TypeScript (`@strawberry/contracts`); round-trip tests in all three languages ([ADR-0003](docs/adr/0003-contracts-protobuf-buf.md), D3 provisional).
@@ -20,12 +20,13 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 - `docs/decisions.md` gains a **Provisional** status for defaults adopted ahead of the research report.
 - Shared Go library `libs/go`: typed config, JSON logging with secret redaction (SE-012), file-mounted secrets (SE-010), ops listener with `/healthz` `/readyz` `/metrics` and HTTP metrics (OP-010), OpenTelemetry tracing, service template, Ed25519 service tokens with gRPC interceptors (SE-040, [ADR-0007](docs/adr/0007-service-to-service-auth.md)), the single authorization policy with step-up rules (SE-001..SE-003, SE-014), audit writer and chain verifier (SE-020, SE-022, [ADR-0006](docs/adr/0006-audit-log-hash-chain.md)), Postgres bootstrap and embedded migrations for schemas `audit`, `auth`, `config`, `secrets` with least-privilege roles (SE-032, SE-050, [ADR-0005](docs/adr/0005-postgres-layout-and-migrations.md)), JetStream stream definitions (OP-030, [ADR-0008](docs/adr/0008-event-bus-nats-jetstream.md)), NTP clock-skew checker (OP-020).
 - Shared Python library `libs/py/tbcore`: service settings, ops app, JSON logging with redaction, secrets.
-- `docs/business-logic/security.md` (`SE-` rules); ADR-0004 (D1), ADR-0005 (D5), ADR-0008 (D2) provisional; new decisions D29 (service auth) and D30 (audit design).
+- `docs/business-logic/security.md` (`SE-` rules); ADR-0004 (D1), ADR-0005 (D5), ADR-0008 (D2) provisional; new decisions D33 (service auth) and D34 (audit design).
 - Imported the build prompts (`docs/prompts/`), owner inputs (`docs/project-context.md`), research brief, and the research report (`docs/research-report.md`, `docs/research/`) so decisions and ADRs can cite them from the repo.
 - `.golangci.yml` shared lint config; `make test-integration` (`scripts/test-integration.sh`) runs Postgres-backed tests in a throwaway container.
 
 ### Changed
 
+- Repo-local decision IDs renumbered to avoid the research report's new D28–D31: monorepo/toolchain D28 → D32, service-to-service auth D29 → D33, audit log design D30 → D34 (ADR-0002, ADR-0007, ADR-0006).
 - `docs/file-map.md` now uses full repo-relative paths in every row so `make docs-check` can verify coverage.
 
 ### Removed

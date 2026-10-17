@@ -73,12 +73,12 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/README.md` | Exists | ADR process and index |
 | `docs/adr/template.md` | Exists | ADR template |
 | `docs/adr/0001-agent-documentation-structure.md` | Exists | ADR: this documentation structure and protocol |
-| `docs/adr/0002-monorepo-layout-and-toolchain.md` | Exists | ADR: monorepo layout, workspaces, pinned toolchain, docs gate |
+| `docs/adr/0002-monorepo-layout-and-toolchain.md` | Exists | ADR (D32): monorepo layout, workspaces, pinned toolchain, docs gate |
 | `docs/adr/0003-contracts-protobuf-buf.md` | Exists | ADR (D3, provisional): Protobuf contracts, buf, local-plugin codegen, committed generated code |
 | `docs/adr/0004-core-language-split.md` | Exists | ADR (D1, provisional): Go core services, Python ML/research |
 | `docs/adr/0005-postgres-layout-and-migrations.md` | Exists | ADR (D5, provisional): one `platform` DB, schema per area, `svc_*` roles, owner-role migrations |
-| `docs/adr/0006-audit-log-hash-chain.md` | Exists | ADR (D30): audit hash chain computed in Postgres, verified in Go |
-| `docs/adr/0007-service-to-service-auth.md` | Exists | ADR (D29, provisional): Ed25519 service tokens with per-method allowlists |
+| `docs/adr/0006-audit-log-hash-chain.md` | Exists | ADR (D34): audit hash chain computed in Postgres, verified in Go |
+| `docs/adr/0007-service-to-service-auth.md` | Exists | ADR (D33, provisional): Ed25519 service tokens with per-method allowlists |
 | `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2, provisional): NATS JetStream, stream layout |
 | `docs/runbooks/` | Planned | Kill switch, broker outage, reconciliation break, restore |
 | `docs/threat-model.md` | Planned | Assets, actors, STRIDE, mitigations |
