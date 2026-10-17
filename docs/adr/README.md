@@ -28,3 +28,7 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0010](0010-account-routing-and-day-trade-policy.md) | Account routing, PDT guard off by default, and an intraday-margin guard | Accepted (research) | 2026-10-17 |
 | [0011](0011-secrets-management.md) | Secrets: mounted files, SOPS + age at rest, envelope encryption for broker credentials | Accepted (research) | 2026-10-17 |
 | [0012](0012-web-ui-spa-sse-pwa.md) | Static Vite + React SPA, SSE for real-time, installed PWA with Pushover for critical alerts | Accepted (research) | 2026-10-17 |
+| [0013](0013-mac-mini-host-colima-native-ml.md) | Mac Mini host with Compose on Colima, native ML workers, no GPU profile | Accepted (research) | 2026-10-17 |
+| [0014](0014-observability-stack.md) | Observability with Grafana, Prometheus, VictoriaLogs, and Alloy; Pushover for critical alerts | Accepted (research) | 2026-10-17 |
+| [0015](0015-phase0-data-services.md) | Phase 0 data services: lake on host APFS, Valkey 9, MLflow with filesystem artifacts, Prefect 3 | Accepted (research) | 2026-10-17 |
+| [0016](0016-remote-access.md) | Remote access through host `tailscaled`, optional Cloudflare Tunnel + Access | Accepted (research) | 2026-10-17 |

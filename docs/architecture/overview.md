@@ -85,7 +85,7 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 | Identity | ULIDs; `instrument_id` independent of ticker; `correlation_id` from signal to fill | — |
 | Modes | `mode ∈ {backtest, paper, live}` and `broker_account_id` on every strategy, order, and fill | — |
 | Security | Authenticated gateway (passkeys + TOTP fallback, server-side sessions, CSRF), step-up for dangerous actions via one policy function, encrypted credentials only in broker-gateway, signed service tokens on internal calls, private network only, hash-chained audit log | D15–D17, D33, D34 ([ADR-0009](../adr/0009-owner-authentication.md)) |
-| Observability | Metrics, logs, traces per service; trade audit trail | D22 |
+| Observability | Prometheus metrics from every service's ops listener, JSON logs → Alloy → VictoriaLogs, provisioned Grafana dashboard, Alertmanager → Pushover; OTel spans exported when an endpoint is set (Tempo in Phase 5) | D22 ([ADR-0014](../adr/0014-observability-stack.md)) |
 | Deployment | Mac Mini host: Docker Compose under Colima (boot-time LaunchDaemon), native launchd ML workers; same Compose on a droplet later | D21, D28, D29 |
 
 ## Contracts
@@ -105,6 +105,49 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 | `tb.broker.v1` | `CredentialService` (gRPC: put, delete, list status; no plaintext read) | api-gateway → broker-gateway |
 
 The UI ↔ gateway API (REST commands + SSE streams, D3/D14) is specified in [`contracts/openapi/gateway.yaml`](../../contracts/openapi/gateway.yaml). Only `/healthz` and the auth bootstrap endpoints are public (SE-004).
+
+## Deployment topology (Phase 0, Mac Mini)
+
+```mermaid
+flowchart TB
+  subgraph Remote[Owner devices]
+    PH[Phone / laptop browser]
+  end
+  subgraph Mac[Mac Mini host · macOS]
+    TS[tailscaled + tailscale serve<br/>HTTPS *.ts.net]
+    LD[launchd: Colima at boot,<br/>stack auto-start, native ML workers]
+    DATA[(Host APFS: data/lake,<br/>mlflow-artifacts, backups, .secrets)]
+    subgraph VM[Colima VM · Docker Compose]
+      subgraph edge[edge network]
+        GW[api-gateway :8080 → 127.0.0.1]
+        GF[Grafana :3000 → 127.0.0.1]
+        AM[Alertmanager]
+      end
+      subgraph backend[backend network · internal, no egress]
+        BG[broker-gateway]
+        MDS[marketdata / execution / ledger]
+        PYS[context-data / monitor]
+        PG[(Postgres 17)]
+        NATS{{NATS JetStream}}
+        VK[(Valkey 9)]
+        OBS[Prometheus · VictoriaLogs · Alloy · exporters]
+        MLP[ml profile: MLflow · Prefect · assistant]
+      end
+    end
+  end
+  PH -- Tailscale --> TS --> GW
+  PH -. optional Cloudflare Access .-> CF[cloudflared] --> GW
+  GW --> BG
+  GW --> PG
+  GW --> NATS
+  AM -- critical --> PO[Pushover]
+  LD --> VM
+  MDS --- DATA
+  MLP --- DATA
+```
+
+- Only the gateway and Grafana publish ports, on `127.0.0.1` (SE-051, OP-041). `make up NATIVE_ML=1` additionally exposes Postgres and NATS on loopback for native workers (D29).
+- The same Compose file runs on a Linux droplet later (D21); the `ml-workers` profile replaces native launchd workers there.
 
 ## Bus subjects (planned)
 

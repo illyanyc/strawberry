@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Native ML worker (D29, ADR-0013): runs on macOS (MPS/MLX available) from the same uv lockfile,
+     reaching Postgres and NATS over loopback (requires `make up NATIVE_ML=1`). Install one copy per
+     worker package (ml, backtest, optimizer) by rendering @PACKAGE@/@MODULE@. Workers read secrets
+     from @REPO@/.secrets via TB_SECRETS_DIR, never from the environment. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.strawberry.@PACKAGE@</string>
+  <key>UserName</key><string>@USER@</string>
+  <key>WorkingDirectory</key><string>@REPO@</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>@BREW@/bin/uv</string>
+    <string>run</string>
+    <string>--frozen</string>
+    <string>--package</string><string>@PACKAGE@</string>
+    <string>python</string><string>-m</string><string>@MODULE@</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key><string>@HOME@</string>
+    <key>PATH</key><string>@BREW@/bin:/usr/bin:/bin</string>
+    <key>TB_ENVIRONMENT</key><string>local</string>
+    <key>TB_SECRETS_DIR</key><string>@REPO@/.secrets</string>
+    <key>TB_DB_HOST</key><string>127.0.0.1</string>
+    <key>TB_NATS_URL</key><string>nats://127.0.0.1:4222</string>
+    <key>TB_LAKE_DIR</key><string>@REPO@/data/lake</string>
+    <key>TB_OPS_HOST</key><string>127.0.0.1</string>
+    <key>TB_OPS_PORT</key><string>@OPS_PORT@</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ThrottleInterval</key><integer>30</integer>
+  <key>StandardOutPath</key><string>@HOME@/Library/Logs/strawberry-@PACKAGE@.log</string>
+  <key>StandardErrorPath</key><string>@HOME@/Library/Logs/strawberry-@PACKAGE@.log</string>
+</dict>
+</plist>

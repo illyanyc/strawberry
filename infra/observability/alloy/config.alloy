@@ -1,0 +1,76 @@
+// Grafana Alloy: the single collection agent (D22). Ships container logs to VictoriaLogs and pushes
+// container (cAdvisor) and host/VM (unix exporter + backup textfile) metrics to Prometheus.
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
+    regex         = "strawberry"
+    action        = "keep"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "service"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+}
+
+loki.source.docker "containers" {
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.relabel.containers.output
+  relabel_rules = discovery.relabel.containers.rules
+  forward_to    = [loki.process.json.receiver]
+}
+
+// Services log JSON; lift level and correlation_id into fields for querying.
+loki.process "json" {
+  stage.json {
+    expressions = { level = "level", correlation_id = "correlation_id" }
+  }
+  stage.labels {
+    values = { level = "" }
+  }
+  forward_to = [loki.write.victorialogs.receiver]
+}
+
+loki.write "victorialogs" {
+  endpoint {
+    url = "http://victorialogs:9428/insert/loki/api/v1/push?_stream_fields=service,container&_msg_field=msg"
+  }
+}
+
+prometheus.exporter.cadvisor "containers" {
+  docker_host      = "unix:///var/run/docker.sock"
+  storage_duration = "5m"
+  docker_only      = true
+}
+
+prometheus.exporter.unix "host" {
+  rootfs_path = "/rootfs"
+  procfs_path = "/host/proc"
+  sysfs_path  = "/host/sys"
+  textfile {
+    directory = "/textfile"
+  }
+}
+
+prometheus.scrape "local" {
+  targets         = array.concat(prometheus.exporter.cadvisor.containers.targets, prometheus.exporter.unix.host.targets)
+  scrape_interval = "15s"
+  forward_to      = [prometheus.remote_write.prometheus.receiver]
+}
+
+prometheus.remote_write "prometheus" {
+  endpoint {
+    url = "http://prometheus:9090/api/v1/write"
+  }
+}

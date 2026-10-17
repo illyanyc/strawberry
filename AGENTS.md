@@ -58,16 +58,27 @@ When you work inside a directory that has its own `AGENTS.md`, read it too. The 
 
 ## How to run and test
 
-Not yet available. Planned entry points (placeholders until Phase 0 lands; update this section when they exist):
+Prerequisites: Docker (Colima on the Mac Mini, ADR-0013), `make`, `git`. Developing code also needs Go 1.27, Python 3.12 + `uv`, Node ≥ 22.15 + `pnpm` (versions in `tools/versions.env`).
 
 | Command | Does |
 |---|---|
-| `make up` / `make down` | Start/stop the local stack (Compose profiles: `core`, `ml`, `gpu`, `observability`, `dev`) |
-| `make test` | All unit, contract, leakage, and integration tests |
-| `make lint` | Linters and formatters for every language |
-| `make gen` | Regenerate code from `contracts/` |
-| `make migrate` | Apply database migrations |
-| `make docs-check` | Verify the file map covers every tracked path (planned CI gate) |
+| `make bootstrap` | First run: data dirs, generate `.secrets/` (`make secrets`), build images |
+| `make up` / `make down` / `make clean` | Start (profiles `core,observability`; `PROFILES=...` to change; `NATIVE_ML=1` for native macOS workers) / stop / stop and delete volumes |
+| `make setup-token` | One-time token for first-run owner setup at http://localhost:8080 |
+| `make ps`, `make logs SERVICE=x` | Status and logs; Grafana at http://localhost:3000 |
+| `make tools`, `make deps` | Pinned dev tools into `.tools/bin`; Go/uv/pnpm dependencies |
+| `make gen` / `make gen-check` | Regenerate contracts / fail if generated code is stale |
+| `make lint` | buf lint + breaking, golangci-lint, ruff + mypy, tsc + eslint, docs gate |
+| `make test` | Go (`-race`), Python, and web unit tests |
+| `make test-integration` | Go tests including Postgres-backed integration tests (throwaway container) |
+| `make smoke` | Smoke test of the running stack (readiness, auth gate, ports, e2e passkey flow with leak canary, Prometheus, audit chain) |
+| `make e2e` / `make e2e-ui` | Go API e2e / Playwright browser e2e against a fresh running stack |
+| `make migrate` | Roles, databases, schemas, migrations |
+| `make audit-verify` | Recompute the audit hash chain |
+| `make backup` / `make restore BACKUP=...` / `make backup-drill` | Encrypted backup / verified restore / full drill |
+| `make secrets-encrypt` / `make secrets-decrypt` | SOPS + age bundle of `.secrets/` |
+| `make port-check` / `make check-arm64` | Loopback-only ports / arm64 availability of every image |
+| `make docs-check` | File-map coverage and same-commit documentation rules |
 
 ## Non-negotiables (summary)
 

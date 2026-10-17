@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Brings the Compose stack up after boot once Colima's Docker socket answers (D21). Containers
+     also carry `restart: unless-stopped`; this daemon covers a cold boot or a recreated VM. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.strawberry.stack</string>
+  <key>UserName</key><string>@USER@</string>
+  <key>WorkingDirectory</key><string>@REPO@</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>@REPO@/infra/macos/start-stack.sh</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key><string>@HOME@</string>
+    <key>PATH</key><string>@BREW@/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>DOCKER_HOST</key><string>unix://@HOME@/.colima/default/docker.sock</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key>
+  <dict><key>SuccessfulExit</key><false/></dict>
+  <key>ThrottleInterval</key><integer>60</integer>
+  <key>StandardOutPath</key><string>@HOME@/Library/Logs/strawberry-stack.log</string>
+  <key>StandardErrorPath</key><string>@HOME@/Library/Logs/strawberry-stack.log</string>
+</dict>
+</plist>

@@ -1,0 +1,62 @@
+# Prometheus (D22). Core services are static targets (absence = down = alert). Optional-profile
+# services use DNS discovery: when their container is not running, the name does not resolve and no
+# target (and no false "down" alert) exists.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    stack: strawberry
+
+rule_files:
+  - /etc/prometheus/rules/*.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+scrape_configs:
+  - job_name: core-services
+    static_configs:
+      - targets: ["api-gateway:8081"]
+        labels: { service: api-gateway, tier: core }
+      - targets: ["broker-gateway:8081"]
+        labels: { service: broker-gateway, tier: core }
+      - targets: ["marketdata:8081"]
+        labels: { service: marketdata, tier: core }
+      - targets: ["execution:8081"]
+        labels: { service: execution, tier: core }
+      - targets: ["ledger:8081"]
+        labels: { service: ledger, tier: core }
+      - targets: ["context-data:8081"]
+        labels: { service: context-data, tier: core }
+      - targets: ["monitor:8081"]
+        labels: { service: monitor, tier: core }
+
+  - job_name: infra
+    static_configs:
+      - targets: ["nats-exporter:7777"]
+        labels: { service: nats, tier: core }
+      - targets: ["postgres-exporter:9187"]
+        labels: { service: postgres, tier: core }
+      - targets: ["victorialogs:9428"]
+        labels: { service: victorialogs, tier: observability }
+      - targets: ["alertmanager:9093"]
+        labels: { service: alertmanager, tier: observability }
+      - targets: ["localhost:9090"]
+        labels: { service: prometheus, tier: observability }
+      - targets: ["alloy:12345"]
+        labels: { service: alloy, tier: observability }
+      - targets: ["grafana:3000"]
+        labels: { service: grafana, tier: observability }
+
+  - job_name: optional-services
+    dns_sd_configs:
+      - names: ["assistant", "ml", "backtest", "optimizer"]
+        type: A
+        port: 8081
+    relabel_configs:
+      - source_labels: [__meta_dns_name]
+        target_label: service
+      - target_label: tier
+        replacement: optional

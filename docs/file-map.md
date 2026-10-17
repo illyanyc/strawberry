@@ -17,6 +17,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `.gitignore` | Exists | Ignores local tooling (`.tools/`), runtime secrets (`.secrets/`), backups, build output, env files |
 | `.gitattributes` | Exists | LF line endings; marks generated code and lockfiles as generated |
 | `.editorconfig` | Exists | Editor whitespace conventions per language |
+| `.dockerignore` | Exists | Keeps `.secrets/`, `data/`, `backups/`, `.git`, caches, and `node_modules` out of every image build context |
 | `.golangci.yml` | Exists | golangci-lint v2 config shared by every Go module (standard + gosec, bodyclose, noctx, errorlint; gofmt/goimports) |
 | `go.work` | Exists | Go workspace listing every Go module (ADR-0002) |
 | `go.work.sum` | Exists | Checksums for workspace-level Go dependencies |
@@ -35,6 +36,10 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `scripts/bootstrap-tools.sh` | Exists | Installs pinned tools into `.tools/bin` (gitignored); used by `make tools` and CI |
 | `scripts/docs_check.py` | Exists | Documentation gate: file-map coverage and same-commit doc rules for a diff (N6) |
 | `scripts/test-integration.sh` | Exists | Runs Go tests with a throwaway Postgres (`make test-integration`) |
+| `scripts/smoke.sh` | Exists | Smoke test of a running stack (OP-061): readiness, auth gate, headers, ports, e2e flow + leak canary, Prometheus targets, audit chain |
+| `scripts/port-check.sh` | Exists | Fails on any non-loopback published port (OP-041, SE-051) |
+| `scripts/check-arm64.sh` | Exists | Verifies every pinned image has a linux/arm64 variant (OP-043) |
+| `scripts/backup-drill.sh` | Exists | Backup → wipe → fresh stack → restore → verify drill (OP-051) |
 
 ## Agent rules: `.cursor/rules/`
 
@@ -84,10 +89,14 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0009-owner-authentication.md` | Exists | ADR (D15): passkeys + TOTP + recovery codes, setup token, sessions, CSRF, step-up, lockout |
 | `docs/adr/0011-secrets-management.md` | Exists | ADR (D16): `/run/secrets` files, SOPS + age at rest, envelope-encrypted broker credentials, KEK rotation |
 | `docs/adr/0012-web-ui-spa-sse-pwa.md` | Exists | ADR (D11, D13, D14): static Vite + React SPA, SSE, PWA + Pushover |
+| `docs/adr/0013-mac-mini-host-colima-native-ml.md` | Exists | ADR (D21, D25, D28, D29): Mac Mini + Compose on Colima at boot, native launchd ML workers, no GPU profile |
+| `docs/adr/0014-observability-stack.md` | Exists | ADR (D22, D13): Prometheus, VictoriaLogs, Alloy, Grafana, alert rules, Pushover |
+| `docs/adr/0015-phase0-data-services.md` | Exists | ADR (D4, D6, D8, D10): lake on host APFS, Valkey 9, MLflow with filesystem artifacts, Prefect 3 |
+| `docs/adr/0016-remote-access.md` | Exists | ADR (D17): host `tailscaled` + `tailscale serve`, optional Cloudflare Tunnel + Access |
 | `docs/adr/0010-account-routing-and-day-trade-policy.md` | Exists | ADR (D30): horizon-based account routing, PDT guard off by default, intraday-margin guard, halt on margin events |
 | `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2): NATS JetStream, `sync_interval: always`, stream layout, outbox |
-| `docs/runbooks/` | Planned | Kill switch, broker outage, reconciliation break, restore |
-| `docs/threat-model.md` | Planned | Assets, actors, STRIDE, mitigations |
+| `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents (later: kill switch, broker outage, reconciliation break) |
+| `docs/threat-model.md` | Exists | Assets, actors, entry points, STRIDE table mapped to SE-/OP- rules, residual risks |
 
 ## Contracts: `contracts/`
 
@@ -140,17 +149,20 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | Path | Status | Purpose |
 |---|---|---|
 | `tests/python/` | Exists | Cross-package Python tests (placeholder services' ops surface) |
-| `tests/e2e/` | Planned | Go end-to-end test against the running stack |
+| `tests/e2e/` | Exists | Go end-to-end test against the running stack: passkey setup/login, step-up, credential storage with leak canary, SSE, audit (`make e2e`, used by the smoke test) |
 | `tests/fixtures/` | Planned | Recorded market data and broker messages (no real account data; Phase 1) |
 
 ## Infra: `infra/` (agent notes in `infra/AGENTS.md`)
 
 | Path | Status | Purpose |
 |---|---|---|
-| `infra/compose/` | Planned | `docker-compose.yml` and profiles |
-| `infra/docker/` | Planned | Hardened images |
-| `infra/observability/` | Planned | Prometheus, Alertmanager, Alloy, Grafana config |
-| `infra/secrets/` | Planned | SOPS-encrypted files only |
+| `infra/AGENTS.md` | Exists | Agent notes: layout, rules, run/test, configuration, gotchas |
+| `infra/compose/` | Exists | `docker-compose.yml` (profiles core, observability, ml, ml-workers, ops, remote-cloudflare), native-ML overlay, `nats/nats.conf`, `env.example` |
+| `infra/docker/` | Exists | Go (service/gateway targets), Python, ops, and MLflow images; MLflow entrypoint |
+| `infra/ops/` | Exists | `backup.sh`, `restore.sh`, `secrets-bundle.sh` (run in the ops image) |
+| `infra/observability/` | Exists | Prometheus scrape config and alert rules, Alertmanager routing, Alloy config, Grafana provisioning and "Stack overview" dashboard |
+| `infra/macos/` | Exists | LaunchDaemon templates (Colima at boot, stack auto-start, native ML worker), `install.sh`, `start-stack.sh` |
+| `infra/secrets/` | Exists | SOPS-encrypted bundles only (`.gitkeep` until the owner runs `make secrets-encrypt`) |
 | `infra/terraform/` | Planned | Remote server provisioning (Phase 6) |
 
 ## Planned code
