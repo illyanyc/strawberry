@@ -9,6 +9,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Audit chain** | The hash-linked sequence of audit events: each event's hash covers the previous hash and its own canonical fields; `make audit-verify` recomputes it. |
 | **`available_at`** | The earliest time the platform could have known a datum. All point-in-time filtering uses it, never `event_time`. |
 | **Broker account (`broker_account_id`)** | One real account at one broker in one environment (paper or live). Paper and live are different accounts. |
+| **Broker simulator** | In-process deterministic broker (`broker-gateway/internal/sim`) implementing the adapter interface with a small matching engine and fault hooks; used by tests and the `sim-paper` development account (ADR-0019). |
 | **Broker capabilities** | Per-account declaration of what an adapter supports (order types, TIFs, bracket/OCO/OTO, fractional, short, extended hours, attribution length); execution builds orders against it (BR-002). |
 | **`BROKER_UNAVAILABLE`** | The typed error (gRPC `FAILED_PRECONDITION` + `ErrorInfo` reason) a broker adapter returns for order RPCs while the account session is not `ready` (BR-004, OE-004). |
 | **Canonical execution ID** | The `broker_exec_id` used to deduplicate fills; identical whether a fill arrives on the stream or from a REST resync (Alpaca: `<order_id>:<cumulative qty>`) (BR-008). |
@@ -30,6 +31,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Leak canary** | A unique fake secret pushed through a real flow so tests can assert it never appears in logs, responses, audit details, or plaintext storage (SE-012). |
 | **Lot** | A quantity of an instrument acquired at one time and price, owned by exactly one owner. |
 | **Manual bucket (`manual` owner)** | All holdings and orders not attributed to a strategy, including anything placed outside the platform. Automated logic never reduces it. |
+| **Market-data hub (fan-out)** | broker-gateway component that holds the single upstream market-data socket per feed and multiplexes every subscriber over it (BR-015). |
 | **Meta-labeling** | A secondary model that decides whether to act on (and how to size) a primary model's signal. |
 | **Native ML worker** | ML/backtest/optimizer process run directly on macOS under launchd (MPS/MLX available) instead of in a container (D29). |
 | **Mode** | `backtest`, `paper`, or `live`; carried by every strategy, order, and fill. |

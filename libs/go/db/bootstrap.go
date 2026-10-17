@@ -31,6 +31,7 @@ var Schemas = []Schema{
 	{Name: "auth", Owner: "auth_owner"},
 	{Name: "config", Owner: "config_owner"},
 	{Name: "secrets", Owner: "secrets_owner"},
+	{Name: "broker", Owner: "broker_owner"},
 }
 
 // LoginRoles are the service roles that may log in to the platform database. Their passwords are

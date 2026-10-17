@@ -98,9 +98,10 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0016-remote-access.md` | Exists | ADR (D17): host `tailscaled` + `tailscale serve`, optional Cloudflare Tunnel + Access |
 | `docs/adr/0017-ci-and-supply-chain.md` | Exists | ADR (D35): GitHub Actions gates, SHA pinning, gitleaks, Trivy, SBOM, multi-arch, Dependabot |
 | `docs/adr/0010-account-routing-and-day-trade-policy.md` | Exists | ADR (D30): horizon-based account routing, PDT guard off by default, intraday-margin guard, halt on margin events |
+| `docs/adr/0019-alpaca-adapter-and-simulator.md` | Exists | ADR (D37): hand-written Alpaca adapter, in-process simulator, single market-data socket, credential-free test fake |
 | `docs/adr/0018-broker-gateway-interface.md` | Exists | ADR (D36): one gRPC broker interface for every adapter, typed error model, canonical execution IDs, outbox-backed events |
 | `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2): NATS JetStream, `sync_interval: always`, stream layout, outbox |
-| `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents (later: kill switch, broker outage, reconciliation break) |
+| `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, broker outage (later: kill switch, reconciliation break) |
 | `docs/threat-model.md` | Exists | Assets, actors, entry points, STRIDE table mapped to SE-/OP- rules, residual risks |
 
 ## Contracts: `contracts/`
@@ -124,7 +125,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 
 | Path | Status | Purpose |
 |---|---|---|
-| `libs/go/` | Exists | Go module: config, logging/redaction, secrets, ops, telemetry, svc template, svcauth, policy, audit, db (+ embedded migrations), bus, clock, webauthntest (software passkey authenticator for tests). Internal layout in [`libs/go/AGENTS.md`](../libs/go/AGENTS.md) |
+| `libs/go/` | Exists | Go module: config, logging/redaction, secrets, ops, telemetry, svc template, svcauth, policy, audit, db (+ embedded migrations), bus, clock, resilience (backoff, priority rate limiter, circuit breaker), outbox (transactional outbox + relay), webauthntest (software passkey authenticator for tests). Internal layout in [`libs/go/AGENTS.md`](../libs/go/AGENTS.md) |
 | `libs/py/tbcore/` | Exists | Python package: service template, JSON logging with redaction, secrets (later: features, labels, strategy API). Layout in [`libs/py/tbcore/AGENTS.md`](../libs/py/tbcore/AGENTS.md) |
 
 ## Services: `services/`
@@ -132,7 +133,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | Path | Status | Purpose |
 |---|---|---|
 | `services/api-gateway/` | Exists | Go: owner auth (passkeys, TOTP, recovery), sessions, CSRF, step-up, settings, audit API, credential write-through, SSE status stream, static UI. Layout in [`services/api-gateway/AGENTS.md`](../services/api-gateway/AGENTS.md) |
-| `services/broker-gateway/` | Exists | Go: broker-credential custody (envelope encryption, KEK ring, write-only gRPC `CredentialService`); broker adapters from Phase 1. Layout in [`services/broker-gateway/AGENTS.md`](../services/broker-gateway/AGENTS.md) |
+| `services/broker-gateway/` | Exists | Go: broker-credential custody (envelope encryption, KEK ring, write-only gRPC `CredentialService`); `BrokerGatewayService` + `BrokerMarketDataService` with the Alpaca adapter, simulator, session engine, outbox-backed events, market-data hub, and the shared contract suite. Layout in [`services/broker-gateway/AGENTS.md`](../services/broker-gateway/AGENTS.md) |
 | `services/marketdata/` | Exists (placeholder) | Go: ops surface + NATS; ingestion in Phase 1. [`AGENTS.md`](../services/marketdata/AGENTS.md) |
 | `services/execution/` | Exists (placeholder) | Go: ops surface + NATS + clock-skew check; `tb_trading_enabled=0` until Phase 2. [`AGENTS.md`](../services/execution/AGENTS.md) |
 | `services/ledger/` | Exists (placeholder) | Go: ops surface + NATS; ledgers in Phase 2. [`AGENTS.md`](../services/ledger/AGENTS.md) |
@@ -162,7 +163,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 |---|---|---|
 | `tests/python/` | Exists | Cross-package Python tests (placeholder services' ops surface) |
 | `tests/e2e/` | Exists | Go end-to-end test against the running stack: passkey setup/login, step-up, credential storage with leak canary, SSE, audit (`make e2e`, used by the smoke test) |
-| `tests/fixtures/` | Planned | Recorded market data and broker messages (no real account data; Phase 1) |
+| `tests/fixtures/` | Exists | Market-data and broker message fixtures (no account data): `alpaca/` (bars, corporate actions, data-stream messages; README explains provenance and re-recording) |
 
 ## Infra: `infra/` (agent notes in `infra/AGENTS.md`)
 

@@ -34,3 +34,4 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0016](0016-remote-access.md) | Remote access through host `tailscaled`, optional Cloudflare Tunnel + Access | Accepted (research) | 2026-10-17 |
 | [0017](0017-ci-and-supply-chain.md) | CI on GitHub Actions with supply-chain gates | Accepted | 2026-10-17 |
 | [0018](0018-broker-gateway-interface.md) | One gRPC broker interface for every adapter, with an outbox-backed event path | Accepted | 2026-10-17 |
+| [0019](0019-alpaca-adapter-and-simulator.md) | Hand-written Alpaca adapter, in-process simulator, and the single market-data socket | Accepted | 2026-10-17 |

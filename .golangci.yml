@@ -14,6 +14,9 @@ linters:
         - (io.ReadCloser).Close
         - (net/http.ResponseWriter).Write
         - (*google.golang.org/grpc.ClientConn).Close
+    misspell:
+      # Broker API vocabulary (Alpaca/IBKR "marginable" assets).
+      ignore-rules: [marginable]
     gosec:
       excludes:
         # G115 (int conversions) is noisy for bounded config values; reviewed case by case.

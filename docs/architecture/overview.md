@@ -162,6 +162,6 @@ ledger.update.<broker_account>        recon.result.<broker_account>   recon.requ
 risk.kill                             alert.<severity>           sys.health.<service>
 ```
 
-Broker adapters publish `ord.update.*`, `exec.*`, `acct.snapshot.*`, and `recon.request.*` through a Postgres transactional outbox (schema `broker`), so a crash never loses or double-publishes an execution (ADR-0018). `recon.request.<acct>` follows every reconnect resync (OE-008).
+`ord.update.<acct>` carries the broker's view (`tb.broker.v1.BrokerOrderUpdate`) from the adapters; the OMS's own `Order` state will use a separate subject (section 07). Broker adapters publish `ord.update.*`, `exec.*`, `acct.snapshot.*`, and `recon.request.*` through a Postgres transactional outbox (schema `broker`), so a crash never loses or double-publishes an execution (ADR-0018). `recon.request.<acct>` follows every reconnect resync (OE-008).
 
 Update this doc when a data flow, subject, store, or trust boundary changes.

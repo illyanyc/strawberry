@@ -1,0 +1,17 @@
+{
+  "corporate_actions": {
+    "forward_splits": [
+      {"id": "fs-0001", "symbol": "NVDA", "cusip": "67066G104", "new_rate": 10, "old_rate": 1, "process_date": "2024-06-10", "ex_date": "2024-06-10", "record_date": "2024-06-06", "payable_date": "2024-06-07"}
+    ],
+    "reverse_splits": [
+      {"id": "rs-0001", "symbol": "XYZQ", "new_rate": 1, "old_rate": 4, "process_date": "2025-02-03", "ex_date": "2025-02-03", "record_date": "2025-01-31"}
+    ],
+    "cash_dividends": [
+      {"id": "cd-0001", "symbol": "AAPL", "cusip": "037833100", "rate": 0.25, "special": false, "foreign": false, "process_date": "2025-02-13", "ex_date": "2025-02-10", "record_date": "2025-02-10", "payable_date": "2025-02-13"}
+    ],
+    "name_changes": [
+      {"id": "nc-0001", "old_symbol": "FB", "new_symbol": "META", "process_date": "2022-06-09"}
+    ]
+  },
+  "next_page_token": null
+}
