@@ -17,6 +17,12 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `.gitignore` | Exists | Ignores local tooling (`.tools/`), runtime secrets (`.secrets/`), backups, build output, env files |
 | `.gitattributes` | Exists | LF line endings; marks generated code and lockfiles as generated |
 | `.editorconfig` | Exists | Editor whitespace conventions per language |
+| `go.work` | Exists | Go workspace listing every Go module (ADR-0002) |
+| `pyproject.toml` | Exists | uv workspace root (virtual, not a package): members, dev tools (pytest, ruff, mypy), tool config |
+| `uv.lock` | Exists | Python lockfile for the whole uv workspace |
+| `package.json` | Exists | pnpm workspace root (pins pnpm via `packageManager`) |
+| `pnpm-workspace.yaml` | Exists | pnpm workspace members |
+| `pnpm-lock.yaml` | Exists | Node lockfile for the whole pnpm workspace |
 
 ## Tooling: `tools/`, `scripts/`
 
@@ -59,15 +65,31 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/template.md` | Exists | ADR template |
 | `docs/adr/0001-agent-documentation-structure.md` | Exists | ADR: this documentation structure and protocol |
 | `docs/adr/0002-monorepo-layout-and-toolchain.md` | Exists | ADR: monorepo layout, workspaces, pinned toolchain, docs gate |
+| `docs/adr/0003-contracts-protobuf-buf.md` | Exists | ADR (D3, provisional): Protobuf contracts, buf, local-plugin codegen, committed generated code |
 | `docs/runbooks/` | Planned | Kill switch, broker outage, reconciliation break, restore |
 | `docs/threat-model.md` | Planned | Assets, actors, STRIDE, mitigations |
+
+## Contracts: `contracts/`
+
+Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md).
+
+| Path | Status | Purpose |
+|---|---|---|
+| `contracts/AGENTS.md` | Exists | Agent notes: layout, conventions, regeneration, gotchas |
+| `contracts/buf.yaml` | Exists | buf module, lint (STANDARD) and breaking (FILE) config |
+| `contracts/buf.gen.yaml` | Exists | Local-plugin codegen to Go, Python, TypeScript |
+| `contracts/proto/` | Exists | Protobuf schemas `tb.<domain>.v1`: common, marketdata, context, features, signals, orders, ledger, ml, alerts, audit, broker (credentials RPC) |
+| `contracts/gen/go/` | Exists | Generated Go module (messages + gRPC) plus hand-written `go.mod` and `contracts_test.go` |
+| `contracts/gen/python/` | Exists | Generated Python package `tbcontracts` (`tb.*_pb2` + `.pyi`) plus hand-written `pyproject.toml` |
+| `contracts/gen/ts/` | Exists | Generated TypeScript package `@strawberry/contracts` plus hand-written `package.json`, `tsconfig.json`, `test/` |
+| `contracts/tests/` | Exists | Python contract round-trip tests |
+| `contracts/jsonschema/` | Planned | JSON Schemas generated from proto for gateway/UI validation (Phase 1) |
+| `contracts/openapi/` | Planned | Gateway REST API (OpenAPI 3.1) |
 
 ## Code (all Planned)
 
 | Path | Purpose | Agent notes |
 |---|---|---|
-| `contracts/proto/` | Protobuf schemas: marketdata, orders, ledger, signals, ml, alerts, audit | `contracts/AGENTS.md` |
-| `contracts/jsonschema/`, `contracts/openapi/` | Generated schemas for UI and Python; gateway REST API | — |
 | `services/api-gateway/` | Auth, sessions, REST/WebSocket, TradingView webhook intake | `AGENTS.md` in dir |
 | `services/broker-gateway/` | Alpaca/IBKR adapters, simulator, sessions | `AGENTS.md` in dir |
 | `services/marketdata/` | Backfill, streaming, bar building, lake/cache writes | `AGENTS.md` in dir |

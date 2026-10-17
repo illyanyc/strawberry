@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+// Tamper-evident audit events. The hash chain is computed by the audit store (Postgres
+// function audit.append); see docs/business-logic/security.md (SE-020..SE-024).
+package tb.audit.v1;
+
+message AuditEvent {
+  // Monotonic sequence number assigned by the store.
+  int64 seq = 1;
+  string event_id = 2;
+  int64 occurred_at = 3;
+  // e.g. "owner", "service:broker-gateway", "assistant", "webhook:tradingview", "anonymous".
+  string actor = 4;
+  // Enumerated action, e.g. "auth.login.success", "settings.update".
+  string action = 5;
+  string target = 6;
+  // SHA-256 (hex) of the canonical before/after state for config changes; empty otherwise.
+  string before_hash = 7;
+  string after_hash = 8;
+  string ip = 9;
+  string device = 10;
+  string correlation_id = 11;
+  // Canonical JSON object with non-secret details.
+  string details_json = 12;
+  // Hex SHA-256 of the previous event's hash (all zeros for the first event).
+  string prev_hash = 13;
+  string hash = 14;
+}

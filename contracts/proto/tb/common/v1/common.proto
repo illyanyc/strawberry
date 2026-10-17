@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+// Shared primitives used by every other contract.
+//
+// Conventions (master prompt "Service contracts"):
+// - All timestamps are UTC int64 nanoseconds since the Unix epoch.
+// - Money and quantity are Decimal (base-10 string), never floating point.
+// - Internal IDs are ULIDs (26-char Crockford base32 strings).
+package tb.common.v1;
+
+// Decimal is an exact base-10 number encoded as a string, e.g. "123.45", "-0.0001".
+// Producers MUST NOT emit exponent notation or NaN/Inf.
+message Decimal {
+  string value = 1;
+}
+
+// Mode separates simulated from real activity. Every strategy, order, and fill carries one.
+enum Mode {
+  MODE_UNSPECIFIED = 0;
+  MODE_BACKTEST = 1;
+  MODE_PAPER = 2;
+  MODE_LIVE = 3;
+}
+
+enum AssetClass {
+  ASSET_CLASS_UNSPECIFIED = 0;
+  ASSET_CLASS_US_EQUITY = 1;
+  ASSET_CLASS_ETF = 2;
+  ASSET_CLASS_OPTION = 3;
+  ASSET_CLASS_FUTURE = 4;
+  ASSET_CLASS_CRYPTO = 5;
+}
+
+enum Side {
+  SIDE_UNSPECIFIED = 0;
+  SIDE_BUY = 1;
+  SIDE_SELL = 2;
+  SIDE_SELL_SHORT = 3;
+}
+
+enum Broker {
+  BROKER_UNSPECIFIED = 0;
+  BROKER_ALPACA = 1;
+  BROKER_IBKR = 2;
+  BROKER_SIMULATOR = 3;
+}
+
+// Instrument identity. instrument_id is stable across ticker changes.
+message Instrument {
+  string instrument_id = 1;
+  string symbol = 2;
+  string exchange = 3;
+  AssetClass asset_class = 4;
+  string currency = 5;
+  // Broker-specific identifiers, e.g. Alpaca asset ID, IBKR conId (as decimal string).
+  string alpaca_asset_id = 6;
+  string ibkr_con_id = 7;
+  bool delisted = 8;
+}
+
+// Provenance timestamps carried by every market and context record (rule DF-001).
+message Provenance {
+  // When it happened in the world.
+  int64 event_time = 1;
+  // When the platform could first have known it. Point-in-time queries filter on this.
+  int64 available_at = 2;
+  // When the platform stored it.
+  int64 ingested_at = 3;
+}

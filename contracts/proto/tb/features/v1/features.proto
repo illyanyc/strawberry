@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+// Feature vectors produced by the feature service (bus subject feat.<feature_set>.<instrument_id>).
+package tb.features.v1;
+
+message FeatureVector {
+  string feature_set_id = 1;
+  string feature_set_version = 2;
+  string instrument_id = 3;
+  // Decision time the features were computed for; inputs satisfy available_at <= as_of (DF-002).
+  int64 as_of = 4;
+  // Feature values keyed by feature name. Floats are acceptable here: features are not money.
+  map<string, double> values = 5;
+  string snapshot_id = 6;
+}

@@ -14,6 +14,10 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 - Repo tooling: `Makefile` (`make help`, `tools`, `docs-check`), pinned toolchain in `tools/versions.env`, `scripts/bootstrap-tools.sh` (installs buf, protoc, protoc plugins, golangci-lint, gitleaks into `.tools/bin`), `.gitignore`, `.gitattributes`, `.editorconfig` ([ADR-0002](docs/adr/0002-monorepo-layout-and-toolchain.md), D28, OP-001).
 - Documentation gate `scripts/docs_check.py`: file-map coverage and same-commit doc rules (OP-002..OP-006).
 - `docs/business-logic/operations.md` (`OP-` rules).
+- Contracts (`contracts/`): Protobuf packages `tb.common/marketdata/context/features/signals/orders/ledger/ml/alerts/audit/broker.v1` with the master prompt's minimum fields; `buf` lint/breaking; local-plugin codegen to Go (`contracts/gen/go`), Python (`tbcontracts`), TypeScript (`@strawberry/contracts`); round-trip tests in all three languages ([ADR-0003](docs/adr/0003-contracts-protobuf-buf.md), D3 provisional).
+- `make deps`, `make gen`, `make gen-check` (fails on stale generated code), `make lint-proto`, `make lint`, `make test` targets.
+- Workspaces: `go.work`, uv workspace (`pyproject.toml`, `uv.lock`), pnpm workspace (`package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`).
+- `docs/decisions.md` gains a **Provisional** status for defaults adopted ahead of the research report.
 
 ### Changed
 

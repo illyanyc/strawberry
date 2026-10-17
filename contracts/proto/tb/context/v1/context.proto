@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+// Alternative and context data produced by `context-data` (bus subjects ctx.<kind>, lake).
+package tb.context.v1;
+
+import "google/protobuf/struct.proto";
+import "tb/common/v1/common.proto";
+
+enum ContextKind {
+  CONTEXT_KIND_UNSPECIFIED = 0;
+  CONTEXT_KIND_NEWS = 1;
+  CONTEXT_KIND_MACRO = 2;
+  CONTEXT_KIND_EARNINGS = 3;
+  CONTEXT_KIND_CALENDAR = 4;
+  CONTEXT_KIND_FUNDAMENTALS = 5;
+  CONTEXT_KIND_REGIME = 6;
+}
+
+message ContextEvent {
+  string event_id = 1;
+  ContextKind kind = 2;
+  repeated string instrument_ids = 3;
+  tb.common.v1.Provenance provenance = 4;
+  // Kind-specific payload. Text in here is untrusted input (prompt-injection risk for the assistant).
+  google.protobuf.Struct payload = 5;
+  // Source identifier, e.g. "alpaca.news", "fmp", "fred".
+  string source = 6;
+  // Vintage for revised series (rule DF-010); empty for unrevised data.
+  string vintage = 7;
+}

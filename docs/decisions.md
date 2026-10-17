@@ -2,13 +2,15 @@
 
 One row per platform decision. Defaults come from the build plan and are used until the research report lands and an ADR accepts or replaces them. When a decision is made: write the ADR ([`adr/`](adr/README.md)), set the status to Accepted with the ADR link, and update the `DECISION PENDING` markers in `AGENTS.md`, `.cursor/rules/`, and `architecture/overview.md`.
 
-Status values: **Pending** (use the default behind an interface), **Accepted** (ADR linked), **Superseded** (link the replacing ADR).
+Status values: **Pending** (not yet relied on; use the default behind an interface when needed), **Provisional** (default adopted and built on, pending the research report; ADR linked and marked provisional), **Accepted** (settled; ADR linked), **Superseded** (link the replacing ADR).
+
+When the research report lands, each Provisional row is either confirmed (status → Accepted, ADR updated) or replaced by a new superseding ADR.
 
 | ID | Decision | Default | Status | ADR |
 |---|---|---|---|---|
 | D1 | Core language (ingestion, broker adapters, OMS/risk, ledger) | Go core; Python for ML/research | Pending | — |
 | D2 | Event bus | NATS JetStream | Pending | — |
-| D3 | Service RPC and schemas | gRPC + Protobuf via `buf`; REST + WebSocket to UI | Pending | — |
+| D3 | Service RPC and schemas | gRPC + Protobuf via `buf`; REST + WebSocket to UI | Provisional (default, pending research) | [ADR-0003](adr/0003-contracts-protobuf-buf.md) |
 | D4 | Analytical market-data store | Parquet lake queried by DuckDB, single writer | Pending | — |
 | D5 | Transactional state | PostgreSQL | Pending | — |
 | D6 | Hot cache / online features | Redis-compatible (Valkey/Redis) | Pending | — |

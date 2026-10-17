@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+// Alerts published by any service (subject alert.<severity>, alert.security) and routed by `monitor`.
+package tb.alerts.v1;
+
+enum Severity {
+  SEVERITY_UNSPECIFIED = 0;
+  SEVERITY_INFO = 1;
+  SEVERITY_WARNING = 2;
+  SEVERITY_CRITICAL = 3;
+}
+
+message Alert {
+  string alert_id = 1;
+  Severity severity = 2;
+  // Emitting service, e.g. "api-gateway".
+  string source = 3;
+  string subject = 4;
+  // Human-readable message. MUST NOT contain secrets (rule SE-012).
+  string message = 5;
+  string dedupe_key = 6;
+  string runbook_url = 7;
+  int64 occurred_at = 8;
+  string correlation_id = 9;
+}

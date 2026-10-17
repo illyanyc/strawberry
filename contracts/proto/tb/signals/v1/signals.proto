@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+// Model or rule signals (bus subject sig.<strategy_id>). Signals are never orders.
+package tb.signals.v1;
+
+enum Direction {
+  DIRECTION_UNSPECIFIED = 0;
+  DIRECTION_LONG = 1;
+  DIRECTION_SHORT = 2;
+  DIRECTION_FLAT = 3;
+}
+
+message Signal {
+  string signal_id = 1;
+  string strategy_id = 2;
+  string model_version = 3;
+  string instrument_id = 4;
+  int64 as_of = 5;
+  Direction direction = 6;
+  double score = 7;
+  double probability = 8;
+  // Holding horizon in nanoseconds.
+  int64 horizon = 9;
+  string feature_snapshot_id = 10;
+  string correlation_id = 11;
+}

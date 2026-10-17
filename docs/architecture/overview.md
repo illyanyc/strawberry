@@ -78,7 +78,7 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 
 | Concern | Design | Decision |
 |---|---|---|
-| Contracts | All cross-service messages in `contracts/`; generated for every language | D3 |
+| Contracts | All cross-service messages in `contracts/proto/tb/<domain>/v1/`; generated (committed) for Go, Python, TypeScript; `make gen-check` fails CI on stale code; internal RPC is gRPC, UI is REST + WebSocket ([contracts](#contracts)) | D3 ([ADR-0003](../adr/0003-contracts-protobuf-buf.md)) |
 | Messaging | Durable streams for order path (`ord.*`, `exec.*`, `risk.kill`), at-least-once, idempotent consumers | D2 |
 | Storage split | Market/context data in the lake (single writer, many readers); transactional state (orders, ledgers, users, audit) in Postgres; hot bars and online features in cache | D4–D6 |
 | Time | UTC int64 ns; `event_time` / `available_at` / `ingested_at` on every market and context record | — |
@@ -87,6 +87,22 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 | Security | Authenticated gateway, step-up for dangerous actions, encrypted credentials only in broker-gateway, private network only, hash-chained audit log | D15–D17 |
 | Observability | Metrics, logs, traces per service; trade audit trail | D22 |
 | Deployment | Docker Compose profiles locally; same Compose on one remote droplet | D21 |
+
+## Contracts
+
+| Package | Messages / services | Producer → consumers |
+|---|---|---|
+| `tb.common.v1` | `Decimal`, `Mode`, `AssetClass`, `Side`, `Broker`, `Instrument`, `Provenance` | shared |
+| `tb.marketdata.v1` | `Bar`, `Quote`, `Trade`, `CorporateAction` | marketdata → bus, lake, cache |
+| `tb.context.v1` | `ContextEvent` | context-data → lake, bus |
+| `tb.features.v1` | `FeatureVector` | feature service → ml-infer |
+| `tb.signals.v1` | `Signal` | ml-infer / strategy → execution |
+| `tb.orders.v1` | `OrderIntent`, `RiskDecision`, `Order`, `ExecutionReport`, `KillSwitchEvent` | strategy/UI → execution → broker-gateway → ledger |
+| `tb.ledger.v1` | `AccountSnapshot`, `StrategyPosition`, `LedgerEntry`, `ReconciliationResult` | broker-gateway, ledger → UI, execution, monitor |
+| `tb.ml.v1` | `ModelVersion`, `BacktestRun` | ml, backtest, optimizer → registry, UI |
+| `tb.alerts.v1` | `Alert` | any → monitor → channels |
+| `tb.audit.v1` | `AuditEvent` | all → audit store |
+| `tb.broker.v1` | `CredentialService` (gRPC: put, delete, list status; no plaintext read) | api-gateway → broker-gateway |
 
 ## Bus subjects (planned)
 
