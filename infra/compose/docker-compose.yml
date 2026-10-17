@@ -666,7 +666,7 @@ services:
     user: "${TB_HOST_UID:-10001}:${TB_HOST_GID:-10001}"
     environment: { TB_DB_HOST: postgres, TB_NATS_URL: "nats://nats:4222" }
     secrets: [pg_superuser_password, pg_svc_api_gateway_password, pg_svc_broker_gateway_password, pg_svc_marketdata_password,
-              pg_svc_execution_password, pg_svc_ledger_password, pg_svc_ops_password, pg_svc_metrics_password,
+              pg_svc_execution_password, pg_svc_ledger_password, pg_svc_ops_password, pg_svc_metrics_password, pg_svc_broker_gateway_ibkr_password,
               pg_mlflow_password, pg_prefect_password, nats_ops_password, backup_age_recipient, backup_age_identity]
     volumes:
       - ${TB_BACKUP_DIR:-../../backups}:/backups
