@@ -92,7 +92,7 @@ test("owner setup, passkey and TOTP login, step-up, credentials, audit", async (
   await page.getByRole("button", { name: "Store PAPER credential" }).click();
   await expect(page.getByText("Stored credential for alpaca-paper-ui (paper).")).toBeVisible();
   await page.getByRole("button", { name: "Show credential status" }).click();
-  await expect(page.getByText("alpaca-paper-ui")).toBeVisible();
+  await expect(page.getByRole("listitem").filter({ hasText: "alpaca-paper-ui" })).toBeVisible();
   await expect(page.locator("body")).not.toContainText("ui-test-secret-value");
   await page.screenshot({ path: `${shots}/07-brokers.png`, fullPage: true });
 

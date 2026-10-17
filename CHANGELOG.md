@@ -52,6 +52,7 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 
 ### Fixed
 
+- Browser e2e: the credential-status assertion matched the success message as well as the list item (flaky strict-mode failure in CI); it now targets the list item.
 - `scripts/check-arm64.sh` retries registry lookups and reports registry errors separately from missing arm64 variants (Docker Official Images failed the first CI run without an error message).
 - `golang.org/x/net` upgraded to v0.60.0 in every Go module (CVE-2026-78669, HTTP/2 SETTINGS flood; found by Trivy).
 - `tests/e2e` skips unless `TB_E2E_BASE_URL` is set, so unit-test runs never depend on a running stack.
