@@ -18,6 +18,8 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `.gitattributes` | Exists | LF line endings; marks generated code and lockfiles as generated |
 | `.editorconfig` | Exists | Editor whitespace conventions per language |
 | `.dockerignore` | Exists | Keeps `.secrets/`, `data/`, `backups/`, `.git`, caches, and `node_modules` out of every image build context |
+| `.gitleaks.toml` | Exists | gitleaks config: default rules; allowlists only test files with fake secret-shaped fixtures (SE-053) |
+| `.trivyignore` | Exists | Documented exceptions to the vulnerability gate (empty) |
 | `.golangci.yml` | Exists | golangci-lint v2 config shared by every Go module (standard + gosec, bodyclose, noctx, errorlint; gofmt/goimports) |
 | `go.work` | Exists | Go workspace listing every Go module (ADR-0002) |
 | `go.work.sum` | Exists | Checksums for workspace-level Go dependencies |
@@ -93,6 +95,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0014-observability-stack.md` | Exists | ADR (D22, D13): Prometheus, VictoriaLogs, Alloy, Grafana, alert rules, Pushover |
 | `docs/adr/0015-phase0-data-services.md` | Exists | ADR (D4, D6, D8, D10): lake on host APFS, Valkey 9, MLflow with filesystem artifacts, Prefect 3 |
 | `docs/adr/0016-remote-access.md` | Exists | ADR (D17): host `tailscaled` + `tailscale serve`, optional Cloudflare Tunnel + Access |
+| `docs/adr/0017-ci-and-supply-chain.md` | Exists | ADR (D35): GitHub Actions gates, SHA pinning, gitleaks, Trivy, SBOM, multi-arch, Dependabot |
 | `docs/adr/0010-account-routing-and-day-trade-policy.md` | Exists | ADR (D30): horizon-based account routing, PDT guard off by default, intraday-margin guard, halt on margin events |
 | `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2): NATS JetStream, `sync_interval: always`, stream layout, outbox |
 | `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents (later: kill switch, broker outage, reconciliation break) |
@@ -144,6 +147,13 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 |---|---|---|
 | `apps/web/` | Exists | Vite + React 19 SPA: login/setup, dashboard, security, broker connections, platform settings, audit log; step-up dialog; SSE status. Layout in [`apps/web/AGENTS.md`](../apps/web/AGENTS.md) |
 
+## CI: `.github/`
+
+| Path | Status | Purpose |
+|---|---|---|
+| `.github/workflows/ci.yml` | Exists | CI: docs gate, contracts freshness + buf, Go lint/tests with Postgres, Python, web, gitleaks + Trivy fs, multi-arch image builds with Trivy scan and SBOM, arm64 check, stack smoke test (bootstrap, smoke, alert, backup drill, browser e2e) |
+| `.github/dependabot.yml` | Exists | Weekly update PRs for Actions, Go modules, uv, npm, Dockerfiles, Compose images |
+
 ## Tests: `tests/`
 
 | Path | Status | Purpose |
@@ -170,6 +180,5 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | Path | Status | Purpose |
 |---|---|---|
 | `services/broker-gateway-ibkr/` | Planned | IBKR adapter (Python, `ib_async`) next to IB Gateway + IBC (D1, D18; Phase 1) |
-| `.github/workflows/` | Planned | CI: lint, test, contract, docs-check, image, scan, smoke gates |
 
 When a Planned path is created, change its status to Exists (or move it into the matching section) and add any new paths.

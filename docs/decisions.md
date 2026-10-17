@@ -42,4 +42,5 @@ Status values: **Pending** (not yet decided), **Provisional** (default adopted a
 | D32 | Monorepo layout, workspaces, pinned toolchain | `go.work` + `uv` + `pnpm` workspaces; versions in `tools/versions.env`; `make` entry point | Accepted | [ADR-0002](adr/0002-monorepo-layout-and-toolchain.md) |
 | D33 | Service-to-service authentication | Short-lived Ed25519 service tokens with per-method allowlists (mTLS deferred to Phase 6) | Accepted | [ADR-0007](adr/0007-service-to-service-auth.md) |
 | D34 | Audit log design | Postgres hash chain computed by a SECURITY DEFINER function; Go verifier | Accepted | [ADR-0006](adr/0006-audit-log-hash-chain.md) |
+| D35 | CI and supply chain | GitHub Actions with SHA-pinned actions, gitleaks, Trivy (fixable HIGH/CRITICAL gate), multi-arch builds, SBOMs, Dependabot, stack smoke job | Accepted | [ADR-0017](adr/0017-ci-and-supply-chain.md) |
 | — | Agent documentation structure and protocol | — | Accepted | [ADR-0001](adr/0001-agent-documentation-structure.md) |

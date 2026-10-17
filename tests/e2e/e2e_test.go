@@ -26,7 +26,7 @@ type client struct {
 func newClient(t *testing.T) *client {
 	base := os.Getenv("TB_E2E_BASE_URL")
 	if base == "" {
-		base = "http://localhost:8080"
+		t.Skip("TB_E2E_BASE_URL not set; run via `make e2e` or `make smoke` against a running stack")
 	}
 	return &client{t: t, base: base, http: &http.Client{Timeout: 20 * time.Second}, cookies: map[string]string{}}
 }

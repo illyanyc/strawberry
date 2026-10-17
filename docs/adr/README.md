@@ -32,3 +32,4 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0014](0014-observability-stack.md) | Observability with Grafana, Prometheus, VictoriaLogs, and Alloy; Pushover for critical alerts | Accepted (research) | 2026-10-17 |
 | [0015](0015-phase0-data-services.md) | Phase 0 data services: lake on host APFS, Valkey 9, MLflow with filesystem artifacts, Prefect 3 | Accepted (research) | 2026-10-17 |
 | [0016](0016-remote-access.md) | Remote access through host `tailscaled`, optional Cloudflare Tunnel + Access | Accepted (research) | 2026-10-17 |
+| [0017](0017-ci-and-supply-chain.md) | CI on GitHub Actions with supply-chain gates | Accepted | 2026-10-17 |
