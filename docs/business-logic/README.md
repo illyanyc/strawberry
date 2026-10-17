@@ -11,6 +11,7 @@ The specification of how the platform behaves, by domain. **These docs are the s
 | Data and features | [data-and-features.md](data-and-features.md) | `DF-` | `marketdata`, `context-data`, `libs/py/tbcore` |
 | Operations | [operations.md](operations.md) | `OP-` | `Makefile`, `scripts/`, `infra/`, CI |
 | UI | [ui.md](ui.md) | `UI-` | `apps/web`, `api-gateway` (BFF) |
+| Brokers | [brokers.md](brokers.md) | `BR-` | `broker-gateway`, `broker-gateway-ibkr` |
 | Security | [security.md](security.md) | `SE-` | `libs/go` (policy, audit, secrets, svcauth, db), `api-gateway`, `broker-gateway` |
 
 New domain: copy [`_template.md`](_template.md), pick a two-letter prefix, add it to this table and to `.cursor/rules/documentation-discipline.mdc`.

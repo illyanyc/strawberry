@@ -78,6 +78,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/business-logic/data-and-features.md` | Exists | `DF-` rules: timestamps, point-in-time, adjustments, feature parity |
 | `docs/business-logic/operations.md` | Exists | `OP-` rules: build, run, deploy, backup/restore, host and toolchain behavior |
 | `docs/business-logic/ui.md` | Exists | `UI-` rules: page inventory, PAPER/LIVE banner, step-up UX, write-only credentials, staleness, CSP-safe frontend |
+| `docs/business-logic/brokers.md` | Exists | `BR-` rules: broker interface, capabilities, error model, order-state mapping per broker, attribution validation, session lifecycle, resync, rate limits, live gating, market-data fan-out |
 | `docs/business-logic/security.md` | Exists | `SE-` rules: policy, step-up, sessions, CSRF, secrets, credential encryption, redaction, audit, DB privileges |
 | `docs/adr/README.md` | Exists | ADR process and index |
 | `docs/adr/template.md` | Exists | ADR template |
@@ -97,6 +98,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0016-remote-access.md` | Exists | ADR (D17): host `tailscaled` + `tailscale serve`, optional Cloudflare Tunnel + Access |
 | `docs/adr/0017-ci-and-supply-chain.md` | Exists | ADR (D35): GitHub Actions gates, SHA pinning, gitleaks, Trivy, SBOM, multi-arch, Dependabot |
 | `docs/adr/0010-account-routing-and-day-trade-policy.md` | Exists | ADR (D30): horizon-based account routing, PDT guard off by default, intraday-margin guard, halt on margin events |
+| `docs/adr/0018-broker-gateway-interface.md` | Exists | ADR (D36): one gRPC broker interface for every adapter, typed error model, canonical execution IDs, outbox-backed events |
 | `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2): NATS JetStream, `sync_interval: always`, stream layout, outbox |
 | `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents (later: kill switch, broker outage, reconciliation break) |
 | `docs/threat-model.md` | Exists | Assets, actors, entry points, STRIDE table mapped to SE-/OP- rules, residual risks |
@@ -110,7 +112,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `contracts/AGENTS.md` | Exists | Agent notes: layout, conventions, regeneration, gotchas |
 | `contracts/buf.yaml` | Exists | buf module, lint (STANDARD) and breaking (FILE) config |
 | `contracts/buf.gen.yaml` | Exists | Local-plugin codegen to Go, Python, TypeScript |
-| `contracts/proto/` | Exists | Protobuf schemas `tb.<domain>.v1`: common, marketdata, context, features, signals, orders, ledger, ml, alerts, audit, broker (credentials RPC) |
+| `contracts/proto/` | Exists | Protobuf schemas `tb.<domain>.v1`: common, marketdata, context, features, signals, orders, ledger, ml, alerts, audit, broker (credentials RPC, `BrokerGatewayService`, `BrokerMarketDataService`) |
 | `contracts/gen/go/` | Exists | Generated Go module (messages + gRPC) plus hand-written `go.mod` and `contracts_test.go` |
 | `contracts/gen/python/` | Exists | Generated Python package `tbcontracts` (`tb.*_pb2` + `.pyi`) plus hand-written `pyproject.toml` |
 | `contracts/gen/ts/` | Exists | Generated TypeScript package `@strawberry/contracts` plus hand-written `package.json`, `tsconfig.json`, `test/` |

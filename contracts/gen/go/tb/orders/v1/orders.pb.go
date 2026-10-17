@@ -28,11 +28,12 @@ const (
 type OrderType int32
 
 const (
-	OrderType_ORDER_TYPE_UNSPECIFIED OrderType = 0
-	OrderType_ORDER_TYPE_MARKET      OrderType = 1
-	OrderType_ORDER_TYPE_LIMIT       OrderType = 2
-	OrderType_ORDER_TYPE_STOP        OrderType = 3
-	OrderType_ORDER_TYPE_STOP_LIMIT  OrderType = 4
+	OrderType_ORDER_TYPE_UNSPECIFIED   OrderType = 0
+	OrderType_ORDER_TYPE_MARKET        OrderType = 1
+	OrderType_ORDER_TYPE_LIMIT         OrderType = 2
+	OrderType_ORDER_TYPE_STOP          OrderType = 3
+	OrderType_ORDER_TYPE_STOP_LIMIT    OrderType = 4
+	OrderType_ORDER_TYPE_TRAILING_STOP OrderType = 5
 )
 
 // Enum value maps for OrderType.
@@ -43,13 +44,15 @@ var (
 		2: "ORDER_TYPE_LIMIT",
 		3: "ORDER_TYPE_STOP",
 		4: "ORDER_TYPE_STOP_LIMIT",
+		5: "ORDER_TYPE_TRAILING_STOP",
 	}
 	OrderType_value = map[string]int32{
-		"ORDER_TYPE_UNSPECIFIED": 0,
-		"ORDER_TYPE_MARKET":      1,
-		"ORDER_TYPE_LIMIT":       2,
-		"ORDER_TYPE_STOP":        3,
-		"ORDER_TYPE_STOP_LIMIT":  4,
+		"ORDER_TYPE_UNSPECIFIED":   0,
+		"ORDER_TYPE_MARKET":        1,
+		"ORDER_TYPE_LIMIT":         2,
+		"ORDER_TYPE_STOP":          3,
+		"ORDER_TYPE_STOP_LIMIT":    4,
+		"ORDER_TYPE_TRAILING_STOP": 5,
 	}
 )
 
@@ -156,6 +159,9 @@ const (
 	OrderState_ORDER_STATE_EXPIRED          OrderState = 9
 	// Broker state cannot be confirmed; fail closed until reconciled (N5).
 	OrderState_ORDER_STATE_UNKNOWN OrderState = 10
+	// Superseded by a replacement order (cancel/replace); the replacement carries the new state.
+	OrderState_ORDER_STATE_REPLACED        OrderState = 11
+	OrderState_ORDER_STATE_PENDING_REPLACE OrderState = 12
 )
 
 // Enum value maps for OrderState.
@@ -172,6 +178,8 @@ var (
 		8:  "ORDER_STATE_REJECTED",
 		9:  "ORDER_STATE_EXPIRED",
 		10: "ORDER_STATE_UNKNOWN",
+		11: "ORDER_STATE_REPLACED",
+		12: "ORDER_STATE_PENDING_REPLACE",
 	}
 	OrderState_value = map[string]int32{
 		"ORDER_STATE_UNSPECIFIED":      0,
@@ -185,6 +193,8 @@ var (
 		"ORDER_STATE_REJECTED":         8,
 		"ORDER_STATE_EXPIRED":          9,
 		"ORDER_STATE_UNKNOWN":          10,
+		"ORDER_STATE_REPLACED":         11,
+		"ORDER_STATE_PENDING_REPLACE":  12,
 	}
 )
 
@@ -688,8 +698,10 @@ type Order struct {
 	SubmittedAt     int64       `protobuf:"varint,15,opt,name=submitted_at,json=submittedAt,proto3" json:"submitted_at,omitempty"`
 	UpdatedAt       int64       `protobuf:"varint,16,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	CorrelationId   string      `protobuf:"bytes,17,opt,name=correlation_id,json=correlationId,proto3" json:"correlation_id,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// IBKR permId, the durable broker key (V1); empty for other brokers.
+	PermId        string `protobuf:"bytes,18,opt,name=perm_id,json=permId,proto3" json:"perm_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Order) Reset() {
@@ -841,6 +853,13 @@ func (x *Order) GetCorrelationId() string {
 	return ""
 }
 
+func (x *Order) GetPermId() string {
+	if x != nil {
+		return x.PermId
+	}
+	return ""
+}
+
 type ExecutionReport struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	BrokerAccountId string                 `protobuf:"bytes,1,opt,name=broker_account_id,json=brokerAccountId,proto3" json:"broker_account_id,omitempty"`
@@ -855,8 +874,17 @@ type ExecutionReport struct {
 	EventTime       int64                  `protobuf:"varint,10,opt,name=event_time,json=eventTime,proto3" json:"event_time,omitempty"`
 	Mode            v1.Mode                `protobuf:"varint,11,opt,name=mode,proto3,enum=tb.common.v1.Mode" json:"mode,omitempty"`
 	IngestedAt      int64                  `protobuf:"varint,12,opt,name=ingested_at,json=ingestedAt,proto3" json:"ingested_at,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// IBKR permId of the order (durable join key, V1).
+	PermId string `protobuf:"bytes,13,opt,name=perm_id,json=permId,proto3" json:"perm_id,omitempty"`
+	// Ticker at execution time (display; instrument_id is the key, may be empty if unmapped).
+	Symbol string    `protobuf:"bytes,14,opt,name=symbol,proto3" json:"symbol,omitempty"`
+	Broker v1.Broker `protobuf:"varint,15,opt,name=broker,proto3,enum=tb.common.v1.Broker" json:"broker,omitempty"`
+	// Broker-provided ordering hint for executions with equal event_time (OE-006).
+	Sequence      int64  `protobuf:"varint,16,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	FeeCurrency   string `protobuf:"bytes,17,opt,name=fee_currency,json=feeCurrency,proto3" json:"fee_currency,omitempty"`
+	CorrelationId string `protobuf:"bytes,18,opt,name=correlation_id,json=correlationId,proto3" json:"correlation_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ExecutionReport) Reset() {
@@ -971,6 +999,48 @@ func (x *ExecutionReport) GetIngestedAt() int64 {
 		return x.IngestedAt
 	}
 	return 0
+}
+
+func (x *ExecutionReport) GetPermId() string {
+	if x != nil {
+		return x.PermId
+	}
+	return ""
+}
+
+func (x *ExecutionReport) GetSymbol() string {
+	if x != nil {
+		return x.Symbol
+	}
+	return ""
+}
+
+func (x *ExecutionReport) GetBroker() v1.Broker {
+	if x != nil {
+		return x.Broker
+	}
+	return v1.Broker(0)
+}
+
+func (x *ExecutionReport) GetSequence() int64 {
+	if x != nil {
+		return x.Sequence
+	}
+	return 0
+}
+
+func (x *ExecutionReport) GetFeeCurrency() string {
+	if x != nil {
+		return x.FeeCurrency
+	}
+	return ""
+}
+
+func (x *ExecutionReport) GetCorrelationId() string {
+	if x != nil {
+		return x.CorrelationId
+	}
+	return ""
 }
 
 type KillSwitchEvent struct {
@@ -1114,7 +1184,7 @@ const file_tb_orders_v1_orders_proto_rawDesc = "" +
 	"\x06checks\x18\x03 \x03(\v2\x17.tb.orders.v1.RiskCheckR\x06checks\x12\x1d\n" +
 	"\n" +
 	"decided_at\x18\x04 \x01(\x03R\tdecidedAt\x12%\n" +
-	"\x0ecorrelation_id\x18\x05 \x01(\tR\rcorrelationId\"\xa6\x05\n" +
+	"\x0ecorrelation_id\x18\x05 \x01(\tR\rcorrelationId\"\xbf\x05\n" +
 	"\x05Order\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x1b\n" +
 	"\tintent_id\x18\x02 \x01(\tR\bintentId\x12&\n" +
@@ -1137,7 +1207,8 @@ const file_tb_orders_v1_orders_proto_rawDesc = "" +
 	"\fsubmitted_at\x18\x0f \x01(\x03R\vsubmittedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\x10 \x01(\x03R\tupdatedAt\x12%\n" +
-	"\x0ecorrelation_id\x18\x11 \x01(\tR\rcorrelationId\"\xe9\x03\n" +
+	"\x0ecorrelation_id\x18\x11 \x01(\tR\rcorrelationId\x12\x17\n" +
+	"\aperm_id\x18\x12 \x01(\tR\x06permId\"\xae\x05\n" +
 	"\x0fExecutionReport\x12*\n" +
 	"\x11broker_account_id\x18\x01 \x01(\tR\x0fbrokerAccountId\x12$\n" +
 	"\x0ebroker_exec_id\x18\x02 \x01(\tR\fbrokerExecId\x12&\n" +
@@ -1153,7 +1224,13 @@ const file_tb_orders_v1_orders_proto_rawDesc = "" +
 	" \x01(\x03R\teventTime\x12&\n" +
 	"\x04mode\x18\v \x01(\x0e2\x12.tb.common.v1.ModeR\x04mode\x12\x1f\n" +
 	"\vingested_at\x18\f \x01(\x03R\n" +
-	"ingestedAt\"\xa7\x02\n" +
+	"ingestedAt\x12\x17\n" +
+	"\aperm_id\x18\r \x01(\tR\x06permId\x12\x16\n" +
+	"\x06symbol\x18\x0e \x01(\tR\x06symbol\x12,\n" +
+	"\x06broker\x18\x0f \x01(\x0e2\x14.tb.common.v1.BrokerR\x06broker\x12\x1a\n" +
+	"\bsequence\x18\x10 \x01(\x03R\bsequence\x12!\n" +
+	"\ffee_currency\x18\x11 \x01(\tR\vfeeCurrency\x12%\n" +
+	"\x0ecorrelation_id\x18\x12 \x01(\tR\rcorrelationId\"\xa7\x02\n" +
 	"\x0fKillSwitchEvent\x12\x19\n" +
 	"\bevent_id\x18\x01 \x01(\tR\aeventId\x123\n" +
 	"\x05scope\x18\x02 \x01(\x0e2\x1d.tb.orders.v1.KillSwitchScopeR\x05scope\x12\x16\n" +
@@ -1163,13 +1240,14 @@ const file_tb_orders_v1_orders_proto_rawDesc = "" +
 	"\x06reason\x18\x06 \x01(\tR\x06reason\x12\x1f\n" +
 	"\voccurred_at\x18\a \x01(\x03R\n" +
 	"occurredAt\x12%\n" +
-	"\x0ecorrelation_id\x18\b \x01(\tR\rcorrelationId*\x84\x01\n" +
+	"\x0ecorrelation_id\x18\b \x01(\tR\rcorrelationId*\xa2\x01\n" +
 	"\tOrderType\x12\x1a\n" +
 	"\x16ORDER_TYPE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11ORDER_TYPE_MARKET\x10\x01\x12\x14\n" +
 	"\x10ORDER_TYPE_LIMIT\x10\x02\x12\x13\n" +
 	"\x0fORDER_TYPE_STOP\x10\x03\x12\x19\n" +
-	"\x15ORDER_TYPE_STOP_LIMIT\x10\x04*\xb6\x01\n" +
+	"\x15ORDER_TYPE_STOP_LIMIT\x10\x04\x12\x1c\n" +
+	"\x18ORDER_TYPE_TRAILING_STOP\x10\x05*\xb6\x01\n" +
 	"\vTimeInForce\x12\x1d\n" +
 	"\x19TIME_IN_FORCE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11TIME_IN_FORCE_DAY\x10\x01\x12\x15\n" +
@@ -1177,7 +1255,7 @@ const file_tb_orders_v1_orders_proto_rawDesc = "" +
 	"\x11TIME_IN_FORCE_IOC\x10\x03\x12\x15\n" +
 	"\x11TIME_IN_FORCE_FOK\x10\x04\x12\x15\n" +
 	"\x11TIME_IN_FORCE_OPG\x10\x05\x12\x15\n" +
-	"\x11TIME_IN_FORCE_CLS\x10\x06*\xbe\x02\n" +
+	"\x11TIME_IN_FORCE_CLS\x10\x06*\xf9\x02\n" +
 	"\n" +
 	"OrderState\x12\x1b\n" +
 	"\x17ORDER_STATE_UNSPECIFIED\x10\x00\x12\x1e\n" +
@@ -1191,7 +1269,9 @@ const file_tb_orders_v1_orders_proto_rawDesc = "" +
 	"\x14ORDER_STATE_REJECTED\x10\b\x12\x17\n" +
 	"\x13ORDER_STATE_EXPIRED\x10\t\x12\x17\n" +
 	"\x13ORDER_STATE_UNKNOWN\x10\n" +
-	"*\xba\x01\n" +
+	"\x12\x18\n" +
+	"\x14ORDER_STATE_REPLACED\x10\v\x12\x1f\n" +
+	"\x1bORDER_STATE_PENDING_REPLACE\x10\f*\xba\x01\n" +
 	"\x0fKillSwitchScope\x12!\n" +
 	"\x1dKILL_SWITCH_SCOPE_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18KILL_SWITCH_SCOPE_GLOBAL\x10\x01\x12$\n" +
@@ -1235,6 +1315,7 @@ var file_tb_orders_v1_orders_proto_goTypes = []any{
 	(v1.Side)(0),            // 11: tb.common.v1.Side
 	(*v1.Decimal)(nil),      // 12: tb.common.v1.Decimal
 	(v1.Mode)(0),            // 13: tb.common.v1.Mode
+	(v1.Broker)(0),          // 14: tb.common.v1.Broker
 }
 var file_tb_orders_v1_orders_proto_depIdxs = []int32{
 	11, // 0: tb.orders.v1.OrderIntent.side:type_name -> tb.common.v1.Side
@@ -1257,13 +1338,14 @@ var file_tb_orders_v1_orders_proto_depIdxs = []int32{
 	12, // 17: tb.orders.v1.ExecutionReport.price:type_name -> tb.common.v1.Decimal
 	12, // 18: tb.orders.v1.ExecutionReport.fees:type_name -> tb.common.v1.Decimal
 	13, // 19: tb.orders.v1.ExecutionReport.mode:type_name -> tb.common.v1.Mode
-	3,  // 20: tb.orders.v1.KillSwitchEvent.scope:type_name -> tb.orders.v1.KillSwitchScope
-	4,  // 21: tb.orders.v1.KillSwitchEvent.action:type_name -> tb.orders.v1.KillSwitchAction
-	22, // [22:22] is the sub-list for method output_type
-	22, // [22:22] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	14, // 20: tb.orders.v1.ExecutionReport.broker:type_name -> tb.common.v1.Broker
+	3,  // 21: tb.orders.v1.KillSwitchEvent.scope:type_name -> tb.orders.v1.KillSwitchScope
+	4,  // 22: tb.orders.v1.KillSwitchEvent.action:type_name -> tb.orders.v1.KillSwitchAction
+	23, // [23:23] is the sub-list for method output_type
+	23, // [23:23] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_tb_orders_v1_orders_proto_init() }

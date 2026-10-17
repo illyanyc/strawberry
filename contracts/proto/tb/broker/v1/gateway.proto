@@ -1,0 +1,440 @@
+syntax = "proto3";
+
+// BrokerGatewayService is the one interface every broker adapter serves (section 04, ADR-0018,
+// rules BR-001..BR-020 in docs/business-logic/brokers.md).
+//
+// Servers:   broker-gateway (Go) for Alpaca and the simulator; broker-gateway-ibkr (Python,
+//            ib_async) for IBKR. Each server lists only the accounts it owns.
+// Consumers: execution (orders), ledger (snapshots, orders, executions), marketdata (instrument
+//            info), via service tokens with per-method allowlists (SE-040).
+//
+// Error model (BR-004):
+// - A broker or adapter-side rejection of an order is a normal response (outcome REJECTED with a
+//   RejectReason), never a gRPC error.
+// - A session that is not READY answers order RPCs with gRPC FAILED_PRECONDITION and an
+//   google.rpc.ErrorInfo {domain: "tb.broker.v1", reason: "BROKER_UNAVAILABLE",
+//   metadata: {"session_state": "<SESSION_STATE_*>"}} (OE-004). FAILED_PRECONDITION is used on
+//   purpose: gRPC client retry policies retry UNAVAILABLE automatically, and order RPCs must never be
+//   retried by transport middleware.
+// - INVALID_ARGUMENT means the request is malformed (missing account, bad decimal), NOT_FOUND an
+//   unknown broker_account_id, PERMISSION_DENIED a caller outside the method allowlist.
+//
+// Durable copies of order updates, executions, and snapshots are published on the bus
+// (ord.update.<acct>, exec.<acct>, acct.snapshot.<acct>) through the adapter's transactional
+// outbox; the server streams below are a convenience for in-process consumers and tests.
+package tb.broker.v1;
+
+import "tb/broker/v1/credentials.proto";
+import "tb/common/v1/common.proto";
+import "tb/ledger/v1/ledger.proto";
+import "tb/orders/v1/orders.proto";
+
+service BrokerGatewayService {
+  // Lists the accounts this server owns, with capabilities and session status.
+  rpc ListAccounts(ListAccountsRequest) returns (ListAccountsResponse);
+  // Current session health for one account (BR-010 state machine).
+  rpc GetSessionStatus(GetSessionStatusRequest) returns (GetSessionStatusResponse);
+  // Point-in-time account snapshot from the broker (REST/API pull, not a cache).
+  rpc GetAccountSnapshot(GetAccountSnapshotRequest) returns (GetAccountSnapshotResponse);
+  // Snapshot on subscribe, then on every change and at least every snapshot_interval.
+  rpc StreamAccountSnapshots(StreamAccountSnapshotsRequest) returns (stream StreamAccountSnapshotsResponse);
+  // Submits one order. Idempotent on client_order_id: a retry with the same ID never creates a
+  // second broker order (OE-003, OE-I1).
+  rpc SubmitOrder(SubmitOrderRequest) returns (SubmitOrderResponse);
+  rpc CancelOrder(CancelOrderRequest) returns (CancelOrderResponse);
+  rpc ReplaceOrder(ReplaceOrderRequest) returns (ReplaceOrderResponse);
+  // Looks up one order by client_order_id or broker_order_id (includes closed orders).
+  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);
+  rpc ListOpenOrders(ListOpenOrdersRequest) returns (ListOpenOrdersResponse);
+  // All orders (platform and manual) updated at or after `since`, oldest first.
+  rpc ListOrders(ListOrdersRequest) returns (ListOrdersResponse);
+  // Executions at or after `since` (gap fill after reconnect, OE-008), oldest first.
+  rpc ListExecutions(ListExecutionsRequest) returns (ListExecutionsResponse);
+  rpc StreamOrderUpdates(StreamOrderUpdatesRequest) returns (stream StreamOrderUpdatesResponse);
+  // Deduplicated on broker_exec_id (OE-006): a duplicate broker message is never re-emitted.
+  rpc StreamExecutions(StreamExecutionsRequest) returns (stream StreamExecutionsResponse);
+  rpc GetInstrumentInfo(GetInstrumentInfoRequest) returns (GetInstrumentInfoResponse);
+}
+
+// SessionState is the per-account health state machine (BR-010, OE-004). Only READY accepts orders.
+enum SessionState {
+  SESSION_STATE_UNSPECIFIED = 0;
+  SESSION_STATE_DISCONNECTED = 1;
+  SESSION_STATE_CONNECTING = 2;
+  SESSION_STATE_AUTHENTICATED = 3;
+  // Resync in progress: open orders, executions since the last acknowledged exec, positions.
+  SESSION_STATE_SYNCING = 4;
+  SESSION_STATE_READY = 5;
+  // Connected but impaired (stream lost, daily reset window, broker status 1100, IMD); no orders.
+  SESSION_STATE_DEGRADED = 6;
+  // Adapter deliberately not running, e.g. a live account without both live gates (OE-010).
+  SESSION_STATE_STOPPED = 7;
+}
+
+// OrderClass distinguishes simple orders from broker-side multi-leg protective structures.
+enum OrderClass {
+  ORDER_CLASS_UNSPECIFIED = 0;
+  ORDER_CLASS_SIMPLE = 1;
+  // Entry + take-profit + stop-loss (Alpaca bracket / OTOCO; IBKR parent + two children).
+  ORDER_CLASS_BRACKET = 2;
+  // One-cancels-other exit pair for an existing position.
+  ORDER_CLASS_OCO = 3;
+  // One-triggers-other: entry + one protective leg.
+  ORDER_CLASS_OTO = 4;
+}
+
+enum SubmitOutcome {
+  SUBMIT_OUTCOME_UNSPECIFIED = 0;
+  SUBMIT_OUTCOME_ACCEPTED = 1;
+  SUBMIT_OUTCOME_REJECTED = 2;
+  // The broker could not confirm or deny after the lookup by client_order_id (OE-003). The caller
+  // MUST treat the order state as unknown, block new orders for that instrument and strategy, and
+  // reconcile; it MUST NOT resubmit (OE-005, N5).
+  SUBMIT_OUTCOME_UNKNOWN = 3;
+}
+
+enum CancelOutcome {
+  CANCEL_OUTCOME_UNSPECIFIED = 0;
+  // Cancel accepted by the broker; the order is pending_cancel or already canceled.
+  CANCEL_OUTCOME_REQUESTED = 1;
+  // The order is already final (filled, canceled, rejected, expired, replaced); nothing to do.
+  CANCEL_OUTCOME_ALREADY_FINAL = 2;
+  CANCEL_OUTCOME_NOT_FOUND = 3;
+  CANCEL_OUTCOME_REJECTED = 4;
+  CANCEL_OUTCOME_UNKNOWN = 5;
+}
+
+enum ReplaceOutcome {
+  REPLACE_OUTCOME_UNSPECIFIED = 0;
+  REPLACE_OUTCOME_ACCEPTED = 1;
+  REPLACE_OUTCOME_REJECTED = 2;
+  REPLACE_OUTCOME_NOT_FOUND = 3;
+  REPLACE_OUTCOME_UNKNOWN = 4;
+}
+
+// RejectCode normalizes broker and adapter rejections (BR-005). broker_code keeps the raw value.
+enum RejectCode {
+  REJECT_CODE_UNSPECIFIED = 0;
+  // client_order_id missing or not in the attribution format (OE-002, VP-002). Never sent.
+  REJECT_CODE_INVALID_ATTRIBUTION = 1;
+  // Order shape not supported by the account capabilities or invalid (qty, price, tif, tick).
+  REJECT_CODE_INVALID_ORDER = 2;
+  REJECT_CODE_INSUFFICIENT_BUYING_POWER = 3;
+  // Opposite-side order would interact with a resting order in the same symbol (Alpaca HTTP 403
+  // self-cross guard). The OMS must cancel and replace, never layer (N3).
+  REJECT_CODE_SELF_CROSS = 4;
+  REJECT_CODE_NOT_SHORTABLE = 5;
+  REJECT_CODE_MARKET_CLOSED = 6;
+  REJECT_CODE_RATE_LIMITED = 7;
+  // client_order_id already used for a different order at the broker.
+  REJECT_CODE_DUPLICATE_CLIENT_ORDER_ID = 8;
+  REJECT_CODE_UNKNOWN_INSTRUMENT = 9;
+  // Broker-side risk/margin rejection (e.g. order would create an intraday margin deficit).
+  REJECT_CODE_BROKER_RISK = 10;
+  // Instrument not tradable at this broker (halted, inactive, not permissioned).
+  REJECT_CODE_NOT_TRADABLE = 11;
+  REJECT_CODE_BROKER_OTHER = 12;
+}
+
+// Capabilities are declared per account; execution consults them before building orders (BR-002).
+message Capabilities {
+  repeated tb.orders.v1.OrderType order_types = 1;
+  repeated tb.orders.v1.TimeInForce tifs = 2;
+  bool supports_bracket = 3;
+  bool supports_oco = 4;
+  bool supports_oto = 5;
+  bool supports_fractional = 6;
+  bool supports_short = 7;
+  bool supports_extended_hours = 8;
+  // Maximum attribution ID length the broker field accepts (Alpaca client_order_id 128; IBKR
+  // orderRef per spike V1).
+  uint32 max_client_order_id_len = 9;
+  // PDT rule applies at this account (D30: false unless the per-account pdt_guard is `legacy`).
+  bool pdt_applies = 10;
+  bool is_margin = 11;
+  // Market-data feeds this account's credential can use, e.g. "alpaca.sip", "alpaca.iex".
+  repeated string data_feeds = 12;
+  bool supports_replace = 13;
+  bool supports_trailing_stop = 14;
+}
+
+message SessionStatus {
+  string broker_account_id = 1;
+  SessionState state = 2;
+  bool connected = 3;
+  bool authenticated = 4;
+  // Last message or heartbeat from the broker, UTC ns.
+  int64 last_heartbeat = 5;
+  // When the current state was entered, UTC ns.
+  int64 state_since = 6;
+  // Human-readable reasons when not READY (e.g. "trade stream disconnected", "status 1100").
+  repeated string degraded_reasons = 7;
+  // Last broker_exec_id acknowledged into the durable store (resync cursor, OE-008).
+  string last_exec_id = 8;
+  int64 last_exec_time = 9;
+}
+
+message BrokerAccount {
+  // Platform account ID, e.g. "alpaca-paper", "ibkr-live-bot". Never the broker's account number.
+  string broker_account_id = 1;
+  tb.common.v1.Broker broker = 2;
+  Environment environment = 3;
+  Capabilities capabilities = 4;
+  SessionStatus session = 5;
+}
+
+// BracketSpec describes broker-side protective legs (N5: every algorithmic entry carries one).
+message BracketSpec {
+  OrderClass order_class = 1;
+  tb.common.v1.Decimal take_profit_limit_price = 2;
+  tb.common.v1.Decimal stop_loss_stop_price = 3;
+  // Optional: makes the stop-loss leg a stop-limit.
+  tb.common.v1.Decimal stop_loss_limit_price = 4;
+}
+
+message BrokerOrderRequest {
+  // Attribution ID tb1-<strategyShortId>-<intentULID>-<attempt> (OE-002, VP-002). Required.
+  // Sent as Alpaca client_order_id / IBKR orderRef.
+  string client_order_id = 1;
+  string broker_account_id = 2;
+  // instrument_id plus the broker identifiers the adapter needs (symbol, alpaca_asset_id,
+  // ibkr_con_id), resolved by the caller from the instrument master.
+  tb.common.v1.Instrument instrument = 3;
+  tb.common.v1.Side side = 4;
+  tb.common.v1.Decimal qty = 5;
+  tb.orders.v1.OrderType type = 6;
+  tb.common.v1.Decimal limit_price = 7;
+  tb.common.v1.Decimal stop_price = 8;
+  tb.orders.v1.TimeInForce tif = 9;
+  bool extended_hours = 10;
+  // Unset or ORDER_CLASS_SIMPLE for a simple order.
+  BracketSpec bracket = 11;
+  // Trailing stops: exactly one of trail_price / trail_percent.
+  tb.common.v1.Decimal trail_price = 12;
+  tb.common.v1.Decimal trail_percent = 13;
+  string intent_id = 14;
+  tb.common.v1.Mode mode = 15;
+  string correlation_id = 16;
+}
+
+// BrokerOrder is the broker's view of one order, normalized (BR-006 state mapping).
+message BrokerOrder {
+  string broker_account_id = 1;
+  string broker_order_id = 2;
+  // May be empty or lack the tb1- prefix for orders placed outside the platform (VP-001).
+  string client_order_id = 3;
+  // IBKR permId, the durable join key (V1); empty for other brokers.
+  string perm_id = 4;
+  tb.common.v1.Instrument instrument = 5;
+  tb.common.v1.Side side = 6;
+  tb.orders.v1.OrderType type = 7;
+  tb.orders.v1.TimeInForce tif = 8;
+  OrderClass order_class = 9;
+  tb.common.v1.Decimal qty = 10;
+  tb.common.v1.Decimal filled_qty = 11;
+  tb.common.v1.Decimal avg_fill_price = 12;
+  tb.common.v1.Decimal limit_price = 13;
+  tb.common.v1.Decimal stop_price = 14;
+  tb.orders.v1.OrderState state = 15;
+  // Raw broker status string, kept for audit and for mapping unknown statuses (OE-005).
+  string broker_status = 16;
+  bool extended_hours = 17;
+  // Bracket/OCO legs and their parent (OE-009: child orders inherit the parent's attribution).
+  string parent_broker_order_id = 18;
+  repeated BrokerOrder legs = 19;
+  string replaces_broker_order_id = 20;
+  string replaced_by_broker_order_id = 21;
+  int64 created_at = 22;
+  int64 submitted_at = 23;
+  int64 updated_at = 24;
+  int64 filled_at = 25;
+  int64 canceled_at = 26;
+  tb.common.v1.Decimal trail_price = 27;
+  tb.common.v1.Decimal trail_percent = 28;
+}
+
+message RejectReason {
+  RejectCode code = 1;
+  // Safe, credential-free message.
+  string message = 2;
+  // Raw broker code (HTTP status + code, IBKR error code).
+  string broker_code = 3;
+  // True when the adapter rejected locally and nothing was sent to the broker.
+  bool local = 4;
+}
+
+// BrokerOrderUpdate is one order event from the broker (trade-update stream or resync).
+message BrokerOrderUpdate {
+  string broker_account_id = 1;
+  // Raw event name, e.g. "new", "fill", "partial_fill", "canceled", "replaced", "rejected".
+  string event = 2;
+  BrokerOrder order = 3;
+  // Present on fill and partial_fill events.
+  tb.orders.v1.ExecutionReport execution = 4;
+  int64 event_time = 5;
+  int64 received_at = 6;
+  // True when produced by a reconnect resync rather than the live stream (OE-008).
+  bool from_resync = 7;
+}
+
+message InstrumentInfo {
+  tb.common.v1.Instrument instrument = 1;
+  bool tradable = 2;
+  bool shortable = 3;
+  bool easy_to_borrow = 4;
+  bool fractionable = 5;
+  bool marginable = 6;
+  tb.common.v1.Decimal min_tick = 7;
+  tb.common.v1.Decimal lot_size = 8;
+  // Broker-reported status, e.g. "active", "inactive".
+  string status = 9;
+  int64 as_of = 10;
+}
+
+message ListAccountsRequest {}
+
+message ListAccountsResponse {
+  repeated BrokerAccount accounts = 1;
+}
+
+message GetSessionStatusRequest {
+  string broker_account_id = 1;
+}
+
+message GetSessionStatusResponse {
+  SessionStatus status = 1;
+}
+
+message GetAccountSnapshotRequest {
+  string broker_account_id = 1;
+}
+
+message GetAccountSnapshotResponse {
+  tb.ledger.v1.AccountSnapshot snapshot = 1;
+}
+
+message StreamAccountSnapshotsRequest {
+  string broker_account_id = 1;
+}
+
+message StreamAccountSnapshotsResponse {
+  tb.ledger.v1.AccountSnapshot snapshot = 1;
+}
+
+message SubmitOrderRequest {
+  BrokerOrderRequest order = 1;
+}
+
+message SubmitOrderResponse {
+  SubmitOutcome outcome = 1;
+  // Set when ACCEPTED (and when a lookup found the order after a timeout).
+  BrokerOrder order = 2;
+  // Set when REJECTED.
+  RejectReason reject = 3;
+  // True when the submit timed out and the order was found by client_order_id (OE-003).
+  bool recovered_by_lookup = 4;
+  int64 accepted_at = 5;
+}
+
+message CancelOrderRequest {
+  string broker_account_id = 1;
+  // Exactly one of client_order_id / broker_order_id.
+  string client_order_id = 2;
+  string broker_order_id = 3;
+  string correlation_id = 4;
+}
+
+message CancelOrderResponse {
+  CancelOutcome outcome = 1;
+  BrokerOrder order = 2;
+  RejectReason reject = 3;
+}
+
+message ReplaceOrderRequest {
+  string broker_account_id = 1;
+  // The order to replace, by its current attribution ID.
+  string client_order_id = 2;
+  // Attribution ID of the replacement: same strategy and intent, attempt + 1 (VP-002).
+  string new_client_order_id = 3;
+  // Changed fields only; unset fields keep their current value.
+  tb.common.v1.Decimal qty = 4;
+  tb.common.v1.Decimal limit_price = 5;
+  tb.common.v1.Decimal stop_price = 6;
+  tb.orders.v1.TimeInForce tif = 7;
+  tb.common.v1.Decimal trail_price = 8;
+  string correlation_id = 9;
+}
+
+message ReplaceOrderResponse {
+  ReplaceOutcome outcome = 1;
+  // The replacement order (new broker_order_id at Alpaca).
+  BrokerOrder order = 2;
+  RejectReason reject = 3;
+}
+
+message GetOrderRequest {
+  string broker_account_id = 1;
+  // Exactly one of client_order_id / broker_order_id.
+  string client_order_id = 2;
+  string broker_order_id = 3;
+}
+
+message GetOrderResponse {
+  bool found = 1;
+  BrokerOrder order = 2;
+}
+
+message ListOpenOrdersRequest {
+  string broker_account_id = 1;
+}
+
+message ListOpenOrdersResponse {
+  repeated BrokerOrder orders = 1;
+}
+
+message ListOrdersRequest {
+  string broker_account_id = 1;
+  // UTC ns; orders created or updated at or after this time.
+  int64 since = 2;
+}
+
+message ListOrdersResponse {
+  repeated BrokerOrder orders = 1;
+}
+
+message ListExecutionsRequest {
+  string broker_account_id = 1;
+  // UTC ns; executions at or after this time.
+  int64 since = 2;
+}
+
+message ListExecutionsResponse {
+  repeated tb.orders.v1.ExecutionReport executions = 1;
+}
+
+message StreamOrderUpdatesRequest {
+  string broker_account_id = 1;
+}
+
+message StreamOrderUpdatesResponse {
+  BrokerOrderUpdate update = 1;
+}
+
+message StreamExecutionsRequest {
+  string broker_account_id = 1;
+}
+
+message StreamExecutionsResponse {
+  tb.orders.v1.ExecutionReport execution = 1;
+}
+
+message GetInstrumentInfoRequest {
+  string broker_account_id = 1;
+  // Either instrument (with broker identifiers) or a bare symbol.
+  tb.common.v1.Instrument instrument = 2;
+  string symbol = 3;
+}
+
+message GetInstrumentInfoResponse {
+  InstrumentInfo info = 1;
+}

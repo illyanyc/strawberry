@@ -12,6 +12,34 @@ enum Timeframe {
   TIMEFRAME_15M = 3;
   TIMEFRAME_1H = 4;
   TIMEFRAME_1D = 5;
+  TIMEFRAME_30M = 6;
+}
+
+// AdjustmentBasis records what a price series is adjusted for (D27). The lake stores RAW only;
+// SPLIT and SPLIT_DIV appear on read-time adjusted outputs.
+enum AdjustmentBasis {
+  ADJUSTMENT_BASIS_UNSPECIFIED = 0;
+  ADJUSTMENT_BASIS_RAW = 1;
+  ADJUSTMENT_BASIS_SPLIT = 2;
+  ADJUSTMENT_BASIS_SPLIT_DIV = 3;
+}
+
+// Session of a bar (MD-004): extended-hours bars are flagged, never merged with regular bars.
+enum Session {
+  SESSION_UNSPECIFIED = 0;
+  SESSION_PRE = 1;
+  SESSION_REGULAR = 2;
+  SESSION_POST = 3;
+}
+
+// AgreementStatus of a corporate action across sources (MD-012).
+enum AgreementStatus {
+  AGREEMENT_STATUS_UNSPECIFIED = 0;
+  // Seen in one source only; usable but flagged.
+  AGREEMENT_STATUS_SINGLE_SOURCE = 1;
+  AGREEMENT_STATUS_AGREED = 2;
+  // Sources disagree on type, date, or ratio; adjustment is blocked for the symbol (MD-012).
+  AGREEMENT_STATUS_DISAGREED = 3;
 }
 
 // Bar is raw (unadjusted) OHLCV (rule DF-005). Available at ts_close plus the feed's publication delay.
@@ -33,6 +61,18 @@ message Bar {
   bool is_final = 13;
   int64 available_at = 14;
   int64 ingested_at = 15;
+  // Vendor, e.g. "alpaca", "fmp".
+  string source = 16;
+  // 0 for the first version of a natural key (instrument_id, timeframe, ts_open, feed); each
+  // content change increments it, and earlier revisions are retained (DF-007, ST-004).
+  int32 revision = 17;
+  AdjustmentBasis adjustment_basis = 18;
+  Session session = 19;
+  // True when the bar was recovered from REST after a stream gap (MD-006).
+  bool repaired = 20;
+  // Ticker as of ts_open (display only; instrument_id is the key). Vendor-shaped records from
+  // broker-gateway carry symbol with an empty instrument_id.
+  string symbol = 21;
 }
 
 message Quote {
@@ -46,6 +86,7 @@ message Quote {
   string feed = 8;
   int64 available_at = 9;
   int64 ingested_at = 10;
+  string symbol = 11;
 }
 
 message Trade {
@@ -57,6 +98,9 @@ message Trade {
   string feed = 6;
   int64 available_at = 7;
   int64 ingested_at = 8;
+  string symbol = 9;
+  string trade_id = 10;
+  string exchange = 11;
 }
 
 enum CorporateActionType {
@@ -66,6 +110,7 @@ enum CorporateActionType {
   CORPORATE_ACTION_TYPE_SYMBOL_CHANGE = 3;
   CORPORATE_ACTION_TYPE_DELISTING = 4;
   CORPORATE_ACTION_TYPE_MERGER = 5;
+  CORPORATE_ACTION_TYPE_SPIN_OFF = 6;
 }
 
 message CorporateAction {
@@ -80,6 +125,21 @@ message CorporateAction {
   // New symbol or successor instrument for symbol changes and mergers.
   string successor_instrument_id = 6;
   string source = 7;
+  // When the platform could first know the action: the vendor's declaration/announcement time when
+  // known, otherwise the first fetch time (DF-005: as-of adjustment uses only actions with
+  // available_at <= as_of).
   int64 available_at = 8;
   int64 ingested_at = 9;
+  string symbol = 10;
+  // New ticker for symbol changes.
+  string new_symbol = 11;
+  int64 record_date = 12;
+  int64 payable_date = 13;
+  // Vendor declaration/announcement date, UTC ns (0 if unknown).
+  int64 declared_at = 14;
+  // Vendor's own identifier, for idempotent upserts.
+  string source_id = 15;
+  AgreementStatus agreement = 16;
+  // Sources that reported this action after cross-checking (e.g. ["alpaca", "fmp"]).
+  repeated string sources = 17;
 }

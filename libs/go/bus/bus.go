@@ -56,7 +56,7 @@ func Ready(nc *nats.Conn) func(context.Context) error {
 var Streams = []jetstream.StreamConfig{
 	{Name: "ORDERS", Subjects: []string{"ord.>", "exec.>", "risk.kill"}, Storage: jetstream.FileStorage,
 		Retention: jetstream.LimitsPolicy, MaxAge: 90 * 24 * time.Hour, Replicas: 1, Duplicates: 10 * time.Minute},
-	{Name: "LEDGER", Subjects: []string{"acct.snapshot.>", "ledger.update.>", "recon.result.>"}, Storage: jetstream.FileStorage,
+	{Name: "LEDGER", Subjects: []string{"acct.snapshot.>", "ledger.update.>", "recon.result.>", "recon.request.>"}, Storage: jetstream.FileStorage,
 		Retention: jetstream.LimitsPolicy, MaxAge: 90 * 24 * time.Hour, Replicas: 1, Duplicates: 10 * time.Minute},
 	{Name: "SIGNALS", Subjects: []string{"sig.>"}, Storage: jetstream.FileStorage,
 		Retention: jetstream.LimitsPolicy, MaxAge: 30 * 24 * time.Hour, Replicas: 1},

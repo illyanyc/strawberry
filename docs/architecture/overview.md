@@ -103,6 +103,8 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 | `tb.alerts.v1` | `Alert` | any → monitor → channels |
 | `tb.audit.v1` | `AuditEvent` | all → audit store |
 | `tb.broker.v1` | `CredentialService` (gRPC: put, delete, list status; no plaintext read) | api-gateway → broker-gateway |
+| `tb.broker.v1` | `BrokerGatewayService` (accounts, sessions, snapshots, submit/cancel/replace/lookup, order and execution lists and streams, instrument info) — one contract for every adapter ([ADR-0018](../adr/0018-broker-gateway-interface.md), [BR-](../business-logic/brokers.md)) | broker-gateway (Alpaca, simulator), broker-gateway-ibkr (IBKR) → execution, ledger, marketdata |
+| `tb.broker.v1` | `BrokerMarketDataService` (historical bars, bidirectional market-data stream over the single upstream socket, assets, corporate actions, feed status) | broker-gateway → marketdata |
 
 The UI ↔ gateway API (REST commands + SSE streams, D3/D14) is specified in [`contracts/openapi/gateway.yaml`](../../contracts/openapi/gateway.yaml). Only `/healthz` and the auth bootstrap endpoints are public (SE-004).
 
@@ -156,8 +158,10 @@ md.bar.<timeframe>.<instrument_id>   md.quote.<instrument_id>   md.trade.<instru
 ctx.<kind>                            feat.<feature_set>.<instrument_id>
 sig.<strategy_id>                     ord.intent   ord.decision   ord.update.<broker_account>
 exec.<broker_account>                 acct.snapshot.<broker_account>
-ledger.update.<broker_account>        recon.result.<broker_account>
+ledger.update.<broker_account>        recon.result.<broker_account>   recon.request.<broker_account>
 risk.kill                             alert.<severity>           sys.health.<service>
 ```
+
+Broker adapters publish `ord.update.*`, `exec.*`, `acct.snapshot.*`, and `recon.request.*` through a Postgres transactional outbox (schema `broker`), so a crash never loses or double-publishes an execution (ADR-0018). `recon.request.<acct>` follows every reconnect resync (OE-008).
 
 Update this doc when a data flow, subject, store, or trust boundary changes.

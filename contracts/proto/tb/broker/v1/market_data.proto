@@ -1,0 +1,136 @@
+syntax = "proto3";
+
+// BrokerMarketDataService exposes a broker's market data to the marketdata service (section 04 →
+// section 05, ADR-0018). broker-gateway serves it for Alpaca because only broker-gateway holds the
+// decrypted credential (SE-031), and it holds the single market-data WebSocket per feed that
+// Alpaca allows (BR-015; a second connection gets error 406). broker-gateway-ibkr may answer
+// UNIMPLEMENTED (IBKR data is minimal, D20).
+//
+// Records here are vendor-shaped: bars, quotes, and trades carry `symbol` and may have an empty
+// `instrument_id`; marketdata resolves symbols through the instrument master.
+package tb.broker.v1;
+
+import "tb/marketdata/v1/marketdata.proto";
+
+service BrokerMarketDataService {
+  // One page of historical bars for up to 100 symbols (raw, unadjusted; DF-005).
+  rpc GetHistoricalBars(GetHistoricalBarsRequest) returns (GetHistoricalBarsResponse);
+  // Bidirectional: the client sends subscription changes; the server sends market-data events
+  // from the shared upstream connection. The server keeps the union of all clients' symbols.
+  rpc StreamMarketData(stream StreamMarketDataRequest) returns (stream StreamMarketDataResponse);
+  // Tradable asset list with attributes (reference-data sync, section 05).
+  rpc ListAssets(ListAssetsRequest) returns (ListAssetsResponse);
+  // Corporate actions announced or effective in a date range.
+  rpc GetCorporateActions(GetCorporateActionsRequest) returns (GetCorporateActionsResponse);
+  rpc GetFeedStatus(GetFeedStatusRequest) returns (GetFeedStatusResponse);
+}
+
+message GetHistoricalBarsRequest {
+  repeated string symbols = 1;
+  tb.marketdata.v1.Timeframe timeframe = 2;
+  // UTC ns, inclusive start and exclusive end (bar ts_open).
+  int64 start = 3;
+  int64 end = 4;
+  // Feed, e.g. "alpaca.sip" or "alpaca.iex".
+  string feed = 5;
+  string page_token = 6;
+  // Maximum bars per page (server caps it at the vendor limit).
+  uint32 limit = 7;
+}
+
+message GetHistoricalBarsResponse {
+  repeated tb.marketdata.v1.Bar bars = 1;
+  // Empty when there are no more pages.
+  string next_page_token = 2;
+}
+
+message Subscription {
+  repeated string bars = 1;
+  repeated string updated_bars = 2;
+  repeated string quotes = 3;
+  repeated string trades = 4;
+}
+
+message StreamMarketDataRequest {
+  // Feed for the whole stream; set on the first message, ignored afterwards.
+  string feed = 1;
+  // Symbols to add and to remove for this client.
+  Subscription subscribe = 2;
+  Subscription unsubscribe = 3;
+}
+
+enum FeedState {
+  FEED_STATE_UNSPECIFIED = 0;
+  FEED_STATE_CONNECTING = 1;
+  FEED_STATE_CONNECTED = 2;
+  FEED_STATE_DISCONNECTED = 3;
+  // The vendor refused the connection because another client already holds the slot (Alpaca 406,
+  // spike V7). Requires owner action; never retried in a tight loop.
+  FEED_STATE_CONNECTION_LIMIT = 4;
+  FEED_STATE_AUTH_FAILED = 5;
+}
+
+message FeedStatus {
+  string feed = 1;
+  FeedState state = 2;
+  int64 last_message_at = 3;
+  int64 connected_since = 4;
+  uint64 reconnects = 5;
+  uint32 subscribed_symbols = 6;
+  string detail = 7;
+}
+
+message StreamMarketDataResponse {
+  oneof event {
+    // Minute bar as first published by the vendor (not final; marketdata decides finality, MD-002).
+    tb.marketdata.v1.Bar bar = 1;
+    // Correction of an already published minute bar (Alpaca `updatedBars`), same ts_open.
+    tb.marketdata.v1.Bar updated_bar = 2;
+    tb.marketdata.v1.Quote quote = 3;
+    tb.marketdata.v1.Trade trade = 4;
+    // Upstream connection state changes; a DISCONNECTED → CONNECTED transition means the client
+    // must repair the gap from REST (MD-006).
+    FeedStatus status = 5;
+  }
+}
+
+message Asset {
+  string symbol = 1;
+  string broker_asset_id = 2;
+  string exchange = 3;
+  string asset_class = 4;
+  string name = 5;
+  string status = 6;
+  bool tradable = 7;
+  bool shortable = 8;
+  bool easy_to_borrow = 9;
+  bool fractionable = 10;
+  bool marginable = 11;
+}
+
+message ListAssetsRequest {
+  // Include inactive (delisted) assets.
+  bool include_inactive = 1;
+}
+
+message ListAssetsResponse {
+  repeated Asset assets = 1;
+  int64 as_of = 2;
+}
+
+message GetCorporateActionsRequest {
+  repeated string symbols = 1;
+  // UTC ns date range (inclusive), applied to the vendor's date filter.
+  int64 start = 2;
+  int64 end = 3;
+}
+
+message GetCorporateActionsResponse {
+  repeated tb.marketdata.v1.CorporateAction actions = 1;
+}
+
+message GetFeedStatusRequest {}
+
+message GetFeedStatusResponse {
+  repeated FeedStatus feeds = 1;
+}

@@ -9,6 +9,9 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Audit chain** | The hash-linked sequence of audit events: each event's hash covers the previous hash and its own canonical fields; `make audit-verify` recomputes it. |
 | **`available_at`** | The earliest time the platform could have known a datum. All point-in-time filtering uses it, never `event_time`. |
 | **Broker account (`broker_account_id`)** | One real account at one broker in one environment (paper or live). Paper and live are different accounts. |
+| **Broker capabilities** | Per-account declaration of what an adapter supports (order types, TIFs, bracket/OCO/OTO, fractional, short, extended hours, attribution length); execution builds orders against it (BR-002). |
+| **`BROKER_UNAVAILABLE`** | The typed error (gRPC `FAILED_PRECONDITION` + `ErrorInfo` reason) a broker adapter returns for order RPCs while the account session is not `ready` (BR-004, OE-004). |
+| **Canonical execution ID** | The `broker_exec_id` used to deduplicate fills; identical whether a fill arrives on the stream or from a REST resync (Alpaca: `<order_id>:<cumulative qty>`) (BR-008). |
 | **Champion / challenger** | The currently deployed model version for a strategy, and a candidate running in shadow or paper alongside it. |
 | **Compose profile** | Named group of services in `infra/compose/docker-compose.yml` (`core`, `observability`, `ml`, `ml-workers`, `ops`, `remote-cloudflare`); `make up` starts `core,observability`. |
 | **Correlation ID** | ID carried by every event from signal to fill, for tracing. |
@@ -30,6 +33,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Meta-labeling** | A secondary model that decides whether to act on (and how to size) a primary model's signal. |
 | **Native ML worker** | ML/backtest/optimizer process run directly on macOS under launchd (MPS/MLX available) instead of in a container (D29). |
 | **Mode** | `backtest`, `paper`, or `live`; carried by every strategy, order, and fill. |
+| **Outbox (transactional)** | A Postgres table written in the same transaction as the state change it announces; a relay publishes rows to NATS with a dedupe ID, so events are never lost or duplicated by a crash (D2, ADR-0018). |
 | **Order intent** | A strategy's or user's request to trade, before risk checks. Becomes an order only after an approved risk decision. |
 | **Owner** | The strategy ID or `manual` that a position, lot, or order belongs to. |
 | **PBO** | Probability of backtest overfitting (combinatorially symmetric cross-validation). |
@@ -41,9 +45,11 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Risk decision** | The recorded outcome of pre-trade checks for an intent: approved or rejected, with each check's value and limit. |
 | **Schema owner role** | NOLOGIN Postgres role (`<schema>_owner`) that owns a schema and runs its migrations; services never log in as it. |
 | **Routing table** | Config mapping strategy horizons (`intraday`, `swing`) to the broker accounts allowed to receive their orders (RM-011, D30). |
+| **Resync** | What a broker adapter does after every (re)connect before accepting orders: list open orders, fetch executions since the last acknowledged one, publish what was missed, request reconciliation (BR-011). |
 | **Sealed holdout** | Final data period that optimization never sees; access is logged and counted. |
 | **Service token** | Short-lived Ed25519-signed token identifying the calling service on an internal call (SE-040). |
 | **Setup token** | One-time, 30-minute token printed by `make setup-token` that authorizes registering the first owner (SE-007). |
+| **Session state (broker)** | Per-account adapter health: `disconnected`, `connecting`, `authenticated`, `syncing`, `ready`, `degraded`, `stopped`; only `ready` accepts orders (BR-010). |
 | **Shadow mode** | A model produces signals that are recorded but never sent as orders. |
 | **Step-up auth** | Fresh re-authentication required for dangerous actions. |
 | **Triple-barrier label** | Label set by which of a profit-take, stop-loss, or time barrier is hit first. |

@@ -22,8 +22,12 @@ var natsUsers = map[string]struct{ pub, sub []string }{
 	"api_gateway": {pub: []string{"alert.>", "sys.health.api-gateway"}, sub: []string{"_INBOX.>"}},
 	"marketdata":  {pub: []string{"md.>", "alert.>", "sys.health.marketdata"}, sub: []string{"_INBOX.>"}},
 	"execution":   {pub: []string{"ord.>", "risk.kill", "alert.>", "sys.health.execution"}, sub: []string{"_INBOX.>", "sig.>", "ord.>", "exec.>", "risk.kill", "recon.result.>"}},
-	"ledger":      {pub: []string{"ledger.update.>", "recon.result.>", "alert.>", "sys.health.ledger"}, sub: []string{"_INBOX.>", "exec.>", "acct.snapshot.>"}},
-	"ops":         {pub: []string{">"}, sub: []string{">"}},
+	"ledger":      {pub: []string{"ledger.update.>", "recon.result.>", "alert.>", "sys.health.ledger"}, sub: []string{"_INBOX.>", "exec.>", "acct.snapshot.>", "recon.request.>"}},
+	// Broker adapters publish their accounts' order updates, executions, snapshots, and
+	// reconciliation requests through their outbox relay (ADR-0018).
+	"broker_gateway":      {pub: []string{"ord.update.>", "exec.>", "acct.snapshot.>", "recon.request.>", "alert.>", "sys.health.broker-gateway"}, sub: []string{"_INBOX.>"}},
+	"broker_gateway_ibkr": {pub: []string{"ord.update.>", "exec.>", "acct.snapshot.>", "recon.request.>", "alert.>", "sys.health.broker-gateway-ibkr"}, sub: []string{"_INBOX.>"}},
+	"ops":                 {pub: []string{">"}, sub: []string{">"}},
 }
 
 // signingServices get Ed25519 service-token keys (SE-040).

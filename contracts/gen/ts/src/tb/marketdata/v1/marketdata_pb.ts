@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file tb/marketdata/v1/marketdata.proto.
  */
 export const file_tb_marketdata_v1_marketdata: GenFile = /*@__PURE__*/
-  fileDesc("CiF0Yi9tYXJrZXRkYXRhL3YxL21hcmtldGRhdGEucHJvdG8SEHRiLm1hcmtldGRhdGEudjEirwMKA0JhchIVCg1pbnN0cnVtZW50X2lkGAEgASgJEi4KCXRpbWVmcmFtZRgCIAEoDjIbLnRiLm1hcmtldGRhdGEudjEuVGltZWZyYW1lEg8KB3RzX29wZW4YAyABKAMSEAoIdHNfY2xvc2UYBCABKAMSIwoEb3BlbhgFIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiMKBGhpZ2gYBiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIiCgNsb3cYByABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIkCgVjbG9zZRgIIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiUKBnZvbHVtZRgJIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiMKBHZ3YXAYCiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBITCgt0cmFkZV9jb3VudBgLIAEoAxIMCgRmZWVkGAwgASgJEhAKCGlzX2ZpbmFsGA0gASgIEhQKDGF2YWlsYWJsZV9hdBgOIAEoAxITCgtpbmdlc3RlZF9hdBgPIAEoAyKlAgoFUXVvdGUSFQoNaW5zdHJ1bWVudF9pZBgBIAEoCRISCgpldmVudF90aW1lGAIgASgDEigKCWJpZF9wcmljZRgDIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEicKCGJpZF9zaXplGAQgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSKAoJYXNrX3ByaWNlGAUgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJwoIYXNrX3NpemUYBiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBISCgpjb25kaXRpb25zGAcgAygJEgwKBGZlZWQYCCABKAkSFAoMYXZhaWxhYmxlX2F0GAkgASgDEhMKC2luZ2VzdGVkX2F0GAogASgDIsoBCgVUcmFkZRIVCg1pbnN0cnVtZW50X2lkGAEgASgJEhIKCmV2ZW50X3RpbWUYAiABKAMSJAoFcHJpY2UYAyABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIjCgRzaXplGAQgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSEgoKY29uZGl0aW9ucxgFIAMoCRIMCgRmZWVkGAYgASgJEhQKDGF2YWlsYWJsZV9hdBgHIAEoAxITCgtpbmdlc3RlZF9hdBgIIAEoAyKXAgoPQ29ycG9yYXRlQWN0aW9uEhUKDWluc3RydW1lbnRfaWQYASABKAkSMwoEdHlwZRgCIAEoDjIlLnRiLm1hcmtldGRhdGEudjEuQ29ycG9yYXRlQWN0aW9uVHlwZRIPCgdleF9kYXRlGAMgASgDEiQKBXJhdGlvGAQgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJQoGYW1vdW50GAUgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSHwoXc3VjY2Vzc29yX2luc3RydW1lbnRfaWQYBiABKAkSDgoGc291cmNlGAcgASgJEhQKDGF2YWlsYWJsZV9hdBgIIAEoAxITCgtpbmdlc3RlZF9hdBgJIAEoAyqBAQoJVGltZWZyYW1lEhkKFVRJTUVGUkFNRV9VTlNQRUNJRklFRBAAEhAKDFRJTUVGUkFNRV8xTRABEhAKDFRJTUVGUkFNRV81TRACEhEKDVRJTUVGUkFNRV8xNU0QAxIQCgxUSU1FRlJBTUVfMUgQBBIQCgxUSU1FRlJBTUVfMUQQBSrxAQoTQ29ycG9yYXRlQWN0aW9uVHlwZRIlCiFDT1JQT1JBVEVfQUNUSU9OX1RZUEVfVU5TUEVDSUZJRUQQABIfChtDT1JQT1JBVEVfQUNUSU9OX1RZUEVfU1BMSVQQARIiCh5DT1JQT1JBVEVfQUNUSU9OX1RZUEVfRElWSURFTkQQAhInCiNDT1JQT1JBVEVfQUNUSU9OX1RZUEVfU1lNQk9MX0NIQU5HRRADEiMKH0NPUlBPUkFURV9BQ1RJT05fVFlQRV9ERUxJU1RJTkcQBBIgChxDT1JQT1JBVEVfQUNUSU9OX1RZUEVfTUVSR0VSEAVC2AEKFGNvbS50Yi5tYXJrZXRkYXRhLnYxQg9NYXJrZXRkYXRhUHJvdG9QAVpNZ2l0aHViLmNvbS9pbGx5YW55Yy9zdHJhd2JlcnJ5L2NvbnRyYWN0cy9nZW4vZ28vdGIvbWFya2V0ZGF0YS92MTttYXJrZXRkYXRhdjGiAgNUTViqAhBUYi5NYXJrZXRkYXRhLlYxygIQVGJcTWFya2V0ZGF0YVxWMeICHFRiXE1hcmtldGRhdGFcVjFcR1BCTWV0YWRhdGHqAhJUYjo6TWFya2V0ZGF0YTo6VjFiBnByb3RvMw", [file_tb_common_v1_common]);
+  fileDesc("CiF0Yi9tYXJrZXRkYXRhL3YxL21hcmtldGRhdGEucHJvdG8SEHRiLm1hcmtldGRhdGEudjEi3AQKA0JhchIVCg1pbnN0cnVtZW50X2lkGAEgASgJEi4KCXRpbWVmcmFtZRgCIAEoDjIbLnRiLm1hcmtldGRhdGEudjEuVGltZWZyYW1lEg8KB3RzX29wZW4YAyABKAMSEAoIdHNfY2xvc2UYBCABKAMSIwoEb3BlbhgFIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiMKBGhpZ2gYBiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIiCgNsb3cYByABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIkCgVjbG9zZRgIIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiUKBnZvbHVtZRgJIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiMKBHZ3YXAYCiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBITCgt0cmFkZV9jb3VudBgLIAEoAxIMCgRmZWVkGAwgASgJEhAKCGlzX2ZpbmFsGA0gASgIEhQKDGF2YWlsYWJsZV9hdBgOIAEoAxITCgtpbmdlc3RlZF9hdBgPIAEoAxIOCgZzb3VyY2UYECABKAkSEAoIcmV2aXNpb24YESABKAUSOwoQYWRqdXN0bWVudF9iYXNpcxgSIAEoDjIhLnRiLm1hcmtldGRhdGEudjEuQWRqdXN0bWVudEJhc2lzEioKB3Nlc3Npb24YEyABKA4yGS50Yi5tYXJrZXRkYXRhLnYxLlNlc3Npb24SEAoIcmVwYWlyZWQYFCABKAgSDgoGc3ltYm9sGBUgASgJIrUCCgVRdW90ZRIVCg1pbnN0cnVtZW50X2lkGAEgASgJEhIKCmV2ZW50X3RpbWUYAiABKAMSKAoJYmlkX3ByaWNlGAMgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJwoIYmlkX3NpemUYBCABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIoCglhc2tfcHJpY2UYBSABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBInCghhc2tfc2l6ZRgGIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEhIKCmNvbmRpdGlvbnMYByADKAkSDAoEZmVlZBgIIAEoCRIUCgxhdmFpbGFibGVfYXQYCSABKAMSEwoLaW5nZXN0ZWRfYXQYCiABKAMSDgoGc3ltYm9sGAsgASgJIv4BCgVUcmFkZRIVCg1pbnN0cnVtZW50X2lkGAEgASgJEhIKCmV2ZW50X3RpbWUYAiABKAMSJAoFcHJpY2UYAyABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIjCgRzaXplGAQgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSEgoKY29uZGl0aW9ucxgFIAMoCRIMCgRmZWVkGAYgASgJEhQKDGF2YWlsYWJsZV9hdBgHIAEoAxITCgtpbmdlc3RlZF9hdBgIIAEoAxIOCgZzeW1ib2wYCSABKAkSEAoIdHJhZGVfaWQYCiABKAkSEAoIZXhjaGFuZ2UYCyABKAki1QMKD0NvcnBvcmF0ZUFjdGlvbhIVCg1pbnN0cnVtZW50X2lkGAEgASgJEjMKBHR5cGUYAiABKA4yJS50Yi5tYXJrZXRkYXRhLnYxLkNvcnBvcmF0ZUFjdGlvblR5cGUSDwoHZXhfZGF0ZRgDIAEoAxIkCgVyYXRpbxgEIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiUKBmFtb3VudBgFIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEh8KF3N1Y2Nlc3Nvcl9pbnN0cnVtZW50X2lkGAYgASgJEg4KBnNvdXJjZRgHIAEoCRIUCgxhdmFpbGFibGVfYXQYCCABKAMSEwoLaW5nZXN0ZWRfYXQYCSABKAMSDgoGc3ltYm9sGAogASgJEhIKCm5ld19zeW1ib2wYCyABKAkSEwoLcmVjb3JkX2RhdGUYDCABKAMSFAoMcGF5YWJsZV9kYXRlGA0gASgDEhMKC2RlY2xhcmVkX2F0GA4gASgDEhEKCXNvdXJjZV9pZBgPIAEoCRI0CglhZ3JlZW1lbnQYECABKA4yIS50Yi5tYXJrZXRkYXRhLnYxLkFncmVlbWVudFN0YXR1cxIPCgdzb3VyY2VzGBEgAygJKpQBCglUaW1lZnJhbWUSGQoVVElNRUZSQU1FX1VOU1BFQ0lGSUVEEAASEAoMVElNRUZSQU1FXzFNEAESEAoMVElNRUZSQU1FXzVNEAISEQoNVElNRUZSQU1FXzE1TRADEhAKDFRJTUVGUkFNRV8xSBAEEhAKDFRJTUVGUkFNRV8xRBAFEhEKDVRJTUVGUkFNRV8zME0QBiqJAQoPQWRqdXN0bWVudEJhc2lzEiAKHEFESlVTVE1FTlRfQkFTSVNfVU5TUEVDSUZJRUQQABIYChRBREpVU1RNRU5UX0JBU0lTX1JBVxABEhoKFkFESlVTVE1FTlRfQkFTSVNfU1BMSVQQAhIeChpBREpVU1RNRU5UX0JBU0lTX1NQTElUX0RJVhADKloKB1Nlc3Npb24SFwoTU0VTU0lPTl9VTlNQRUNJRklFRBAAEg8KC1NFU1NJT05fUFJFEAESEwoPU0VTU0lPTl9SRUdVTEFSEAISEAoMU0VTU0lPTl9QT1NUEAMqlAEKD0FncmVlbWVudFN0YXR1cxIgChxBR1JFRU1FTlRfU1RBVFVTX1VOU1BFQ0lGSUVEEAASIgoeQUdSRUVNRU5UX1NUQVRVU19TSU5HTEVfU09VUkNFEAESGwoXQUdSRUVNRU5UX1NUQVRVU19BR1JFRUQQAhIeChpBR1JFRU1FTlRfU1RBVFVTX0RJU0FHUkVFRBADKpUCChNDb3Jwb3JhdGVBY3Rpb25UeXBlEiUKIUNPUlBPUkFURV9BQ1RJT05fVFlQRV9VTlNQRUNJRklFRBAAEh8KG0NPUlBPUkFURV9BQ1RJT05fVFlQRV9TUExJVBABEiIKHkNPUlBPUkFURV9BQ1RJT05fVFlQRV9ESVZJREVORBACEicKI0NPUlBPUkFURV9BQ1RJT05fVFlQRV9TWU1CT0xfQ0hBTkdFEAMSIwofQ09SUE9SQVRFX0FDVElPTl9UWVBFX0RFTElTVElORxAEEiAKHENPUlBPUkFURV9BQ1RJT05fVFlQRV9NRVJHRVIQBRIiCh5DT1JQT1JBVEVfQUNUSU9OX1RZUEVfU1BJTl9PRkYQBkLYAQoUY29tLnRiLm1hcmtldGRhdGEudjFCD01hcmtldGRhdGFQcm90b1ABWk1naXRodWIuY29tL2lsbHlhbnljL3N0cmF3YmVycnkvY29udHJhY3RzL2dlbi9nby90Yi9tYXJrZXRkYXRhL3YxO21hcmtldGRhdGF2MaICA1RNWKoCEFRiLk1hcmtldGRhdGEuVjHKAhBUYlxNYXJrZXRkYXRhXFYx4gIcVGJcTWFya2V0ZGF0YVxWMVxHUEJNZXRhZGF0YeoCElRiOjpNYXJrZXRkYXRhOjpWMWIGcHJvdG8z", [file_tb_common_v1_common]);
 
 /**
  * Bar is raw (unadjusted) OHLCV (rule DF-005). Available at ts_close plus the feed's publication delay.
@@ -100,6 +100,46 @@ export type Bar = Message<"tb.marketdata.v1.Bar"> & {
    * @generated from field: int64 ingested_at = 15;
    */
   ingestedAt: bigint;
+
+  /**
+   * Vendor, e.g. "alpaca", "fmp".
+   *
+   * @generated from field: string source = 16;
+   */
+  source: string;
+
+  /**
+   * 0 for the first version of a natural key (instrument_id, timeframe, ts_open, feed); each
+   * content change increments it, and earlier revisions are retained (DF-007, ST-004).
+   *
+   * @generated from field: int32 revision = 17;
+   */
+  revision: number;
+
+  /**
+   * @generated from field: tb.marketdata.v1.AdjustmentBasis adjustment_basis = 18;
+   */
+  adjustmentBasis: AdjustmentBasis;
+
+  /**
+   * @generated from field: tb.marketdata.v1.Session session = 19;
+   */
+  session: Session;
+
+  /**
+   * True when the bar was recovered from REST after a stream gap (MD-006).
+   *
+   * @generated from field: bool repaired = 20;
+   */
+  repaired: boolean;
+
+  /**
+   * Ticker as of ts_open (display only; instrument_id is the key). Vendor-shaped records from
+   * broker-gateway carry symbol with an empty instrument_id.
+   *
+   * @generated from field: string symbol = 21;
+   */
+  symbol: string;
 };
 
 /**
@@ -162,6 +202,11 @@ export type Quote = Message<"tb.marketdata.v1.Quote"> & {
    * @generated from field: int64 ingested_at = 10;
    */
   ingestedAt: bigint;
+
+  /**
+   * @generated from field: string symbol = 11;
+   */
+  symbol: string;
 };
 
 /**
@@ -214,6 +259,21 @@ export type Trade = Message<"tb.marketdata.v1.Trade"> & {
    * @generated from field: int64 ingested_at = 8;
    */
   ingestedAt: bigint;
+
+  /**
+   * @generated from field: string symbol = 9;
+   */
+  symbol: string;
+
+  /**
+   * @generated from field: string trade_id = 10;
+   */
+  tradeId: string;
+
+  /**
+   * @generated from field: string exchange = 11;
+   */
+  exchange: string;
 };
 
 /**
@@ -271,6 +331,10 @@ export type CorporateAction = Message<"tb.marketdata.v1.CorporateAction"> & {
   source: string;
 
   /**
+   * When the platform could first know the action: the vendor's declaration/announcement time when
+   * known, otherwise the first fetch time (DF-005: as-of adjustment uses only actions with
+   * available_at <= as_of).
+   *
    * @generated from field: int64 available_at = 8;
    */
   availableAt: bigint;
@@ -279,6 +343,54 @@ export type CorporateAction = Message<"tb.marketdata.v1.CorporateAction"> & {
    * @generated from field: int64 ingested_at = 9;
    */
   ingestedAt: bigint;
+
+  /**
+   * @generated from field: string symbol = 10;
+   */
+  symbol: string;
+
+  /**
+   * New ticker for symbol changes.
+   *
+   * @generated from field: string new_symbol = 11;
+   */
+  newSymbol: string;
+
+  /**
+   * @generated from field: int64 record_date = 12;
+   */
+  recordDate: bigint;
+
+  /**
+   * @generated from field: int64 payable_date = 13;
+   */
+  payableDate: bigint;
+
+  /**
+   * Vendor declaration/announcement date, UTC ns (0 if unknown).
+   *
+   * @generated from field: int64 declared_at = 14;
+   */
+  declaredAt: bigint;
+
+  /**
+   * Vendor's own identifier, for idempotent upserts.
+   *
+   * @generated from field: string source_id = 15;
+   */
+  sourceId: string;
+
+  /**
+   * @generated from field: tb.marketdata.v1.AgreementStatus agreement = 16;
+   */
+  agreement: AgreementStatus;
+
+  /**
+   * Sources that reported this action after cross-checking (e.g. ["alpaca", "fmp"]).
+   *
+   * @generated from field: repeated string sources = 17;
+   */
+  sources: string[];
 };
 
 /**
@@ -321,6 +433,11 @@ export enum Timeframe {
    * @generated from enum value: TIMEFRAME_1D = 5;
    */
   TIMEFRAME_1D = 5,
+
+  /**
+   * @generated from enum value: TIMEFRAME_30M = 6;
+   */
+  TIMEFRAME_30M = 6,
 }
 
 /**
@@ -328,6 +445,110 @@ export enum Timeframe {
  */
 export const TimeframeSchema: GenEnum<Timeframe> = /*@__PURE__*/
   enumDesc(file_tb_marketdata_v1_marketdata, 0);
+
+/**
+ * AdjustmentBasis records what a price series is adjusted for (D27). The lake stores RAW only;
+ * SPLIT and SPLIT_DIV appear on read-time adjusted outputs.
+ *
+ * @generated from enum tb.marketdata.v1.AdjustmentBasis
+ */
+export enum AdjustmentBasis {
+  /**
+   * @generated from enum value: ADJUSTMENT_BASIS_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: ADJUSTMENT_BASIS_RAW = 1;
+   */
+  RAW = 1,
+
+  /**
+   * @generated from enum value: ADJUSTMENT_BASIS_SPLIT = 2;
+   */
+  SPLIT = 2,
+
+  /**
+   * @generated from enum value: ADJUSTMENT_BASIS_SPLIT_DIV = 3;
+   */
+  SPLIT_DIV = 3,
+}
+
+/**
+ * Describes the enum tb.marketdata.v1.AdjustmentBasis.
+ */
+export const AdjustmentBasisSchema: GenEnum<AdjustmentBasis> = /*@__PURE__*/
+  enumDesc(file_tb_marketdata_v1_marketdata, 1);
+
+/**
+ * Session of a bar (MD-004): extended-hours bars are flagged, never merged with regular bars.
+ *
+ * @generated from enum tb.marketdata.v1.Session
+ */
+export enum Session {
+  /**
+   * @generated from enum value: SESSION_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: SESSION_PRE = 1;
+   */
+  PRE = 1,
+
+  /**
+   * @generated from enum value: SESSION_REGULAR = 2;
+   */
+  REGULAR = 2,
+
+  /**
+   * @generated from enum value: SESSION_POST = 3;
+   */
+  POST = 3,
+}
+
+/**
+ * Describes the enum tb.marketdata.v1.Session.
+ */
+export const SessionSchema: GenEnum<Session> = /*@__PURE__*/
+  enumDesc(file_tb_marketdata_v1_marketdata, 2);
+
+/**
+ * AgreementStatus of a corporate action across sources (MD-012).
+ *
+ * @generated from enum tb.marketdata.v1.AgreementStatus
+ */
+export enum AgreementStatus {
+  /**
+   * @generated from enum value: AGREEMENT_STATUS_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Seen in one source only; usable but flagged.
+   *
+   * @generated from enum value: AGREEMENT_STATUS_SINGLE_SOURCE = 1;
+   */
+  SINGLE_SOURCE = 1,
+
+  /**
+   * @generated from enum value: AGREEMENT_STATUS_AGREED = 2;
+   */
+  AGREED = 2,
+
+  /**
+   * Sources disagree on type, date, or ratio; adjustment is blocked for the symbol (MD-012).
+   *
+   * @generated from enum value: AGREEMENT_STATUS_DISAGREED = 3;
+   */
+  DISAGREED = 3,
+}
+
+/**
+ * Describes the enum tb.marketdata.v1.AgreementStatus.
+ */
+export const AgreementStatusSchema: GenEnum<AgreementStatus> = /*@__PURE__*/
+  enumDesc(file_tb_marketdata_v1_marketdata, 3);
 
 /**
  * @generated from enum tb.marketdata.v1.CorporateActionType
@@ -362,11 +583,16 @@ export enum CorporateActionType {
    * @generated from enum value: CORPORATE_ACTION_TYPE_MERGER = 5;
    */
   MERGER = 5,
+
+  /**
+   * @generated from enum value: CORPORATE_ACTION_TYPE_SPIN_OFF = 6;
+   */
+  SPIN_OFF = 6,
 }
 
 /**
  * Describes the enum tb.marketdata.v1.CorporateActionType.
  */
 export const CorporateActionTypeSchema: GenEnum<CorporateActionType> = /*@__PURE__*/
-  enumDesc(file_tb_marketdata_v1_marketdata, 1);
+  enumDesc(file_tb_marketdata_v1_marketdata, 4);
 
