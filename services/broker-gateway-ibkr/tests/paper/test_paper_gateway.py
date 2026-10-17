@@ -23,7 +23,6 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
 from tb_broker_ibkr.adapter import PAPER_ACCOUNT_PREFIXES, AdapterConfig, IbkrAdapter, round_to_tick
 from tb_broker_ibkr.clock import SystemClock
 from tb_broker_ibkr.cursor_store import CursorStore
@@ -185,7 +184,8 @@ def test_v1_order_ref_length_and_persistence() -> None:
                 )
                 await asyncio.sleep(5)
                 fills = [f for f, _ in await port.executions(None) if f.order_ref.startswith("tb1-v1fills")]
-                rows.append({"length": len(ref), "sent": ref, "execution_order_ref": fills[0].order_ref if fills else None})
+                echoed_ref = fills[0].order_ref if fills else None
+                rows.append({"length": len(ref), "sent": ref, "execution_order_ref": echoed_ref})
             result = {"spike": "V1", "ran_at": datetime.now(UTC).isoformat(), "orders": rows}
             out.write_text(json.dumps(result, indent=2))
             assert rows[0]["exact"], "even a 20-char orderRef did not round-trip"
