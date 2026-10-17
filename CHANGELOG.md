@@ -52,6 +52,7 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 
 ### Fixed
 
+- `scripts/check-arm64.sh` retries registry lookups and reports registry errors separately from missing arm64 variants (Docker Official Images failed the first CI run without an error message).
 - `golang.org/x/net` upgraded to v0.60.0 in every Go module (CVE-2026-78669, HTTP/2 SETTINGS flood; found by Trivy).
 - `tests/e2e` skips unless `TB_E2E_BASE_URL` is set, so unit-test runs never depend on a running stack.
 - Web UI bugs found by the first real-browser run: `formatTime` combined `dateStyle`/`timeStyle` with `timeZoneName` (rejected by browsers, crashing the security page); the dashboard showed the previous session's data after logout/login (query cache now cleared, UI-009); the SSE hook re-subscribed on every render; the PAPER/LIVE banner lagged a settings change by up to 15 s (UI-004).
