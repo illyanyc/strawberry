@@ -1,0 +1,48 @@
+---
+description: Mandatory documentation protocol; every change records files, business logic, changelog, and decisions in the same commit
+globs:
+alwaysApply: true
+---
+
+# Documentation discipline
+
+The docs are the system's long-term memory. Future agents will not see this conversation. Anything not written down is lost, and a business rule that exists only in code is a defect.
+
+## Protocol (same commit as the code, no exceptions)
+
+| Trigger | Required update |
+|---|---|
+| Add, move, rename, or delete a file or directory | `docs/file-map.md`: add/move/remove the entry with a one-line purpose. Moves list the new path only; old paths go in the changelog. |
+| Add or change behavior, a rule, a limit, a state transition, a default, or an edge case | The matching `docs/business-logic/<domain>.md`: add or edit the rule with its ID, invariant, and edge cases. |
+| Any behavioral, structural, or user-visible change | `CHANGELOG.md` under `## [Unreleased]` (Added / Changed / Removed / Fixed / Security), citing rule IDs and ADRs. |
+| New or changed architecture, stack, schema-shape, or cross-service decision | New ADR in `docs/adr/` from `docs/adr/template.md`; update `docs/decisions.md` and the ADR index. Supersede old ADRs; never rewrite their decision. |
+| New domain term | `docs/glossary.md`. |
+| New service, or a change to how a service is built, run, configured, or tested | That service's `AGENTS.md` (template: `docs/architecture/service-agents.md`). |
+| New or changed run/test command | The "How to run and test" section of `AGENTS.md` and the service `AGENTS.md`. |
+| New cross-service data flow | `docs/architecture/overview.md`. |
+
+## Business rules
+
+- Every rule has a stable ID in its domain doc: `OE-` orders and execution, `VP-` virtual portfolios and attribution, `RM-` risk management, `SM-` strategies and model lifecycle, `DF-` data and features. IDs are never reused; retired rules are marked `Retired` with the reason.
+- Code that enforces a rule cites the ID in a short comment at the enforcement point. Tests that verify it include the ID in the test name or description.
+- If code and docs disagree, stop: determine the intended behavior, then fix both in one commit. Never weaken a safety rule in the docs to match code; escalate instead.
+- Write rules as testable statements (MUST / MUST NOT, with the exact limit or condition), not prose descriptions of the code.
+
+## Style
+
+- Keep docs short and current; edit in place rather than appending history (history lives in git and the changelog).
+- Mark unbuilt items `Planned` and undecided items `DECISION PENDING` rather than omitting them.
+- Link, don't duplicate: one fact lives in one place.
+
+## Done checklist
+
+Before you commit, confirm each line or state why it does not apply:
+
+- [ ] `docs/file-map.md` matches every file/dir I added, moved, or removed.
+- [ ] Every behavior I added or changed is described in `docs/business-logic/` with a rule ID, invariant, and edge cases.
+- [ ] Enforcement code and tests cite the rule IDs.
+- [ ] `CHANGELOG.md` has an `[Unreleased]` entry.
+- [ ] Any new decision has an ADR, and `docs/decisions.md` is updated.
+- [ ] New terms are in `docs/glossary.md`.
+- [ ] The relevant `AGENTS.md` files (root and service) are still accurate, including run/test commands.
+- [ ] No secrets, credentials, account numbers, or real P&L appear in docs, examples, or fixtures.

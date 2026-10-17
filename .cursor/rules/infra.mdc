@@ -1,0 +1,31 @@
+---
+description: Infrastructure, containers, Compose, deployment, CI, observability, and secrets handling
+globs: infra/**,**/Dockerfile,**/*.dockerfile,**/docker-compose*.yml,**/compose*.yml,Makefile,justfile,.github/**,**/*.tf
+alwaysApply: false
+---
+
+# Infra
+
+Tooling is `DECISION PENDING` where not recorded in `docs/decisions.md` (defaults: Docker Compose with profiles D21, Terraform for DigitalOcean, Prometheus/Grafana/Loki/Tempo D22, SOPS + age D16, Tailscale D17). Read `infra/AGENTS.md` once it exists.
+
+## Network
+
+- No broker-facing service, database, cache, or bus is exposed to the public internet. Remote access is over the private network only.
+- Bind internal services to the internal Compose network, not `0.0.0.0` on the host, unless documented in an ADR.
+
+## Secrets
+
+- Only SOPS-encrypted files are committed under `infra/secrets/`. Never commit plaintext `.env` files, keys, or tokens; keep `.env.example` with placeholder values only.
+- Containers receive secrets at runtime through the secrets interface, not baked into images or build args.
+
+## Containers
+
+- Pinned base images by digest or exact version; non-root users; read-only root filesystem where possible; minimal capabilities.
+- Paper and live broker gateways run as separate containers with separate credentials. Live containers are not in the default profile.
+- Every service has a health check and exposes metrics to the observability stack.
+
+## Changes
+
+- Reproducible from a clean clone: `make up` must keep working. Update the run/test section of `AGENTS.md` when commands change.
+- Backups and restore paths are documented in runbooks and tested by drill.
+- New ports, volumes, profiles, or external endpoints update `docs/file-map.md`, `docs/architecture/overview.md`, and the changelog.

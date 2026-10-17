@@ -1,0 +1,35 @@
+---
+description: Backend core services (gateway, broker adapters, market data, ledger, execution/OMS/risk) and contracts
+globs: services/api-gateway/**,services/broker-gateway/**,services/marketdata/**,services/ledger/**,services/execution/**,libs/go/**,contracts/**
+alwaysApply: false
+---
+
+# Backend core
+
+Language is `DECISION PENDING` (D1; default Go, alternatives Rust or Python asyncio). Follow the conventions of whatever `docs/decisions.md` records; until then keep these rules language-agnostic. Read the service's `AGENTS.md` first.
+
+## Contracts
+
+- All cross-service messages live in `contracts/` (D3 default Protobuf + `buf`). Change the contract, regenerate, then implement.
+- Breaking changes need a new message version and a migration note in the changelog.
+- Consumers on order-path subjects (`ord.*`, `exec.*`, `risk.kill`) are idempotent on `intent_id`, `client_order_id`, `broker_exec_id`.
+
+## Order path (execution, broker-gateway, ledger)
+
+- Business rules are in `docs/business-logic/orders-and-execution.md`, `virtual-portfolios-and-attribution.md`, `risk-management.md`. Cite rule IDs at enforcement points.
+- Normalize broker order states into the single documented enum; map every broker status explicitly, including unknowns to `unknown` (which fails closed).
+- Only accounts in session state `ready` accept orders; others return a typed `BrokerUnavailable` error.
+- Every rejection path has a table-driven or property-based test. Include fault injection: disconnect mid-submit, duplicate fills, out-of-order partials.
+- No floats for money or quantity. No ticker symbols as keys; use `instrument_id`.
+
+## Services
+
+- Config from environment/config files validated at startup; fail fast on missing or invalid config. Live trading flags default off.
+- Every service: health endpoint, Prometheus metrics, structured JSON logs with `correlation_id`, graceful shutdown that drains in-flight order work.
+- Persist stream cursors and last-seen execution IDs so restarts never lose or duplicate executions.
+- Reconnect with jittered exponential backoff; no tight loops.
+- Database changes go through versioned migrations; no ad hoc schema edits.
+
+## Docs
+
+New endpoints, subjects, tables, states, or limits update the relevant business-logic doc, the file map, and the service `AGENTS.md` in the same commit.
