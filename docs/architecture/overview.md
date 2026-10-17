@@ -84,7 +84,7 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 | Time | UTC int64 ns; `event_time` / `available_at` / `ingested_at` on every market and context record | — |
 | Identity | ULIDs; `instrument_id` independent of ticker; `correlation_id` from signal to fill | — |
 | Modes | `mode ∈ {backtest, paper, live}` and `broker_account_id` on every strategy, order, and fill | — |
-| Security | Authenticated gateway, step-up for dangerous actions, encrypted credentials only in broker-gateway, private network only, hash-chained audit log | D15–D17 |
+| Security | Authenticated gateway (passkeys + TOTP fallback, server-side sessions, CSRF), step-up for dangerous actions via one policy function, encrypted credentials only in broker-gateway, signed service tokens on internal calls, private network only, hash-chained audit log | D15–D17, D33, D34 ([ADR-0009](../adr/0009-owner-authentication.md)) |
 | Observability | Metrics, logs, traces per service; trade audit trail | D22 |
 | Deployment | Mac Mini host: Docker Compose under Colima (boot-time LaunchDaemon), native launchd ML workers; same Compose on a droplet later | D21, D28, D29 |
 
@@ -103,6 +103,8 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 | `tb.alerts.v1` | `Alert` | any → monitor → channels |
 | `tb.audit.v1` | `AuditEvent` | all → audit store |
 | `tb.broker.v1` | `CredentialService` (gRPC: put, delete, list status; no plaintext read) | api-gateway → broker-gateway |
+
+The UI ↔ gateway API (REST commands + SSE streams, D3/D14) is specified in [`contracts/openapi/gateway.yaml`](../../contracts/openapi/gateway.yaml). Only `/healthz` and the auth bootstrap endpoints are public (SE-004).
 
 ## Bus subjects (planned)
 

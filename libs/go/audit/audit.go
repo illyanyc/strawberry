@@ -77,9 +77,20 @@ type Writer struct {
 // NewWriter returns a writer using a pool whose role is a member of audit_writer.
 func NewWriter(pool *pgxpool.Pool) *Writer { return &Writer{pool: pool} }
 
+// Querier is satisfied by *pgxpool.Pool, *pgx.Conn, and pgx.Tx.
+type Querier interface {
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+}
+
 // Append chains and stores e, returning its sequence number and hex hash. Callers performing an
 // action that must be audited MUST fail the action when Append fails (SE-021).
 func (w *Writer) Append(ctx context.Context, e Event) (int64, string, error) {
+	return AppendWith(ctx, w.pool, e)
+}
+
+// AppendWith is Append on a caller-supplied connection or transaction, so a state change and its
+// audit record commit or roll back together.
+func AppendWith(ctx context.Context, q Querier, e Event) (int64, string, error) {
 	if e.ID == "" {
 		e.ID = ulid.MustNew(ulid.Now(), rand.Reader).String()
 	}
@@ -95,7 +106,7 @@ func (w *Writer) Append(ctx context.Context, e Event) (int64, string, error) {
 	}
 	var seq int64
 	var hash string
-	err = w.pool.QueryRow(ctx,
+	err = q.QueryRow(ctx,
 		`SELECT seq, hash FROM audit.append($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
 		e.ID, e.OccurredAt.UTC().UnixNano(), e.Actor, e.Action, logging.Redact(e.Target),
 		e.BeforeHash, e.AfterHash, e.IP, logging.Redact(e.Device), e.CorrelationID, details,

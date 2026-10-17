@@ -13,6 +13,7 @@ linters:
         - (*github.com/jackc/pgx/v5.Conn).Close
         - (io.ReadCloser).Close
         - (net/http.ResponseWriter).Write
+        - (*google.golang.org/grpc.ClientConn).Close
     gosec:
       excludes:
         # G115 (int conversions) is noisy for bounded config values; reviewed case by case.
