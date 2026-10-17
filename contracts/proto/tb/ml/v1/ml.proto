@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+// Model registry and backtest run records.
+package tb.ml.v1;
+
+enum ModelStage {
+  MODEL_STAGE_UNSPECIFIED = 0;
+  MODEL_STAGE_CANDIDATE = 1;
+  MODEL_STAGE_CHALLENGER = 2;
+  MODEL_STAGE_CHAMPION = 3;
+  MODEL_STAGE_ARCHIVED = 4;
+}
+
+message ModelVersion {
+  string model_id = 1;
+  string version = 2;
+  string family = 3;
+  string training_run_id = 4;
+  string dataset_snapshot_id = 5;
+  string feature_set_id = 6;
+  map<string, double> metrics = 7;
+  ModelStage stage = 8;
+  // Reproducibility inputs (N5).
+  string code_commit = 9;
+  string config_hash = 10;
+  int64 seed = 11;
+  string env_lock_hash = 12;
+}
+
+message BacktestRun {
+  string run_id = 1;
+  string strategy_config_hash = 2;
+  string data_snapshot_id = 3;
+  string cost_model = 4;
+  map<string, double> metrics = 5;
+  string trades_artifact_uri = 6;
+  string code_commit = 7;
+  int64 seed = 8;
+}

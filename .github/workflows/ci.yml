@@ -1,0 +1,236 @@
+# CI gates for every PR and push to main (OP-002..OP-006, OP-043, OP-061, SE-053; master N6).
+# Actions are pinned by commit SHA (supply chain); Dependabot proposes updates.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GO_VERSION: "1.27.2"
+  NODE_VERSION: "22"
+  PNPM_VERSION: "10.33.4"
+  UV_VERSION: "0.13.1"
+
+jobs:
+  docs:
+    name: docs gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { fetch-depth: 0 }
+      - name: File-map coverage (OP-005)
+        run: python3 scripts/docs_check.py coverage
+      - name: Same-change documentation rules (OP-002..OP-004)
+        if: github.event_name == 'pull_request'
+        env:
+          DOCS_CHECK_SKIP: ${{ contains(github.event.pull_request.labels.*.name, 'docs-check-skip') && '1' || '' }}
+        run: python3 scripts/docs_check.py diff --base "origin/${{ github.base_ref }}"
+
+  contracts:
+    name: contracts (buf, codegen freshness)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with: { go-version: "${{ env.GO_VERSION }}", cache: false }
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with: { version: "${{ env.PNPM_VERSION }}" }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: pnpm }
+      - run: make tools
+      - run: pnpm install --frozen-lockfile
+      - name: Generated code is fresh (a contract change without regeneration fails here)
+        run: make gen-check
+      - name: buf lint + breaking vs base
+        run: make lint-proto BASE_REF="origin/${{ github.base_ref || 'main' }}"
+
+  go:
+    name: go (lint, unit + Postgres integration tests)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+        env:
+          POSTGRES_PASSWORD: ci-only-throwaway
+        ports: ["55432:5432"]
+        options: --health-cmd "pg_isready -U postgres" --health-interval 2s --health-retries 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with: { go-version: "${{ env.GO_VERSION }}", cache-dependency-path: "**/go.sum" }
+      - run: make tools
+      - run: make lint-go
+      - name: go test -race (integration tests use the service container)
+        env:
+          TB_TEST_PG_SUPER_DSN: postgres://postgres:ci-only-throwaway@127.0.0.1:55432/postgres?sslmode=disable
+        run: make test-go
+
+  python:
+    name: python (ruff, mypy, pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with: { version: "${{ env.UV_VERSION }}", enable-cache: true }
+      - run: uv sync --all-packages --frozen
+      - run: make lint-py
+      - run: make test-py
+
+  web:
+    name: web (tsc, eslint, vitest, build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with: { version: "${{ env.PNPM_VERSION }}" }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: make lint-web
+      - run: make test-web
+      - run: pnpm --filter @strawberry/web build
+
+  security:
+    name: security (secret scan, dependency vulnerabilities)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { fetch-depth: 0 }
+      - name: gitleaks (full history)
+        run: |
+          scripts/bootstrap-tools.sh >/dev/null
+          .tools/bin/gitleaks git --redact --no-banner -v
+      - name: Trivy filesystem scan of lockfiles (fail on fixable HIGH/CRITICAL)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          trivyignores: .trivyignore
+
+  images:
+    name: image ${{ matrix.name }} (multi-arch build, scan, SBOM)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: api-gateway, file: infra/docker/go-service.Dockerfile, target: gateway, service: api-gateway }
+          - { name: broker-gateway, file: infra/docker/go-service.Dockerfile, target: service, service: broker-gateway }
+          - { name: marketdata, file: infra/docker/go-service.Dockerfile, target: service, service: marketdata }
+          - { name: execution, file: infra/docker/go-service.Dockerfile, target: service, service: execution }
+          - { name: ledger, file: infra/docker/go-service.Dockerfile, target: service, service: ledger }
+          - { name: ops, file: infra/docker/ops.Dockerfile, target: "", service: "" }
+          - { name: monitor, file: infra/docker/python-service.Dockerfile, target: "", service: monitor }
+          - { name: context-data, file: infra/docker/python-service.Dockerfile, target: "", service: context-data }
+          - { name: mlflow, file: infra/docker/mlflow.Dockerfile, target: "", service: "" }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build linux/amd64 + linux/arm64 (OP-043)
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: ${{ matrix.file }}
+          target: ${{ matrix.target }}
+          build-args: SERVICE=${{ matrix.service }}
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+      - name: Load amd64 image for scanning
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: ${{ matrix.file }}
+          target: ${{ matrix.target }}
+          build-args: SERVICE=${{ matrix.service }}
+          platforms: linux/amd64
+          load: true
+          tags: strawberry/${{ matrix.name }}:ci
+          cache-from: type=gha,scope=${{ matrix.name }}
+      - name: Trivy image scan (fail on fixable HIGH/CRITICAL)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: strawberry/${{ matrix.name }}:ci
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          trivyignores: .trivyignore
+      - name: SBOM (SPDX JSON)
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          image: strawberry/${{ matrix.name }}:ci
+          format: spdx-json
+          artifact-name: sbom-${{ matrix.name }}.spdx.json
+
+  arm64-images:
+    name: third-party images provide linux/arm64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - run: make check-arm64
+
+  smoke:
+    name: stack smoke test (make up, e2e, backup drill, browser e2e)
+    runs-on: ubuntu-latest
+    needs: [go, python, web, contracts]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with: { go-version: "${{ env.GO_VERSION }}", cache-dependency-path: "**/go.sum" }
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with: { version: "${{ env.PNPM_VERSION }}" }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: pnpm }
+      - name: Bootstrap from a clean clone (make bootstrap && make up)
+        run: |
+          make bootstrap
+          make up
+      - name: Smoke test (OP-061)
+        run: make smoke
+      - name: Alert fires when a core container is killed (OP-060)
+        run: |
+          docker stop strawberry-ledger-1
+          for i in $(seq 1 24); do
+            if docker compose -f infra/compose/docker-compose.yml exec -T alertmanager wget -q -O - http://localhost:9093/api/v2/alerts | grep -q '"alertname":"ServiceDown"'; then
+              echo "ServiceDown alert active after $((i*5))s"; docker start strawberry-ledger-1; exit 0
+            fi
+            sleep 5
+          done
+          echo "ServiceDown did not fire"; exit 1
+      - name: Backup and restore drill (OP-051)
+        run: make backup-drill
+      - name: Browser e2e on a fresh stack (UI slice)
+        run: |
+          make clean
+          make up
+          pnpm install --frozen-lockfile
+          pnpm --filter @strawberry/web exec playwright install --with-deps chromium
+          make e2e-ui
+      - name: Stack logs on failure
+        if: failure()
+        run: docker compose -f infra/compose/docker-compose.yml logs --no-color --tail=200
+      - name: Upload UI screenshots and traces
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ui-e2e
+          path: apps/web/test-results
+          if-no-files-found: ignore

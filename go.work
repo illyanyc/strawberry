@@ -1,0 +1,13 @@
+go 1.27.2
+
+use (
+	./contracts/gen/go
+	./libs/go
+	./services/api-gateway
+	./services/broker-gateway
+	./services/execution
+	./services/ledger
+	./services/marketdata
+	./tests/e2e
+	./tools/tbctl
+)

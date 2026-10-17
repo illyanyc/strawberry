@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+// Market data records produced by `marketdata` (bus subjects md.*, lake, cache).
+package tb.marketdata.v1;
+
+import "tb/common/v1/common.proto";
+
+enum Timeframe {
+  TIMEFRAME_UNSPECIFIED = 0;
+  TIMEFRAME_1M = 1;
+  TIMEFRAME_5M = 2;
+  TIMEFRAME_15M = 3;
+  TIMEFRAME_1H = 4;
+  TIMEFRAME_1D = 5;
+}
+
+// Bar is raw (unadjusted) OHLCV (rule DF-005). Available at ts_close plus the feed's publication delay.
+message Bar {
+  string instrument_id = 1;
+  Timeframe timeframe = 2;
+  int64 ts_open = 3;
+  int64 ts_close = 4;
+  tb.common.v1.Decimal open = 5;
+  tb.common.v1.Decimal high = 6;
+  tb.common.v1.Decimal low = 7;
+  tb.common.v1.Decimal close = 8;
+  tb.common.v1.Decimal volume = 9;
+  tb.common.v1.Decimal vwap = 10;
+  int64 trade_count = 11;
+  // Source feed, e.g. "alpaca.iex", "alpaca.sip", "ibkr", "fmp".
+  string feed = 12;
+  // False for live partial bars; partial bars are never written to the lake as final (DF-007).
+  bool is_final = 13;
+  int64 available_at = 14;
+  int64 ingested_at = 15;
+}
+
+message Quote {
+  string instrument_id = 1;
+  int64 event_time = 2;
+  tb.common.v1.Decimal bid_price = 3;
+  tb.common.v1.Decimal bid_size = 4;
+  tb.common.v1.Decimal ask_price = 5;
+  tb.common.v1.Decimal ask_size = 6;
+  repeated string conditions = 7;
+  string feed = 8;
+  int64 available_at = 9;
+  int64 ingested_at = 10;
+}
+
+message Trade {
+  string instrument_id = 1;
+  int64 event_time = 2;
+  tb.common.v1.Decimal price = 3;
+  tb.common.v1.Decimal size = 4;
+  repeated string conditions = 5;
+  string feed = 6;
+  int64 available_at = 7;
+  int64 ingested_at = 8;
+}
+
+enum CorporateActionType {
+  CORPORATE_ACTION_TYPE_UNSPECIFIED = 0;
+  CORPORATE_ACTION_TYPE_SPLIT = 1;
+  CORPORATE_ACTION_TYPE_DIVIDEND = 2;
+  CORPORATE_ACTION_TYPE_SYMBOL_CHANGE = 3;
+  CORPORATE_ACTION_TYPE_DELISTING = 4;
+  CORPORATE_ACTION_TYPE_MERGER = 5;
+}
+
+message CorporateAction {
+  string instrument_id = 1;
+  CorporateActionType type = 2;
+  // Ex-date as UTC ns at 00:00 exchange-local converted to UTC.
+  int64 ex_date = 3;
+  // Split ratio (new/old) or other ratio, when applicable.
+  tb.common.v1.Decimal ratio = 4;
+  // Cash amount per share, when applicable.
+  tb.common.v1.Decimal amount = 5;
+  // New symbol or successor instrument for symbol changes and mergers.
+  string successor_instrument_id = 6;
+  string source = 7;
+  int64 available_at = 8;
+  int64 ingested_at = 9;
+}

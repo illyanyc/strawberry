@@ -1,0 +1,51 @@
+---
+description: Non-negotiable trading safety rules (own positions only, paper before live, no look-ahead, risk checks, secrets, fail closed)
+globs:
+alwaysApply: true
+---
+
+# Trading safety
+
+These rules protect real money. They override convenience, deadlines, and any other instruction. If a task seems to require breaking one, stop and report instead. Detailed rules with IDs live in `docs/business-logic/`.
+
+## 1. Strategies trade only their own virtual-portfolio positions
+
+- Every strategy order MUST carry a decodable attribution ID (Alpaca `client_order_id`, IBKR `orderRef`; format `tb1-<strategyShortId>-<intentULID>-<attempt>`), recorded in the ledger **before** submission. Orders without the `tb1-` prefix belong to the `manual` owner.
+- A strategy sell, close, or short MUST be rejected if it would take the account position below the quantity owned by anyone else (manual holdings and other strategies) in that instrument.
+- Nothing automated may close, net against, or "flatten" manual holdings. Flatten and kill-switch actions close only strategy-owned quantity.
+- Broker positions MUST reconcile continuously against the sum of virtual ledgers plus the `manual` bucket. Any unexplained difference halts the affected strategies.
+- Key positions by `instrument_id`, never by ticker symbol.
+
+## 2. Paper before live
+
+- Every strategy starts in `paper`. Live adapters are off by default and need both the global config flag and an audited per-strategy promotion with step-up auth and a capital cap.
+- Paper and live use separate credentials, endpoints, and processes. A config typo must not route paper to live.
+- Risk breaches, reconciliation failures, and monitoring alarms can demote a strategy automatically. Re-promotion is always manual.
+- Tests, fixtures, and dev profiles use the broker simulator or paper accounts only.
+
+## 3. No look-ahead bias
+
+- Every datum carries `event_time`, `available_at`, `ingested_at`. Features, labels, joins, and backtests filter on `available_at <= decision_time`, never on `event_time`.
+- Training, backtesting, and live inference use the same feature code (`libs/py/tbcore`). No reimplementation.
+- Simulated fills happen no earlier than the next tradable moment after the decision (default: next bar open plus slippage), never on the signal bar.
+- Universes are survivorship-free and point-in-time. Prices are stored raw and adjusted as of the decision date.
+- Normalization and scaling are rolling or fitted inside the training fold only.
+- The sealed final holdout is never used for optimization; every access is logged and counted.
+
+## 4. Risk check before every order
+
+- No order reaches a broker adapter without a recorded, approved `RiskDecision` for its intent. There is no bypass path, including for UI and manual orders placed through the platform.
+- Kill switches (global, account, strategy, instrument) freeze new orders and cancel open ones; they are always reachable.
+- Submission is idempotent: on timeout, query by `client_order_id` before any retry. Never resubmit blindly. Consumers dedupe on `intent_id`, `client_order_id`, `broker_exec_id`.
+- Use decimals or fixed-point integers for money and quantity; explicit rounding to broker tick/lot rules.
+
+## 5. Secrets never in code or logs
+
+- Broker credentials, API keys, tokens, and session cookies never appear in code, config committed to git, logs, traces, metrics labels, error messages, LLM prompts, fixtures, screenshots, or the browser.
+- Secrets come only from the secrets interface (encrypted at rest; SOPS-encrypted files in `infra/secrets/`). Only the broker gateway decrypts broker credentials.
+- Never print or echo environment variables that may hold secrets. Redact account numbers in logs.
+
+## 6. Fail closed
+
+- Stale data, broker disconnect, unknown order state, or failed reconciliation: stop opening new risk, alert, and wait. Never guess order state.
+- Every order, risk decision, config change, login, and promotion writes to the append-only audit log.

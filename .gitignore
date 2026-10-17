@@ -1,0 +1,39 @@
+# Local tooling and runtime state
+.tools/
+.secrets/
+backups/
+*.age
+!infra/secrets/**/*.age
+
+# Go
+*.test
+coverage.out
+/bin/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / web
+node_modules/
+.next/
+out/
+dist/
+*.tsbuildinfo
+test-results/
+playwright-report/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Env files never hold real secrets in this repo; keep them out regardless
+.env
+.env.*
+!.env.example

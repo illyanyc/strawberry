@@ -1,0 +1,31 @@
+---
+description: Infrastructure, containers, Compose, deployment, CI, observability, and secrets handling
+globs: infra/**,**/Dockerfile,**/*.dockerfile,**/docker-compose*.yml,**/compose*.yml,Makefile,justfile,.github/**,**/*.tf
+alwaysApply: false
+---
+
+# Infra
+
+Stack (accepted, see `docs/decisions.md`): Docker Compose on the **Mac Mini under Colima** with a boot-time LaunchDaemon (D21, D28); the same Compose on a droplet later. All images must run on **linux/arm64**. ML workers run **natively on macOS** under launchd, no GPU profile (D25, D29). Observability: Grafana + Prometheus + VictoriaLogs + Alloy; Tempo from Phase 5 (D22). Secrets: SOPS + age, `/run/secrets` files only (D16). Remote access: `tailscaled` on the host, optional Cloudflare Tunnel + Access (D17). No MinIO (D8). Read `infra/AGENTS.md`.
+
+## Network
+
+- No broker-facing service, database, cache, or bus is exposed to the public internet. Remote access is over the private network only.
+- Bind internal services to the internal Compose network, not `0.0.0.0` on the host, unless documented in an ADR.
+
+## Secrets
+
+- Only SOPS-encrypted files are committed under `infra/secrets/`. Never commit plaintext `.env` files, keys, or tokens; keep `.env.example` with placeholder values only.
+- Containers receive secrets at runtime through the secrets interface, not baked into images or build args.
+
+## Containers
+
+- Pinned base images by digest or exact version; non-root users; read-only root filesystem where possible; minimal capabilities.
+- Paper and live broker gateways run as separate containers with separate credentials. Live containers are not in the default profile.
+- Every service has a health check and exposes metrics to the observability stack.
+
+## Changes
+
+- Reproducible from a clean clone: `make up` must keep working. Update the run/test section of `AGENTS.md` when commands change.
+- Backups and restore paths are documented in runbooks and tested by drill.
+- New ports, volumes, profiles, or external endpoints update `docs/file-map.md`, `docs/architecture/overview.md`, and the changelog.

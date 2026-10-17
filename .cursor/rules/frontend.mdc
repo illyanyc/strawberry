@@ -1,0 +1,29 @@
+---
+description: Web UI (desktop + mobile PWA), charts, order entry, research dashboards
+globs: apps/web/**
+alwaysApply: false
+---
+
+# Frontend
+
+Stack (accepted, see `docs/decisions.md`): static **Vite + React 19 SPA** with TanStack Router/Query, Tailwind, shadcn/ui, served by the Go gateway (D11); no SSR, no React Server Components. Charts: Lightweight Charts, uPlot/ECharts, Perspective; Advanced Charts is ruled out by licence (D12). Mobile: installed PWA + Web Push; critical alerts also via Pushover (D13). Real-time: **SSE** for server-to-client streams, REST for commands (D14). Read `apps/web/AGENTS.md`.
+
+## Security
+
+- The browser never receives broker credentials, API keys, or full account numbers. It talks only to the API gateway.
+- Every request is authenticated. Dangerous actions (enable live, raise limits, change allocations, disable a kill switch) trigger step-up re-auth in the UI and are enforced server-side; the UI check is never the only check.
+- No secrets in client bundles or `VITE_*` variables. No inline scripts or styles (the gateway's CSP forbids them).
+
+## Trading UX
+
+- Always show `mode` (`paper` / `live`) and the broker account prominently; live is visually distinct.
+- Order entry shows the owner (strategy or `manual`), the risk decision, and the reason for any rejection. The UI never offers a flatten that includes manual holdings.
+- Kill switches are reachable from every screen, including mobile, within two taps.
+- Display money with currency and fixed decimals from server-provided decimal strings; do not do money math in floats on the client.
+- Timestamps are UTC from the server; convert to local time only for display and label the zone.
+
+## Quality
+
+- Every data view has loading, empty, error, and stale-data states (show data age on live feeds).
+- Desktop and mobile layouts for every page; accessible controls with keyboard support.
+- Types for API payloads are generated from `contracts/`, not hand-written.

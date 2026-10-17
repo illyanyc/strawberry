@@ -1,0 +1,39 @@
+version: "2"
+linters:
+  default: standard
+  enable:
+    - gosec
+    - bodyclose
+    - noctx
+    - misspell
+    - errorlint
+  settings:
+    errcheck:
+      exclude-functions:
+        - (*github.com/jackc/pgx/v5.Conn).Close
+        - (io.ReadCloser).Close
+        - (net/http.ResponseWriter).Write
+        - (*google.golang.org/grpc.ClientConn).Close
+    gosec:
+      excludes:
+        # G115 (int conversions) is noisy for bounded config values; reviewed case by case.
+        - G115
+  exclusions:
+    generated: strict
+    rules:
+      - path: _test\.go
+        linters: [gosec, noctx, bodyclose]
+      # Action names like "broker.credentials.write" trip the hardcoded-credential heuristic.
+      - path: policy/policy\.go
+        text: G101
+      # Operator CLI: file paths come from the operator's own command line.
+      - path: tools/tbctl/
+        text: "G703|G304|G306|G302"
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/illyanyc/strawberry

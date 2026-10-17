@@ -1,0 +1,152 @@
+openapi: 3.1.0
+info:
+  title: Strawberry api-gateway
+  version: 0.1.0
+  description: |
+    REST + SSE API between the web UI and api-gateway (D3, D14). Every route requires a session cookie
+    except those tagged `public` (SE-004). State-changing requests require an allowed `Origin` and an
+    `X-CSRF-Token` header equal to the `tb_csrf` cookie (SE-006). A 403 with `error: step_up_required`
+    means the UI must run a step-up and retry (SE-003).
+servers:
+  - url: /
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: __Host-tb_session
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+        message: { type: string }
+    StepUpRequired:
+      type: object
+      required: [error, method]
+      properties:
+        error: { const: step_up_required }
+        method: { enum: [passkey, any] }
+        action: { type: string }
+    CeremonyBegin:
+      type: object
+      properties:
+        ceremony_id: { type: string }
+        options: { type: object, description: WebAuthn PublicKeyCredentialCreation/RequestOptions JSON }
+    CeremonyFinish:
+      type: object
+      required: [ceremony_id, credential]
+      additionalProperties: false
+      properties:
+        ceremony_id: { type: string }
+        name: { type: string }
+        credential: { type: object, description: WebAuthn credential JSON (base64url fields) }
+    Code:
+      type: object
+      required: [code]
+      additionalProperties: false
+      properties:
+        code: { type: string }
+  responses:
+    Unauthorized: { description: No valid session, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    Forbidden:
+      description: Denied or step-up required
+      content:
+        application/json:
+          schema:
+            oneOf: [{ $ref: '#/components/schemas/Error' }, { $ref: '#/components/schemas/StepUpRequired' }]
+    Locked: { description: Rate limited or locked out (SE-011) }
+security:
+  - session: []
+tags:
+  - name: public
+    description: Reachable without a session (SE-004 allowlist)
+paths:
+  /healthz:
+    get: { tags: [public], security: [], responses: { '200': { description: ok } } }
+  /auth/state:
+    get:
+      tags: [public]
+      security: []
+      responses:
+        '200':
+          description: Setup and session state
+          content: { application/json: { schema: { type: object, properties: { setup_required: { type: boolean }, authenticated: { type: boolean }, rp_id: { type: string } } } } }
+  /auth/setup/begin:
+    post:
+      tags: [public]
+      security: []
+      requestBody: { content: { application/json: { schema: { type: object, required: [setup_token], properties: { setup_token: { type: string }, display_name: { type: string } } } } } }
+      responses: { '200': { description: Creation options, content: { application/json: { schema: { $ref: '#/components/schemas/CeremonyBegin' } } } }, '401': { $ref: '#/components/responses/Unauthorized' }, '409': { description: Setup closed } }
+  /auth/setup/finish:
+    post:
+      tags: [public]
+      security: []
+      requestBody: { content: { application/json: { schema: { type: object, required: [setup_token, ceremony_id, credential], properties: { setup_token: { type: string }, ceremony_id: { type: string }, display_name: { type: string }, passkey_name: { type: string }, credential: { type: object } } } } } }
+      responses: { '200': { description: Owner created; recovery codes shown once, content: { application/json: { schema: { type: object, properties: { recovery_codes: { type: array, items: { type: string } } } } } } } }
+  /auth/webauthn/login/begin:
+    post: { tags: [public], security: [], responses: { '200': { description: Request options, content: { application/json: { schema: { $ref: '#/components/schemas/CeremonyBegin' } } } }, '429': { $ref: '#/components/responses/Locked' } } }
+  /auth/webauthn/login/finish:
+    post: { tags: [public], security: [], requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/CeremonyFinish' } } } }, responses: { '200': { description: Session started }, '401': { $ref: '#/components/responses/Unauthorized' }, '429': { $ref: '#/components/responses/Locked' } } }
+  /auth/totp/login:
+    post: { tags: [public], security: [], requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/Code' } } } }, responses: { '200': { description: Reduced-assurance session (SE-014) }, '401': { $ref: '#/components/responses/Unauthorized' }, '429': { $ref: '#/components/responses/Locked' } } }
+  /auth/recovery:
+    post: { tags: [public], security: [], requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/Code' } } } }, responses: { '200': { description: Reduced-assurance session; code consumed }, '401': { $ref: '#/components/responses/Unauthorized' } } }
+  /auth/me:
+    get: { responses: { '200': { description: Owner, session, passkeys, TOTP and recovery status }, '401': { $ref: '#/components/responses/Unauthorized' } } }
+  /auth/logout:
+    post: { responses: { '204': { description: Session revoked } } }
+  /auth/webauthn/register/begin:
+    post: { responses: { '200': { description: Creation options }, '403': { $ref: '#/components/responses/Forbidden' } } }
+  /auth/webauthn/register/finish:
+    post: { requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/CeremonyFinish' } } } }, responses: { '201': { description: Passkey added }, '403': { $ref: '#/components/responses/Forbidden' } } }
+  /auth/webauthn/credentials/{id}:
+    delete: { parameters: [{ name: id, in: path, required: true, schema: { type: string } }], responses: { '204': { description: Deleted }, '403': { $ref: '#/components/responses/Forbidden' }, '409': { description: Last passkey } } }
+  /auth/totp/enroll:
+    post: { responses: { '200': { description: otpauth URL and secret (shown once) }, '403': { $ref: '#/components/responses/Forbidden' } } }
+  /auth/totp/verify:
+    post: { requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/Code' } } } }, responses: { '200': { description: TOTP enabled } } }
+  /auth/recovery/regenerate:
+    post: { responses: { '200': { description: New recovery codes (old ones invalidated) }, '403': { $ref: '#/components/responses/Forbidden' } } }
+  /auth/step-up/begin:
+    post: { responses: { '200': { description: Request options for the owner's passkeys } } }
+  /auth/step-up/finish:
+    post: { requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/CeremonyFinish' } } } }, responses: { '200': { description: Passkey step-up granted for the window } } }
+  /auth/step-up/totp:
+    post: { requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/Code' } } } }, responses: { '200': { description: TOTP step-up (recovery actions only) } } }
+  /auth/sessions:
+    get: { responses: { '200': { description: Active sessions } } }
+  /auth/sessions/{id}:
+    delete: { parameters: [{ name: id, in: path, required: true, schema: { type: string } }], responses: { '204': { description: Revoked } } }
+  /api/v1/audit:
+    get:
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, maximum: 500 } }
+        - { name: before_seq, in: query, schema: { type: integer } }
+      responses: { '200': { description: Audit events, newest first } }
+  /api/v1/audit/verify:
+    get: { responses: { '200': { description: Hash-chain verification result } } }
+  /api/v1/settings:
+    get: { responses: { '200': { description: Known settings with values and versions } } }
+  /api/v1/settings/{key}:
+    put:
+      parameters: [{ name: key, in: path, required: true, schema: { enum: [ui.theme, trading.live_enabled, mobile.order_entry_enabled, assistant.write_tools_enabled, alerts.push_fills_enabled] } }]
+      requestBody: { content: { application/json: { schema: { type: object, required: [value, version], additionalProperties: false, properties: { value: {}, version: { type: integer } } } } } }
+      responses: { '200': { description: Updated }, '403': { $ref: '#/components/responses/Forbidden' }, '409': { description: Version conflict } }
+  /api/v1/broker/credentials:
+    get: { responses: { '200': { description: Credential metadata only (never secrets) }, '403': { $ref: '#/components/responses/Forbidden' } } }
+  /api/v1/broker/credentials/{account}/{environment}:
+    parameters:
+      - { name: account, in: path, required: true, schema: { type: string, pattern: '^[a-z0-9][a-z0-9_-]{1,63}$' } }
+      - { name: environment, in: path, required: true, schema: { enum: [paper, live] } }
+    put:
+      requestBody: { content: { application/json: { schema: { type: object, required: [broker, secret], additionalProperties: false, properties: { broker: { enum: [alpaca, ibkr] }, secret: { type: object, additionalProperties: { type: string }, maxProperties: 8 } } } } } }
+      responses: { '200': { description: Stored (metadata returned) }, '403': { $ref: '#/components/responses/Forbidden' } }
+    delete: { responses: { '204': { description: Deleted }, '403': { $ref: '#/components/responses/Forbidden' } } }
+  /api/v1/system/status:
+    get: { responses: { '200': { description: Trading-status snapshot (environment, live flag, mode) } } }
+  /api/v1/events:
+    get:
+      description: Server-sent events (D14). Events `trading-status` (JSON snapshot) and `session-ended`. Supports `Last-Event-ID`.
+      responses: { '200': { description: text/event-stream } }

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Boot-time Colima VM (D28, ADR-0013): a LaunchDaemon starts before any GUI login, unlike Docker
+     Desktop/OrbStack. Rendered by infra/macos/install.sh (@USER@, @HOME@, @BREW@ placeholders). -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.strawberry.colima</string>
+  <key>UserName</key><string>@USER@</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>@BREW@/bin/colima</string>
+    <string>start</string>
+    <string>--foreground</string>
+    <string>--vm-type</string><string>vz</string>
+    <string>--mount-type</string><string>virtiofs</string>
+    <string>--cpu</string><string>@CPUS@</string>
+    <string>--memory</string><string>@MEMORY_GB@</string>
+    <string>--disk</string><string>@DISK_GB@</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key><string>@HOME@</string>
+    <key>PATH</key><string>@BREW@/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ThrottleInterval</key><integer>30</integer>
+  <key>StandardOutPath</key><string>@HOME@/Library/Logs/strawberry-colima.log</string>
+  <key>StandardErrorPath</key><string>@HOME@/Library/Logs/strawberry-colima.log</string>
+</dict>
+</plist>

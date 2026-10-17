@@ -1,0 +1,15 @@
+# gitleaks configuration (SE-053). Extends the default ruleset.
+# The only allowlisted paths are test files that deliberately contain fake, secret-shaped strings to
+# prove redaction (SE-012). Real secrets never live in the repo: they are generated into the gitignored
+# .secrets/ directory by `make secrets`.
+title = "strawberry"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Fake secret-shaped fixtures in redaction tests"
+paths = [
+  '''(^|/)[^/]+_test\.go$''',
+  '''(^|/)tests?/.*\.py$''',
+]

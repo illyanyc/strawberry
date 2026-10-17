@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+// Real-account snapshots and virtual strategy ledgers (subjects acct.snapshot.*, ledger.update.*, recon.result.*).
+package tb.ledger.v1;
+
+import "tb/common/v1/common.proto";
+
+message Position {
+  string instrument_id = 1;
+  tb.common.v1.Decimal qty = 2;
+  tb.common.v1.Decimal avg_cost = 3;
+}
+
+message AccountSnapshot {
+  string broker_account_id = 1;
+  tb.common.v1.Broker broker = 2;
+  tb.common.v1.Mode mode = 3;
+  tb.common.v1.Decimal cash = 4;
+  tb.common.v1.Decimal buying_power = 5;
+  tb.common.v1.Decimal equity = 6;
+  repeated Position positions = 7;
+  int64 as_of = 8;
+}
+
+// Owner of a position slice: a strategy ID or "manual".
+message StrategyPosition {
+  string broker_account_id = 1;
+  string owner = 2;
+  string instrument_id = 3;
+  tb.common.v1.Decimal qty = 4;
+  tb.common.v1.Decimal cost_basis = 5;
+  tb.common.v1.Decimal realized_pnl = 6;
+  int64 as_of = 7;
+}
+
+message LedgerEntry {
+  string entry_id = 1;
+  string broker_account_id = 2;
+  string owner = 3;
+  string instrument_id = 4;
+  string lot_id = 5;
+  tb.common.v1.Decimal qty = 6;
+  tb.common.v1.Decimal cost = 7;
+  tb.common.v1.Decimal realized_pnl = 8;
+  string source_exec_id = 9;
+  int64 recorded_at = 10;
+}
+
+enum ReconciliationStatus {
+  RECONCILIATION_STATUS_UNSPECIFIED = 0;
+  RECONCILIATION_STATUS_OK = 1;
+  RECONCILIATION_STATUS_BREAK = 2;
+  RECONCILIATION_STATUS_STALE = 3;
+}
+
+message OwnerQty {
+  string owner = 1;
+  tb.common.v1.Decimal qty = 2;
+}
+
+message ReconciliationDiff {
+  string instrument_id = 1;
+  tb.common.v1.Decimal broker_qty = 2;
+  tb.common.v1.Decimal ledger_qty = 3;
+  repeated OwnerQty owner_breakdown = 4;
+}
+
+message ReconciliationResult {
+  string broker_account_id = 1;
+  int64 as_of = 2;
+  ReconciliationStatus status = 3;
+  repeated ReconciliationDiff diffs = 4;
+}

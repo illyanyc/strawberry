@@ -1,0 +1,19 @@
+[project]
+name = "monitor"
+version = "0.0.0"
+description = "Drift, divergence, health, alert routing, auto-demotion (section 13, Phases 2 and 5)"
+requires-python = ">=3.12,<3.13"
+dependencies = ["tbcore"]
+
+[project.scripts]
+monitor = "tb_monitor.__main__:main"
+
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tb_monitor"]
+
+[tool.uv.sources]
+tbcore = { workspace = true }

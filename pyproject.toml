@@ -1,0 +1,65 @@
+[project]
+name = "strawberry-workspace"
+version = "0.0.0"
+description = "uv workspace root (not a package). Members are listed in tool.uv.workspace."
+requires-python = ">=3.12,<3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+  "pytest==9.1.1",
+  "ruff==0.17.1",
+  "mypy==2.4.0",
+  "httpx==0.28.1",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = [
+  "contracts/gen/python",
+  "libs/py/tbcore",
+  "services/assistant",
+  "services/backtest",
+  "services/context-data",
+  "services/ml",
+  "services/monitor",
+  "services/optimizer",
+]
+
+[tool.uv.sources]
+tbcontracts = { workspace = true }
+tbcore = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["contracts/tests", "libs/py/tbcore/tests", "tests/python"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = ["contracts/gen", "docs"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "SIM", "RUF"]
+ignore = ["S101"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["tbcore", "tb"]
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/*.py" = ["S603", "S607"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "contracts/gen/python/src:libs/py/tbcore/src:services/assistant/src:services/backtest/src:services/context-data/src:services/ml/src:services/monitor/src:services/optimizer/src"
+explicit_package_bases = true
+files = ["libs/py/tbcore/src", "libs/py/tbcore/tests", "contracts/tests", "services/*/src", "tests/python"]
+exclude = ["contracts/gen/"]
+
+[[tool.mypy.overrides]]
+# Generated protobuf modules ship .pyi stubs but no py.typed marker (namespace package).
+module = "tb.*"
+follow_untyped_imports = true

@@ -1,0 +1,36 @@
+---
+description: Core project context and working rules for the trading platform; read AGENTS.md first
+globs:
+alwaysApply: true
+---
+
+# Core
+
+This repo is a self-hosted ML day/swing trading platform for US equities (Alpaca + IBKR, local analytical store, model training, backtesting and optimization, paper/live execution with virtual strategy sub-portfolios, monitoring, desktop + mobile UI). It handles real money; correctness beats speed of delivery.
+
+## Before you change anything
+
+1. Read `AGENTS.md` (root), then the nearest `<dir>/AGENTS.md` for the area you touch.
+2. Read the business-logic doc for the domain you touch (`docs/business-logic/`). Its rules are the spec.
+3. Check `docs/file-map.md` for where code belongs and `docs/decisions.md` for what is decided.
+
+## Decisions
+
+- Stack choices marked `DECISION PENDING` use the documented default and sit behind an interface so they can be swapped.
+- Do not introduce a new language, framework, datastore, broker SDK, or service without an ADR (`docs/adr/`).
+- Do not silently resolve a pending decision by writing code that assumes it. Propose an ADR.
+
+## Code
+
+- Follow the planned layout: cross-service schemas in `contracts/`, services in `services/<name>/`, shared code in `libs/go/` and `libs/py/tbcore/`, UI in `apps/web/`, infra in `infra/`.
+- Contracts first: no private cross-service formats.
+- Strategy, feature, and label logic lives only in `libs/py/tbcore/` and is imported by training, backtesting, and live inference. Never copy it.
+- Money and quantity: decimals or fixed-point integers in the order path and ledger. Time: UTC, int64 ns in contracts.
+- Internal IDs are ULIDs; every event carries a `correlation_id`.
+- Every service ships health checks, metrics, and structured logs with `correlation_id`.
+- Tests are part of done. If a criterion cannot be met, report it; never weaken a test to pass.
+
+## Scope
+
+- Do only the assigned task. If you need another area's piece, add the smallest stub that honors the contract and note it in the PR.
+- Prefer small, reviewable commits that each leave code and docs consistent.

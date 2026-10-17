@@ -1,0 +1,55 @@
+# infra
+
+Everything that builds, runs, observes, backs up, and hosts the stack. The same Compose project runs on the Mac Mini (primary host, under Colima) and later on a Linux droplet.
+
+**Status:** In progress (Phase 0, section 01 Stage A)  ·  **Stack:** Docker Compose on Colima ([ADR-0013](../docs/adr/0013-mac-mini-host-colima-native-ml.md), D21/D25/D28/D29), Grafana + Prometheus + VictoriaLogs + Alloy ([ADR-0014](../docs/adr/0014-observability-stack.md), D22/D13), data services per [ADR-0015](../docs/adr/0015-phase0-data-services.md) (D4/D6/D8/D10), remote access per [ADR-0016](../docs/adr/0016-remote-access.md) (D17), secrets per [ADR-0011](../docs/adr/0011-secrets-management.md) (D16)
+
+## Layout
+| Path | Purpose |
+|---|---|
+| `compose/docker-compose.yml` | The stack: profiles `core`, `observability`, `ml`, `ml-workers` (Linux), `ops`, `remote-cloudflare` |
+| `compose/docker-compose.native-ml.yml` | Overlay publishing Postgres/NATS on 127.0.0.1 for native macOS ML workers (`make up NATIVE_ML=1`) |
+| `compose/nats/nats.conf` | JetStream config (`sync_interval: always`); users come from the generated secret |
+| `compose/env.example` | Non-secret overrides (copy to `compose/.env`): remote RP ID/origins, trusted proxies, ports |
+| `docker/go-service.Dockerfile` | Go services (targets `service`, `gateway` = binary + SPA), distroless, non-root, cross-compiled |
+| `docker/python-service.Dockerfile` | Python services, uv non-editable venv, slim, non-root |
+| `docker/ops.Dockerfile` | Operator toolbox: `tbctl`, pg client 17, age, sops, jq |
+| `docker/mlflow.Dockerfile`, `docker/mlflow-entrypoint.sh` | MLflow 3 server, Postgres backend, filesystem artifacts |
+| `ops/backup.sh`, `ops/restore.sh` | Encrypted backup and verified restore (run in the ops container) |
+| `ops/secrets-bundle.sh` | SOPS + age bundle of `.secrets/` |
+| `observability/prometheus/` | Scrape config and alert rules |
+| `observability/alertmanager/` | Routing; critical → Pushover emergency |
+| `observability/alloy/config.alloy` | Container logs → VictoriaLogs; cAdvisor + host metrics → Prometheus |
+| `observability/grafana/` | Provisioned datasources and the "Stack overview" dashboard |
+| `macos/` | LaunchDaemon templates (Colima at boot, stack auto-start, native ML workers), `install.sh`, `start-stack.sh` |
+| `secrets/` | SOPS-encrypted bundles only (`make secrets-encrypt`); plaintext never committed |
+| `terraform/` | Planned (Phase 6, droplet) |
+
+## Rules enforced here
+- `OP-040` hardened images, `OP-041` loopback-only ports, `OP-042` internal backend network → `compose/docker-compose.yml`, `docker/*`; checked by `make port-check`, `make check-arm64`
+- `OP-050`/`OP-051` backup and restore drill → `ops/`, `scripts/backup-drill.sh`
+- `OP-060` dashboards and alert rules → `observability/`
+- `OP-061` smoke test → `scripts/smoke.sh`
+- `OP-062` survive reboots → `macos/`, `restart: unless-stopped`
+- `SE-010` secrets as files, `SE-051` no public exposure
+
+## Run and test
+- First run: `make bootstrap && make up` → `make setup-token` → http://localhost:8080. Grafana: http://localhost:3000 (admin / `.secrets/grafana_admin_password`).
+- `make smoke` (readiness, auth gate, ports, e2e flow + leak canary on a fresh stack, Prometheus targets, audit chain), `make backup-drill`, `make port-check`, `make check-arm64`.
+- `make down` keeps volumes; `make clean` deletes them.
+
+## Configuration
+| Variable | Default | Notes |
+|---|---|---|
+| `PROFILES` | `core,observability` | Add `ml` for MLflow/Prefect/assistant |
+| `NATIVE_ML` | unset | `1` publishes Postgres/NATS on loopback (D29) |
+| `TB_SECRETS_DIR` / `TB_LAKE_DIR` / `TB_ARTIFACTS_DIR` / `TB_BACKUP_DIR` | repo `.secrets`, `data/lake`, `data/mlflow-artifacts`, `backups` | Host paths (APFS on the Mac) |
+| `TB_HOST_UID/GID` | `id -u/-g` | Writers of host bind mounts run as the owner |
+| `TB_CONTAINERD_SOCK` | `/run/containerd/containerd.sock` | cAdvisor container discovery |
+
+## Gotchas
+- Compose secret files are bind mounts: files are `0644` inside a `0700` directory so non-root containers can read them.
+- VictoriaLogs ships without a shell, so it has no container healthcheck; Prometheus alerts if it disappears.
+- Alloy mounts the Docker socket read-only (observability only, internal network, no ports): documented exception in ADR-0014.
+- On a Linux VM with stale `iptables-legacy` rules (FORWARD DROP), containers cannot reach each other; fix the host firewall, not the Compose file.
+- GPU profile intentionally absent (D25): Metal is not reachable from containers on macOS.

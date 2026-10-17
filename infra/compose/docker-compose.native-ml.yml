@@ -1,0 +1,10 @@
+# Overlay for native macOS ML workers (D29, ADR-0013): publishes Postgres and NATS on the host
+# loopback only, so launchd workers (MPS/MLX) reach them at 127.0.0.1. Opt-in: `make up NATIVE_ML=1`.
+# Never bind these to 0.0.0.0 or a tunnel.
+services:
+  postgres:
+    networks: [backend, edge]
+    ports: ["127.0.0.1:5432:5432"]
+  nats:
+    networks: [backend, edge]
+    ports: ["127.0.0.1:4222:4222"]

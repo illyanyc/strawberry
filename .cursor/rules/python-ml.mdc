@@ -1,0 +1,37 @@
+---
+description: Python services and shared library (features, labels, ML training/inference, backtesting, optimization, assistant, monitoring, context data)
+globs: services/ml/**,services/backtest/**,services/optimizer/**,services/assistant/**,services/monitor/**,services/context-data/**,libs/py/**,**/*.py,**/pyproject.toml,**/*.ipynb
+alwaysApply: false
+---
+
+# Python ML and research
+
+Tooling (accepted, see `docs/decisions.md`): `uv` workspace; MLflow 3 with filesystem artifacts (D8); Optuna 5 (D9); Prefect 3 (D10); custom two-tier backtester on `tbcore` (D7); LightGBM + linear baseline + rule/meta-label challenger (D23); volatility-scaled residual forward-return targets (D24); honest-optimization policy (D31). On macOS, ML workers run **natively under launchd** (MPS/MLX available), not in containers (D25, D29). Read the service's `AGENTS.md` first.
+
+## Shared library is the only source of trading logic
+
+- Features, labels, splitters, cost models, metrics, and the strategy API live in `libs/py/tbcore/`. Training, backtesting, and live inference import them. Never reimplement a feature or label in a service or notebook.
+- Feature functions are pure functions of frames already filtered to `available_at <= as_of`; they never query storage themselves.
+- Offline and online feature values must match within the documented tolerance (parity tests).
+
+## Leakage and validation
+
+- Rules are in `docs/business-logic/data-and-features.md` and `strategies-and-model-lifecycle.md`; cite IDs in code and tests.
+- Use walk-forward or purged/embargoed CV; no random K-fold on time series.
+- Fit scalers, encoders, and feature selection inside each training fold only.
+- Never read the sealed holdout from optimization code. Holdout access goes through the logged API.
+- Leakage tests (shuffled-future, label-shift, timestamp assertions) run in CI; new features and labels add cases.
+
+## Reproducibility
+
+- Every run records code commit, config, dataset snapshot ID, seeds, and the environment lockfile. Untracked runs are not eligible for promotion.
+- Pin dependencies in the lockfile. Use type hints and validated config/data models (Pydantic v2).
+
+## Assistant and automation
+
+- The assistant cannot place orders, change live config or risk limits, read the holdout, or see credentials or account identifiers. Its tools are allowlisted and budgeted.
+- API-hosted LLMs only see de-identified, ticker-masked, date-shifted data; account-sensitive roles use the local model (D26). Outbound LLM calls go through an egress allowlist.
+
+## Notebooks
+
+- Notebooks are for exploration only; anything reused moves into `libs/py/tbcore/` with tests. Strip outputs containing account data before committing.

@@ -1,0 +1,504 @@
+# Strawberry local stack (D21: Mac Mini under Colima; the same file runs on a Linux droplet later).
+# Run through the Makefile (`make up`), which sets the profiles, host UID, and secret directory.
+#
+# Profiles:  core (gateway, brokers, data, execution, ledger, infra) · observability · ml (MLflow,
+#            Prefect, assistant) · ml-workers (containerized ML workers, Linux hosts only; on macOS
+#            they run natively under launchd, D29) · remote-cloudflare (optional Cloudflare Tunnel).
+# Network:   `backend` is internal (no egress, never published); only api-gateway (8080) and
+#            Grafana (3000) publish ports, and only on 127.0.0.1 (SE-051, OP-041).
+# Secrets:   files from TB_SECRETS_DIR (default ../../.secrets, made by `make secrets`), mounted
+#            at /run/secrets; never environment variables (SE-010).
+name: strawberry
+
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "10m", max-file: "5" }
+
+x-hardening: &hardening
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  restart: unless-stopped
+  init: true
+  tmpfs: ["/tmp:size=64m"]
+  logging: *logging
+
+x-go-healthcheck: &go-healthcheck
+  test: ["CMD", "/app/service", "healthcheck"]
+  interval: 10s
+  timeout: 3s
+  retries: 6
+  start_period: 15s
+
+x-py-healthcheck: &py-healthcheck
+  test: ["CMD", "/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8081/healthz', timeout=3)"]
+  interval: 15s
+  timeout: 5s
+  retries: 6
+  start_period: 20s
+
+x-common-env: &common-env
+  TB_ENVIRONMENT: ${TB_ENVIRONMENT:-local}
+  TB_LOG_LEVEL: ${TB_LOG_LEVEL:-info}
+
+x-go-build: &go-build
+  context: ../..
+  dockerfile: infra/docker/go-service.Dockerfile
+  target: service
+  args: { VERSION: "${TB_VERSION:-dev}" }
+
+x-py-build: &py-build
+  context: ../..
+  dockerfile: infra/docker/python-service.Dockerfile
+
+networks:
+  backend:
+    internal: true
+  edge: {}
+
+volumes:
+  pgdata: {}
+  natsdata: {}
+  valkeydata: {}
+  prometheus-data: {}
+  alertmanager-data: {}
+  grafana-data: {}
+  victorialogs-data: {}
+
+secrets:
+  pg_superuser_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_superuser_password" }
+  pg_svc_api_gateway_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_svc_api_gateway_password" }
+  pg_svc_broker_gateway_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_svc_broker_gateway_password" }
+  pg_svc_marketdata_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_svc_marketdata_password" }
+  pg_svc_execution_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_svc_execution_password" }
+  pg_svc_ledger_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_svc_ledger_password" }
+  pg_svc_ops_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_svc_ops_password" }
+  pg_svc_metrics_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_svc_metrics_password" }
+  pg_mlflow_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_mlflow_password" }
+  pg_prefect_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_prefect_password" }
+  nats_users_conf: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_users.conf" }
+  nats_api_gateway_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_api_gateway_password" }
+  nats_marketdata_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_marketdata_password" }
+  nats_execution_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_execution_password" }
+  nats_ledger_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_ledger_password" }
+  nats_ops_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_ops_password" }
+  valkey_users_acl: { file: "${TB_SECRETS_DIR:-../../.secrets}/valkey_users.acl" }
+  valkey_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/valkey_password" }
+  gateway_auth_key: { file: "${TB_SECRETS_DIR:-../../.secrets}/gateway_auth_key" }
+  broker_kek: { file: "${TB_SECRETS_DIR:-../../.secrets}/broker_kek" }
+  svc_api_gateway_ed25519: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_api_gateway_ed25519" }
+  svc_api_gateway_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_api_gateway_ed25519.pub" }
+  grafana_admin_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/grafana_admin_password" }
+  backup_age_recipient: { file: "${TB_SECRETS_DIR:-../../.secrets}/backup_age_recipient" }
+  backup_age_identity: { file: "${TB_SECRETS_DIR:-../../.secrets}/backup_age_identity" }
+  pushover_user_key: { file: "${TB_SECRETS_DIR:-../../.secrets}/pushover_user_key" }
+  pushover_app_token: { file: "${TB_SECRETS_DIR:-../../.secrets}/pushover_app_token" }
+  cloudflared_tunnel_token: { file: "${TB_SECRETS_DIR:-../../.secrets}/cloudflared_tunnel_token" }
+
+services:
+  # ---------------------------------------------------------------- infrastructure (core)
+  postgres:
+    <<: *hardening
+    profiles: [core]
+    image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    user: "70:70"
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg_superuser_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    # log_min_error_statement=panic keeps failed statements (which could contain role passwords) out of logs.
+    command: ["postgres", "-c", "shared_buffers=256MB", "-c", "max_connections=150", "-c", "log_min_error_statement=panic", "-c", "password_encryption=scram-sha-256"]
+    secrets: [pg_superuser_password]
+    tmpfs: ["/tmp:size=64m", "/var/run/postgresql:size=8m,uid=70,gid=70"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    networks: [backend]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "127.0.0.1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    deploy: { resources: { limits: { memory: 1g } } }
+
+  nats:
+    <<: *hardening
+    profiles: [core]
+    image: nats:2-alpine@sha256:2ae57dfba3063d5e25fecb75256118c0882a1a2d2cf7d0fba17a7c701df956f6
+    command: ["-c", "/etc/nats/nats.conf"]
+    secrets:
+      - source: nats_users_conf
+        target: /etc/nats/users.conf
+    volumes:
+      - ./nats/nats.conf:/etc/nats/nats.conf:ro
+      - natsdata:/data
+    networks: [backend]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8222/healthz?js-enabled-only=true"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    deploy: { resources: { limits: { memory: 512m } } }
+
+  valkey:
+    <<: *hardening
+    profiles: [core]
+    image: valkey/valkey:9-alpine@sha256:48332870af354a799964c0012ae1194a0bf2bf894eb508f945810596dc2d8d11
+    user: "999:1000"
+    entrypoint: ["valkey-server"]
+    command: ["--aclfile", "/run/secrets/valkey_users_acl", "--appendonly", "yes", "--dir", "/data", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    secrets: [valkey_users_acl, valkey_password]
+    volumes: ["valkeydata:/data"]
+    networks: [backend]
+    healthcheck:
+      test: ["CMD-SHELL", "valkey-cli --no-auth-warning --user tb --pass \"$$(cat /run/secrets/valkey_password)\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    deploy: { resources: { limits: { memory: 384m } } }
+
+  db-init:
+    <<: *hardening
+    profiles: [core]
+    image: strawberry/ops:${TB_VERSION:-dev}
+    build: { context: ../.., dockerfile: infra/docker/ops.Dockerfile }
+    restart: "no"
+    command: ["db", "init"]
+    secrets: [pg_superuser_password, pg_svc_api_gateway_password, pg_svc_broker_gateway_password, pg_svc_marketdata_password,
+              pg_svc_execution_password, pg_svc_ledger_password, pg_svc_ops_password, pg_svc_metrics_password,
+              pg_mlflow_password, pg_prefect_password]
+    networks: [backend]
+    depends_on: { postgres: { condition: service_healthy } }
+
+  bus-init:
+    <<: *hardening
+    profiles: [core]
+    image: strawberry/ops:${TB_VERSION:-dev}
+    restart: "no"
+    command: ["bus", "init"]
+    secrets: [nats_ops_password]
+    networks: [backend]
+    depends_on: { nats: { condition: service_healthy }, db-init: { condition: service_completed_successfully } }
+
+  # ---------------------------------------------------------------- core services
+  api-gateway:
+    <<: *hardening
+    profiles: [core]
+    image: strawberry/api-gateway:${TB_VERSION:-dev}
+    build: { <<: *go-build, target: gateway, args: { SERVICE: api-gateway, VERSION: "${TB_VERSION:-dev}" } }
+    ports: ["127.0.0.1:${TB_HTTP_PORT:-8080}:8080"]
+    environment:
+      <<: *common-env
+      TB_SERVICE: api-gateway
+      TB_AUTH_RP_ID: ${TB_AUTH_RP_ID:-localhost}
+      TB_AUTH_ORIGINS: ${TB_AUTH_ORIGINS:-http://localhost:8080}
+      TB_AUTH_COOKIE_SECURE: ${TB_AUTH_COOKIE_SECURE:-true}
+      TB_TRUSTED_PROXIES: ${TB_TRUSTED_PROXIES:-}
+      TB_DB_USER: svc_api_gateway
+      TB_NATS_USER: api_gateway
+    secrets: [pg_svc_api_gateway_password, gateway_auth_key, nats_api_gateway_password, svc_api_gateway_ed25519]
+    networks: [backend, edge]
+    healthcheck: *go-healthcheck
+    depends_on:
+      db-init: { condition: service_completed_successfully }
+      bus-init: { condition: service_completed_successfully }
+      broker-gateway: { condition: service_healthy }
+    deploy: { resources: { limits: { memory: 256m } } }
+
+  broker-gateway:
+    <<: *hardening
+    profiles: [core]
+    image: strawberry/broker-gateway:${TB_VERSION:-dev}
+    build: { <<: *go-build, args: { SERVICE: broker-gateway, VERSION: "${TB_VERSION:-dev}" } }
+    environment:
+      <<: *common-env
+      TB_SERVICE: broker-gateway
+      TB_DB_USER: svc_broker_gateway
+    secrets: [pg_svc_broker_gateway_password, broker_kek, svc_api_gateway_ed25519.pub]
+    networks: [backend, edge]
+    healthcheck: *go-healthcheck
+    depends_on: { db-init: { condition: service_completed_successfully } }
+    deploy: { resources: { limits: { memory: 256m } } }
+
+  marketdata:
+    <<: *hardening
+    profiles: [core]
+    image: strawberry/marketdata:${TB_VERSION:-dev}
+    build: { <<: *go-build, args: { SERVICE: marketdata, VERSION: "${TB_VERSION:-dev}" } }
+    # Runs as the host user so lake files on the host (APFS bind mount, D4) are owned by the owner.
+    user: "${TB_HOST_UID:-65532}:${TB_HOST_GID:-65532}"
+    environment: { <<: *common-env, TB_SERVICE: marketdata, TB_NATS_USER: marketdata }
+    secrets: [nats_marketdata_password]
+    volumes: ["${TB_LAKE_DIR:-../../data/lake}:/data/lake"]
+    networks: [backend, edge]
+    healthcheck: *go-healthcheck
+    depends_on: { bus-init: { condition: service_completed_successfully } }
+    deploy: { resources: { limits: { memory: 512m } } }
+
+  execution:
+    <<: *hardening
+    profiles: [core]
+    image: strawberry/execution:${TB_VERSION:-dev}
+    build: { <<: *go-build, args: { SERVICE: execution, VERSION: "${TB_VERSION:-dev}" } }
+    environment: { <<: *common-env, TB_SERVICE: execution, TB_NATS_USER: execution }
+    secrets: [nats_execution_password]
+    networks: [backend, edge]
+    healthcheck: *go-healthcheck
+    depends_on: { bus-init: { condition: service_completed_successfully } }
+    deploy: { resources: { limits: { memory: 256m } } }
+
+  ledger:
+    <<: *hardening
+    profiles: [core]
+    image: strawberry/ledger:${TB_VERSION:-dev}
+    build: { <<: *go-build, args: { SERVICE: ledger, VERSION: "${TB_VERSION:-dev}" } }
+    environment: { <<: *common-env, TB_SERVICE: ledger, TB_NATS_USER: ledger }
+    secrets: [nats_ledger_password]
+    networks: [backend]
+    healthcheck: *go-healthcheck
+    depends_on: { bus-init: { condition: service_completed_successfully } }
+    deploy: { resources: { limits: { memory: 256m } } }
+
+  context-data:
+    <<: *hardening
+    profiles: [core]
+    image: strawberry/context-data:${TB_VERSION:-dev}
+    build: { <<: *py-build, args: { SERVICE: context-data } }
+    environment: { <<: *common-env, TB_SERVICE: context-data }
+    networks: [backend]
+    healthcheck: *py-healthcheck
+    deploy: { resources: { limits: { memory: 256m } } }
+
+  monitor:
+    <<: *hardening
+    profiles: [core]
+    image: strawberry/monitor:${TB_VERSION:-dev}
+    build: { <<: *py-build, args: { SERVICE: monitor } }
+    environment: { <<: *common-env, TB_SERVICE: monitor }
+    networks: [backend]
+    healthcheck: *py-healthcheck
+    deploy: { resources: { limits: { memory: 256m } } }
+
+  # ---------------------------------------------------------------- ml profile
+  mlflow:
+    <<: *hardening
+    profiles: [ml]
+    image: strawberry/mlflow:${TB_VERSION:-dev}
+    build: { context: ../.., dockerfile: infra/docker/mlflow.Dockerfile }
+    user: "${TB_HOST_UID:-10001}:${TB_HOST_GID:-10001}"
+    environment: { TB_DB_HOST: postgres }
+    secrets: [pg_mlflow_password]
+    volumes: ["${TB_ARTIFACTS_DIR:-../../data/mlflow-artifacts}:/mlflow/artifacts"]
+    networks: [backend]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    depends_on: { db-init: { condition: service_completed_successfully } }
+    deploy: { resources: { limits: { memory: 1g } } }
+
+  prefect:
+    <<: *hardening
+    profiles: [ml]
+    image: prefecthq/prefect:3-python3.12@sha256:57e02b3f63d663e02b06d4127362ea48d92d4b361fbd96c8ba8f01e5702755f4
+    user: "10001:10001"
+    environment:
+      PREFECT_HOME: /tmp/prefect
+      PREFECT_SERVER_ANALYTICS_ENABLED: "false"
+      PREFECT_UI_ENABLED: "true"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - export PREFECT_API_DATABASE_CONNECTION_URL="postgresql+asyncpg://prefect:$$(cat /run/secrets/pg_prefect_password)@postgres:5432/prefect";
+        exec prefect server start --host 0.0.0.0 --port 4200
+    secrets: [pg_prefect_password]
+    tmpfs: ["/tmp:size=256m,uid=10001,gid=10001"]
+    networks: [backend]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:4200/api/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    depends_on: { db-init: { condition: service_completed_successfully } }
+    deploy: { resources: { limits: { memory: 768m } } }
+
+  assistant:
+    <<: *hardening
+    profiles: [ml]
+    image: strawberry/assistant:${TB_VERSION:-dev}
+    build: { <<: *py-build, args: { SERVICE: assistant } }
+    environment: { <<: *common-env, TB_SERVICE: assistant }
+    networks: [backend]
+    healthcheck: *py-healthcheck
+
+  # Containerized ML workers for Linux hosts. On macOS these run natively under launchd (D29).
+  ml:
+    <<: *hardening
+    profiles: [ml-workers]
+    image: strawberry/ml:${TB_VERSION:-dev}
+    build: { <<: *py-build, args: { SERVICE: ml } }
+    environment: { <<: *common-env, TB_SERVICE: ml }
+    networks: [backend]
+    healthcheck: *py-healthcheck
+
+  backtest:
+    <<: *hardening
+    profiles: [ml-workers]
+    image: strawberry/backtest:${TB_VERSION:-dev}
+    build: { <<: *py-build, args: { SERVICE: backtest } }
+    environment: { <<: *common-env, TB_SERVICE: backtest }
+    networks: [backend]
+    healthcheck: *py-healthcheck
+
+  optimizer:
+    <<: *hardening
+    profiles: [ml-workers]
+    image: strawberry/optimizer:${TB_VERSION:-dev}
+    build: { <<: *py-build, args: { SERVICE: optimizer } }
+    environment: { <<: *common-env, TB_SERVICE: optimizer }
+    networks: [backend]
+    healthcheck: *py-healthcheck
+
+  # ---------------------------------------------------------------- observability profile (D22)
+  prometheus:
+    <<: *hardening
+    profiles: [observability]
+    image: prom/prometheus:v3.15.0@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus",
+              "--storage.tsdb.retention.time=30d", "--web.enable-remote-write-receiver", "--web.enable-lifecycle"]
+    volumes:
+      - ../observability/prometheus:/etc/prometheus:ro
+      - prometheus-data:/prometheus
+    networks: [backend]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:9090/-/ready"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    deploy: { resources: { limits: { memory: 768m } } }
+
+  alertmanager:
+    <<: *hardening
+    profiles: [observability]
+    image: prom/alertmanager:v0.34.1@sha256:e9733bafb1bdef9b00e25a21f8f99dc26a22224bf16641ad754d1649f4c3357a
+    command: ["--config.file=/etc/alertmanager/alertmanager.yml", "--storage.path=/alertmanager"]
+    secrets: [pushover_user_key, pushover_app_token]
+    volumes:
+      - ../observability/alertmanager:/etc/alertmanager:ro
+      - alertmanager-data:/alertmanager
+    networks: [backend, edge]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:9093/-/ready"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  victorialogs:
+    <<: *hardening
+    profiles: [observability]
+    image: victoriametrics/victoria-logs:v1.53.0@sha256:251121fa882af99b95ba0c230a4a2f412ea602d2698c64a96c58dc9842bb755d
+    command: ["-storageDataPath=/vlogs", "-retentionPeriod=30d", "-httpListenAddr=:9428"]
+    volumes: ["victorialogs-data:/vlogs"]
+    networks: [backend]
+    # Shell-less image: no container healthcheck; Prometheus scrapes it (job infra) and alerts if down.
+    deploy: { resources: { limits: { memory: 512m } } }
+
+  alloy:
+    <<: *hardening
+    profiles: [observability]
+    image: grafana/alloy:v1.20.1@sha256:2aa2099af76c0098d4af7a4d6e48f86cb66dc1a000222ad927a1c67c6542d13f
+    # Reads container logs and cAdvisor stats through the Docker socket (read-only mount). Justified
+    # exception: observability only, internal network, no published ports (ADR-0014).
+    command: ["run", "/etc/alloy/config.alloy", "--storage.path=/tmp/alloy", "--server.http.listen-addr=0.0.0.0:12345"]
+    volumes:
+      - ../observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /:/rootfs:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      # cAdvisor reads cgroups and container metadata from the (Colima VM / Linux) host directly.
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - ${TB_CONTAINERD_SOCK:-/run/containerd/containerd.sock}:/run/containerd/containerd.sock:ro
+      - ${TB_BACKUP_DIR:-../../backups}/metrics:/textfile:ro
+    tmpfs: ["/tmp:size=256m"]
+    networks: [backend]
+    depends_on: { victorialogs: { condition: service_started }, prometheus: { condition: service_healthy } }
+    deploy: { resources: { limits: { memory: 512m } } }
+
+  nats-exporter:
+    <<: *hardening
+    profiles: [observability]
+    image: natsio/prometheus-nats-exporter:0.20.2@sha256:c623b608e148e31e1c1c878673a197f1828e58ce90de4f01d22f1baa84c8fee9
+    command: ["-varz", "-connz", "-jsz=all", "-healthz", "http://nats:8222"]
+    networks: [backend]
+
+  postgres-exporter:
+    <<: *hardening
+    profiles: [observability]
+    image: prometheuscommunity/postgres-exporter:v0.20.1@sha256:ac5ec343104fae0e2d84a27bb8d69b38430a11910c5382cad85d478d2bab713e
+    environment:
+      DATA_SOURCE_URI: "postgres:5432/platform?sslmode=disable"
+      DATA_SOURCE_USER: svc_metrics
+      DATA_SOURCE_PASS_FILE: /run/secrets/pg_svc_metrics_password
+    secrets: [pg_svc_metrics_password]
+    networks: [backend]
+
+  grafana:
+    <<: *hardening
+    profiles: [observability]
+    image: grafana/grafana-oss:13.0.2@sha256:5dad0df181cb644a14e13617b913b261a54f7d4fd4510721dba420929f35bea2
+    ports: ["127.0.0.1:${TB_GRAFANA_PORT:-3000}:3000"]
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+      GF_SECURITY_COOKIE_SAMESITE: strict
+      GF_SECURITY_DISABLE_GRAVATAR: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_NEWS_NEWS_FEED_ENABLED: "false"
+      GF_PLUGINS_PREINSTALL: victoriametrics-logs-datasource
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+    secrets: [grafana_admin_password]
+    volumes:
+      - ../observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../observability/grafana/dashboards:/var/lib/grafana-dashboards:ro
+      - grafana-data:/var/lib/grafana
+    networks: [backend, edge]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3000/api/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 30s
+    depends_on: { prometheus: { condition: service_healthy } }
+    deploy: { resources: { limits: { memory: 512m } } }
+
+  # ---------------------------------------------------------------- ops (one-shot, via make)
+  ops:
+    <<: *hardening
+    profiles: [ops]
+    image: strawberry/ops:${TB_VERSION:-dev}
+    restart: "no"
+    user: "${TB_HOST_UID:-10001}:${TB_HOST_GID:-10001}"
+    environment: { TB_DB_HOST: postgres, TB_NATS_URL: "nats://nats:4222" }
+    secrets: [pg_superuser_password, pg_svc_api_gateway_password, pg_svc_broker_gateway_password, pg_svc_marketdata_password,
+              pg_svc_execution_password, pg_svc_ledger_password, pg_svc_ops_password, pg_svc_metrics_password,
+              pg_mlflow_password, pg_prefect_password, nats_ops_password, backup_age_recipient, backup_age_identity]
+    volumes:
+      - ${TB_BACKUP_DIR:-../../backups}:/backups
+      - ${TB_LAKE_DIR:-../../data/lake}:/data/lake
+      - ${TB_ARTIFACTS_DIR:-../../data/mlflow-artifacts}:/data/mlflow-artifacts
+    tmpfs: ["/tmp:size=2g"]
+    networks: [backend]
+
+  # ---------------------------------------------------------------- optional remote access (D17)
+  cloudflared:
+    <<: *hardening
+    profiles: [remote-cloudflare]
+    image: cloudflare/cloudflared:2026.10.1@sha256:a15a3b50b8dabd57ac2090e9484c0247dba9dfa1f0df4d298d4317f9d69eb2d5
+    command: ["tunnel", "--no-autoupdate", "--metrics", "0.0.0.0:2000", "run", "--token-file", "/run/secrets/cloudflared_tunnel_token"]
+    secrets: [cloudflared_tunnel_token]
+    networks: [edge]
+    depends_on: { api-gateway: { condition: service_healthy } }

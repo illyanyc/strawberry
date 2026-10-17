@@ -1,0 +1,81 @@
+# Baseline alert rules (section 01 Stage A, OP-060). Routed by Alertmanager; critical → Pushover (D13).
+groups:
+  - name: stack
+    rules:
+      - alert: ServiceDown
+        expr: up{tier="core"} == 0
+        for: 30s
+        labels: { severity: critical }
+        annotations:
+          summary: "{{ $labels.service }} is down"
+          description: "Prometheus cannot scrape {{ $labels.service }} ({{ $labels.instance }}) for 30s."
+          runbook_url: docs/runbooks/service-down.md
+
+      - alert: OptionalServiceDown
+        expr: up{tier=~"optional|observability"} == 0
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $labels.service }} is down"
+          runbook_url: docs/runbooks/service-down.md
+
+      - alert: RestartLoop
+        expr: changes(process_start_time_seconds[15m]) > 3
+        labels: { severity: critical }
+        annotations:
+          summary: "{{ $labels.service }} restarted more than 3 times in 15 minutes"
+          runbook_url: docs/runbooks/service-down.md
+
+      - alert: DiskAlmostFull
+        expr: (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs|nsfs"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs|nsfs"}) > 0.80
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "Disk {{ $labels.mountpoint }} is over 80% full"
+          runbook_url: docs/runbooks/disk-full.md
+
+      - alert: PostgresDown
+        expr: pg_up == 0
+        for: 30s
+        labels: { severity: critical }
+        annotations:
+          summary: "PostgreSQL is unreachable from the exporter"
+          runbook_url: docs/runbooks/service-down.md
+
+      - alert: BackupStale
+        expr: time() - tb_backup_last_success_timestamp_seconds > 2 * 86400
+        labels: { severity: warning }
+        annotations:
+          summary: "No successful backup for more than 2 days"
+          runbook_url: docs/runbooks/backup-and-restore.md
+
+      - alert: BackupNeverRun
+        expr: absent(tb_backup_last_success_timestamp_seconds)
+        for: 24h
+        labels: { severity: warning }
+        annotations:
+          summary: "No backup has ever been recorded on this host"
+          runbook_url: docs/runbooks/backup-and-restore.md
+
+      - alert: BusConsumerLag
+        expr: max by (stream_name, consumer_name) (jetstream_consumer_num_pending) > 1000
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "JetStream consumer {{ $labels.consumer_name }} on {{ $labels.stream_name }} is lagging"
+          runbook_url: docs/runbooks/service-down.md
+
+      - alert: ClockSkew
+        expr: tb_clock_skew_seconds > 0.25
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "Host clock skew {{ $value | humanize }}s exceeds 250ms; trading services refuse new risk"
+          runbook_url: docs/runbooks/clock-skew.md
+
+      - alert: HighHTTPErrorRate
+        expr: sum by (service) (rate(tb_http_requests_total{code=~"5.."}[5m])) / sum by (service) (rate(tb_http_requests_total[5m])) > 0.05
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $labels.service }} returns more than 5% server errors"
