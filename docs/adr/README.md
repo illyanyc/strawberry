@@ -24,3 +24,4 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0006](0006-audit-log-hash-chain.md) | Tamper-evident audit log as a Postgres hash chain | Accepted | 2026-10-17 |
 | [0007](0007-service-to-service-auth.md) | Service-to-service authentication with short-lived Ed25519 tokens | Accepted | 2026-10-17 |
 | [0008](0008-event-bus-nats-jetstream.md) | NATS JetStream as the event bus | Accepted (research) | 2026-10-17 |
+| [0010](0010-account-routing-and-day-trade-policy.md) | Account routing, PDT guard off by default, and an intraday-margin guard | Accepted (research) | 2026-10-17 |

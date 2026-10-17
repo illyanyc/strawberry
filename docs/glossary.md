@@ -21,6 +21,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Generated contracts** | Code under `contracts/gen/` produced by `make gen` from `contracts/proto/`; committed, and CI fails if stale (`make gen-check`). |
 | **`ingested_at`** | When the platform stored a datum. |
 | **`instrument_id`** | Internal stable instrument identifier, independent of ticker changes; maps to broker IDs (Alpaca asset ID, IBKR `conId`). |
+| **Intraday-margin guard** | Pre-trade check capping leverage and margin utilization per account so strategies cannot consume the manual book's buying power (RM-012). |
 | **Kill switch** | Scoped emergency control (global, broker account, strategy, instrument): freeze new orders, cancel open orders, optionally flatten strategy-owned quantity. |
 | **Lot** | A quantity of an instrument acquired at one time and price, owned by exactly one owner. |
 | **Manual bucket (`manual` owner)** | All holdings and orders not attributed to a strategy, including anything placed outside the platform. Automated logic never reduces it. |
@@ -29,13 +30,14 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Order intent** | A strategy's or user's request to trade, before risk checks. Becomes an order only after an approved risk decision. |
 | **Owner** | The strategy ID or `manual` that a position, lot, or order belongs to. |
 | **PBO** | Probability of backtest overfitting (combinatorially symmetric cross-validation). |
-| **PDT** | FINRA Pattern Day Trader rule; limits day trades in margin accounts below the equity threshold. |
+| **PDT** | FINRA Pattern Day Trader rule; it limited day trades in margin accounts below $25k and was retired on 2026-06-04. The risk engine keeps an optional per-account `legacy` guard, off by default (RM-008, D30). |
 | **Point-in-time (PIT)** | Data as it was knowable at a given moment, including universe membership and corporate actions. |
 | **Promotion** | Audited, human-approved move of a strategy from `paper` to `live`, with step-up auth and a capital cap. |
 | **Purged / embargoed CV** | Time-series cross-validation that removes training samples overlapping test labels (purge) and a gap after the test set (embargo). |
 | **Reconciliation** | Check that broker positions equal the sum of virtual ledgers plus the manual bucket; unexplained differences halt affected strategies. |
 | **Risk decision** | The recorded outcome of pre-trade checks for an intent: approved or rejected, with each check's value and limit. |
 | **Schema owner role** | NOLOGIN Postgres role (`<schema>_owner`) that owns a schema and runs its migrations; services never log in as it. |
+| **Routing table** | Config mapping strategy horizons (`intraday`, `swing`) to the broker accounts allowed to receive their orders (RM-011, D30). |
 | **Sealed holdout** | Final data period that optimization never sees; access is logged and counted. |
 | **Service token** | Short-lived Ed25519-signed token identifying the calling service on an internal call (SE-040). |
 | **Shadow mode** | A model produces signals that are recorded but never sent as orders. |

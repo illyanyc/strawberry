@@ -79,6 +79,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0005-postgres-layout-and-migrations.md` | Exists | ADR (D5): one `platform` DB, schema per area, `svc_*` roles, owner-role migrations |
 | `docs/adr/0006-audit-log-hash-chain.md` | Exists | ADR (D34): audit hash chain computed in Postgres, verified in Go |
 | `docs/adr/0007-service-to-service-auth.md` | Exists | ADR (D33): Ed25519 service tokens with per-method allowlists |
+| `docs/adr/0010-account-routing-and-day-trade-policy.md` | Exists | ADR (D30): horizon-based account routing, PDT guard off by default, intraday-margin guard, halt on margin events |
 | `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2): NATS JetStream, `sync_interval: always`, stream layout, outbox |
 | `docs/runbooks/` | Planned | Kill switch, broker outage, reconciliation break, restore |
 | `docs/threat-model.md` | Planned | Assets, actors, STRIDE, mitigations |
