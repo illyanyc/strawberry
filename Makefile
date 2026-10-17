@@ -148,7 +148,7 @@ test-ibkr-contract: ## Shared Go broker contract suite (BR-001) against the IBKR
 
 .PHONY: test-ibkr-paper
 test-ibkr-paper: ## Opt-in tests against a real IB Gateway paper session, incl. spike V1 (TB_IBKR_PAPER_* env)
-	TB_IBKR_PAPER_TEST=1 uv run pytest services/broker-gateway-ibkr/tests/paper -m ibkr_paper -v
+	TB_IBKR_PAPER_TEST=1 uv run pytest services/broker-gateway-ibkr/ibkr_tests/paper -m ibkr_paper -v
 
 .PHONY: port-check
 port-check: ## Fail if any container publishes a port on a non-loopback address (SE-051)

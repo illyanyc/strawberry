@@ -40,7 +40,7 @@ IBKR adapter: supervises the IB Gateway API session (daily restart, weekly 2FA l
 | `src/tb_broker_ibkr/journal.py`, `relay.py` | `Journal` protocol, Postgres journal (`broker_ibkr` + outbox), DB live enablement; outbox relay to JetStream |
 | `src/tb_broker_ibkr/cursor_store.py`, `pacing.py`, `backoff.py`, `clock.py`, `instruments.py` | File cursor (no-DB fallback journal), historical pacing + line budget, backoff, injectable clock, instrument map + IBKR contract resolver |
 | `src/tb_broker_ibkr/fakes/` | `gateway.py` (port-level fake), `wire.py` (socket-level TWS fake for real `ib_async`), `replay.py` (fixture format, replay, recorder), `serve.py` (gRPC over the fake gateway for the Go contract suite) |
-| `tests/` | Unit/behavior tests on virtual time, wire tests, gRPC and entrypoint tests; `fixtures/*.jsonl` recorded-format messages; `paper/` opt-in real-gateway suite and spike V1 |
+| `ibkr_tests/` | Unit/behavior tests (package name distinct from `libs/py/tbcore/tests`) on virtual time, wire tests, gRPC and entrypoint tests; `fixtures/*.jsonl` recorded-format messages; `paper/` opt-in real-gateway suite and spike V1 |
 
 ## Configuration
 | Variable | Default | Notes |
@@ -62,7 +62,7 @@ IBKR adapter: supervises the IB Gateway API session (daily restart, weekly 2FA l
 
 ## Run and test
 - Run: `make up PROFILES=core,observability,ibkr` (paper; add `ibkr-live` for live). Setup and weekly login: [runbook](../../docs/runbooks/ibkr-weekly-2fa.md).
-- Test: `uv run pytest services/broker-gateway-ibkr/tests` (no IBKR needed; ~8 s; Postgres journal tests need `TB_TEST_PG_SUPER_DSN`). Shared Go contract suite over the fake gateway: `make test-ibkr-contract`. Opt-in real paper gateway and spike V1: `make test-ibkr-paper` with `TB_IBKR_PAPER_ACCOUNT`, `TB_IBKR_PAPER_HOST`, `TB_IBKR_PAPER_PORT`.
+- Test: `uv run pytest services/broker-gateway-ibkr/ibkr_tests` (no IBKR needed; ~8 s; Postgres journal tests need `TB_TEST_PG_SUPER_DSN`). Shared Go contract suite over the fake gateway: `make test-ibkr-contract`. Opt-in real paper gateway and spike V1: `make test-ibkr-paper` with `TB_IBKR_PAPER_ACCOUNT`, `TB_IBKR_PAPER_HOST`, `TB_IBKR_PAPER_PORT`.
 - Lint: `make lint-py`.
 
 ## Operational notes
@@ -74,4 +74,4 @@ IBKR adapter: supervises the IB Gateway API session (daily restart, weekly 2FA l
 - `ib_async` delivers floats: always convert through `ib_async_port.dec`, never `Decimal(float)`.
 - `orderStatus` callbacks carry ib_async's local `orderRef`; only `openOrder`/`completedOrder` (`ref_echoed=True`) count for IB-002.
 - Tests run on virtual time (`FakeClock`): a call that waits on a clock timeout must be driven with `Harness.drive(...)`, or it hangs.
-- The fixtures in `tests/fixtures/` are hand-built in the recorded format, not captured from a real account; replace or extend them with `TB_IBKR_RECORD_PATH` recordings from the paper rehearsal.
+- The fixtures in `ibkr_tests/fixtures/` are hand-built in the recorded format, not captured from a real account; replace or extend them with `TB_IBKR_RECORD_PATH` recordings from the paper rehearsal.

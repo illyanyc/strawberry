@@ -47,4 +47,4 @@ D18 accepted IB Gateway + IBC in the gnzsnz container with a Python `ib_async` a
 
 ## Validation
 
-`services/broker-gateway-ibkr/tests` (fake gateway, wire fake with real `ib_async`, fixtures, gRPC surface, entrypoint, Postgres journal and relay) and the shared Go contract suite against the adapter (`make test-ibkr-contract`) in CI; `make test-ibkr-paper` and one rehearsed weekly cycle on the paper account (runbook) before any live enablement. Revisit if IBKR changes the re-auth cadence, if IBC stops working with the pinned Gateway, or if V1 shows a limit below 44.
+`services/broker-gateway-ibkr/ibkr_tests` (fake gateway, wire fake with real `ib_async`, fixtures, gRPC surface, entrypoint, Postgres journal and relay) and the shared Go contract suite against the adapter (`make test-ibkr-contract`) in CI; `make test-ibkr-paper` and one rehearsed weekly cycle on the paper account (runbook) before any live enablement. Revisit if IBKR changes the re-auth cadence, if IBC stops working with the pinned Gateway, or if V1 shows a limit below 44.

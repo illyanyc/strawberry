@@ -37,7 +37,7 @@ tbcontracts = { workspace = true }
 tbcore = { workspace = true }
 
 [tool.pytest.ini_options]
-testpaths = ["contracts/tests", "libs/py/tbcore/tests", "services/broker-gateway-ibkr/tests", "tests/python"]
+testpaths = ["contracts/tests", "libs/py/tbcore/tests", "services/broker-gateway-ibkr/ibkr_tests", "tests/python"]
 addopts = "-q -m 'not ibkr_paper'"
 markers = [
   "perf: performance targets (opt-in with TB_PERF=1)",
@@ -66,7 +66,7 @@ python_version = "3.12"
 strict = true
 mypy_path = "contracts/gen/python/src:libs/py/tbcore/src:services/assistant/src:services/backtest/src:services/broker-gateway-ibkr/src:services/broker-gateway-ibkr:services/context-data/src:services/ml/src:services/monitor/src:services/optimizer/src"
 explicit_package_bases = true
-files = ["libs/py/tbcore/src", "libs/py/tbcore/tests", "contracts/tests", "services/*/src", "services/broker-gateway-ibkr/tests", "tests/python"]
+files = ["libs/py/tbcore/src", "libs/py/tbcore/tests", "contracts/tests", "services/*/src", "services/broker-gateway-ibkr/ibkr_tests", "tests/python"]
 exclude = ["contracts/gen/"]
 
 [[tool.mypy.overrides]]
@@ -76,7 +76,7 @@ follow_untyped_imports = true
 
 [[tool.mypy.overrides]]
 # grpcio's Python API is untyped (no published stubs for grpc.aio generic handlers / grpc_status).
-module = ["tb_broker_ibkr.grpc_service", "tests.test_grpc", "tests.test_main", "tests.test_journal_pg"]
+module = ["tb_broker_ibkr.grpc_service", "ibkr_tests.test_grpc", "ibkr_tests.test_main", "ibkr_tests.test_journal_pg"]
 disallow_untyped_calls = false
 disable_error_code = ["type-arg", "no-any-return"]
 
