@@ -11,6 +11,13 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 - Business-logic docs with initial specified rules: orders and execution (`OE-`), virtual portfolios and attribution (`VP-`), risk management (`RM-`), strategies and model lifecycle (`SM-`), data and features (`DF-`), plus a template.
 - ADR process, template, and [ADR-0001](docs/adr/0001-agent-documentation-structure.md) (documentation structure and protocol).
 - Project `README.md`.
+- Repo tooling: `Makefile` (`make help`, `tools`, `docs-check`), pinned toolchain in `tools/versions.env`, `scripts/bootstrap-tools.sh` (installs buf, protoc, protoc plugins, golangci-lint, gitleaks into `.tools/bin`), `.gitignore`, `.gitattributes`, `.editorconfig` ([ADR-0002](docs/adr/0002-monorepo-layout-and-toolchain.md), D28, OP-001).
+- Documentation gate `scripts/docs_check.py`: file-map coverage and same-commit doc rules (OP-002..OP-006).
+- `docs/business-logic/operations.md` (`OP-` rules).
+
+### Changed
+
+- `docs/file-map.md` now uses full repo-relative paths in every row so `make docs-check` can verify coverage.
 
 ### Removed
 

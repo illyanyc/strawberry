@@ -9,6 +9,7 @@ The specification of how the platform behaves, by domain. **These docs are the s
 | Risk management | [risk-management.md](risk-management.md) | `RM-` | `execution`, `monitor` |
 | Strategies and model lifecycle | [strategies-and-model-lifecycle.md](strategies-and-model-lifecycle.md) | `SM-` | `ml`, `optimizer`, `backtest`, `execution`, `monitor` |
 | Data and features | [data-and-features.md](data-and-features.md) | `DF-` | `marketdata`, `context-data`, `libs/py/tbcore` |
+| Operations | [operations.md](operations.md) | `OP-` | `Makefile`, `scripts/`, `infra/`, CI |
 
 New domain: copy [`_template.md`](_template.md), pick a two-letter prefix, add it to this table and to `.cursor/rules/documentation-discipline.mdc`.
 

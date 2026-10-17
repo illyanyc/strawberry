@@ -33,4 +33,5 @@ Status values: **Pending** (use the default behind an interface), **Accepted** (
 | D25 | GPU strategy | CPU first; optional GPU profile; on-demand cloud GPU | Pending | — |
 | D26 | Assistant LLM provider | Pluggable (local or API); no secrets/account data leave the box by default | Pending | — |
 | D27 | Price adjustments | Store raw bars + corporate actions; adjust at read time as of decision date | Pending | — |
+| D28 | Monorepo layout, workspaces, pinned toolchain | `go.work` + `uv` + `pnpm` workspaces; versions in `tools/versions.env`; `make` entry point | Accepted | [ADR-0002](adr/0002-monorepo-layout-and-toolchain.md) |
 | — | Agent documentation structure and protocol | — | Accepted | [ADR-0001](adr/0001-agent-documentation-structure.md) |
