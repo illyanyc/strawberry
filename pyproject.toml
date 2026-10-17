@@ -25,6 +25,7 @@ members = [
   "libs/py/tbcore",
   "services/assistant",
   "services/backtest",
+  "services/broker-gateway-ibkr",
   "services/context-data",
   "services/ml",
   "services/monitor",
@@ -36,9 +37,12 @@ tbcontracts = { workspace = true }
 tbcore = { workspace = true }
 
 [tool.pytest.ini_options]
-testpaths = ["contracts/tests", "libs/py/tbcore/tests", "tests/python"]
-addopts = "-q"
-markers = ["perf: performance targets (opt-in with TB_PERF=1)"]
+testpaths = ["contracts/tests", "libs/py/tbcore/tests", "services/broker-gateway-ibkr/tests", "tests/python"]
+addopts = "-q -m 'not ibkr_paper'"
+markers = [
+  "perf: performance targets (opt-in with TB_PERF=1)",
+  "ibkr_paper: needs a real IB Gateway paper session (opt-in: TB_IBKR_PAPER_TEST=1, run with -m ibkr_paper)",
+]
 
 [tool.ruff]
 line-length = 120
@@ -60,10 +64,25 @@ known-first-party = ["tbcore", "tb"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-mypy_path = "contracts/gen/python/src:libs/py/tbcore/src:services/assistant/src:services/backtest/src:services/context-data/src:services/ml/src:services/monitor/src:services/optimizer/src"
+mypy_path = "contracts/gen/python/src:libs/py/tbcore/src:services/assistant/src:services/backtest/src:services/broker-gateway-ibkr/src:services/broker-gateway-ibkr:services/context-data/src:services/ml/src:services/monitor/src:services/optimizer/src"
 explicit_package_bases = true
-files = ["libs/py/tbcore/src", "libs/py/tbcore/tests", "contracts/tests", "services/*/src", "tests/python"]
+files = ["libs/py/tbcore/src", "libs/py/tbcore/tests", "contracts/tests", "services/*/src", "services/broker-gateway-ibkr/tests", "tests/python"]
 exclude = ["contracts/gen/"]
+
+[[tool.mypy.overrides]]
+# ib_async ships py.typed but its event and dataclass APIs are only partially annotated.
+module = ["ib_async", "ib_async.*", "nats", "nats.*", "asyncpg", "asyncpg.*", "grpc", "grpc.*", "grpc_status", "grpc_status.*", "google.rpc.*"]
+follow_untyped_imports = true
+
+[[tool.mypy.overrides]]
+# grpcio's Python API is untyped (no published stubs for grpc.aio generic handlers / grpc_status).
+module = ["tb_broker_ibkr.grpc_service", "tests.test_grpc", "tests.test_main"]
+disallow_untyped_calls = false
+disable_error_code = ["type-arg", "no-any-return"]
+
+[[tool.mypy.overrides]]
+module = ["google.protobuf", "google.protobuf.*"]
+ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 # Generated protobuf modules ship .pyi stubs but no py.typed marker (namespace package).

@@ -133,6 +133,10 @@ e2e-ui: ## Browser e2e (Playwright + virtual passkey) against a FRESH running st
 	TB_E2E_SETUP_TOKEN=$$($(COMPOSE) exec -T api-gateway /app/service setup-token | awk '{print $$NF}') \
 	  pnpm --filter @strawberry/web e2e
 
+.PHONY: test-ibkr-paper
+test-ibkr-paper: ## Opt-in tests against a real IB Gateway paper session, incl. spike V1 (TB_IBKR_PAPER_* env)
+	TB_IBKR_PAPER_TEST=1 uv run pytest services/broker-gateway-ibkr/tests/paper -m ibkr_paper -v
+
 .PHONY: port-check
 port-check: ## Fail if any container publishes a port on a non-loopback address (SE-051)
 	scripts/port-check.sh

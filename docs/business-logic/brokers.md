@@ -83,7 +83,18 @@ The simulator emits normalized states directly (`ACCEPTED`, `PARTIALLY_FILLED`, 
 
 ### IBKR
 
-Owned by the IBKR track (`broker-gateway-ibkr`, D1/D18): `PendingSubmit`, `PreSubmitted`, `Submitted`, `ApiPending`, `PendingCancel`, `ApiCancelled`, `Cancelled`, `Filled`, `Inactive` must each get an explicit row here, with `permId` stored as the durable key (V1).
+Full table, rationale, and IBKR-only rules (`IB-`): [brokers-ibkr.md](brokers-ibkr.md) (IB-020). `permId` is the durable `broker_order_id` (IB-003).
+
+| IBKR status | Normalized |
+|---|---|
+| `ApiPending`, `PendingSubmit` | `SUBMITTED` (`PARTIALLY_FILLED` if filled > 0) |
+| `PreSubmitted`, `Submitted`, `ApiUpdate` | `ACCEPTED` / `PARTIALLY_FILLED` |
+| `PendingCancel` | `PENDING_CANCEL` |
+| `Cancelled`, `ApiCancelled` | `CANCELED`; `EXPIRED` when unrequested after the TIF cutoff |
+| `Filled` | `FILLED` (`PARTIALLY_FILLED` if quantity remains) |
+| `Inactive` | `REJECTED` after an order-reject error, else `UNKNOWN` |
+| `ValidationError` | `REJECTED` |
+| anything else | `UNKNOWN` |
 
 ## Alpaca specifics
 
@@ -121,5 +132,5 @@ Owned by the IBKR track (`broker-gateway-ibkr`, D1/D18): `PendingSubmit`, `PreSu
 
 ## Open questions
 
-- IBKR mapping, error-code categories, pacing, and the daily/weekly reset flow: IBKR track (V1).
+- IBKR mapping, error-code categories, pacing, and the daily/weekly reset flow: specified in [brokers-ibkr.md](brokers-ibkr.md); the `orderRef` limit (spike V1) awaits an owner paper run.
 - Whether a TradingView broker-panel connection occupies the Alpaca market-data slot: spike V7 (needs the owner's key).

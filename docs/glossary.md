@@ -4,6 +4,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 
 | Term | Meaning |
 |---|---|
+| **Account hold (IBKR)** | A per-account reason, such as `margin_deficit`, that keeps an otherwise `ready` IBKR session `degraded` for that account until cleared (IB-041, BR-021). |
 | **ADR** | Architecture Decision Record in `docs/adr/`; one decision per file, superseded rather than rewritten. |
 | **Attribution ID** | The ID placed in Alpaca `client_order_id` / IBKR `orderRef` that identifies the owning strategy and intent: `tb1-<strategyShortId>-<intentULID>-<attempt>`. |
 | **Audit chain** | The hash-linked sequence of audit events: each event's hash covers the previous hash and its own canonical fields; `make audit-verify` recomputes it. |
@@ -18,9 +19,11 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Bar revision** | Version number of a bar's natural key: 0 when first stored, incremented on every content change; superseded versions live in `bar_revisions/` (ST-005, DF-007). |
 | **Champion / challenger** | The currently deployed model version for a strategy, and a candidate running in shadow or paper alongside it. |
 | **Compaction (lake)** | Merging a partition's staging and part files into one sorted part file with one row per natural key (ST-004). |
+| **Cold restart (IBC)** | IBC's Sunday-only full gateway restart at `ColdRestartTime` (default 17:00 ET): a fresh login, with an IBKR Mobile 2FA push for live; the platform's weekly IBKR login (IB-014). |
 | **Compose profile** | Named group of services in `infra/compose/docker-compose.yml` (`core`, `observability`, `ml`, `ml-workers`, `ops`, `remote-cloudflare`); `make up` starts `core,observability`. |
 | **Correction (bar)** | An update to a bar after it was final: stored as a new revision and published on `md.bar.correction.*` (MD-002, DF-007). |
 | **Correlation ID** | ID carried by every event from signal to fill, for tracing. |
+| **Daily restart (IBC)** | IBC's daily gateway restart at `AUTO_RESTART_TIME` (default 23:45 ET) that reuses the session token, so no 2FA; outages inside its window do not alert (IB-013). |
 | **Decimal (contract type)** | `tb.common.v1.Decimal`: an exact base-10 number carried as a string; the only representation for money and quantity in contracts. |
 | **Deflated Sharpe ratio (DSR)** | Sharpe ratio corrected for the number of trials and non-normal returns; used to rank strategies honestly. |
 | **Demotion** | Automatic or manual move of a strategy to `paper` or `halted`. Re-promotion is always manual. |
@@ -32,6 +35,8 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Dataset snapshot** | Immutable, content-addressed feature extract (`snapshots/<id>/`) whose ID hashes the feature set, universe, range, as-of, and exact input files (DF-009). |
 | **Gap (market data)** | Regular-session minutes the calendar says should have bars but the lake does not; runs of ≥ 5 are recorded in `marketdata.gaps` and re-fetched (MD-006). |
 | **Generated contracts** | Code under `contracts/gen/` produced by `make gen` from `contracts/proto/`; committed, and CI fails if stale (`make gen-check`). |
+| **IB Gateway** | IBKR's headless trading application exposing the TWS API socket; runs in `ib-gateway-<env>` containers (D18). |
+| **IBC** | The open-source tool that logs IB Gateway in and restarts it on schedule; archived 2026-09-01, pinned at 3.24.2 (D18, IB-073). |
 | **`ingested_at`** | When the platform stored a datum. |
 | **`instrument_id`** | Internal stable instrument identifier, independent of ticker changes; maps to broker IDs (Alpaca asset ID, IBKR `conId`). |
 | **Intraday-margin guard** | Pre-trade check capping leverage and margin utilization per account so strategies cannot consume the manual book's buying power (RM-012). |
@@ -40,9 +45,11 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Lot** | A quantity of an instrument acquired at one time and price, owned by exactly one owner. |
 | **Manual bucket (`manual` owner)** | All holdings and orders not attributed to a strategy, including anything placed outside the platform. Automated logic never reduces it. |
 | **Market-data hub (fan-out)** | broker-gateway component that holds the single upstream market-data socket per feed and multiplexes every subscriber over it (BR-015). |
+| **Master client ID (IBKR)** | The API client ID (1) configured as `TWS_MASTER_CLIENT_ID`, which receives updates for every order including those placed in TWS or IBKR Mobile (IB-017). |
 | **Meta-labeling** | A secondary model that decides whether to act on (and how to size) a primary model's signal. |
 | **Native ML worker** | ML/backtest/optimizer process run directly on macOS under launchd (MPS/MLX available) instead of in a container (D29). |
 | **Mode** | `backtest`, `paper`, or `live`; carried by every strategy, order, and fill. |
+| **`orderRef`** | Free-text IBKR order field carrying the attribution ID; IBKR's echo of it must match what was sent (IB-001, IB-002, spike V1). |
 | **Outbox (transactional)** | A Postgres table written in the same transaction as the state change it announces; a relay publishes rows to NATS with a dedupe ID, so events are never lost or duplicated by a crash (D2, ADR-0018). |
 | **Natural key (bar)** | `(instrument_id, timeframe, ts_open, feed)`: the identity used for idempotent writes and reader deduplication (ST-004). |
 | **Order intent** | A strategy's or user's request to trade, before risk checks. Becomes an order only after an approved risk decision. |
@@ -51,6 +58,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **PBO** | Probability of backtest overfitting (combinatorially symmetric cross-validation). |
 | **PDT** | FINRA Pattern Day Trader rule; it limited day trades in margin accounts below $25k and was retired on 2026-06-04. The risk engine keeps an optional per-account `legacy` guard, off by default (RM-008, D30). |
 | **Backward adjustment (as of t)** | Multiplying raw prices before each corporate action's ex-date by the action's factor, using only actions known and effective by t (DF-005). |
+| **`permId`** | IBKR's permanent order ID; the durable `broker_order_id` for IBKR orders (IB-003). |
 | **Point-in-time (PIT)** | Data as it was knowable at a given moment, including universe membership and corporate actions. |
 | **Publication delay** | Per-feed time between a bar's close and when it counts as available (`available_at` = `ts_close` + delay): Alpaca 60 s, FMP daily 6 h (MD-003). |
 | **Promotion** | Audited, human-approved move of a strategy from `paper` to `live`, with step-up auth and a capital cap. |

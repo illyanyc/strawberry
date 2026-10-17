@@ -23,7 +23,7 @@ Stack choices are accepted per [`docs/decisions.md`](docs/decisions.md) (researc
 | Contracts | `contracts/` | Cross-service schemas (single source of truth) | Protobuf + gRPC via `buf`; REST + SSE to the UI (D3) |
 | API gateway | `services/api-gateway/` | Auth, sessions, authorization policy, REST + SSE for UI, static UI, TradingView webhook intake (later) | Go (D1), go-webauthn (D15) |
 | Broker gateway | `services/broker-gateway/` | Credential custody (envelope encryption), Alpaca adapter, order submit/cancel, execution + account streams, simulator | Go (D1) |
-| IBKR adapter | `services/broker-gateway-ibkr/` (Planned, Phase 1) | IBKR sessions and orders via IB Gateway + IBC | Python `ib_async` (D1, D18) |
+| IBKR adapter | `services/broker-gateway-ibkr/` | IBKR sessions and orders via IB Gateway + IBC: maintenance-aware supervision (daily restart, weekly 2FA), orders with `orderRef` attribution, executions, snapshots; serves `BrokerGatewayService` | Python `ib_async` (D1, D18, D41; [ADR-0023](docs/adr/0023-ibkr-adapter-gateway-and-sessions.md)) |
 | Market data | `services/marketdata/` | Backfill, streaming, bar building, gap repair, lake + cache writes | Go (D1); Alpaca SIP + FMP (D20) |
 | Ledger | `services/ledger/` | Real account snapshots, virtual strategy ledgers, `manual` bucket, lots, reconciliation | Go (D1); IBKR bot account + Alpaca symbol segregation (D19) |
 | Execution | `services/execution/` | Strategy runtime / signal intake, OMS state machine, pre-trade risk, kill switches, routing and margin guard | Go (D1); routing per D30 |
@@ -77,6 +77,7 @@ Prerequisites: Docker (Colima on the Mac Mini, ADR-0013), `make`, `git`. Develop
 | `make audit-verify` | Recompute the audit hash chain |
 | `make backup` / `make restore BACKUP=...` / `make backup-drill` | Encrypted backup / verified restore / full drill |
 | `make secrets-encrypt` / `make secrets-decrypt` | SOPS + age bundle of `.secrets/` |
+| `make test-ibkr-paper` | Opt-in tests and spike V1 against a real IB Gateway paper session |
 | `make port-check` / `make check-arm64` | Loopback-only ports / arm64 availability of every image |
 | `make docs-check` | File-map coverage and same-commit documentation rules |
 | `make gen-calendar` | Regenerate the shared XNYS session table (Go + Python) from `exchange_calendars` |
