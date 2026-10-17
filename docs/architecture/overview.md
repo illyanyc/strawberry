@@ -80,7 +80,8 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 |---|---|---|
 | Contracts | All cross-service messages in `contracts/proto/tb/<domain>/v1/`; generated (committed) for Go, Python, TypeScript; `make gen-check` fails CI on stale code; internal RPC is gRPC, UI is REST + WebSocket ([contracts](#contracts)) | D3 ([ADR-0003](../adr/0003-contracts-protobuf-buf.md)) |
 | Messaging | Durable streams for order path (`ord.*`, `exec.*`, `risk.kill`), at-least-once, idempotent consumers | D2 |
-| Storage split | Market/context data in the lake (single writer, many readers); transactional state (orders, ledgers, users, audit) in Postgres; hot bars and online features in cache | D4–D6 |
+| Storage split | Market/context data in the Parquet lake: marketdata is the single writer (staging + compaction, revisions retained, temp + rename, Postgres manifest), Python reads with Polars point-in-time (`tbcore.data`); reference data in Postgres `refdata` mirrored to `ref/`; transactional state (orders, ledgers, users, audit) in Postgres; hot bars and online features in Valkey (`contracts/cache/README.md`) | D4–D6 ([ADR-0020](../adr/0020-lake-layout-write-path-and-query-layer.md)) |
+| Features | One feature library (`tbcore.features`) used offline (snapshots) and online (ring buffers) through the same `compute`; finite lookback, scale-invariant, parity-tested | D39 ([ADR-0021](../adr/0021-feature-store.md)) |
 | Time | UTC int64 ns; `event_time` / `available_at` / `ingested_at` on every market and context record | — |
 | Identity | ULIDs; `instrument_id` independent of ticker; `correlation_id` from signal to fill | — |
 | Modes | `mode ∈ {backtest, paper, live}` and `broker_account_id` on every strategy, order, and fill | — |

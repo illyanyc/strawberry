@@ -1,7 +1,7 @@
 [project]
 name = "tbcore"
 version = "0.0.0"
-description = "Shared Python library: service template, config, logging with redaction, secrets (later: instruments, calendar, features, labels, splitters, cost models, strategy API)."
+description = "Shared Python library: service template, logging with redaction, secrets, lake query layer (bars, as-of joins, universes, instruments, calendar), data quality, and the feature store."
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "fastapi==0.143.3",
@@ -10,6 +10,11 @@ dependencies = [
   "pydantic==2.14.1",
   "pydantic-settings==2.16.0",
   "tbcontracts",
+  # Storage and feature store (section 03, ADR-0020): pinned majors (DuckDB 1.5.x, Polars 1.x).
+  "duckdb==1.5.6",
+  "polars==1.44.2",
+  "pyarrow==26.0.0",
+  "numpy==2.5.4",
 ]
 
 [build-system]

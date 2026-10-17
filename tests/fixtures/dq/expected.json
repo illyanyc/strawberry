@@ -1,0 +1,25 @@
+{
+  "session": "2026-03-06",
+  "timeframe": "1m",
+  "feed": "fixture",
+  "counts": {
+    "duplicate": 1,
+    "ohlc_inconsistent": 1,
+    "nonpositive_price": 1,
+    "negative_volume": 1,
+    "volume_spike": 1,
+    "misaligned_ts": 1,
+    "gap": 1
+  },
+  "gaps": [
+    {
+      "instrument_id": "INSTA",
+      "from": "2026-03-06T15:00:00Z",
+      "to": "2026-03-06T15:10:00Z",
+      "missing": 10
+    }
+  ],
+  "clean_instruments": [
+    "INSTB"
+  ]
+}

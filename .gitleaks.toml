@@ -13,3 +13,9 @@ paths = [
   '''(^|/)[^/]+_test\.go$''',
   '''(^|/)tests?/.*\.py$''',
 ]
+
+[[allowlists]]
+description = "Recorded/synthetic vendor responses (no credentials; see tests/fixtures/*/README.md); page cursors look like keys"
+paths = [
+  '''^tests/fixtures/[^/]+/.*\.json$''',
+]

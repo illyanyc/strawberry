@@ -8,5 +8,5 @@
       {"t": "2026-03-02T14:30:00Z", "o": 402.55, "h": 403.1, "l": 402.3, "c": 402.99, "v": 301245, "n": 4401, "vw": 402.7713}
     ]
   },
-  "next_page_token": "QUFQTHxNfDIwMjYtMDMtMDJUMTQ6MzI6MDBa"
+  "next_page_token": "fixture-page-2"
 }

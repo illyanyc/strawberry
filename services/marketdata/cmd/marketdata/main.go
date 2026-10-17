@@ -4,6 +4,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/illyanyc/strawberry/libs/go/bus"
 	"github.com/illyanyc/strawberry/libs/go/config"
 	"github.com/illyanyc/strawberry/libs/go/svc"
@@ -17,6 +19,9 @@ type cfg struct {
 }
 
 func main() {
+	if runSpike(os.Args[1:]) {
+		return
+	}
 	var c cfg
 	rt, err := svc.Start(&c, &c.Common)
 	if err != nil {

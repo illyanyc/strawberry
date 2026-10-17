@@ -196,6 +196,20 @@ test-py: ## pytest
 test-web: ## Web unit tests
 	pnpm -r --if-present test
 
+.PHONY: gen-calendar
+gen-calendar: ## Regenerate the shared XNYS session table (Go + Python copies) from exchange_calendars
+	uv run python scripts/gen_calendar.py
+
+.PHONY: perf
+perf: ## Section 03 performance targets (lake load, as-of join) on this machine
+	TB_PERF=1 uv run pytest libs/py/tbcore/tests/test_features.py -k perf -s -q
+
+.PHONY: spike-v4
+spike-v4: dirs ## V4: atomic-rename stress across the lake bind mount (writer in container, native reader), 120 s
+	@mkdir -p data/lake/spikes/v4
+	( $(COMPOSE) run --rm --no-deps marketdata spike v4 --role writer --dir /data/lake/spikes/v4 --duration 120s > data/lake/spikes/v4-writer.json ) & \
+	  sleep 5; uv run python scripts/spike_v4_reader.py data/lake/spikes/v4 110; status=$$?; wait; cat data/lake/spikes/v4-writer.json; exit $$status
+
 .PHONY: docs-check
 docs-check: ## Documentation protocol gate: file-map coverage + same-commit doc rules vs BASE_REF
 	python3 scripts/docs_check.py coverage
