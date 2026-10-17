@@ -52,6 +52,11 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | Path | Status | Purpose |
 |---|---|---|
 | `docs/file-map.md` | Exists | This file |
+| `docs/project-context.md` | Exists | Owner's confirmed inputs (accounts, data sources, Mac Mini host, remote access); overrides the master prompt's U1–U8 placeholders |
+| `docs/prompts/` | Exists | Build prompts: `00-master-prompt.md` (goals, non-negotiables N1–N6, contracts, phases and gates) and section prompts `01`–`15` |
+| `docs/research-prompt.md` | Exists | The research brief that produced the research report |
+| `docs/research-report.md` | Exists | Deep research report (executive summary, decisions that differ from defaults); index for `docs/research/` |
+| `docs/research/` | Exists | Research sections `01`–`10`; `09-decisions.md` resolves D1–D27 and proposes D28–D31 (accepted by the owner) |
 | `docs/glossary.md` | Exists | Domain terms |
 | `docs/decisions.md` | Exists | Decision register (D1–D27 plus later rows): status, default, ADR link |
 | `docs/architecture/overview.md` | Exists | Components, data flows, the two loops, cross-cutting design, bus subjects |
