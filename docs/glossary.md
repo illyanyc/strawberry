@@ -6,6 +6,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 |---|---|
 | **ADR** | Architecture Decision Record in `docs/adr/`; one decision per file, superseded rather than rewritten. |
 | **Attribution ID** | The ID placed in Alpaca `client_order_id` / IBKR `orderRef` that identifies the owning strategy and intent: `tb1-<strategyShortId>-<intentULID>-<attempt>`. |
+| **Audit chain** | The hash-linked sequence of audit events: each event's hash covers the previous hash and its own canonical fields; `make audit-verify` recomputes it. |
 | **`available_at`** | The earliest time the platform could have known a datum. All point-in-time filtering uses it, never `event_time`. |
 | **Broker account (`broker_account_id`)** | One real account at one broker in one environment (paper or live). Paper and live are different accounts. |
 | **Champion / challenger** | The currently deployed model version for a strategy, and a candidate running in shadow or paper alongside it. |
@@ -34,7 +35,9 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Purged / embargoed CV** | Time-series cross-validation that removes training samples overlapping test labels (purge) and a gap after the test set (embargo). |
 | **Reconciliation** | Check that broker positions equal the sum of virtual ledgers plus the manual bucket; unexplained differences halt affected strategies. |
 | **Risk decision** | The recorded outcome of pre-trade checks for an intent: approved or rejected, with each check's value and limit. |
+| **Schema owner role** | NOLOGIN Postgres role (`<schema>_owner`) that owns a schema and runs its migrations; services never log in as it. |
 | **Sealed holdout** | Final data period that optimization never sees; access is logged and counted. |
+| **Service token** | Short-lived Ed25519-signed token identifying the calling service on an internal call (SE-040). |
 | **Shadow mode** | A model produces signals that are recorded but never sent as orders. |
 | **Step-up auth** | Fresh re-authentication required for dangerous actions. |
 | **Triple-barrier label** | Label set by which of a profit-take, stop-loss, or time barrier is hit first. |

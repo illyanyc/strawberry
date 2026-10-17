@@ -65,6 +65,10 @@ test: test-go test-py test-web ## All unit and contract tests
 test-go: ## go test -race on every Go module
 	@for m in $(GO_MODULES); do echo "go test $$m"; (cd $$m && go test -race -count=1 ./...); done
 
+.PHONY: test-integration
+test-integration: ## Go tests including Postgres integration tests (throwaway container unless TB_TEST_PG_SUPER_DSN is set)
+	scripts/test-integration.sh
+
 .PHONY: test-py
 test-py: ## pytest
 	uv run pytest

@@ -93,9 +93,8 @@ def check_diff(base: str) -> list[str]:
         for required in (FILE_MAP, CHANGELOG):
             if required not in changed:
                 errors.append(f"files added/moved/removed but {required} not updated: {structural[:5]}")
-    if any(p.startswith("contracts/") for p in changed):
-        if OVERVIEW not in changed and not new_adrs:
-            errors.append(f"contracts/ changed without updating {OVERVIEW} or adding an ADR")
+    if any(p.startswith("contracts/") for p in changed) and OVERVIEW not in changed and not new_adrs:
+        errors.append(f"contracts/ changed without updating {OVERVIEW} or adding an ADR")
     if new_adrs and DECISIONS not in changed:
         errors.append(f"new ADR(s) {new_adrs} without updating {DECISIONS}")
     return errors

@@ -7,9 +7,10 @@ dependencies = []
 
 [dependency-groups]
 dev = [
-  "pytest==8.4.2",
-  "ruff==0.14.0",
-  "mypy==1.18.2",
+  "pytest==9.1.1",
+  "ruff==0.17.1",
+  "mypy==2.4.0",
+  "httpx==0.28.1",
 ]
 
 [tool.uv]
@@ -18,13 +19,15 @@ package = false
 [tool.uv.workspace]
 members = [
   "contracts/gen/python",
+  "libs/py/tbcore",
 ]
 
 [tool.uv.sources]
 tbcontracts = { workspace = true }
+tbcore = { workspace = true }
 
 [tool.pytest.ini_options]
-testpaths = ["contracts/tests"]
+testpaths = ["contracts/tests", "libs/py/tbcore/tests"]
 addopts = "-q"
 
 [tool.ruff]
@@ -36,7 +39,21 @@ extend-exclude = ["contracts/gen"]
 select = ["E", "F", "I", "B", "UP", "S", "SIM", "RUF"]
 ignore = ["S101"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["tbcore", "tb"]
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/*.py" = ["S603", "S607"]
+
 [tool.mypy]
 python_version = "3.12"
 strict = true
+mypy_path = "contracts/gen/python/src:libs/py/tbcore/src"
+explicit_package_bases = true
+files = ["libs/py/tbcore/src", "libs/py/tbcore/tests", "contracts/tests"]
 exclude = ["contracts/gen/"]
+
+[[tool.mypy.overrides]]
+# Generated protobuf modules ship .pyi stubs but no py.typed marker (namespace package).
+module = "tb.*"
+follow_untyped_imports = true

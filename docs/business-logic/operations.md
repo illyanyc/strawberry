@@ -20,6 +20,9 @@ How the platform is built, checked, run, backed up, and restored on the owner's 
 | OP-003 | A change set that touches `contracts/` MUST also change `docs/architecture/overview.md` or add an ADR, or CI fails. | Implemented | `scripts/docs_check.py` (`diff`) |
 | OP-004 | A change set that adds a file under `docs/adr/` MUST also change `docs/decisions.md`, or CI fails. | Implemented | `scripts/docs_check.py` (`diff`) |
 | OP-005 | Every git-tracked file MUST be covered by an entry in `docs/file-map.md` (exact path or a covering directory entry); a `Planned` row MUST NOT point at an existing path. | Implemented | `scripts/docs_check.py` (`coverage`) |
+| OP-010 | Every service MUST expose `/healthz` (liveness), `/readyz` (dependency checks; 503 with only check names, never error details), and `/metrics` (Prometheus) on an internal ops listener (`:8081`), and log JSON with `service`, `level`, `correlation_id`, `trace_id`. | Implemented | `libs/go/ops`, `libs/go/svc`, `libs/py/tbcore/src/tbcore/service.py`; `TestHealthReadyMetrics`, `test_op010_ops_endpoints` |
+| OP-020 | Host clock skew MUST be measured against NTP and exported as `tb_clock_skew_seconds`; with no fresh measurement or skew above `clock.max_skew` (default 250 ms), `clock.Healthy()` is false so trading services refuse to open risk (section 07). | Implemented | `libs/go/clock`; `TestOP020HealthyFailsClosed` |
+| OP-030 | Order-path subjects (`ord.>`, `exec.>`, `risk.kill`) and ledger subjects MUST live in durable file-backed JetStream streams with a dedupe window; market data uses memory streams with bounded retention. | Implemented | `libs/go/bus/bus.go` |
 | OP-006 | The OP-002..OP-004 diff checks MAY be bypassed only through the reviewed PR label `docs-check-skip` (sets `DOCS_CHECK_SKIP=1`); coverage (OP-005) is never skipped. | Implemented | `scripts/docs_check.py` |
 
 ## Invariants

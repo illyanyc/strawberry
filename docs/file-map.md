@@ -17,7 +17,9 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `.gitignore` | Exists | Ignores local tooling (`.tools/`), runtime secrets (`.secrets/`), backups, build output, env files |
 | `.gitattributes` | Exists | LF line endings; marks generated code and lockfiles as generated |
 | `.editorconfig` | Exists | Editor whitespace conventions per language |
+| `.golangci.yml` | Exists | golangci-lint v2 config shared by every Go module (standard + gosec, bodyclose, noctx, errorlint; gofmt/goimports) |
 | `go.work` | Exists | Go workspace listing every Go module (ADR-0002) |
+| `go.work.sum` | Exists | Checksums for workspace-level Go dependencies |
 | `pyproject.toml` | Exists | uv workspace root (virtual, not a package): members, dev tools (pytest, ruff, mypy), tool config |
 | `uv.lock` | Exists | Python lockfile for the whole uv workspace |
 | `package.json` | Exists | pnpm workspace root (pins pnpm via `packageManager`) |
@@ -31,6 +33,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `tools/versions.env` | Exists | Pinned toolchain versions (Go, Python, Node, pnpm, uv, buf, protoc, protoc plugins, golangci-lint, gitleaks); single source for scripts and CI |
 | `scripts/bootstrap-tools.sh` | Exists | Installs pinned tools into `.tools/bin` (gitignored); used by `make tools` and CI |
 | `scripts/docs_check.py` | Exists | Documentation gate: file-map coverage and same-commit doc rules for a diff (N6) |
+| `scripts/test-integration.sh` | Exists | Runs Go tests with a throwaway Postgres (`make test-integration`) |
 
 ## Agent rules: `.cursor/rules/`
 
@@ -61,11 +64,17 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/business-logic/strategies-and-model-lifecycle.md` | Exists | `SM-` rules: modes, promotion, demotion, holdout, reproducibility |
 | `docs/business-logic/data-and-features.md` | Exists | `DF-` rules: timestamps, point-in-time, adjustments, feature parity |
 | `docs/business-logic/operations.md` | Exists | `OP-` rules: build, run, deploy, backup/restore, host and toolchain behavior |
+| `docs/business-logic/security.md` | Exists | `SE-` rules: policy, step-up, sessions, CSRF, secrets, credential encryption, redaction, audit, DB privileges |
 | `docs/adr/README.md` | Exists | ADR process and index |
 | `docs/adr/template.md` | Exists | ADR template |
 | `docs/adr/0001-agent-documentation-structure.md` | Exists | ADR: this documentation structure and protocol |
 | `docs/adr/0002-monorepo-layout-and-toolchain.md` | Exists | ADR: monorepo layout, workspaces, pinned toolchain, docs gate |
 | `docs/adr/0003-contracts-protobuf-buf.md` | Exists | ADR (D3, provisional): Protobuf contracts, buf, local-plugin codegen, committed generated code |
+| `docs/adr/0004-core-language-split.md` | Exists | ADR (D1, provisional): Go core services, Python ML/research |
+| `docs/adr/0005-postgres-layout-and-migrations.md` | Exists | ADR (D5, provisional): one `platform` DB, schema per area, `svc_*` roles, owner-role migrations |
+| `docs/adr/0006-audit-log-hash-chain.md` | Exists | ADR (D30): audit hash chain computed in Postgres, verified in Go |
+| `docs/adr/0007-service-to-service-auth.md` | Exists | ADR (D29, provisional): Ed25519 service tokens with per-method allowlists |
+| `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2, provisional): NATS JetStream, stream layout |
 | `docs/runbooks/` | Planned | Kill switch, broker outage, reconciliation break, restore |
 | `docs/threat-model.md` | Planned | Assets, actors, STRIDE, mitigations |
 
@@ -86,6 +95,13 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `contracts/jsonschema/` | Planned | JSON Schemas generated from proto for gateway/UI validation (Phase 1) |
 | `contracts/openapi/` | Planned | Gateway REST API (OpenAPI 3.1) |
 
+## Shared libraries: `libs/`
+
+| Path | Status | Purpose |
+|---|---|---|
+| `libs/go/` | Exists | Go module: config, logging/redaction, secrets, ops, telemetry, svc template, svcauth, policy, audit, db (+ embedded migrations), bus, clock. Internal layout in [`libs/go/AGENTS.md`](../libs/go/AGENTS.md) |
+| `libs/py/tbcore/` | Exists | Python package: service template, JSON logging with redaction, secrets (later: features, labels, strategy API). Layout in [`libs/py/tbcore/AGENTS.md`](../libs/py/tbcore/AGENTS.md) |
+
 ## Code (all Planned)
 
 | Path | Purpose | Agent notes |
@@ -101,8 +117,6 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `services/optimizer/` | Studies, holdout discipline, champion/challenger | `AGENTS.md` in dir |
 | `services/assistant/` | LLM agent with constrained tools | `AGENTS.md` in dir |
 | `services/monitor/` | Drift, divergence, alerts, auto-demotion | `AGENTS.md` in dir |
-| `libs/go/` | Shared Go: config, logging, bus client, auth middleware, clock, calendar | `AGENTS.md` in dir |
-| `libs/py/tbcore/` | Shared Python: instruments, calendar, features, labels, splitters, cost models, strategy API, metrics | `AGENTS.md` in dir |
 | `apps/web/` | Web UI, desktop + mobile PWA | `AGENTS.md` in dir |
 | `infra/compose/` | `docker-compose.yml` and profiles | `infra/AGENTS.md` |
 | `infra/docker/` | Hardened base images | `infra/AGENTS.md` |

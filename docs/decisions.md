@@ -8,11 +8,11 @@ When the research report lands, each Provisional row is either confirmed (status
 
 | ID | Decision | Default | Status | ADR |
 |---|---|---|---|---|
-| D1 | Core language (ingestion, broker adapters, OMS/risk, ledger) | Go core; Python for ML/research | Pending | — |
-| D2 | Event bus | NATS JetStream | Pending | — |
+| D1 | Core language (ingestion, broker adapters, OMS/risk, ledger) | Go core; Python for ML/research | Provisional (default, pending research) | [ADR-0004](adr/0004-core-language-split.md) |
+| D2 | Event bus | NATS JetStream | Provisional (default, pending research) | [ADR-0008](adr/0008-event-bus-nats-jetstream.md) |
 | D3 | Service RPC and schemas | gRPC + Protobuf via `buf`; REST + WebSocket to UI | Provisional (default, pending research) | [ADR-0003](adr/0003-contracts-protobuf-buf.md) |
 | D4 | Analytical market-data store | Parquet lake queried by DuckDB, single writer | Pending | — |
-| D5 | Transactional state | PostgreSQL | Pending | — |
+| D5 | Transactional state | PostgreSQL (one `platform` DB, schema per area, `svc_*` least-privilege roles) | Provisional (default, pending research) | [ADR-0005](adr/0005-postgres-layout-and-migrations.md) |
 | D6 | Hot cache / online features | Redis-compatible (Valkey/Redis) | Pending | — |
 | D7 | Backtesting engine | Vectorized research tier + event-driven tier sharing live strategy code | Pending | — |
 | D8 | Experiment tracking / registry | MLflow (self-hosted) | Pending | — |
@@ -36,4 +36,6 @@ When the research report lands, each Provisional row is either confirmed (status
 | D26 | Assistant LLM provider | Pluggable (local or API); no secrets/account data leave the box by default | Pending | — |
 | D27 | Price adjustments | Store raw bars + corporate actions; adjust at read time as of decision date | Pending | — |
 | D28 | Monorepo layout, workspaces, pinned toolchain | `go.work` + `uv` + `pnpm` workspaces; versions in `tools/versions.env`; `make` entry point | Accepted | [ADR-0002](adr/0002-monorepo-layout-and-toolchain.md) |
+| D29 | Service-to-service authentication | Short-lived Ed25519 service tokens with per-method allowlists (mTLS deferred to Phase 6) | Provisional (default, pending research) | [ADR-0007](adr/0007-service-to-service-auth.md) |
+| D30 | Audit log design | Postgres hash chain computed by a SECURITY DEFINER function; Go verifier | Accepted | [ADR-0006](adr/0006-audit-log-hash-chain.md) |
 | — | Agent documentation structure and protocol | — | Accepted | [ADR-0001](adr/0001-agent-documentation-structure.md) |

@@ -18,3 +18,8 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0001](0001-agent-documentation-structure.md) | Agent documentation structure and protocol | Accepted | 2026-10-17 |
 | [0002](0002-monorepo-layout-and-toolchain.md) | Monorepo layout, workspaces, and pinned toolchain | Accepted | 2026-10-17 |
 | [0003](0003-contracts-protobuf-buf.md) | Contracts in Protobuf with buf; Go/Python/TS codegen | Accepted (provisional) | 2026-10-17 |
+| [0004](0004-core-language-split.md) | Go for core services, Python for ML and research | Accepted (provisional) | 2026-10-17 |
+| [0005](0005-postgres-layout-and-migrations.md) | PostgreSQL layout, least-privilege roles, and migrations | Accepted (provisional) | 2026-10-17 |
+| [0006](0006-audit-log-hash-chain.md) | Tamper-evident audit log as a Postgres hash chain | Accepted | 2026-10-17 |
+| [0007](0007-service-to-service-auth.md) | Service-to-service authentication with short-lived Ed25519 tokens | Accepted (provisional) | 2026-10-17 |
+| [0008](0008-event-bus-nats-jetstream.md) | NATS JetStream as the event bus | Accepted (provisional) | 2026-10-17 |

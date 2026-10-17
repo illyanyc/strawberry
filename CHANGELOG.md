@@ -18,6 +18,10 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 - `make deps`, `make gen`, `make gen-check` (fails on stale generated code), `make lint-proto`, `make lint`, `make test` targets.
 - Workspaces: `go.work`, uv workspace (`pyproject.toml`, `uv.lock`), pnpm workspace (`package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`).
 - `docs/decisions.md` gains a **Provisional** status for defaults adopted ahead of the research report.
+- Shared Go library `libs/go`: typed config, JSON logging with secret redaction (SE-012), file-mounted secrets (SE-010), ops listener with `/healthz` `/readyz` `/metrics` and HTTP metrics (OP-010), OpenTelemetry tracing, service template, Ed25519 service tokens with gRPC interceptors (SE-040, [ADR-0007](docs/adr/0007-service-to-service-auth.md)), the single authorization policy with step-up rules (SE-001..SE-003, SE-014), audit writer and chain verifier (SE-020, SE-022, [ADR-0006](docs/adr/0006-audit-log-hash-chain.md)), Postgres bootstrap and embedded migrations for schemas `audit`, `auth`, `config`, `secrets` with least-privilege roles (SE-032, SE-050, [ADR-0005](docs/adr/0005-postgres-layout-and-migrations.md)), JetStream stream definitions (OP-030, [ADR-0008](docs/adr/0008-event-bus-nats-jetstream.md)), NTP clock-skew checker (OP-020).
+- Shared Python library `libs/py/tbcore`: service settings, ops app, JSON logging with redaction, secrets.
+- `docs/business-logic/security.md` (`SE-` rules); ADR-0004 (D1), ADR-0005 (D5), ADR-0008 (D2) provisional; new decisions D29 (service auth) and D30 (audit design).
+- `.golangci.yml` shared lint config; `make test-integration` (`scripts/test-integration.sh`) runs Postgres-backed tests in a throwaway container.
 
 ### Changed
 
