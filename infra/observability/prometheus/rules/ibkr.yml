@@ -1,0 +1,38 @@
+# IBKR adapter alerts (D18, ADR-0023; IB-013..IB-015, BR-021). The adapter classifies outages against
+# the IB Gateway maintenance calendar and exports tb_ibkr_alert_active; these rules only route it.
+# Critical -> Pushover emergency (D13).
+groups:
+  - name: ibkr
+    rules:
+      - alert: IbkrAdapterDown
+        expr: up{tier="ibkr"} == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: "{{ $labels.service }} is down"
+          description: "The IBKR adapter process is not scrapeable; IBKR strategies are blocked."
+          runbook_url: docs/runbooks/service-down.md
+
+      - alert: IbkrSessionCritical
+        expr: max by (environment, subject) (tb_ibkr_alert_active{severity="critical"}) == 1
+        labels: { severity: critical }
+        annotations:
+          summary: "IBKR {{ $labels.environment }}: {{ $labels.subject }}"
+          description: "The IBKR adapter raised a critical alert (re-auth/2FA needed, gateway down, environment or orderRef mismatch, margin deficit). Details are in the adapter log and on alert.critical."
+          runbook_url: docs/runbooks/ibkr-weekly-2fa.md
+
+      - alert: IbkrSessionWarning
+        expr: max by (environment, subject) (tb_ibkr_alert_active{severity="warning"}) == 1
+        labels: { severity: warning }
+        annotations:
+          summary: "IBKR {{ $labels.environment }}: {{ $labels.subject }}"
+          description: "Weekly login reminder, weekend outage, execution gap, or malformed attribution."
+          runbook_url: docs/runbooks/ibkr-weekly-2fa.md
+
+      - alert: IbkrReauthRequired
+        expr: max by (environment) (tb_ibkr_reauth_required) == 1
+        for: 2m
+        labels: { severity: warning }
+        annotations:
+          summary: "IBKR {{ $labels.environment }} gateway is waiting for a login / 2FA approval"
+          runbook_url: docs/runbooks/ibkr-weekly-2fa.md

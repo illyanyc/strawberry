@@ -44,3 +44,6 @@ playwright-report/
 .env
 .env.*
 !.env.example
+
+# IBKR spike V1 output (make test-ibkr-paper)
+v1-order-ref*.json

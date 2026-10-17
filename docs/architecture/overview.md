@@ -153,6 +153,23 @@ flowchart TB
 - Only the gateway and Grafana publish ports, on `127.0.0.1` (SE-051, OP-041). `make up NATIVE_ML=1` additionally exposes Postgres and NATS on loopback for native workers (D29).
 - The same Compose file runs on a Linux droplet later (D21); the `ml-workers` profile replaces native launchd workers there.
 
+### IBKR (profiles `ibkr`, `ibkr-live`; ADR-0023)
+
+```mermaid
+flowchart LR
+  EX[execution / ledger] -- gRPC BrokerGatewayService --> AD[broker-gateway-ibkr-&lt;env&gt;]
+  AD -- TWS API socket · ibkr network (internal) --> GWY[ib-gateway-&lt;env&gt; · IB Gateway + IBC]
+  GWY -- ibkr-egress --> IBKR[(IBKR servers)]
+  AD -- ord.update / exec / acct.snapshot / recon.request / alert --> NATS{{NATS}}
+  AD -- audit.append --> PG[(Postgres)]
+  AD -- tb_ibkr_* metrics --> PROM[Prometheus] -- IbkrSession* --> AM[Alertmanager → Pushover]
+  OWN[Owner laptop] -. SSH over Tailscale, only during make ibkr-vnc .-> VNC[ibkr-vnc :5900 → 127.0.0.1] -.-> GWY
+```
+
+- The TWS API socket is unauthenticated, so it is never published and only the adapters share the internal `ibkr` network with the gateways; the gateways reach IBKR through `ibkr-egress` (IB-071). The IBKR login is mounted only into the gateway (SE-034).
+- IBC restarts the gateway daily (session reused) and cold-restarts it on Sunday (full login, 2FA). The adapter classifies outages against that calendar and pages only when the owner must act (IB-013..IB-015).
+- Until the shared outbox is adopted for IBKR, the adapter publishes executions directly with `Nats-Msg-Id = exec|<acct>|<execId>` and a durable cursor (IB-031, ADR-0023).
+
 ## Bus subjects
 
 ```

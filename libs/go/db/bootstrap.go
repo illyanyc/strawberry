@@ -39,12 +39,14 @@ var Schemas = []Schema{
 // LoginRoles are the service roles that may log in to the platform database. Their passwords are
 // read from secrets pg_<role>_password by `tbctl db init`.
 var LoginRoles = []string{
-	"svc_api_gateway", "svc_broker_gateway", "svc_marketdata", "svc_execution", "svc_ledger", "svc_ops", "svc_metrics",
+	"svc_api_gateway", "svc_broker_gateway", "svc_broker_gateway_ibkr", "svc_marketdata", "svc_execution", "svc_ledger",
+	"svc_ops", "svc_metrics",
 }
 
 // GroupRoles are NOLOGIN roles granted to login roles.
 var GroupRoles = map[string][]string{
-	"audit_writer": {"svc_api_gateway", "svc_broker_gateway", "svc_marketdata", "svc_execution", "svc_ledger"},
+	// svc_broker_gateway_ibkr only appends order-path audit events (BR-014); it has no table grants.
+	"audit_writer": {"svc_api_gateway", "svc_broker_gateway", "svc_broker_gateway_ibkr", "svc_marketdata", "svc_execution", "svc_ledger"},
 	"audit_reader": {"svc_api_gateway", "svc_ops"},
 	// Read-only reference data (instrument master, calendar, corporate actions, universes).
 	"refdata_reader": {"svc_ledger", "svc_execution", "svc_api_gateway", "svc_broker_gateway"},

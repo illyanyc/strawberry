@@ -60,3 +60,15 @@ scrape_configs:
         target_label: service
       - target_label: tier
         replacement: optional
+
+  # IBKR adapters run only with the ibkr / ibkr-live profiles (real IB Gateway login needed).
+  - job_name: ibkr
+    dns_sd_configs:
+      - names: ["broker-gateway-ibkr-paper", "broker-gateway-ibkr-live"]
+        type: A
+        port: 8081
+    relabel_configs:
+      - source_labels: [__meta_dns_name]
+        target_label: service
+      - target_label: tier
+        replacement: ibkr

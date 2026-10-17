@@ -7,7 +7,7 @@ Everything that builds, runs, observes, backs up, and hosts the stack. The same 
 ## Layout
 | Path | Purpose |
 |---|---|
-| `compose/docker-compose.yml` | The stack: profiles `core`, `observability`, `ml`, `ml-workers` (Linux), `ops`, `remote-cloudflare` |
+| `compose/docker-compose.yml` | The stack: profiles `core`, `observability`, `ml`, `ml-workers` (Linux), `ops`, `remote-cloudflare`, `ibkr` (paper IB Gateway + adapter), `ibkr-live`, `ibkr-vnc` (on-demand VNC proxy) |
 | `compose/docker-compose.native-ml.yml` | Overlay publishing Postgres/NATS on 127.0.0.1 for native macOS ML workers (`make up NATIVE_ML=1`) |
 | `compose/nats/nats.conf` | JetStream config (`sync_interval: always`); users come from the generated secret |
 | `compose/env.example` | Non-secret overrides (copy to `compose/.env`): remote RP ID/origins, trusted proxies, ports |
@@ -32,11 +32,13 @@ Everything that builds, runs, observes, backs up, and hosts the stack. The same 
 - `OP-061` smoke test → `scripts/smoke.sh`
 - `OP-062` survive reboots → `macos/`, `restart: unless-stopped`
 - `SE-010` secrets as files, `SE-051` no public exposure
+- `IB-070`..`IB-073`, `SE-034` IB Gateway login custody, internal `ibkr` network, on-demand VNC, pinned image → `compose/docker-compose.yml`, `Makefile` (`ibkr-vnc`); runbook `docs/runbooks/ibkr-weekly-2fa.md`
 
 ## Run and test
 - First run: `make bootstrap && make up` → `make setup-token` → http://localhost:8080. Grafana: http://localhost:3000 (admin / `.secrets/grafana_admin_password`).
 - `make smoke` (readiness, auth gate, ports, e2e flow + leak canary on a fresh stack, Prometheus targets, audit chain), `make backup-drill`, `make port-check`, `make check-arm64`.
 - `make down` keeps volumes; `make clean` deletes them.
+- IBKR: fill `.secrets/ibkr_{paper,live}_{username,password}` and `TB_IBKR_*_ACCOUNTS` in `compose/.env`, then `make up PROFILES=core,observability,ibkr` (runbook `docs/runbooks/ibkr-weekly-2fa.md`). Manual login: `make ibkr-vnc IBKR_ENV=live`, then `make ibkr-vnc-stop`.
 
 ## Configuration
 | Variable | Default | Notes |
@@ -46,6 +48,10 @@ Everything that builds, runs, observes, backs up, and hosts the stack. The same 
 | `TB_SECRETS_DIR` / `TB_LAKE_DIR` / `TB_ARTIFACTS_DIR` / `TB_BACKUP_DIR` | repo `.secrets`, `data/lake`, `data/mlflow-artifacts`, `backups` | Host paths (APFS on the Mac) |
 | `TB_HOST_UID/GID` | `id -u/-g` | Writers of host bind mounts run as the owner |
 | `TB_CONTAINERD_SOCK` | `/run/containerd/containerd.sock` | cAdvisor container discovery |
+| `TB_IBKR_PAPER_ACCOUNTS` / `TB_IBKR_LIVE_ACCOUNTS` | unset | `alias=ACCOUNTCODE,…` for the IBKR adapters (required with `ibkr` / `ibkr-live`) |
+| `TB_IBKR_COLD_RESTART` / `TB_IBKR_DAILY_RESTART` / `TB_IBKR_DAILY_RESTART_AMPM` | `17:00` / `23:45` / `11:45 PM` | IBC weekly cold restart (Sunday, ET) and daily restart; keep the two daily values equal |
+| `TB_IBKR_VNC_TARGET` | `live` | Gateway the `ibkr-vnc` proxy forwards to (`make ibkr-vnc IBKR_ENV=...`) |
+| `TB_TRADING_LIVE_ENABLED` | `false` | Live gate 1 for the live IBKR adapter (BR-013) |
 
 ## Gotchas
 - Compose secret files are bind mounts: files are `0644` inside a `0700` directory so non-root containers can read them.
@@ -53,3 +59,5 @@ Everything that builds, runs, observes, backs up, and hosts the stack. The same 
 - Alloy mounts the Docker socket read-only (observability only, internal network, no ports): documented exception in ADR-0014.
 - On a Linux VM with stale `iptables-legacy` rules (FORWARD DROP), containers cannot reach each other; fix the host firewall, not the Compose file.
 - GPU profile intentionally absent (D25): Metal is not reachable from containers on macOS.
+- IB Gateway is a third-party image that renders its IBC/jts config at start, so it is not read-only (non-root, cap-drop-all, `no-new-privileges`, pinned by digest). Restarting or recreating `ib-gateway-<env>` mid-week forces a fresh IBKR login with 2FA; restart the adapter instead.
+- Internal networks cannot publish ports, which is why `ibkr-vnc` also joins its own `ibkr-vnc` bridge network.

@@ -136,6 +136,7 @@ jobs:
           - { name: ops, file: infra/docker/ops.Dockerfile, target: "", service: "" }
           - { name: monitor, file: infra/docker/python-service.Dockerfile, target: "", service: monitor }
           - { name: context-data, file: infra/docker/python-service.Dockerfile, target: "", service: context-data }
+          - { name: broker-gateway-ibkr, file: infra/docker/python-service.Dockerfile, target: "", service: broker-gateway-ibkr }
           - { name: mlflow, file: infra/docker/mlflow.Dockerfile, target: "", service: "" }
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

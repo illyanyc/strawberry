@@ -3,7 +3,9 @@
 #
 # Profiles:  core (gateway, brokers, data, execution, ledger, infra) · observability · ml (MLflow,
 #            Prefect, assistant) · ml-workers (containerized ML workers, Linux hosts only; on macOS
-#            they run natively under launchd, D29) · remote-cloudflare (optional Cloudflare Tunnel).
+#            they run natively under launchd, D29) · remote-cloudflare (optional Cloudflare Tunnel) ·
+#            ibkr (paper IB Gateway + IBKR adapter) · ibkr-live (live; adapter stays stopped without
+#            both live gates, BR-013) · ibkr-vnc (on-demand loopback VNC for manual IBKR login, ADR-0023).
 # Network:   `backend` is internal (no egress, never published); only api-gateway (8080) and
 #            Grafana (3000) publish ports, and only on 127.0.0.1 (SE-051, OP-041).
 # Secrets:   files from TB_SECRETS_DIR (default ../../.secrets, made by `make secrets`), mounted
@@ -55,6 +57,13 @@ networks:
   backend:
     internal: true
   edge: {}
+  # The TWS API socket is unauthenticated: only the IBKR adapters share this network with the
+  # gateways (IB-071). The gateways reach IBKR through ibkr-egress, which nothing else joins.
+  ibkr:
+    internal: true
+  ibkr-egress: {}
+  # Only the on-demand VNC proxy; internal networks cannot publish ports.
+  ibkr-vnc: {}
 
 volumes:
   pgdata: {}
@@ -64,6 +73,10 @@ volumes:
   alertmanager-data: {}
   grafana-data: {}
   victorialogs-data: {}
+  ibkr-paper-state: {}
+  ibkr-live-state: {}
+  ib-gateway-paper-settings: {}
+  ib-gateway-live-settings: {}
 
 secrets:
   pg_superuser_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_superuser_password" }
@@ -100,6 +113,14 @@ secrets:
   pushover_user_key: { file: "${TB_SECRETS_DIR:-../../.secrets}/pushover_user_key" }
   pushover_app_token: { file: "${TB_SECRETS_DIR:-../../.secrets}/pushover_app_token" }
   cloudflared_tunnel_token: { file: "${TB_SECRETS_DIR:-../../.secrets}/cloudflared_tunnel_token" }
+  # IBKR login (IB-070): deploy-time files mounted only into the matching ib-gateway container.
+  ibkr_paper_username: { file: "${TB_SECRETS_DIR:-../../.secrets}/ibkr_paper_username" }
+  ibkr_paper_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/ibkr_paper_password" }
+  ibkr_live_username: { file: "${TB_SECRETS_DIR:-../../.secrets}/ibkr_live_username" }
+  ibkr_live_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/ibkr_live_password" }
+  ibkr_vnc_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/ibkr_vnc_password" }
+  pg_svc_broker_gateway_ibkr_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_svc_broker_gateway_ibkr_password" }
+  nats_broker_gateway_ibkr_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_broker_gateway_ibkr_password" }
 
 services:
   # ---------------------------------------------------------------- infrastructure (core)
@@ -169,7 +190,7 @@ services:
     command: ["db", "init"]
     secrets: [pg_superuser_password, pg_svc_api_gateway_password, pg_svc_broker_gateway_password, pg_svc_marketdata_password,
               pg_svc_execution_password, pg_svc_ledger_password, pg_svc_ops_password, pg_svc_metrics_password,
-              pg_mlflow_password, pg_prefect_password]
+              pg_svc_broker_gateway_ibkr_password, pg_mlflow_password, pg_prefect_password]
     networks: [backend]
     depends_on: { postgres: { condition: service_healthy } }
 
@@ -310,6 +331,132 @@ services:
     networks: [backend]
     healthcheck: *py-healthcheck
     deploy: { resources: { limits: { memory: 256m } } }
+
+  # ---------------------------------------------------------------- IBKR profiles (D18, ADR-0023)
+  # IB Gateway + IBC 3.24.2, pinned to the gnzsnz `stable` build of 2026-10-17 (native arm64).
+  # Upgrades are planned changes with a paper soak (IB-073). Restarting a gateway mid-week forces a
+  # fresh login with 2FA: prefer `docker compose restart broker-gateway-ibkr-*` for adapter issues.
+  ib-gateway-paper: &ib-gateway
+    profiles: [ibkr]
+    image: ghcr.io/gnzsnz/ib-gateway:10.50.1f@sha256:1e2236804ac949b789197c225a048c0c891c9958f948c87166226e5b647ff581
+    restart: unless-stopped
+    init: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    logging: *logging
+    # The username is read from the secret file so it never sits in the environment of Compose.
+    entrypoint: ["/bin/bash", "-c", "TWS_USERID=\"$$(cat /run/secrets/ibkr_paper_username)\" exec /home/ibgateway/scripts/run.sh"]
+    environment: &ib-gateway-env
+      TRADING_MODE: paper
+      TWS_PASSWORD_FILE: /run/secrets/ibkr_paper_password
+      VNC_SERVER_PASSWORD_FILE: /run/secrets/ibkr_vnc_password
+      READ_ONLY_API: "no"
+      # Daily restart reuses the session (no 2FA); Sunday cold restart = weekly full login (IB-013/IB-014).
+      AUTO_RESTART_TIME: ${TB_IBKR_DAILY_RESTART_AMPM:-11:45 PM}
+      TWS_COLD_RESTART: ${TB_IBKR_COLD_RESTART:-17:00}
+      TIME_ZONE: America/New_York
+      TWOFA_TIMEOUT_ACTION: restart
+      RELOGIN_AFTER_TWOFA_TIMEOUT: "yes"
+      EXISTING_SESSION_DETECTED_ACTION: primary
+      TWS_MASTER_CLIENT_ID: "1"
+      TWS_ACCEPT_INCOMING: reject
+      BYPASS_WARNING: "yes"
+      ALLOW_BLIND_TRADING: "no"
+      TWS_SETTINGS_PATH: /home/ibgateway/tws_settings
+      JAVA_HEAP_SIZE: "768"
+    secrets: [ibkr_paper_username, ibkr_paper_password, ibkr_vnc_password]
+    tmpfs: ["/tmp:size=256m,uid=1000,gid=1000"]
+    volumes: ["ib-gateway-paper-settings:/home/ibgateway/tws_settings"]
+    networks: [ibkr, ibkr-egress]
+    # Healthy = socat is forwarding the API port; whether IBKR accepted the login is the adapter's
+    # session state (an unhealthy gateway would block `make up --wait` during a pending 2FA).
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/4004"]
+      interval: 15s
+      timeout: 3s
+      retries: 10
+      start_period: 60s
+    deploy: { resources: { limits: { memory: 1536m } } }
+
+  ib-gateway-live:
+    <<: *ib-gateway
+    profiles: [ibkr-live]
+    entrypoint: ["/bin/bash", "-c", "TWS_USERID=\"$$(cat /run/secrets/ibkr_live_username)\" exec /home/ibgateway/scripts/run.sh"]
+    environment:
+      <<: *ib-gateway-env
+      TRADING_MODE: live
+      TWS_PASSWORD_FILE: /run/secrets/ibkr_live_password
+    secrets: [ibkr_live_username, ibkr_live_password, ibkr_vnc_password]
+    volumes: ["ib-gateway-live-settings:/home/ibgateway/tws_settings"]
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/4003"]
+      interval: 15s
+      timeout: 3s
+      retries: 10
+      start_period: 60s
+
+  broker-gateway-ibkr-paper: &broker-gateway-ibkr
+    <<: *hardening
+    profiles: [ibkr]
+    image: strawberry/broker-gateway-ibkr:${TB_VERSION:-dev}
+    build: { <<: *py-build, args: { SERVICE: broker-gateway-ibkr } }
+    environment: &broker-gateway-ibkr-env
+      <<: *common-env
+      TB_SERVICE: broker-gateway-ibkr-paper
+      TB_IBKR_ENVIRONMENT: paper
+      TB_IBKR_HOST: ib-gateway-paper
+      TB_IBKR_PORT: "4004"
+      # alias=ACCOUNTCODE pairs (not secrets, but keep them out of the repo: set in compose/.env).
+      TB_IBKR_ACCOUNTS: ${TB_IBKR_PAPER_ACCOUNTS:-}
+      TB_IBKR_ORDER_REF_MAX_LEN: ${TB_IBKR_ORDER_REF_MAX_LEN:-44}
+      TB_IBKR_COLD_RESTART: ${TB_IBKR_COLD_RESTART:-17:00}
+      TB_IBKR_DAILY_RESTART: ${TB_IBKR_DAILY_RESTART:-23:45}
+      TB_IBKR_INSTRUMENTS_PATH: ${TB_IBKR_INSTRUMENTS_PATH:-}
+      TB_NATS_USER: broker_gateway_ibkr
+      TB_DB_USER: svc_broker_gateway_ibkr
+    secrets: [nats_broker_gateway_ibkr_password, pg_svc_broker_gateway_ibkr_password, svc_execution_ed25519.pub,
+              svc_ledger_ed25519.pub, svc_marketdata_ed25519.pub, svc_api_gateway_ed25519.pub]
+    volumes: ["ibkr-paper-state:/var/lib/broker-gateway-ibkr"]
+    networks: [backend, ibkr]
+    healthcheck: *py-healthcheck
+    depends_on:
+      db-init: { condition: service_completed_successfully }
+      bus-init: { condition: service_completed_successfully }
+      ib-gateway-paper: { condition: service_started }
+    deploy: { resources: { limits: { memory: 384m } } }
+
+  broker-gateway-ibkr-live:
+    <<: *broker-gateway-ibkr
+    profiles: [ibkr-live]
+    environment:
+      <<: *broker-gateway-ibkr-env
+      TB_SERVICE: broker-gateway-ibkr-live
+      TB_IBKR_ENVIRONMENT: live
+      TB_IBKR_HOST: ib-gateway-live
+      TB_IBKR_PORT: "4003"
+      TB_IBKR_ACCOUNTS: ${TB_IBKR_LIVE_ACCOUNTS:-}
+      # One of the two live gates (BR-013); the other is the audited per-account enablement.
+      TB_TRADING_LIVE_ENABLED: ${TB_TRADING_LIVE_ENABLED:-false}
+    volumes: ["ibkr-live-state:/var/lib/broker-gateway-ibkr"]
+    depends_on:
+      db-init: { condition: service_completed_successfully }
+      bus-init: { condition: service_completed_successfully }
+      ib-gateway-live: { condition: service_started }
+
+  # Manual-login fallback (IB-072): `make ibkr-vnc` publishes the gateway's VNC on 127.0.0.1:5900
+  # only while needed, without restarting the gateway. Reach it over SSH on Tailscale.
+  ibkr-vnc:
+    profiles: [ibkr-vnc]
+    image: ghcr.io/gnzsnz/ib-gateway:10.50.1f@sha256:1e2236804ac949b789197c225a048c0c891c9958f948c87166226e5b647ff581
+    restart: "no"
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    logging: *logging
+    entrypoint: ["socat", "TCP-LISTEN:5900,fork,reuseaddr", "TCP:ib-gateway-${TB_IBKR_VNC_TARGET:-live}:5900"]
+    ports: ["127.0.0.1:5900:5900"]
+    networks: [ibkr, ibkr-vnc]
 
   # ---------------------------------------------------------------- ml profile
   mlflow:
