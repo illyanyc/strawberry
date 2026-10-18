@@ -40,6 +40,7 @@ COPY apps/web/package.json apps/web/
 COPY contracts/gen/ts/package.json contracts/gen/ts/
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --filter "@strawberry/web..."
+COPY contracts/gen/ts/src/ contracts/gen/ts/src/
 COPY apps/web/ apps/web/
 RUN pnpm --filter @strawberry/web build
 

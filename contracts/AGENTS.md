@@ -15,7 +15,7 @@ Single source of truth for every cross-service message and RPC. Services never i
 | `buf.yaml`, `buf.gen.yaml` | Lint (STANDARD), breaking (FILE), local-plugin codegen |
 | `gen/go/` | Go module `github.com/illyanyc/strawberry/contracts/gen/go` (messages + gRPC) |
 | `gen/python/` | Python package `tbcontracts` (import as `tb.<domain>.v1.<file>_pb2`, with `.pyi` stubs) |
-| `gen/ts/` | pnpm package `@strawberry/contracts` (protoc-gen-es v2, `target=ts`) |
+| `gen/ts/` | pnpm package `@strawberry/contracts` (protoc-gen-es v2, `target=ts`, `json_types=true`: each message also has a `*Json` type for its canonical JSON form, used by the web UI per ADR-0028) |
 | `openapi/` | Gateway REST API (hand-written OpenAPI 3.1) |
 | `tests/` | Python round-trip tests (Go test lives in `gen/go/contracts_test.go`, TS type test in `gen/ts/test/`) |
 

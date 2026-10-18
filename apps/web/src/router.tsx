@@ -5,10 +5,16 @@ import { AppShell } from "@/components/AppShell";
 import { StepUpDialog } from "@/components/StepUpDialog";
 import { api, type AuthState } from "@/lib/api";
 import { AuditPage } from "@/routes/audit";
+import { ChartsPage } from "@/routes/charts";
+import { OrderTicketPage } from "@/routes/order-ticket";
+import { OrdersPage } from "@/routes/orders";
+import { PortfolioPage } from "@/routes/portfolio";
+import { RiskPage } from "@/routes/risk";
 import { LoginPage, SetupPage } from "@/routes/auth";
 import { DashboardPage } from "@/routes/dashboard";
 import { SecurityPage } from "@/routes/security";
 import { BrokersPage, PlatformSettingsPage } from "@/routes/settings";
+import { StrategiesPage, StrategyDetailPage } from "@/routes/strategies";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 10_000, retry: 1, refetchOnWindowFocus: true } },
@@ -63,11 +69,31 @@ const securityRoute = createRoute({ getParentRoute: () => appRoute, path: "/sett
 const brokersRoute = createRoute({ getParentRoute: () => appRoute, path: "/settings/brokers", component: BrokersPage });
 const platformRoute = createRoute({ getParentRoute: () => appRoute, path: "/settings/platform", component: PlatformSettingsPage });
 const auditRoute = createRoute({ getParentRoute: () => appRoute, path: "/audit", component: AuditPage });
+const portfolioRoute = createRoute({ getParentRoute: () => appRoute, path: "/portfolio", component: PortfolioPage });
+const strategiesRoute = createRoute({ getParentRoute: () => appRoute, path: "/strategies", component: StrategiesPage });
+const strategyRoute = createRoute({ getParentRoute: () => appRoute, path: "/strategies/$strategyId", component: StrategyDetailPage });
+const ordersRoute = createRoute({ getParentRoute: () => appRoute, path: "/orders", component: OrdersPage });
+const orderTicketRoute = createRoute({ getParentRoute: () => appRoute, path: "/orders/new", component: OrderTicketPage });
+const chartsRoute = createRoute({ getParentRoute: () => appRoute, path: "/charts", component: ChartsPage });
+const riskRoute = createRoute({ getParentRoute: () => appRoute, path: "/risk", component: RiskPage });
 
 const routeTree = rootRoute.addChildren([
   loginRoute,
   setupRoute,
-  appRoute.addChildren([dashboardRoute, securityRoute, brokersRoute, platformRoute, auditRoute]),
+  appRoute.addChildren([
+    dashboardRoute,
+    portfolioRoute,
+    strategiesRoute,
+    strategyRoute,
+    ordersRoute,
+    orderTicketRoute,
+    chartsRoute,
+    riskRoute,
+    securityRoute,
+    brokersRoute,
+    platformRoute,
+    auditRoute,
+  ]),
 ]);
 
 export const router = createRouter({ routeTree, defaultPreload: "intent" });

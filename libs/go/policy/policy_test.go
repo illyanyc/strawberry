@@ -11,6 +11,7 @@ var mustRequirePasskeyStepUp = []Action{
 	ActTradingLiveEnable, ActStrategyPromoteLive, ActRiskLimitsRaise, ActAllocationIncrease,
 	ActKillSwitchDisable, ActBrokerCredWrite, ActBrokerCredDelete, ActBrokerCredStatus,
 	ActMobileOrderEnable, ActAssistantWriteEnable, ActDataExportPositions, ActAuthPasskeyDelete,
+	ActLedgerBreakResolve,
 }
 
 var recoveryActions = []Action{ActAuthPasskeyRegister, ActAuthTOTPEnroll, ActAuthRecoveryRegen}

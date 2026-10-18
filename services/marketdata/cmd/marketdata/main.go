@@ -280,7 +280,7 @@ func main() {
 	}
 	allowed := maps.Clone(api.AllowedCallers)
 	gs := grpc.NewServer(grpc.UnaryInterceptor(verifier.UnaryServerInterceptor(allowed)), grpc.StreamInterceptor(verifier.StreamServerInterceptor(allowed)))
-	mdv1.RegisterMarketDataServiceServer(gs, &api.Server{Backfiller: bf, Store: store, Pipe: pipe, Streamer: streamer, Universe: unis, Feed: c.Feed, Now: time.Now})
+	mdv1.RegisterMarketDataServiceServer(gs, &api.Server{Backfiller: bf, Store: store, Pipe: pipe, Streamer: streamer, Universe: unis, Feed: c.Feed, Now: time.Now, Bars: cc, Symbols: unis})
 
 	rt.Ops.AddCheck("postgres", db.Ping(pool))
 	rt.Ops.AddCheck("bus", bus.Ready(nc))

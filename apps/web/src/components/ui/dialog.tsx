@@ -1,8 +1,10 @@
-import { type ReactNode, useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useId, useRef } from "react";
 
 /** Modal dialog on the native <dialog> element (focus trap, Esc to close, inert background). */
 export function Dialog({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
   const ref = useRef<HTMLDialogElement>(null);
+  // Unique per dialog: a step-up dialog can open on top of another dialog.
+  const titleId = useId();
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
@@ -16,11 +18,11 @@ export function Dialog({ open, onClose, title, children }: { open: boolean; onCl
         e.preventDefault();
         onClose();
       }}
-      aria-labelledby="dialog-title"
+      aria-labelledby={titleId}
       className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-xl border border-border bg-panel p-0 text-fg shadow-2xl"
     >
       <div className="border-b border-border px-5 py-4">
-        <h2 id="dialog-title" className="text-base font-semibold">
+        <h2 id={titleId} className="text-base font-semibold">
           {title}
         </h2>
       </div>

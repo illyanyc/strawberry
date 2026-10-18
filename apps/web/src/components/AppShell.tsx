@@ -3,14 +3,21 @@ import { Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useCallback } from "react";
 
 import { EnvironmentBanner } from "@/components/EnvironmentBanner";
+import { GlobalKillSwitch } from "@/components/KillSwitch";
 import { Badge } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { api, type TradingStatus } from "@/lib/api";
 import { STALE_AFTER_MS, useNow, useTradingStatus } from "@/lib/events";
+import { enumLabel } from "@/lib/trading";
 import { cn, formatTime } from "@/lib/utils";
 
 const nav = [
   { to: "/", label: "Dashboard", short: "Home" },
+  { to: "/portfolio", label: "Portfolio", short: "Portfolio" },
+  { to: "/strategies", label: "Strategies", short: "Strategies" },
+  { to: "/orders", label: "Orders", short: "Orders" },
+  { to: "/charts", label: "Charts", short: "Charts" },
+  { to: "/risk", label: "Risk & kill switches", short: "Risk" },
   { to: "/settings/security", label: "Security", short: "Security" },
   { to: "/settings/brokers", label: "Broker connections", short: "Brokers" },
   { to: "/settings/platform", label: "Platform settings", short: "Settings" },
@@ -48,20 +55,9 @@ export function AppShell() {
           <span className={cn("size-2 rounded-full", connected && !stale ? "bg-ok" : "bg-warn")} aria-hidden />
           <span className="text-muted">{connected && !stale ? "Live status" : "Status stale"}</span>
         </span>
-        <span className="hidden gap-2 md:flex">
-          <Badge tone="neutral">Brokers: Phase 1</Badge>
-          <Badge tone="neutral">Recon: Phase 2</Badge>
-        </span>
+        <TradingBadges status={status} />
         <div className="ml-auto flex items-center gap-2">
-          <Button
-            variant="danger"
-            size="sm"
-            disabled
-            title="Kill switches arrive with the execution service (Phase 2)"
-            aria-label="Global kill switch (available in Phase 2)"
-          >
-            Kill switch
-          </Button>
+          <GlobalKillSwitch trading={status?.trading} />
           <Button variant="ghost" size="sm" onClick={logout}>
             Log out
           </Button>
@@ -88,13 +84,13 @@ export function AppShell() {
           <Outlet />
         </main>
       </div>
-      <nav aria-label="Main mobile" className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-5 border-t border-border bg-panel md:hidden">
+      <nav aria-label="Main mobile" className="fixed inset-x-0 bottom-0 z-10 flex overflow-x-auto border-t border-border bg-panel md:hidden">
         {nav.map((n) => (
           <Link
             key={n.to}
             to={n.to}
             activeOptions={{ exact: n.to === "/" }}
-            className="px-1 py-3 text-center text-[11px] text-muted"
+            className="min-w-[4.5rem] flex-1 px-1 py-3 text-center text-[11px] text-muted"
             activeProps={{ className: "text-fg font-semibold" }}
           >
             {n.short}
@@ -102,6 +98,42 @@ export function AppShell() {
         ))}
       </nav>
     </div>
+  );
+}
+
+/**
+ * Global trading status (UI-013): execution state, each broker account's session, reconciliation,
+ * margin flags, and day-trade count. Execution unreachable shows "unknown", never a healthy state.
+ */
+function TradingBadges({ status }: { status: TradingStatus | null }) {
+  if (!status) return null;
+  const t = status.trading;
+  if (!t) {
+    return (
+      <span className="flex flex-wrap gap-2">
+        <Badge tone="warn">Execution: unknown</Badge>
+      </span>
+    );
+  }
+  const frozen = t.globalState !== "running";
+  return (
+    <span className="flex flex-wrap items-center gap-2">
+      <Badge tone={frozen ? "danger" : "ok"}>{frozen ? "Frozen" : "Running"}</Badge>
+      {t.accounts.map((a) => {
+        const recon = enumLabel(a.reconciliationStatus, "RECONCILIATION_STATUS_");
+        const healthy = a.acceptingIntents && recon === "ok";
+        return (
+          <span key={a.brokerAccountId} className="hidden lg:inline-flex" title={a.blockedReasons.join("; ") || undefined}>
+            <Badge tone={healthy ? "neutral" : "warn"}>
+              {a.brokerAccountId}: {enumLabel(a.sessionState, "SESSION_STATE_")} · recon {recon}
+              {a.intradayMarginDeficit || a.marginCall ? " · margin!" : ""} · DT {a.dayTradeCount}
+              {a.pdtGuard === "legacy" ? " (PDT on)" : ""}
+            </Badge>
+          </span>
+        );
+      })}
+      {t.activeHalts.length > 0 && <Badge tone="warn">{t.activeHalts.length} halt{t.activeHalts.length > 1 ? "s" : ""}</Badge>}
+    </span>
   );
 }
 

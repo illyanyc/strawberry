@@ -117,6 +117,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0025-oms-risk-gate-and-kill-switches.md` | Exists | ADR (D43, implements D30): OMS, pre-trade gate, routing and margin guard, protective orders, latched kill switches, dead-man checks |
 | `docs/adr/0026-strategy-runtime-and-orb-baseline.md` | Exists | ADR (D44): strategy API in `tbcore.strategy`, Python strategy runtime publishing intents on the bus, ORB baseline |
 | `docs/adr/0027-monitoring-ops-slice.md` | Exists | ADR (D45): Alertmanager as the only router, monitor bridge for bus alerts, daily reports, trading rules and dashboard |
+| `docs/adr/0028-ui-trading-slice-charts-and-bff.md` | Exists | ADR (D46, settles D12 price charts): Lightweight Charts under the strict CSP, protojson BFF resources typed by generated `*Json` types, new owner actions, SSE chart stream |
 | `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2): NATS JetStream, `sync_interval: always`, stream layout, outbox |
 | `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, IBKR weekly 2FA / manual VNC login / gateway outages (`ibkr-weekly-2fa.md`), broker outage, market data (stale, slow, gaps, reconciliation breaches, corporate-action disputes), IBKR weekly 2FA, ledger reconciliation break, kill switches, halts, and dead-man alerts |
 | `docs/threat-model.md` | Exists | Assets, actors, entry points, STRIDE table mapped to SE-/OP- rules, residual risks |
@@ -150,7 +151,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 
 | Path | Status | Purpose |
 |---|---|---|
-| `services/api-gateway/` | Exists | Go: owner auth (passkeys, TOTP, recovery), sessions, CSRF, step-up, settings, audit API, credential write-through, SSE status stream, static UI. Layout in [`services/api-gateway/AGENTS.md`](../services/api-gateway/AGENTS.md) |
+| `services/api-gateway/` | Exists | Go: owner auth (passkeys, TOTP, recovery), sessions, CSRF, step-up, settings, audit API, credential write-through, SSE status stream, trading BFF (execution, ledger, marketdata) and the SSE chart stream, static UI. Layout in [`services/api-gateway/AGENTS.md`](../services/api-gateway/AGENTS.md) |
 | `services/broker-gateway/` | Exists | Go: broker-credential custody (envelope encryption, KEK ring, write-only gRPC `CredentialService`); `BrokerGatewayService` + `BrokerMarketDataService` with the Alpaca adapter, simulator, session engine, outbox-backed events, market-data hub, and the shared contract suite. execution-heartbeat dead-man (`internal/deadman`), and the public simulator stack `simstack/` for cross-service tests. Layout in [`services/broker-gateway/AGENTS.md`](../services/broker-gateway/AGENTS.md) |
 | `services/marketdata/` | Exists | Go: single lake writer (Parquet staging/compaction/revisions, manifest), reference data (`refdata`) and its daily sync, data-quality checks, resumable backfill, live bar pipeline (finality, resampling, gap repair, bus/cache/lake sinks), FMP client, cross-source reconciliation, scheduler, `MarketDataService`, spike harnesses (V2, V3, V4). [`AGENTS.md`](../services/marketdata/AGENTS.md) |
 | `services/broker-gateway-ibkr/` | Exists | Python (`ib_async`): IBKR adapter serving `BrokerGatewayService` per environment; session supervision across IB Gateway daily/weekly resets, orders with attribution in `orderRef`, executions + commissions, snapshots, pacing; fake gateways, recorded-format fixtures, opt-in paper suite. Layout in [`services/broker-gateway-ibkr/AGENTS.md`](../services/broker-gateway-ibkr/AGENTS.md) |
@@ -168,7 +169,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 
 | Path | Status | Purpose |
 |---|---|---|
-| `apps/web/` | Exists | Vite + React 19 SPA: login/setup, dashboard, security, broker connections, platform settings, audit log; step-up dialog; SSE status. Layout in [`apps/web/AGENTS.md`](../apps/web/AGENTS.md) |
+| `apps/web/` | Exists | Vite + React 19 SPA: login/setup, dashboard (accounts, strategy cards), portfolio, strategies, orders blotter and trace, manual order ticket, charts (Lightweight Charts), risk and kill switches, security, broker connections, platform settings, audit log; step-up dialog; SSE status and chart streams. Layout in [`apps/web/AGENTS.md`](../apps/web/AGENTS.md) |
 
 ## CI: `.github/`
 

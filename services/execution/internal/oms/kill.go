@@ -154,7 +154,7 @@ func modeOf(s *ordersv1.Strategy) commonv1.Mode {
 }
 
 // Release clears a latched kill switch. It requires a fresh passkey step-up from a desktop client
-// (RM-007, UI-012); automatic engagements are released the same way (re-enabling is manual, N4).
+// (RM-007, UI-006); automatic engagements are released the same way (re-enabling is manual, N4).
 func (e *Engine) Release(ctx context.Context, eventID, reason string, actor *ordersv1.Actor) (*ordersv1.KillSwitch, error) {
 	if actor.GetStepUpMethod() != "passkey" || actor.GetMobile() {
 		return nil, ErrStepUp

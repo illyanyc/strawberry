@@ -2,18 +2,22 @@
 
 The only service reachable from outside the host. Owns owner authentication, sessions, CSRF, step-up, the REST + SSE API for the UI, and serving the static UI. It never holds broker credentials in storage, never returns them, and never decides authorization outside `policy.Authorize`.
 
-**Status:** In progress (Phase 0 auth slice)  ·  **Language/stack:** Go, go-webauthn, pquerna/otp, pgx ([ADR-0009](../../docs/adr/0009-owner-authentication.md), D15; [ADR-0004](../../docs/adr/0004-core-language-split.md), D1)
+**Status:** In progress (Phase 0 auth slice; Phase 2 trading BFF)  ·  **Language/stack:** Go, go-webauthn, pquerna/otp, pgx, protojson ([ADR-0009](../../docs/adr/0009-owner-authentication.md), D15; [ADR-0004](../../docs/adr/0004-core-language-split.md), D1; [ADR-0028](../../docs/adr/0028-ui-trading-slice-charts-and-bff.md), D46)
 
 ## Responsibilities
-- Owns: auth/session/CSRF/step-up flows, settings API, audit viewer API, credential write-through to broker-gateway, SSE status stream, static UI.
-- Does not own: credential encryption or storage (broker-gateway), trading state, risk.
+- Owns: auth/session/CSRF/step-up flows, settings API, audit viewer API, credential write-through to broker-gateway, SSE status stream, the trading BFF (accounts, portfolio, breaks, strategies, limits, orders, intents, fills, trace, kill switches, instruments, bars) and the SSE chart stream, static UI.
+- Does not own: credential encryption or storage (broker-gateway), trading state, ownership, risk decisions (execution and ledger decide; the gateway authorizes the owner and shapes requests).
 
 ## Interfaces
 | Direction | Kind | Name | Contract |
 |---|---|---|---|
 | in | HTTP (REST + SSE) | `/auth/*`, `/api/v1/*`, `/healthz`, static `/` | `contracts/openapi/gateway.yaml` |
 | out | gRPC | `tb.broker.v1.CredentialService` (Put/Delete/ListStatus) | `contracts/proto/tb/broker/v1/credentials.proto` |
+| out | gRPC | `tb.orders.v1.ExecutionService` (status, strategies, limits, orders, intents, fills, trace, kill switches, preview/submit/cancel) | `contracts/proto/tb/orders/v1/execution.proto` |
+| out | gRPC | `tb.ledger.v1.LedgerService` (accounts, portfolio, lots, breaks + resolve, allocation, equity, recon reports) | `contracts/proto/tb/ledger/v1/ledger_service.proto` |
+| out | gRPC | `tb.marketdata.v1.MarketDataService` (`GetBars`, `ResolveSymbols`) | `contracts/proto/tb/marketdata/v1/marketdata.proto` |
 | out | NATS | `alert.security` | `tb.alerts.v1.Alert` |
+| in | NATS (core subscribe) | `md.bar.<tf>.<id>`, `md.bar.correction.*`, `md.bar.partial.*`, `exec.>` for the chart stream | `tb.marketdata.v1.Bar`, `tb.orders.v1.ExecutionReport` |
 | out | Postgres | schemas `auth`, `config` (CRUD), `audit` (append + read) | `libs/go/db/migrations/` |
 
 ## Business rules enforced here
@@ -24,6 +28,7 @@ The only service reachable from outside the host. Owns owner authentication, ses
 - `SE-021`, `SE-023`, `SE-025` audit → `auth.go`, `settings.go` (settings write + audit in one transaction)
 - `SE-031` credentials write-only → `internal/gateway/credentials.go`
 - All of the above end to end: `TestSEAuthEndToEnd`, `TestSSEStreamRequiresSessionAndEndsOnRevoke`
+- `RM-007` (kill release desktop + passkey, allocation increase, limit loosening), `VP-019` break resolution step-up, `SE-003` live/unknown-account manual orders, `UI-006`, `UI-012`..`UI-016` → `internal/gateway/trading.go`, `stream.go`; `trading_test.go` (`TestRM007*`, `TestVP019*`, `TestUI0*`)
 
 ## Layout
 | Path | Purpose |
@@ -37,9 +42,11 @@ The only service reachable from outside the host. Owns owner authentication, ses
 | `internal/gateway/settings.go` | Closed settings list; dangerous enables map to step-up actions |
 | `internal/gateway/audit_api.go` | Audit list and verify endpoints |
 | `internal/gateway/credentials.go` | gRPC client to broker-gateway and credential endpoints |
-| `internal/gateway/events.go` | SSE `trading-status` stream and status snapshot |
+| `internal/gateway/events.go` | SSE `trading-status` stream and status snapshot (includes execution's `TradingStatus`) |
+| `internal/gateway/trading.go` | Trading BFF: signed gRPC clients to execution/ledger/marketdata, protojson responses, owner actions with step-up |
+| `internal/gateway/stream.go` | SSE chart stream (`/api/v1/stream/market`): bars, coalesced partials, executions |
 | `internal/gateway/static.go` | SPA file server with index fallback |
-| `internal/gateway/*_test.go` | Route inventory, CSRF/headers, static UI serving, end-to-end integration tests (passkeys via `libs/go/webauthntest`) |
+| `internal/gateway/*_test.go` | Route inventory, CSRF/headers, static UI serving, end-to-end integration tests (passkeys via `libs/go/webauthntest`), trading handlers against fake gRPC clients and a fake bus |
 
 ## Configuration
 | Variable | Default | Notes |
@@ -53,6 +60,7 @@ The only service reachable from outside the host. Owns owner authentication, ses
 | `TB_AUTH_MAX_FAILURES` / `TB_AUTH_LOCKOUT_WINDOW` | `5` / `15m` | SE-011 |
 | `TB_TRUSTED_PROXIES` | — | CIDRs whose `X-Forwarded-For` is honored |
 | `TB_BROKER_GATEWAY_ADDR` | `broker-gateway:9090` | gRPC |
+| `TB_EXECUTION_ADDR` / `TB_LEDGER_ADDR` / `TB_MARKETDATA_ADDR` | `execution:9090` / `ledger:9090` / `marketdata:9090` | gRPC (lazy connections; routes answer 503 `<service>_unavailable` while a service is down) |
 | `TB_WEB_DIR` | `/app/web` | Static SPA build |
 | Secrets | — | `gateway_auth_key`, `pg_svc_api_gateway_password`, `nats_api_gateway_password`, `svc_api_gateway_ed25519` |
 
@@ -69,3 +77,7 @@ The only service reachable from outside the host. Owns owner authentication, ses
 - The SSE stream re-checks the session each tick without sliding the idle timeout.
 - The SPA handler is registered on `/` without a method (Go's ServeMux rejects `GET /` next to the `/api/` catch-all); `webUI` rejects non-GET/HEAD itself.
 - `setup-token` prints to the terminal, never to logs. Run it via `make setup-token`.
+- Trading responses are canonical protojson (camelCase, `EmitUnpopulated`); the UI types them with the generated `*Json` types. Request bodies the gateway defines (ticket, kill, mode, allocation, break resolution) stay snake_case.
+- Identifiers that reach gRPC or bus subjects are regex-validated (`[A-Za-z0-9_-]{1,64}`, no dots or wildcards) before use.
+- "Mobile" is detected from `Sec-CH-UA-Mobile` or the user agent; it only tightens (release refused, phone orders need `mobile.order_entry_enabled`), so spoofing it gains nothing.
+- The chart stream needs the gateway NATS user's `md.bar.>` and `exec.>` subscribe permissions (`tools/tbctl/secrets.go`); on an existing install run `make secrets` (rewrites `nats_users.conf`) and restart `nats`.

@@ -16,6 +16,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 
 	alertsv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/alerts/v1"
@@ -72,8 +73,14 @@ func main() {
 		svc.Fatal(rt.Log, "broker-gateway client", err)
 	}
 	defer conn.Close()
+	trading, closeTrading, err := gateway.DialTrading(cfg, signer)
+	if err != nil {
+		svc.Fatal(rt.Log, "trading clients", err)
+	}
+	defer closeTrading()
 
 	var alerts gateway.AlertPublisher
+	var market gateway.MarketBus
 	nc, err := bus.Connect(cfg.Bus, rt.Secrets, cfg.Service)
 	if err != nil {
 		rt.Log.Warn("bus unavailable; security alerts will only be logged", "error", err)
@@ -84,10 +91,11 @@ func main() {
 			svc.Fatal(rt.Log, "jetstream", err)
 		}
 		alerts = natsAlerts{js: js}
+		market = natsMarket{nc: nc}
 		rt.Ops.AddCheck("bus", bus.Ready(nc))
 	}
 
-	srv, err := gateway.New(cfg, gateway.Deps{Pool: pool, MasterKey: master, Log: rt.Log, Alerts: alerts, Creds: creds})
+	srv, err := gateway.New(cfg, gateway.Deps{Pool: pool, MasterKey: master, Log: rt.Log, Alerts: alerts, Creds: creds, Trading: trading, Market: market})
 	if err != nil {
 		svc.Fatal(rt.Log, "init", err)
 	}
@@ -122,6 +130,16 @@ func loadMasterKey(store *secrets.Store) ([]byte, error) {
 	}
 	defer secrets.Zero(raw)
 	return base64.StdEncoding.DecodeString(string(raw))
+}
+
+type natsMarket struct{ nc *nats.Conn }
+
+func (n natsMarket) Subscribe(subject string, fn func([]byte)) (func(), error) {
+	sub, err := n.nc.Subscribe(subject, func(m *nats.Msg) { fn(m.Data) })
+	if err != nil {
+		return nil, err
+	}
+	return func() { _ = sub.Unsubscribe() }, nil
 }
 
 type natsAlerts struct{ js jetstream.JetStream }

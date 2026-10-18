@@ -26,6 +26,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Compose profile** | Named group of services in `infra/compose/docker-compose.yml` (`core`, `observability`, `ml`, `ml-workers`, `ops`, `remote-cloudflare`); `make up` starts `core,observability`. |
 | **Correction (bar)** | An update to a bar after it was final: stored as a new revision and published on `md.bar.correction.*` (MD-002, DF-007). |
 | **Correlation ID** | ID carried by every event from signal to fill, for tracing. |
+| **Correlation trace** | The UI view of everything recorded for one correlation ID: intent, risk decision with every check, orders, and fills (UI-017). |
 | **Daily restart (IBC)** | IBC's daily gateway restart at `AUTO_RESTART_TIME` (default 23:45 ET) that reuses the session token, so no 2FA; outages inside its window do not alert (IB-013). |
 | **Dead-man check** | Heartbeat watch that contains risk when a component stops: execution latches cancel-open kill switches when the strategy runtime's heartbeat is lost; broker-gateway cancels working platform orders when execution's heartbeat is lost (RM-017). |
 | **Decimal (contract type)** | `tb.common.v1.Decimal`: an exact base-10 number carried as a string; the only representation for money and quantity in contracts. |
@@ -66,6 +67,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Natural key (bar)** | `(instrument_id, timeframe, ts_open, feed)`: the identity used for idempotent writes and reader deduplication (ST-004). |
 | **Order intent** | A strategy's or user's request to trade, before risk checks. Becomes an order only after an approved risk decision. |
 | **Owner** | The strategy ID or `manual` that a position, lot, or order belongs to. |
+| **Ownership note** | The line in an order preview that says whose holdings the order affects: `manual` for UI orders, or only the named strategy's virtual portfolio (UI-015). |
 | **Partial bar** | A not-yet-final bar published on `md.bar.partial.*` for the UI only; never stored or used for decisions (MD-002). |
 | **PBO** | Probability of backtest overfitting (combinatorially symmetric cross-validation). |
 | **PDT** | FINRA Pattern Day Trader rule; it limited day trades in margin accounts below $25k and was retired on 2026-06-04. The risk engine keeps an optional per-account `legacy` guard, off by default (RM-008, D30). |

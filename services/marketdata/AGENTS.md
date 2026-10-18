@@ -11,7 +11,7 @@ Single writer of the Parquet lake (D4) and of the reference-data schema `refdata
 ## Interfaces
 | Direction | Kind | Name | Contract |
 |---|---|---|---|
-| in | gRPC `:9090` | `tb.marketdata.v1.MarketDataService` (Backfill, GetBackfillStatus, SetUniverse: api-gateway; GetFeedStatus, IsFresh: execution, api-gateway) | `contracts/proto/tb/marketdata/v1/marketdata.proto`, MD-001, MD-007 |
+| in | gRPC `:9090` | `tb.marketdata.v1.MarketDataService` (Backfill, GetBackfillStatus, SetUniverse, GetBars (UI-010, cache ring), ResolveSymbols (UI-011): api-gateway; GetFeedStatus, IsFresh: execution, api-gateway) | `contracts/proto/tb/marketdata/v1/marketdata.proto`, MD-001, MD-007 |
 | in | HTTP (internal) | ops endpoints `:8081` | OP-010 |
 | out | gRPC | broker-gateway `BrokerMarketDataService` (historical bars, stream, assets, corporate actions) | ADR-0018, BR-015 |
 | out | HTTPS | FMP `/stable` (assets, delistings, symbol changes, splits, dividends, EOD) | MD-008 |

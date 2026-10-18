@@ -78,7 +78,7 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 
 | Concern | Design | Decision |
 |---|---|---|
-| Contracts | All cross-service messages in `contracts/proto/tb/<domain>/v1/`; generated (committed) for Go, Python, TypeScript; `make gen-check` fails CI on stale code; internal RPC is gRPC, UI is REST + WebSocket ([contracts](#contracts)) | D3 ([ADR-0003](../adr/0003-contracts-protobuf-buf.md)) |
+| Contracts | All cross-service messages in `contracts/proto/tb/<domain>/v1/`; generated (committed) for Go, Python, TypeScript; `make gen-check` fails CI on stale code; internal RPC is gRPC, UI is REST + SSE (D14) ([contracts](#contracts)) | D3 ([ADR-0003](../adr/0003-contracts-protobuf-buf.md)) |
 | Messaging | Durable streams for order path (`ord.*`, `exec.*`, `risk.kill`), at-least-once, idempotent consumers | D2 |
 | Storage split | Market/context data in the Parquet lake: marketdata is the single writer (staging + compaction, revisions retained, temp + rename, Postgres manifest), Python reads with Polars point-in-time (`tbcore.data`); reference data in Postgres `refdata` mirrored to `ref/`; transactional state (orders, ledgers, users, audit) in Postgres; hot bars and online features in Valkey (`contracts/cache/README.md`) | D4–D6 ([ADR-0020](../adr/0020-lake-layout-write-path-and-query-layer.md)) |
 | Features | One feature library (`tbcore.features`) used offline (snapshots) and online (ring buffers) through the same `compute`; finite lookback, scale-invariant, parity-tested | D39 ([ADR-0021](../adr/0021-feature-store.md)) |
@@ -95,7 +95,7 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 |---|---|---|
 | `tb.common.v1` | `Decimal`, `Mode`, `AssetClass`, `Side`, `Horizon`, `Broker`, `Instrument`, `Provenance` | shared |
 | `tb.marketdata.v1` | `Bar`, `Quote`, `Trade`, `CorporateAction`, `SourceHealth` | marketdata → bus, lake, cache |
-| `tb.marketdata.v1` | `MarketDataService` (backfill jobs and status, universe, feed status, `IsFresh`, `GetBars` for charts) ([ADR-0022](../adr/0022-market-data-ingestion.md), [MD-](../business-logic/market-data.md)) | marketdata → api-gateway, execution |
+| `tb.marketdata.v1` | `MarketDataService` (backfill jobs and status, universe, feed status, `IsFresh`, `GetBars` for charts, `ResolveSymbols` for tickers) ([ADR-0022](../adr/0022-market-data-ingestion.md), [MD-](../business-logic/market-data.md)) | marketdata → api-gateway, execution |
 | `tb.context.v1` | `ContextEvent` | context-data → lake, bus |
 | `tb.features.v1` | `FeatureVector` | feature service → ml-infer |
 | `tb.signals.v1` | `Signal`, `RuntimeHeartbeat` (dead-man, RM-017) | ml-infer / strategy runtime → execution |
@@ -111,6 +111,8 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 | `tb.broker.v1` | `BrokerMarketDataService` (historical bars, bidirectional market-data stream over the single upstream socket, assets, corporate actions, feed status) | broker-gateway → marketdata |
 
 The UI ↔ gateway API (REST commands + SSE streams, D3/D14) is specified in [`contracts/openapi/gateway.yaml`](../../contracts/openapi/gateway.yaml). Only `/healthz` and the auth bootstrap endpoints are public (SE-004).
+
+Trading pages (ADR-0028): the gateway calls execution, ledger, and marketdata over signed gRPC and returns the canonical protojson of their `tb.*` responses; the UI types them with the generated `*Json` types. Owner actions are authorized in the gateway (`policy.Authorize`, step-up) and re-checked by the owning service (execution: limit loosening, kill release from a desktop passkey; ledger: allocation capacity). Charts use one SSE stream per chart: the gateway subscribes to `md.bar.<tf>.<id>` (final, correction, partial coalesced to ≤4 Hz) and `exec.>` (filtered to the instrument) on core NATS; history comes from `GetBars` (cache ring).
 
 ## Deployment topology (Phase 0, Mac Mini)
 

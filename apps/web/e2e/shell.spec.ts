@@ -2,7 +2,7 @@ import { createHmac } from "node:crypto";
 
 import { expect, type Page, test } from "@playwright/test";
 
-// Phase 0 shell slice end to end in a real browser against the running stack (`make up`), using
+// Phase 0 shell slice and the Phase 2 trading slice end to end in a real browser against the running stack (`make up`), using
 // Chrome's virtual authenticator for passkeys. Needs a fresh stack and TB_E2E_SETUP_TOKEN.
 // Screenshots go to TB_E2E_SCREENSHOTS (default test-results/screens).
 
@@ -69,6 +69,45 @@ test("owner setup, passkey and TOTP login, step-up, credentials, audit", async (
   await expect(page.getByText(/You signed in with a TOTP code/)).toBeVisible();
   await page.screenshot({ path: `${shots}/04-dashboard-totp.png` });
 
+  // Phase 2 trading slice: the global kill switch engages with one confirmation (UI-006, RM-006),
+  // the trading pages render without CSP violations, and release demands a passkey (RM-007).
+  const main = page.getByRole("navigation", { name: "Main", exact: true });
+  await page.getByRole("button", { name: "Global kill switch" }).click();
+  const engage = page.getByRole("dialog", { name: "Engage kill switch: all trading" });
+  await engage.getByLabel("Reason (optional)").fill("e2e drill");
+  await engage.getByRole("button", { name: "Engage kill switch" }).click();
+  const frozen = page.getByRole("link", { name: /Trading frozen by 1 global kill switch/ });
+  await expect(frozen).toBeVisible();
+  for (const [link, shot] of [
+    ["Portfolio", "10-portfolio"],
+    ["Strategies", "11-strategies"],
+    ["Orders", "12-orders"],
+    ["Charts", "13-charts"],
+  ] as const) {
+    await main.getByRole("link", { name: link, exact: true }).click();
+    await expect(page.getByRole("heading", { name: link, exact: true })).toBeVisible();
+    await page.screenshot({ path: `${shots}/${shot}.png`, fullPage: true });
+  }
+  await page.getByRole("link", { name: "New manual order" }).click();
+  await expect(page.getByRole("heading", { name: "Manual order" })).toBeVisible();
+  await expect(page.getByText("Manual orders are owned by you (owner: manual)")).toBeVisible();
+  await frozen.click();
+  const kills = page.getByRole("list", { name: "Kill switches" });
+  await expect(kills.getByText("e2e drill")).toBeVisible();
+  await page.screenshot({ path: `${shots}/14-risk-frozen.png`, fullPage: true });
+  await kills.getByRole("button", { name: "Release…" }).first().click();
+  const release = page.getByRole("dialog", { name: "Release kill switch" });
+  await release.getByLabel("Release reason").fill("e2e drill over");
+  await release.getByRole("button", { name: "Release", exact: true }).click();
+  const releaseStepUp = page.getByRole("dialog", { name: "Confirm it's you" });
+  await expect(releaseStepUp).toBeVisible();
+  await expect(releaseStepUp.getByLabel(/authenticator code/)).toHaveCount(0);
+  await page.screenshot({ path: `${shots}/15-release-step-up.png` });
+  await releaseStepUp.getByRole("button", { name: "Cancel" }).click();
+  await expect(release.getByText("Step-up was cancelled")).toBeVisible();
+  await release.getByRole("button", { name: "Cancel" }).click();
+  await expect(frozen).toBeVisible();
+
   // Enabling live trading demands a passkey step-up; the dialog offers no TOTP option.
   await page.getByRole("link", { name: "Platform settings" }).click();
   await page.getByRole("switch", { name: "Global live-trading flag" }).click();
@@ -107,6 +146,7 @@ test("owner setup, passkey and TOTP login, step-up, credentials, audit", async (
   await page.getByRole("navigation", { name: "Main mobile" }).getByRole("link", { name: "Home" }).click();
   await expect(page.getByRole("heading", { name: /Welcome, Illya/ })).toBeVisible();
   await page.screenshot({ path: `${shots}/09-mobile-dashboard.png`, fullPage: true });
+  await expect(page.getByRole("link", { name: /Trading frozen/ })).toBeVisible();
 
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.getByRole("button", { name: "Log out" }).click();
@@ -114,5 +154,14 @@ test("owner setup, passkey and TOTP login, step-up, credentials, audit", async (
   // Passkey login from the login screen.
   await page.getByRole("button", { name: "Sign in with passkey" }).click();
   await expect(page.getByRole("heading", { name: /Welcome, Illya/ })).toBeVisible();
+
+  // The passkey login is a fresh step-up, so the desktop release goes through.
+  await page.getByRole("link", { name: /Trading frozen/ }).click();
+  await page.getByRole("list", { name: "Kill switches" }).getByRole("button", { name: "Release…" }).first().click();
+  await page.getByRole("dialog", { name: "Release kill switch" }).getByLabel("Release reason").fill("e2e drill over");
+  await page.getByRole("dialog", { name: "Release kill switch" }).getByRole("button", { name: "Release", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Global kill switch" })).toBeVisible();
+  await expect(page.getByText("No kill switch is engaged.")).toBeVisible();
+  await page.screenshot({ path: `${shots}/16-risk-released.png`, fullPage: true });
   expect(cspErrors, "no CSP violations").toEqual([]);
 });

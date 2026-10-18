@@ -43,6 +43,10 @@ const (
 	ActDataExportPositions   Action = "data.export.positions"
 	ActSignalsCreate         Action = "signals.create"
 	ActCredentialsUseForAuth Action = "broker.credentials.use"
+	ActTradingRead           Action = "trading.read"
+	ActOrdersCancel          Action = "orders.cancel"
+	ActStrategyModeSet       Action = "strategy.mode.set"
+	ActLedgerBreakResolve    Action = "ledger.break.resolve"
 )
 
 // stepUp says which fresh second factor an owner action needs.
@@ -83,6 +87,13 @@ var ownerActions = map[Action]stepUp{
 	ActAssistantWriteEnable: stepUpPasskey,
 	ActAssistantExperiment:  noStepUp,
 	ActDataExportPositions:  stepUpPasskey,
+	// Read-only trading views, risk-reducing cancels, and non-live mode changes (disabled, shadow,
+	// paper, halted); live promotion is ActStrategyPromoteLive.
+	ActTradingRead:     noStepUp,
+	ActOrdersCancel:    noStepUp,
+	ActStrategyModeSet: noStepUp,
+	// Resolving a reconciliation break moves ownership or cash (VP-019, RM-007).
+	ActLedgerBreakResolve: stepUpPasskey,
 }
 
 // serviceActions lists what each internal service actor may do through the policy layer.

@@ -7,6 +7,8 @@
  *   (SE-003); a 401 invokes the unauthenticated handler.
  */
 
+import type { TradingCore } from "./trading";
+
 export type StepUpMethod = "passkey" | "any";
 
 export class ApiError extends Error {
@@ -110,4 +112,7 @@ export interface TradingStatus {
   mode: "paper" | "live";
   server_time: string;
   session_expires: string;
+  /** Execution's TradingStatus; null when execution is unreachable (shown as unknown, UI-013). */
+  trading: TradingCore | null;
+  trading_error?: string;
 }

@@ -37,7 +37,7 @@ func TestSE004RouteInventory(t *testing.T) {
 			gotPublic = append(gotPublic, rt.Method+" "+rt.Pattern)
 			continue
 		}
-		path := strings.NewReplacer("{id}", "x", "{key}", "ui.theme", "{account}", "acct", "{environment}", "paper").Replace(rt.Pattern)
+		path := strings.NewReplacer("{id}", "x", "{key}", "ui.theme", "{account}", "acct", "{environment}", "paper", "{scope}", "global").Replace(rt.Pattern)
 		req := httptest.NewRequest(rt.Method, path, strings.NewReader("{}"))
 		// Valid CSRF so the session check (not CSRF) is what rejects the request.
 		req.Header.Set("Origin", "http://localhost:8080")

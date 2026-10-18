@@ -226,6 +226,28 @@ class CorporateAction(_message.Message):
     sources: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, instrument_id: _Optional[str] = ..., type: _Optional[_Union[CorporateActionType, str]] = ..., ex_date: _Optional[int] = ..., ratio: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., amount: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., successor_instrument_id: _Optional[str] = ..., source: _Optional[str] = ..., available_at: _Optional[int] = ..., ingested_at: _Optional[int] = ..., symbol: _Optional[str] = ..., new_symbol: _Optional[str] = ..., record_date: _Optional[int] = ..., payable_date: _Optional[int] = ..., declared_at: _Optional[int] = ..., source_id: _Optional[str] = ..., agreement: _Optional[_Union[AgreementStatus, str]] = ..., sources: _Optional[_Iterable[str]] = ...) -> None: ...
 
+class ResolveSymbolsRequest(_message.Message):
+    __slots__ = ("symbols",)
+    SYMBOLS_FIELD_NUMBER: _ClassVar[int]
+    symbols: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, symbols: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class SymbolMatch(_message.Message):
+    __slots__ = ("symbol", "instrument_id")
+    SYMBOL_FIELD_NUMBER: _ClassVar[int]
+    INSTRUMENT_ID_FIELD_NUMBER: _ClassVar[int]
+    symbol: str
+    instrument_id: str
+    def __init__(self, symbol: _Optional[str] = ..., instrument_id: _Optional[str] = ...) -> None: ...
+
+class ResolveSymbolsResponse(_message.Message):
+    __slots__ = ("matches", "unknown")
+    MATCHES_FIELD_NUMBER: _ClassVar[int]
+    UNKNOWN_FIELD_NUMBER: _ClassVar[int]
+    matches: _containers.RepeatedCompositeFieldContainer[SymbolMatch]
+    unknown: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, matches: _Optional[_Iterable[_Union[SymbolMatch, _Mapping]]] = ..., unknown: _Optional[_Iterable[str]] = ...) -> None: ...
+
 class GetBarsRequest(_message.Message):
     __slots__ = ("instrument_id", "timeframe", "start", "end", "limit")
     INSTRUMENT_ID_FIELD_NUMBER: _ClassVar[int]
