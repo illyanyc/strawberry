@@ -1,0 +1,535 @@
+syntax = "proto3";
+
+// AI Research Analyst (section 12, ADR-0035): research journal rounds, diagnoses, ranked
+// improvement plans, autonomy settings, budgets, code proposals, and the chat assistant.
+//
+// The analyst never computes statistics: every number in a Diagnosis or an outcome is copied from a
+// section 08/10/11/13 report and cited by report ID (AN-010). Outcomes are deflated only (DSR over
+// the lineage's full trial ledger, PBO); raw best-trial metrics are never decision inputs (AN-022).
+// Holdout data and holdout results never appear in any message of this package (AN-030).
+package tb.analyst.v1;
+
+// What opened a round (AN-001).
+enum RoundTrigger {
+  ROUND_TRIGGER_UNSPECIFIED = 0;
+  ROUND_TRIGGER_RUN_COMPLETED = 1;
+  ROUND_TRIGGER_BACKTEST_COMPLETED = 2;
+  ROUND_TRIGGER_STUDY_COMPLETED = 3;
+  ROUND_TRIGGER_LIVE_FEEDBACK = 4;
+  ROUND_TRIGGER_SCHEDULE = 5;
+  ROUND_TRIGGER_OWNER_REQUEST = 6;
+  // The loop's own continuation after the previous round's launched work completed.
+  ROUND_TRIGGER_CONTINUATION = 7;
+}
+
+// How a round ended (AN-040 stopping rules).
+enum RoundDecision {
+  ROUND_DECISION_UNSPECIFIED = 0;
+  ROUND_DECISION_CONTINUE = 1;
+  // Level 0, or an action above the lineage's level: waiting for owner approval.
+  ROUND_DECISION_AWAITING_APPROVAL = 2;
+  ROUND_DECISION_PLATEAU = 3;
+  ROUND_DECISION_STOP_NO_EDGE = 4;
+  ROUND_DECISION_STOP_BUDGET = 5;
+  // Added trials would push the deflated-Sharpe threshold out of reach.
+  ROUND_DECISION_STOP_UNREACHABLE = 6;
+  ROUND_DECISION_STOP_FAILURES = 7;
+  ROUND_DECISION_STOP_PAUSED = 8;
+  ROUND_DECISION_ESCALATE_TO_OWNER = 9;
+}
+
+enum FindingCategory {
+  FINDING_CATEGORY_UNSPECIFIED = 0;
+  FINDING_CATEGORY_DATA_QUALITY = 1;
+  FINDING_CATEGORY_LEAKAGE_SUSPICION = 2;
+  FINDING_CATEGORY_OVERFITTING = 3;
+  FINDING_CATEGORY_UNDERFITTING = 4;
+  FINDING_CATEGORY_INSTABILITY = 5;
+  FINDING_CATEGORY_REGIME_DEPENDENCE = 6;
+  FINDING_CATEGORY_COST_SENSITIVITY = 7;
+  FINDING_CATEGORY_CALIBRATION = 8;
+  FINDING_CATEGORY_DRIFT = 9;
+  FINDING_CATEGORY_EXECUTION_GAP = 10;
+  FINDING_CATEGORY_NO_EDGE = 11;
+}
+
+enum Severity {
+  SEVERITY_UNSPECIFIED = 0;
+  SEVERITY_INFO = 1;
+  SEVERITY_LOW = 2;
+  SEVERITY_MEDIUM = 3;
+  SEVERITY_HIGH = 4;
+  SEVERITY_CRITICAL = 5;
+}
+
+// A metric value copied from a report, with the report it came from (AN-010).
+message EvidenceRef {
+  string report_id = 1;
+  // Dotted metric path inside the report, e.g. "learning_curve.gap_at_best".
+  string metric = 2;
+  double value = 3;
+  // Optional fold, regime, or slice label (masked: "fold 3", "regime high_vol").
+  string context = 4;
+}
+
+message Finding {
+  string finding_id = 1;
+  FindingCategory category = 2;
+  Severity severity = 3;
+  // At least one entry; findings without evidence are rejected by output validation (AN-010).
+  repeated EvidenceRef evidence = 4;
+  string explanation = 5;
+}
+
+message Diagnosis {
+  string diagnosis_id = 1;
+  string lineage_id = 2;
+  string round_id = 3;
+  repeated Finding findings = 4;
+  // True when the evidence says the strategy has no honest edge (AN-041).
+  bool no_edge = 5;
+  string summary = 6;
+}
+
+enum ActionCategory {
+  ACTION_CATEGORY_UNSPECIFIED = 0;
+  ACTION_CATEGORY_FEATURES = 1;
+  ACTION_CATEGORY_LABELS = 2;
+  ACTION_CATEGORY_MODEL_TYPE = 3;
+  ACTION_CATEGORY_SEARCH_SPACE = 4;
+  ACTION_CATEGORY_DATA_WINDOW = 5;
+  ACTION_CATEGORY_UNIVERSE = 6;
+  ACTION_CATEGORY_TRADE_RULES = 7;
+  ACTION_CATEGORY_STOP_OR_RETIRE = 8;
+}
+
+enum ActionStatus {
+  ACTION_STATUS_UNSPECIFIED = 0;
+  ACTION_STATUS_PROPOSED = 1;
+  ACTION_STATUS_APPROVED = 2;
+  ACTION_STATUS_REJECTED = 3;
+  ACTION_STATUS_LAUNCHED = 4;
+  ACTION_STATUS_COMPLETED = 5;
+  ACTION_STATUS_FAILED = 6;
+  // Not run: over budget, superseded, or the loop stopped first.
+  ACTION_STATUS_SKIPPED = 7;
+}
+
+enum OverfitRisk {
+  OVERFIT_RISK_UNSPECIFIED = 0;
+  OVERFIT_RISK_LOW = 1;
+  OVERFIT_RISK_MEDIUM = 2;
+  OVERFIT_RISK_HIGH = 3;
+}
+
+message PlanAction {
+  string action_id = 1;
+  // 1 = best. Ranked by expected deflated improvement per unit of compute and per trial (AN-012).
+  int32 rank = 2;
+  ActionCategory category = 3;
+  string description = 4;
+  // What the diff applies to: "training_config", "study_spec", "feature_set", or "none" (stop/retire).
+  string target = 5;
+  // RFC 7396 JSON merge patch against the current config, schema-validated (AN-011).
+  string config_diff_json = 6;
+  string hypothesis = 7;
+  string expected_effect = 8;
+  double est_compute_hours = 9;
+  // Trials this action adds to the lineage's ledger (AN-021).
+  int32 trial_cost = 10;
+  OverfitRisk overfit_risk = 11;
+  double rank_score = 12;
+  // Tool that executes the action, e.g. "launch_ablation", "launch_study".
+  string tool = 13;
+  ActionStatus status = 14;
+  string status_reason = 15;
+  // IDs of the run/study/backtest the action launched, once launched.
+  repeated string launched_ids = 16;
+}
+
+message ImprovementPlan {
+  string plan_id = 1;
+  string round_id = 2;
+  repeated PlanAction actions = 3;
+}
+
+// Hypothesis, metric, universe, period, and stop rule written before launch (D31 rule 4); stored
+// by section 11 as part of the cycle and referenced here by hash.
+message PreRegistration {
+  string hypothesis = 1;
+  string metric = 2;
+  string universe = 3;
+  // Relative period description (never calendar dates for API models, AN-052).
+  string period = 4;
+  string stop_rule = 5;
+  int32 trial_budget = 6;
+  string prereg_hash = 7;
+}
+
+message BudgetUsage {
+  int32 trials = 1;
+  double cpu_hours = 2;
+  double llm_usd = 3;
+  int64 llm_input_tokens = 4;
+  int64 llm_output_tokens = 5;
+  double wall_clock_seconds = 6;
+  int32 jobs_launched = 7;
+}
+
+// Deflated outcome of the lineage after the round (AN-022); copied from section 11.
+message DeflatedOutcome {
+  int32 lineage_trials = 1;
+  double effective_trials = 2;
+  // Deflated Sharpe probability of the best candidate over every trial in the lineage.
+  double best_dsr = 3;
+  double pbo = 4;
+  string best_candidate_id = 5;
+  // Whether the best candidate passes section 11's gate (pass/fail and DSR only, ADR-0034).
+  bool gate_passed = 6;
+  string source_report_id = 7;
+}
+
+message AnalystRound {
+  string round_id = 1;
+  string lineage_id = 2;
+  string cycle_id = 3;
+  int32 seq = 4;
+  RoundTrigger trigger = 5;
+  repeated string trigger_ref_ids = 6;
+  repeated string input_report_ids = 7;
+  PreRegistration preregistration = 8;
+  Diagnosis diagnosis = 9;
+  ImprovementPlan plan = 10;
+  BudgetUsage budget_used = 11;
+  int32 trials_added = 12;
+  DeflatedOutcome outcome = 13;
+  RoundDecision decision = 14;
+  string reasoning = 15;
+  // Provider and model of the planner call, e.g. "anthropic" / "claude-sonnet-5.5", "fake" / "heuristic-v1".
+  string provider = 16;
+  string model = 17;
+  repeated string prompt_hashes = 18;
+  repeated string tool_call_hashes = 19;
+  int32 autonomy_level = 20;
+  int64 started_at = 21;
+  int64 completed_at = 22;
+  string correlation_id = 23;
+  // Final summary and recommendation when the loop stops (AN-042).
+  string summary = 24;
+  string recommendation = 25;
+}
+
+// Promotion limits for autonomy level 2 (AN-062).
+message PromotionLimits {
+  int32 max_promotions = 1;
+  int32 window_days = 2;
+  int32 min_shadow_sessions = 3;
+  int32 cooldown_days = 4;
+}
+
+// Experiment budget per lineage (AN-020); the cycle trial budget itself is section 11's MinBTL budget.
+message Budget {
+  int32 max_trials_per_round = 1;
+  double max_cpu_hours_per_day = 2;
+  double max_llm_usd_per_day = 3;
+  double max_llm_usd_per_month = 4;
+  int32 max_concurrent_jobs = 5;
+  int32 max_rounds = 6;
+  double max_wall_clock_hours = 7;
+}
+
+// Autonomy view per lineage (AN-060). The level and promotion limits are owned by the optimizer's
+// Lineage (EX-031, EX-033): raising needs owner passkey step-up through api-gateway; lowering is
+// instant and may come from the owner, monitoring, or the analyst's own guardrails. The budget is
+// the assistant's loop budget (LLM, rounds, concurrency); trial and CPU budgets are the optimizer's.
+message AutonomySetting {
+  string lineage_id = 1;
+  // 0 suggest-only (default), 1 auto-run on paper, 2 auto-promote within limits.
+  int32 level = 2;
+  Budget budget = 3;
+  PromotionLimits promotion_limits = 4;
+  bool paused = 5;
+  string updated_by = 6;
+  int64 updated_at = 7;
+  string reason = 8;
+}
+
+enum LoopState {
+  LOOP_STATE_UNSPECIFIED = 0;
+  LOOP_STATE_IDLE = 1;
+  LOOP_STATE_RUNNING = 2;
+  LOOP_STATE_AWAITING_APPROVAL = 3;
+  LOOP_STATE_AWAITING_RESULTS = 4;
+  LOOP_STATE_PAUSED = 5;
+  LOOP_STATE_STOPPED = 6;
+}
+
+message LoopStatus {
+  string lineage_id = 1;
+  LoopState state = 2;
+  string current_round_id = 3;
+  int32 rounds_completed = 4;
+  int32 rounds_without_improvement = 5;
+  BudgetUsage budget_used = 6;
+  AutonomySetting autonomy = 7;
+  RoundDecision last_decision = 8;
+  // Today's and this month's LLM spend across all lineages (AN-023).
+  double llm_usd_today = 9;
+  double llm_usd_month = 10;
+}
+
+// Sandboxed coder output awaiting checks and owner review before merge (AN-070..AN-074).
+enum CodeProposalStatus {
+  CODE_PROPOSAL_STATUS_UNSPECIFIED = 0;
+  CODE_PROPOSAL_STATUS_PENDING_CHECKS = 1;
+  CODE_PROPOSAL_STATUS_CHECKS_FAILED = 2;
+  CODE_PROPOSAL_STATUS_AWAITING_REVIEW = 3;
+  CODE_PROPOSAL_STATUS_APPROVED_FOR_MERGE = 4;
+  CODE_PROPOSAL_STATUS_REJECTED = 5;
+}
+
+message CodeCheck {
+  // "ast_policy", "sandbox_run", "determinism", "future_shift", "pit_lint".
+  string name = 1;
+  bool passed = 2;
+  // Rule IDs or short messages only (never evaluator internals).
+  repeated string messages = 3;
+}
+
+message CodeProposal {
+  string proposal_id = 1;
+  string lineage_id = 2;
+  string round_id = 3;
+  // "feature" (Phase 4 scope).
+  string kind = 4;
+  string name = 5;
+  string description = 6;
+  string source = 7;
+  string source_sha256 = 8;
+  // Unified diff adding the file under libs/py/tbcore/src/tbcore/features/candidates/ for review.
+  string patch = 9;
+  repeated CodeCheck checks = 10;
+  CodeProposalStatus status = 11;
+  string reviewed_by = 12;
+  string review_note = 13;
+  int64 created_at = 14;
+  int64 updated_at = 15;
+}
+
+// ---- bus events ----
+
+// analyst.round.completed
+message RoundCompleted {
+  AnalystRound round = 1;
+}
+
+// analyst.plan.ready: actions that need owner approval.
+message PlanReady {
+  string lineage_id = 1;
+  string round_id = 2;
+  repeated string action_ids = 3;
+  int64 occurred_at = 4;
+  string correlation_id = 5;
+}
+
+// analyst.escalation: the analyst needs the owner (stop, self-limit, nomination for live-eligible).
+message Escalation {
+  string lineage_id = 1;
+  string round_id = 2;
+  string reason = 3;
+  string kind = 4;
+  int64 occurred_at = 5;
+  string correlation_id = 6;
+}
+
+// analyst.autonomy.lower: monitoring (or any guardrail) asks the analyst to drop a lineage's level.
+// Lowering only; a request that would raise is ignored (AN-063).
+message LowerAutonomy {
+  string lineage_id = 1;
+  int32 level = 2;
+  bool pause = 3;
+  string actor = 4;
+  string reason = 5;
+  string evidence_report_id = 6;
+  int64 occurred_at = 7;
+  string correlation_id = 8;
+}
+
+// ---- chat ----
+
+message ChatMessage {
+  string message_id = 1;
+  // "owner" or "assistant".
+  string role = 2;
+  string content = 3;
+  // Run, study, round, or report IDs the answer cites.
+  repeated string cited_ids = 4;
+  int64 created_at = 5;
+}
+
+message Conversation {
+  string conversation_id = 1;
+  string title = 2;
+  string lineage_id = 3;
+  repeated ChatMessage messages = 4;
+  int64 created_at = 5;
+  int64 updated_at = 6;
+}
+
+// ---- service (api-gateway is the only caller, SE-040) ----
+
+message GetJournalRequest {
+  string lineage_id = 1;
+  int32 limit = 2;
+  RoundDecision decision = 3;
+}
+message GetJournalResponse {
+  repeated AnalystRound rounds = 1;
+}
+
+message GetRoundRequest {
+  string round_id = 1;
+}
+message GetRoundResponse {
+  AnalystRound round = 1;
+}
+
+message ListLineagesRequest {}
+message ListLineagesResponse {
+  repeated LoopStatus lineages = 1;
+}
+
+message GetLoopStatusRequest {
+  string lineage_id = 1;
+}
+message GetLoopStatusResponse {
+  LoopStatus status = 1;
+}
+
+message ReviewActionsRequest {
+  string round_id = 1;
+  repeated string action_ids = 2;
+  bool approve = 3;
+  string reason = 4;
+  string actor = 5;
+}
+message ReviewActionsResponse {
+  ImprovementPlan plan = 1;
+}
+
+message SetLoopPausedRequest {
+  // Empty means every lineage.
+  string lineage_id = 1;
+  bool paused = 2;
+  string actor = 3;
+  string reason = 4;
+}
+message SetLoopPausedResponse {
+  repeated LoopStatus lineages = 1;
+}
+
+message RequestAnalysisRequest {
+  string lineage_id = 1;
+  // One of run, study, backtest, or strategy reference.
+  string ref_id = 2;
+  string ref_kind = 3;
+  string question = 4;
+  string actor = 5;
+}
+message RequestAnalysisResponse {
+  string round_id = 1;
+}
+
+message GetTrialLedgerRequest {
+  string lineage_id = 1;
+  int32 limit = 2;
+}
+
+// One row of the lineage trial ledger as the analyst and the owner see it (section 11 owns the data).
+message TrialRow {
+  string trial_id = 1;
+  string cycle_id = 2;
+  // "owner", "analyst", "schedule".
+  string source = 3;
+  string status = 4;
+  string spec_hash = 5;
+  double sharpe = 6;
+  int64 created_at = 7;
+  string family = 8;
+}
+message GetTrialLedgerResponse {
+  string lineage_id = 1;
+  repeated TrialRow trials = 2;
+  DeflatedOutcome outcome = 3;
+  int32 cycle_budget = 4;
+  int32 cycle_used = 5;
+}
+
+message ListCodeProposalsRequest {
+  string lineage_id = 1;
+}
+message ListCodeProposalsResponse {
+  repeated CodeProposal proposals = 1;
+}
+
+message ReviewCodeProposalRequest {
+  string proposal_id = 1;
+  bool approve = 2;
+  string note = 3;
+  string actor = 4;
+}
+message ReviewCodeProposalResponse {
+  CodeProposal proposal = 1;
+}
+
+message NotifyAutonomyChangedRequest {
+  string lineage_id = 1;
+}
+message NotifyAutonomyChangedResponse {
+  LoopStatus status = 1;
+}
+
+message CreateConversationRequest {
+  string title = 1;
+  string lineage_id = 2;
+}
+message CreateConversationResponse {
+  Conversation conversation = 1;
+}
+message GetConversationRequest {
+  string conversation_id = 1;
+}
+message GetConversationResponse {
+  Conversation conversation = 1;
+}
+message ListConversationsRequest {}
+message ListConversationsResponse {
+  repeated Conversation conversations = 1;
+}
+message PostMessageRequest {
+  string conversation_id = 1;
+  string content = 2;
+  string actor = 3;
+}
+message PostMessageResponse {
+  ChatMessage reply = 1;
+}
+
+service AnalystService {
+  rpc GetJournal(GetJournalRequest) returns (GetJournalResponse);
+  rpc GetRound(GetRoundRequest) returns (GetRoundResponse);
+  rpc ListLineages(ListLineagesRequest) returns (ListLineagesResponse);
+  rpc GetLoopStatus(GetLoopStatusRequest) returns (GetLoopStatusResponse);
+  rpc ReviewActions(ReviewActionsRequest) returns (ReviewActionsResponse);
+  rpc SetLoopPaused(SetLoopPausedRequest) returns (SetLoopPausedResponse);
+  rpc RequestAnalysis(RequestAnalysisRequest) returns (RequestAnalysisResponse);
+  rpc GetTrialLedger(GetTrialLedgerRequest) returns (GetTrialLedgerResponse);
+  rpc ListCodeProposals(ListCodeProposalsRequest) returns (ListCodeProposalsResponse);
+  rpc ReviewCodeProposal(ReviewCodeProposalRequest) returns (ReviewCodeProposalResponse);
+  // The gateway wrote a new autonomy setting (raising needs step-up there, AN-061); reload it.
+  rpc NotifyAutonomyChanged(NotifyAutonomyChangedRequest) returns (NotifyAutonomyChangedResponse);
+  rpc CreateConversation(CreateConversationRequest) returns (CreateConversationResponse);
+  rpc GetConversation(GetConversationRequest) returns (GetConversationResponse);
+  rpc ListConversations(ListConversationsRequest) returns (ListConversationsResponse);
+  rpc PostMessage(PostMessageRequest) returns (PostMessageResponse);
+}

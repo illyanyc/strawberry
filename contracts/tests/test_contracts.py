@@ -2,9 +2,11 @@
 
 from google.protobuf import struct_pb2
 
+from tb.analyst.v1 import analyst_pb2
 from tb.audit.v1 import audit_pb2
 from tb.common.v1 import common_pb2
 from tb.ml.v1 import training_pb2
+from tb.monitor.v1 import feedback_pb2
 from tb.optimizer.v1 import optimizer_pb2
 from tb.orders.v1 import orders_pb2
 
@@ -48,3 +50,32 @@ def test_diagnostics_report_and_trial_round_trip() -> None:
     trial = optimizer_pb2.Trial(trial_id="t1", lineage_id="l1", params=params, status=optimizer_pb2.TRIAL_STATUS_PRUNED)
     t2 = optimizer_pb2.Trial.FromString(trial.SerializeToString())
     assert t2.params["num_leaves"] == 15 and t2.status == optimizer_pb2.TRIAL_STATUS_PRUNED
+
+
+def test_analyst_round_round_trip() -> None:
+    rnd = analyst_pb2.AnalystRound(
+        round_id="01JABCDEFGHJKMNPQRSTVWXYZ1",
+        lineage_id="orb-15m",
+        trigger=analyst_pb2.ROUND_TRIGGER_RUN_COMPLETED,
+        decision=analyst_pb2.ROUND_DECISION_PLATEAU,
+        diagnosis=analyst_pb2.Diagnosis(
+            findings=[
+                analyst_pb2.Finding(
+                    category=analyst_pb2.FINDING_CATEGORY_OVERFITTING,
+                    evidence=[analyst_pb2.EvidenceRef(report_id="run-1", metric="learning_curve.gap", value=0.4)],
+                )
+            ]
+        ),
+    )
+    decoded = analyst_pb2.AnalystRound.FromString(rnd.SerializeToString())
+    assert decoded == rnd
+    assert decoded.diagnosis.findings[0].evidence[0].value == 0.4
+
+
+def test_live_feedback_report_has_no_account_fields() -> None:
+    names = {f.name for f in feedback_pb2.LiveFeedbackReport.DESCRIPTOR.fields}
+    assert not {n for n in names if "account" in n or "balance" in n or "position" in n}
+    report = feedback_pb2.LiveFeedbackReport(
+        strategy_id="orb-15m", triggered=[feedback_pb2.TriggeredCondition(condition="decay", severity="warning")]
+    )
+    assert feedback_pb2.LiveFeedbackReport.FromString(report.SerializeToString()) == report
