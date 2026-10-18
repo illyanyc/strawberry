@@ -29,7 +29,7 @@ var AllowedCallers = map[string][]string{
 	svc + "ReserveForOrder":           {"execution"},
 	svc + "ReleaseReservation":        {"execution"},
 	svc + "RegisterOwner":             {"execution"},
-	svc + "SetAllocation":             {"api-gateway"},
+	svc + "SetAllocation":             {"api-gateway", "execution"},
 	svc + "Reconcile":                 {"api-gateway", "execution"},
 	svc + "ListBreaks":                {"api-gateway", "execution"},
 	svc + "ResolveBreak":              {"api-gateway"},

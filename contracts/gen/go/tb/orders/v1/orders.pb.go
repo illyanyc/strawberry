@@ -906,7 +906,7 @@ type RiskDecision struct {
 	CorrelationId   string                 `protobuf:"bytes,5,opt,name=correlation_id,json=correlationId,proto3" json:"correlation_id,omitempty"`
 	StrategyId      string                 `protobuf:"bytes,6,opt,name=strategy_id,json=strategyId,proto3" json:"strategy_id,omitempty"`
 	BrokerAccountId string                 `protobuf:"bytes,7,opt,name=broker_account_id,json=brokerAccountId,proto3" json:"broker_account_id,omitempty"`
-	// True for shadow-mode strategies: evaluated and recorded, never submitted (SM-002).
+	// True for shadow-mode strategies: evaluated and recorded, never submitted (SM-013).
 	Shadow bool `protobuf:"varint,8,opt,name=shadow,proto3" json:"shadow,omitempty"`
 	// Name of the first failed check, empty when approved.
 	FirstFailure string `protobuf:"bytes,9,opt,name=first_failure,json=firstFailure,proto3" json:"first_failure,omitempty"`

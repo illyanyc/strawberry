@@ -59,6 +59,16 @@ type Memory struct {
 	Published []Message
 	// FailNext makes the next Record* call fail (fault injection).
 	FailNext error
+	// OnPublish (optional) receives every message in order, under the store lock (the paper
+	// harness forwards them to JetStream with the same msg IDs as the Postgres outbox).
+	OnPublish func(Message)
+}
+
+func (m *Memory) publish(x Message) {
+	m.Published = append(m.Published, x)
+	if m.OnPublish != nil {
+		m.OnPublish(x)
+	}
 }
 
 // NewMemory returns an empty store.
@@ -90,7 +100,7 @@ func (m *Memory) RecordExecution(_ context.Context, acct string, e *ordersv1.Exe
 	if c := m.cursor[acct]; c == nil || e.GetEventTime() >= c.GetEventTime() {
 		m.cursor[acct] = e
 	}
-	m.Published = append(m.Published, Message{Subject: ExecSubject(acct), MsgID: "exec:" + k, Msg: e})
+	m.publish(Message{Subject: ExecSubject(acct), MsgID: "exec:" + k, Msg: e})
 	return true, nil
 }
 
@@ -106,7 +116,7 @@ func (m *Memory) RecordOrderUpdate(_ context.Context, acct string, u *brokerv1.B
 		return false, nil
 	}
 	m.orderKeys[k] = true
-	m.Published = append(m.Published, Message{Subject: OrderSubject(acct), MsgID: "ord:" + k, Msg: u})
+	m.publish(Message{Subject: OrderSubject(acct), MsgID: "ord:" + k, Msg: u})
 	return true, nil
 }
 
@@ -114,7 +124,7 @@ func (m *Memory) RecordOrderUpdate(_ context.Context, acct string, u *brokerv1.B
 func (m *Memory) RecordSnapshot(_ context.Context, acct string, s *ledgerv1.AccountSnapshot) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.Published = append(m.Published, Message{Subject: SnapshotSubject(acct), MsgID: fmt.Sprintf("acct:%s:%d", acct, s.GetAsOf()), Msg: s})
+	m.publish(Message{Subject: SnapshotSubject(acct), MsgID: fmt.Sprintf("acct:%s:%d", acct, s.GetAsOf()), Msg: s})
 	return nil
 }
 
@@ -122,7 +132,7 @@ func (m *Memory) RecordSnapshot(_ context.Context, acct string, s *ledgerv1.Acco
 func (m *Memory) RequestReconciliation(_ context.Context, r *ledgerv1.ReconciliationRequest) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.Published = append(m.Published, Message{Subject: ReconSubject(r.GetBrokerAccountId()), MsgID: "recon:" + r.GetCorrelationId(), Msg: r})
+	m.publish(Message{Subject: ReconSubject(r.GetBrokerAccountId()), MsgID: "recon:" + r.GetCorrelationId(), Msg: r})
 	return nil
 }
 
@@ -130,7 +140,7 @@ func (m *Memory) RequestReconciliation(_ context.Context, r *ledgerv1.Reconcilia
 func (m *Memory) Alert(_ context.Context, a *alertsv1.Alert) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.Published = append(m.Published, Message{Subject: AlertSubject(a.GetSeverity()), MsgID: "alert:" + a.GetAlertId(), Msg: a})
+	m.publish(Message{Subject: AlertSubject(a.GetSeverity()), MsgID: "alert:" + a.GetAlertId(), Msg: a})
 	return nil
 }
 

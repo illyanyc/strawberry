@@ -568,7 +568,7 @@ export const ReconciliationResultSchema: GenMessage<ReconciliationResult> = /*@_
 
 /**
  * LedgerUpdate is published on ledger.update.<broker_account_id> after every applied event with the
- * owner positions it changed. Strategy runtimes filter it to their own owner (SM-012).
+ * owner positions it changed. Strategy runtimes filter it to their own owner (SM-014).
  *
  * @generated from message tb.ledger.v1.LedgerUpdate
  */

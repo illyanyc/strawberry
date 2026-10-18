@@ -42,11 +42,11 @@ service ExecutionService {
   rpc GetTradingStatus(GetTradingStatusRequest) returns (GetTradingStatusResponse);
 }
 
-// StrategyMode is a strategy's trading mode (SM-001). `live` is only reachable through section 15.
+// StrategyMode is a strategy's trading mode (SM-012). `live` is only reachable through section 15.
 enum StrategyMode {
   STRATEGY_MODE_UNSPECIFIED = 0;
   STRATEGY_MODE_DISABLED = 1;
-  // Runs and records intents and decisions; never submits (SM-002).
+  // Runs and records intents and decisions; never submits (SM-013).
   STRATEGY_MODE_SHADOW = 2;
   STRATEGY_MODE_PAPER = 3;
   STRATEGY_MODE_LIVE = 4;

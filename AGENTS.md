@@ -71,6 +71,7 @@ Prerequisites: Docker (Colima on the Mac Mini, ADR-0013), `make`, `git`. Develop
 | `make lint` | buf lint + breaking, golangci-lint, ruff + mypy, tsc + eslint, docs gate |
 | `make test` | Go (`-race`), Python, and web unit tests |
 | `make test-integration` | Go tests including Postgres-backed integration tests (throwaway container) |
+| `cd tests/paper && go test ./...` | Phase 2 Gate 2 scenarios on the in-process paper harness (simulators, ledger, execution, embedded NATS) |
 | `make smoke` | Smoke test of the running stack (readiness, auth gate, ports, e2e passkey flow with leak canary, Prometheus, audit chain) |
 | `make e2e` / `make e2e-ui` | Go API e2e / Playwright browser e2e against a fresh running stack |
 | `make migrate` | Roles, databases, schemas, migrations |

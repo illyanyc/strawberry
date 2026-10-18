@@ -34,7 +34,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | Path | Status | Purpose |
 |---|---|---|
 | `tools/versions.env` | Exists | Pinned toolchain versions (Go, Python, Node, pnpm, uv, buf, protoc, protoc plugins, golangci-lint, gitleaks); single source for scripts and CI |
-| `tools/tbctl/` | Exists | Go operator CLI (runs in the ops image): `secrets init`, `db init`, `db checksum`, `bus init`, `audit verify`, `audit head` |
+| `tools/tbctl/` | Exists | Go operator CLI (runs in the ops image): `secrets init`, `db init`, `db checksum`, `bus init`, `audit verify`, `audit head`, `kill engage` (kill switch over the bus when the UI is down) |
 | `scripts/bootstrap-tools.sh` | Exists | Installs pinned tools into `.tools/bin` (gitignored); used by `make tools` and CI |
 | `scripts/docs_check.py` | Exists | Documentation gate: file-map coverage and same-commit doc rules for a diff (N6) |
 | `scripts/test-integration.sh` | Exists | Runs Go tests with a throwaway Postgres (`make test-integration`) |
@@ -112,8 +112,9 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0023-ibkr-adapter-gateway-and-sessions.md` | Exists | ADR (D41, implements D18): pinned IB Gateway, per-environment `ib_async` adapter, credential custody, network isolation, maintenance-aware supervision, V1 interim |
 | `docs/adr/0018-broker-gateway-interface.md` | Exists | ADR (D36): one gRPC broker interface for every adapter, typed error model, canonical execution IDs, outbox-backed events |
 | `docs/adr/0024-virtual-ledgers-and-reconciliation.md` | Exists | ADR (D42, implements D19): event-sourced virtual ledgers, FIFO lots, broker-lot shadow ledger, reservations, reconciliation with a break taxonomy |
+| `docs/adr/0025-oms-risk-gate-and-kill-switches.md` | Exists | ADR (D43, implements D30): OMS, pre-trade gate, routing and margin guard, protective orders, latched kill switches, dead-man checks |
 | `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2): NATS JetStream, `sync_interval: always`, stream layout, outbox |
-| `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, IBKR weekly 2FA / manual VNC login / gateway outages (`ibkr-weekly-2fa.md`), broker outage, market data (stale, slow, gaps, reconciliation breaches, corporate-action disputes), IBKR weekly 2FA, ledger reconciliation break (later: kill switch) |
+| `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, IBKR weekly 2FA / manual VNC login / gateway outages (`ibkr-weekly-2fa.md`), broker outage, market data (stale, slow, gaps, reconciliation breaches, corporate-action disputes), IBKR weekly 2FA, ledger reconciliation break, kill switches, halts, and dead-man alerts |
 | `docs/threat-model.md` | Exists | Assets, actors, entry points, STRIDE table mapped to SE-/OP- rules, residual risks |
 
 ## Contracts: `contracts/`
@@ -146,10 +147,10 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | Path | Status | Purpose |
 |---|---|---|
 | `services/api-gateway/` | Exists | Go: owner auth (passkeys, TOTP, recovery), sessions, CSRF, step-up, settings, audit API, credential write-through, SSE status stream, static UI. Layout in [`services/api-gateway/AGENTS.md`](../services/api-gateway/AGENTS.md) |
-| `services/broker-gateway/` | Exists | Go: broker-credential custody (envelope encryption, KEK ring, write-only gRPC `CredentialService`); `BrokerGatewayService` + `BrokerMarketDataService` with the Alpaca adapter, simulator, session engine, outbox-backed events, market-data hub, and the shared contract suite. Layout in [`services/broker-gateway/AGENTS.md`](../services/broker-gateway/AGENTS.md) |
+| `services/broker-gateway/` | Exists | Go: broker-credential custody (envelope encryption, KEK ring, write-only gRPC `CredentialService`); `BrokerGatewayService` + `BrokerMarketDataService` with the Alpaca adapter, simulator, session engine, outbox-backed events, market-data hub, and the shared contract suite. execution-heartbeat dead-man (`internal/deadman`), and the public simulator stack `simstack/` for cross-service tests. Layout in [`services/broker-gateway/AGENTS.md`](../services/broker-gateway/AGENTS.md) |
 | `services/marketdata/` | Exists | Go: single lake writer (Parquet staging/compaction/revisions, manifest), reference data (`refdata`) and its daily sync, data-quality checks, resumable backfill, live bar pipeline (finality, resampling, gap repair, bus/cache/lake sinks), FMP client, cross-source reconciliation, scheduler, `MarketDataService`, spike harnesses (V2, V3, V4). [`AGENTS.md`](../services/marketdata/AGENTS.md) |
 | `services/broker-gateway-ibkr/` | Exists | Python (`ib_async`): IBKR adapter serving `BrokerGatewayService` per environment; session supervision across IB Gateway daily/weekly resets, orders with attribution in `orderRef`, executions + commissions, snapshots, pacing; fake gateways, recorded-format fixtures, opt-in paper suite. Layout in [`services/broker-gateway-ibkr/AGENTS.md`](../services/broker-gateway-ibkr/AGENTS.md) |
-| `services/execution/` | Exists (placeholder) | Go: ops surface + NATS + clock-skew check; `tb_trading_enabled=0` until Phase 2. [`AGENTS.md`](../services/execution/AGENTS.md) |
+| `services/execution/` | Exists | Go: OMS (intents, order state machine, protective orders, exits, order reconciliation, startup recovery), pre-trade risk gate (`internal/risk`), D30 routing and margin guard, PDT guard, latched kill switches, dead-man, intraday lifecycle, `ExecutionService` gRPC; public wiring package `app/` (used by the paper harness). [`AGENTS.md`](../services/execution/AGENTS.md) |
 | `services/ledger/` | Exists | Go: event-sourced real-account and per-strategy virtual ledgers, `manual` bucket, FIFO lots, broker-lot shadow ledger, reservations, allocations, reconciliation and breaks, corporate actions, equity curves, wash-sale flags; `LedgerService` gRPC; public wiring package `app/` (used by the paper harness). Layout in [`services/ledger/AGENTS.md`](../services/ledger/AGENTS.md) |
 | `services/context-data/` | Exists (placeholder) | Python on `tbcore`: ops surface; context data in Phase 3 |
 | `services/monitor/` | Exists (placeholder) | Python on `tbcore`: ops surface; monitoring in Phases 2/5 |
@@ -176,6 +177,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | Path | Status | Purpose |
 |---|---|---|
 | `tests/python/` | Exists | Cross-package Python tests (placeholder services' ops surface) |
+| `tests/paper/` | Exists | Go module: Phase 2 paper harness (simulated Alpaca- and IBKR-shaped accounts behind the adapter engine, ledger, execution, embedded NATS, gRPC, shared virtual clock) and the Gate 2 scenario tests (`go test ./tests/paper/...`) |
 | `tests/e2e/` | Exists | Go end-to-end test against the running stack: passkey setup/login, step-up, credential storage with leak canary, SSE, audit (`make e2e`, used by the smoke test) |
 | `tests/fixtures/` | Exists | Fixtures (no account data): `alpaca/` (bars, corporate actions, data-stream messages; README explains provenance), `lake/` (Go-written sample lake with a revision and a staged file, read by Python tests), `dq/` (injected-defect bars + expected report shared by Go and Python), `fmp/` (`/stable` response shapes for the FMP client tests) |
 
@@ -184,7 +186,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | Path | Status | Purpose |
 |---|---|---|
 | `infra/AGENTS.md` | Exists | Agent notes: layout, rules, run/test, configuration, gotchas |
-| `infra/compose/` | Exists | `docker-compose.yml` (profiles core, observability, ml, ml-workers, ops, remote-cloudflare, ibkr, ibkr-live, ibkr-vnc), native-ML overlay, `nats/nats.conf`, `env.example` |
+| `infra/compose/` | Exists | `docker-compose.yml` (profiles core, observability, ml, ml-workers, ops, remote-cloudflare, ibkr, ibkr-live, ibkr-vnc), native-ML overlay, `nats/nats.conf`, `env.example`, `strategies.json` (strategy registry seed shared by execution and the strategy runtime) |
 | `infra/docker/` | Exists | Go (service/gateway targets), Python (incl. `broker-gateway-ibkr`), ops, and MLflow images; MLflow entrypoint |
 | `infra/ops/` | Exists | `backup.sh`, `restore.sh`, `secrets-bundle.sh` (run in the ops image) |
 | `infra/observability/` | Exists | Prometheus scrape config and alert rules (incl. `rules/ibkr.yml`), Alertmanager routing, Alloy config, Grafana provisioning and the "Stack overview" and "Market data and brokers" dashboards; market-data/broker alert rules (`prometheus/rules/marketdata-brokers.yml`) |

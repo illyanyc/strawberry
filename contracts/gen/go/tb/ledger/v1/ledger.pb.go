@@ -1213,7 +1213,7 @@ func (x *ReconciliationResult) GetTrigger() string {
 }
 
 // LedgerUpdate is published on ledger.update.<broker_account_id> after every applied event with the
-// owner positions it changed. Strategy runtimes filter it to their own owner (SM-012).
+// owner positions it changed. Strategy runtimes filter it to their own owner (SM-014).
 type LedgerUpdate struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	BrokerAccountId string                 `protobuf:"bytes,1,opt,name=broker_account_id,json=brokerAccountId,proto3" json:"broker_account_id,omitempty"`

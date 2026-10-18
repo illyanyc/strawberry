@@ -40,10 +40,13 @@ Custodian of broker credentials and home of the Alpaca adapter, the broker simul
 | `internal/grpcsvc/` | gRPC servers and allowlists |
 | `internal/contract/` | Shared contract suite (BR-001) + in-process harness; opt-in remote and paper targets |
 | `internal/testkit/` | Test wiring (fast options, sim hooks, audit recorder) |
+| `internal/deadman/` | Execution-heartbeat dead-man: cancels working `tb1-` orders (never manual orders or protective stops/legs) 30 s after the last `sys.health.execution` during the session (RM-017) |
+| `simstack/` | Public package: simulator accounts behind the adapter engine and `BrokerGatewayService`, publishing through a callback (paper harness `tests/paper`) |
 
 ## Configuration
 | Variable | Default | Notes |
 |---|---|---|
+| `TB_DEADMAN_TIMEOUT` | `30s` | Execution-heartbeat dead-man (RM-017); `0` disables |
 | `TB_GRPC_ADDR` | `:9090` | Internal network only |
 | `TB_ALPACA_ACCOUNTS` | `alpaca-paper:paper` | `<id>:<paper\|live>` list; credentials come from the UI (encrypted store) |
 | `TB_ALPACA_DATA_ACCOUNT` | `alpaca-paper` | Credential used for the single market-data socket per feed |
@@ -66,6 +69,7 @@ Custodian of broker credentials and home of the Alpaca adapter, the broker simul
 - Runbook: [`docs/runbooks/broker-outage.md`](../../docs/runbooks/broker-outage.md). Losing every KEK makes stored credentials unrecoverable: keep an offline copy of `broker_kek` ([`secrets-and-keys.md`](../../docs/runbooks/secrets-and-keys.md)).
 
 ## Gotchas
+- The simulator can impersonate an IBKR account (`sim.Config.Broker`/`Capabilities`, no bracket support) for D30 swing tests; real IBKR goes through `broker-gateway-ibkr`.
 - Credential values are registered with the log redactor while handled; never log request structs or HTTP requests.
 - Moving a row between `paper` and `live` makes it undecryptable by design (AAD).
 - Order RPC errors use `FAILED_PRECONDITION`, never `UNAVAILABLE` (auto-retry risk, BR-004).

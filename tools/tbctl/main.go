@@ -6,6 +6,7 @@
 //	tbctl bus init             create or update the JetStream streams
 //	tbctl audit verify         recompute the audit hash chain; exit 1 if broken (SE-022)
 //	tbctl audit head           print the audit head as JSON (backup manifests, SE-024)
+//	tbctl kill engage [flags]  publish a latched kill-switch engagement on risk.kill (RM-006)
 package main
 
 import (
@@ -48,6 +49,8 @@ func main() {
 		err = auditVerify(ctx, store, true)
 	case "audit head":
 		err = auditVerify(ctx, store, false)
+	case "kill engage":
+		err = killEngage(ctx, store, os.Args[3:])
 	default:
 		usage()
 	}
@@ -58,7 +61,7 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: tbctl secrets init <dir> | db init | db checksum | bus init | audit verify | audit head")
+	fmt.Fprintln(os.Stderr, "usage: tbctl secrets init <dir> | db init | db checksum | bus init | audit verify | audit head | kill engage --scope S --target T --action A --reason R")
 	os.Exit(2)
 }
 

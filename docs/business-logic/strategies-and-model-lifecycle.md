@@ -28,7 +28,7 @@ stateDiagram-v2
 
 | ID | Rule | Status | Code / tests |
 |---|---|---|---|
-| SM-001 | Every new strategy MUST start in `paper`; nothing may create a strategy directly in `live`. | Specified | — |
+| SM-001 | Every new strategy MUST start in `paper` (or below: `disabled`, `shadow`); nothing may create a strategy directly in `live`. Re-registering an existing strategy never changes its mode. | Implemented | execution `RegisterStrategy`, `Seed` |
 | SM-002 | Validation MUST use walk-forward or purged/embargoed CV; random K-fold on time series is forbidden. | Specified | — |
 | SM-003 | The sealed final holdout MUST NOT be accessible to optimization; each access is logged and counted, and evaluated once per promotion candidate. | Specified | — |
 | SM-004 | Promotion to `live` MUST require: graduation criteria met, explicit human approval with step-up auth, a per-strategy capital cap, the global live flag, and an audit record. | Specified | — |
@@ -39,6 +39,9 @@ stateDiagram-v2
 | SM-009 | Challengers run in shadow or paper next to the champion; replacing a live champion follows SM-004. | Specified | — |
 | SM-010 | The assistant MUST NOT place orders, change live config or limits, promote strategies, read the holdout, or see credentials or account identifiers; its experiments run within a compute budget. | Specified | — |
 | SM-011 | Backtest strategy code MUST be the same code that runs live (shared strategy API in `libs/py/tbcore`). | Specified | — |
+| SM-012 | Strategy modes are `disabled`, `shadow`, `paper`, `live`, `halted`. Owner actions may set `disabled`, `shadow`, `paper`, `halted`; `live` only through the section 15 go-live flow (SM-004). A paper strategy may only send to paper accounts and a live strategy only to live accounts, and only to its registered account. | Implemented | execution `SetMode`, risk `mode` |
+| SM-013 | A `shadow` strategy's intents are evaluated by the full gate and recorded with `shadow=true`, but never reserve capital or reach a broker. Hypothetical fills are Planned (section 08 parity). | Implemented | OMS `process` |
+| SM-014 | Strategies see only their own virtual portfolio (ledger updates filtered to their owner) and data with `available_at <= decision_time`; the runtime uses `tbcore.strategy` so backtests run the same code (SM-011). | Specified | — |
 
 ## Invariants
 

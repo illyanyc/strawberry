@@ -21,11 +21,15 @@ import (
 var natsUsers = map[string]struct{ pub, sub []string }{
 	"api_gateway": {pub: []string{"alert.>", "sys.health.api-gateway"}, sub: []string{"_INBOX.>"}},
 	"marketdata":  {pub: []string{"md.>", "ref.>", "alert.>", "sys.health.marketdata", "sys.health.alpaca.>", "sys.health.fmp"}, sub: []string{"_INBOX.>"}},
-	"execution":   {pub: []string{"ord.>", "risk.kill", "alert.>", "sys.health.execution"}, sub: []string{"_INBOX.>", "sig.>", "ord.>", "exec.>", "risk.kill", "recon.result.>"}},
-	"ledger":      {pub: []string{"ledger.update.>", "recon.result.>", "alert.>", "sys.health.ledger"}, sub: []string{"_INBOX.>", "exec.>", "acct.snapshot.>", "recon.request.>", "ref.>"}},
+	// JetStream pull consumers need the consumer API and ack subjects ($JS.API.CONSUMER.>,
+	// $JS.API.STREAM.INFO.>, $JS.ACK.>).
+	"execution": {pub: []string{"ord.>", "risk.kill", "alert.>", "sys.health.execution", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
+		sub: []string{"_INBOX.>", "sig.>", "ord.>", "exec.>", "risk.kill", "recon.result.>", "acct.snapshot.>", "md.bar.>", "sys.health.strategy-runtime"}},
+	"ledger": {pub: []string{"ledger.update.>", "recon.result.>", "alert.>", "sys.health.ledger", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
+		sub: []string{"_INBOX.>", "exec.>", "acct.snapshot.>", "recon.request.>", "ref.>"}},
 	// Broker adapters publish their accounts' order updates, executions, snapshots, and
 	// reconciliation requests through their outbox relay (ADR-0018).
-	"broker_gateway":      {pub: []string{"ord.update.>", "exec.>", "acct.snapshot.>", "recon.request.>", "alert.>", "sys.health.broker-gateway"}, sub: []string{"_INBOX.>"}},
+	"broker_gateway":      {pub: []string{"ord.update.>", "exec.>", "acct.snapshot.>", "recon.request.>", "alert.>", "sys.health.broker-gateway"}, sub: []string{"_INBOX.>", "sys.health.execution"}},
 	"broker_gateway_ibkr": {pub: []string{"ord.update.>", "exec.>", "acct.snapshot.>", "recon.request.>", "alert.>", "sys.health.broker-gateway-ibkr"}, sub: []string{"_INBOX.>"}},
 	"ops":                 {pub: []string{">"}, sub: []string{">"}},
 }

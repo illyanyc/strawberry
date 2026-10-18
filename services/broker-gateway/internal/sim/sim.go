@@ -42,6 +42,13 @@ type Config struct {
 	// DefaultPrice for symbols without a SetPrice call.
 	DefaultPrice decimal.Decimal
 	Now          func() time.Time
+	// Broker and Capabilities override the simulated account's identity and capabilities, e.g. an
+	// IBKR-shaped account without bracket support for the D30 swing-routing tests.
+	Broker       commonv1.Broker
+	Capabilities *brokerv1.Capabilities
+	// Resolve maps a symbol to the platform instrument_id for snapshot positions and manual
+	// orders (an adapter resolves through the instrument master; "" leaves it empty).
+	Resolve func(symbol string) string
 }
 
 // ErrDisconnected is returned by Stream after Disconnect.
@@ -112,7 +119,21 @@ func Capabilities() *brokerv1.Capabilities {
 
 // Info implements adapter.Broker.
 func (s *Sim) Info() adapter.Info {
-	return adapter.Info{AccountID: s.cfg.AccountID, Broker: commonv1.Broker_BROKER_SIMULATOR, Environment: s.cfg.Environment, Capabilities: Capabilities()}
+	b, caps := commonv1.Broker_BROKER_SIMULATOR, Capabilities()
+	if s.cfg.Broker != commonv1.Broker_BROKER_UNSPECIFIED {
+		b = s.cfg.Broker
+	}
+	if s.cfg.Capabilities != nil {
+		caps = s.cfg.Capabilities
+	}
+	return adapter.Info{AccountID: s.cfg.AccountID, Broker: b, Environment: s.cfg.Environment, Capabilities: caps}
+}
+
+func (s *Sim) resolve(sym string) string {
+	if s.cfg.Resolve == nil {
+		return ""
+	}
+	return s.cfg.Resolve(sym)
 }
 
 func (s *Sim) sleep(ctx context.Context) error {
@@ -194,7 +215,7 @@ func (s *Sim) InjectManualOrder(symbol string, side commonv1.Side, qty decimal.D
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	req := &brokerv1.BrokerOrderRequest{
-		ClientOrderId: "app-" + s.nextID("m"), Instrument: &commonv1.Instrument{Symbol: strings.ToUpper(symbol)}, Side: side,
+		ClientOrderId: "app-" + s.nextID("m"), Instrument: &commonv1.Instrument{Symbol: strings.ToUpper(symbol), InstrumentId: s.resolve(strings.ToUpper(symbol))}, Side: side,
 		Qty: adapter.D(qty), Type: ordersv1.OrderType_ORDER_TYPE_MARKET, Tif: ordersv1.TimeInForce_TIME_IN_FORCE_DAY,
 	}
 	o := s.create(req)
@@ -617,7 +638,18 @@ func (s *Sim) ListOpenOrders(ctx context.Context) ([]*brokerv1.BrokerOrder, erro
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.list(func(o *order) bool { return !adapter.IsFinal(o.o.GetState()) }), nil
+	// Like Alpaca's nested listing, a filled bracket parent is listed while any leg is still open.
+	return s.list(func(o *order) bool {
+		if !adapter.IsFinal(o.o.GetState()) {
+			return true
+		}
+		for _, id := range s.childIDs(o.o.GetBrokerOrderId()) {
+			if !adapter.IsFinal(s.orders[id].o.GetState()) {
+				return true
+			}
+		}
+		return false
+	}), nil
 }
 
 // ListOrders implements adapter.Broker.
@@ -670,7 +702,12 @@ func (s *Sim) Snapshot(ctx context.Context) (*ledgerv1.AccountSnapshot, error) {
 		}
 		mv := q.Mul(s.price(sym))
 		equity = equity.Add(mv)
-		snap.Positions = append(snap.Positions, &ledgerv1.Position{Symbol: sym, Qty: adapter.D(q), MarketValue: adapter.D(mv), AvgCost: adapter.D(s.price(sym))})
+		snap.Positions = append(snap.Positions, &ledgerv1.Position{Symbol: sym, InstrumentId: s.resolve(sym), Qty: adapter.D(q), MarketValue: adapter.D(mv), AvgCost: adapter.D(s.price(sym))})
+		if q.IsPositive() {
+			snap.LongMarketValue = adapter.D(mustDec(snap.GetLongMarketValue()).Add(mv))
+		} else {
+			snap.ShortMarketValue = adapter.D(mustDec(snap.GetShortMarketValue()).Add(mv))
+		}
 	}
 	snap.Cash = adapter.D(s.cash)
 	snap.Equity = adapter.D(equity)
@@ -689,4 +726,9 @@ func (s *Sim) InstrumentInfo(ctx context.Context, inst *commonv1.Instrument, sym
 	tradable := !slices.Contains(s.cfg.RejectSymbols, strings.ToUpper(inst.GetSymbol()))
 	return &brokerv1.InstrumentInfo{Instrument: inst, Tradable: tradable, Shortable: true, EasyToBorrow: true, Fractionable: true,
 		Marginable: true, MinTick: adapter.D(decimal.RequireFromString("0.01")), LotSize: adapter.D(decimal.NewFromInt(1)), Status: "active", AsOf: s.now()}, nil
+}
+
+func mustDec(x *commonv1.Decimal) decimal.Decimal {
+	v, _, _ := adapter.Dec(x)
+	return v
 }

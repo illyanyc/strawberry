@@ -271,7 +271,7 @@ export type RiskDecision = Message<"tb.orders.v1.RiskDecision"> & {
   brokerAccountId: string;
 
   /**
-   * True for shadow-mode strategies: evaluated and recorded, never submitted (SM-002).
+   * True for shadow-mode strategies: evaluated and recorded, never submitted (SM-013).
    *
    * @generated from field: bool shadow = 8;
    */

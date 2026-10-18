@@ -9,5 +9,6 @@ use (
 	./services/ledger
 	./services/marketdata
 	./tests/e2e
+	./tests/paper
 	./tools/tbctl
 )

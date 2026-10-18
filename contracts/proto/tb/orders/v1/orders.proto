@@ -106,7 +106,7 @@ message RiskDecision {
   string correlation_id = 5;
   string strategy_id = 6;
   string broker_account_id = 7;
-  // True for shadow-mode strategies: evaluated and recorded, never submitted (SM-002).
+  // True for shadow-mode strategies: evaluated and recorded, never submitted (SM-013).
   bool shadow = 8;
   // Name of the first failed check, empty when approved.
   string first_failure = 9;

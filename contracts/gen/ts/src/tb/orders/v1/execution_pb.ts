@@ -1417,7 +1417,7 @@ export const GetTradingStatusResponseSchema: GenMessage<GetTradingStatusResponse
   messageDesc(file_tb_orders_v1_execution, 41);
 
 /**
- * StrategyMode is a strategy's trading mode (SM-001). `live` is only reachable through section 15.
+ * StrategyMode is a strategy's trading mode (SM-012). `live` is only reachable through section 15.
  *
  * @generated from enum tb.orders.v1.StrategyMode
  */
@@ -1433,7 +1433,7 @@ export enum StrategyMode {
   DISABLED = 1,
 
   /**
-   * Runs and records intents and decisions; never submits (SM-002).
+   * Runs and records intents and decisions; never submits (SM-013).
    *
    * @generated from enum value: STRATEGY_MODE_SHADOW = 2;
    */

@@ -31,13 +31,13 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// StrategyMode is a strategy's trading mode (SM-001). `live` is only reachable through section 15.
+// StrategyMode is a strategy's trading mode (SM-012). `live` is only reachable through section 15.
 type StrategyMode int32
 
 const (
 	StrategyMode_STRATEGY_MODE_UNSPECIFIED StrategyMode = 0
 	StrategyMode_STRATEGY_MODE_DISABLED    StrategyMode = 1
-	// Runs and records intents and decisions; never submits (SM-002).
+	// Runs and records intents and decisions; never submits (SM-013).
 	StrategyMode_STRATEGY_MODE_SHADOW StrategyMode = 2
 	StrategyMode_STRATEGY_MODE_PAPER  StrategyMode = 3
 	StrategyMode_STRATEGY_MODE_LIVE   StrategyMode = 4
