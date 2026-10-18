@@ -7,6 +7,7 @@ import { StepUpDialog } from "@/components/StepUpDialog";
 import { api, type AuthState } from "@/lib/api";
 import { LoginPage, SetupPage } from "@/routes/auth";
 import { DashboardPage } from "@/routes/dashboard";
+import { SignInPage, SignUpPage } from "@/routes/sign";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 10_000, retry: 1, refetchOnWindowFocus: true } },
@@ -38,6 +39,11 @@ const lazy = {
   live: lazyRouteComponent(() => import("@/routes/golive"), "GoLivePage"),
   monitoring: lazyRouteComponent(() => import("@/routes/monitoring"), "MonitoringPage"),
   security: lazyRouteComponent(() => import("@/routes/security"), "SecurityPage"),
+  onboarding: lazyRouteComponent(() => import("@/routes/hosted"), "OnboardingPage"),
+  connections: lazyRouteComponent(() => import("@/routes/hosted"), "ConnectionsPage"),
+  keys: lazyRouteComponent(() => import("@/routes/hosted"), "KeysPage"),
+  billing: lazyRouteComponent(() => import("@/routes/hosted"), "BillingPage"),
+  account: lazyRouteComponent(() => import("@/routes/hosted"), "AccountPage"),
   brokers: lazyRouteComponent(() => import("@/routes/settings"), "BrokersPage"),
   platform: lazyRouteComponent(() => import("@/routes/settings"), "PlatformSettingsPage"),
   notifications: lazyRouteComponent(() => import("@/routes/notifications"), "NotificationsPage"),
@@ -60,6 +66,18 @@ const rootRoute = createRootRoute({
       <StepUpDialog />
     </>
   ),
+});
+
+const signInRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/sign-in",
+  component: SignInPage,
+});
+
+const signUpRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/sign-up",
+  component: SignUpPage,
 });
 
 const loginRoute = createRoute({
@@ -134,10 +152,14 @@ const compareRoute = createRoute({
 });
 
 const routeTree = rootRoute.addChildren([
+  signInRoute,
+  signUpRoute,
   loginRoute,
   setupRoute,
   appRoute.addChildren([
     page("/", DashboardPage),
+    page("/onboarding", lazy.onboarding),
+    page("/connections", lazy.connections),
     page("/overview", lazy.overview),
     page("/portfolio", lazy.portfolio),
     page("/strategies", lazy.strategies),
@@ -164,6 +186,9 @@ const routeTree = rootRoute.addChildren([
     page("/publications/$publicationId", lazy.publication),
     page("/settings/security", lazy.security),
     page("/settings/brokers", lazy.brokers),
+    page("/settings/keys", lazy.keys),
+    page("/settings/billing", lazy.billing),
+    page("/settings/account", lazy.account),
     page("/settings/platform", lazy.platform),
     page("/settings/notifications", lazy.notifications),
     page("/settings/tradingview", lazy.tradingview),

@@ -27,7 +27,7 @@ The only service reachable from outside the host. Owns owner authentication, ses
 | in | HTTP (TradingView listener, optional) | `POST /webhooks/tradingview/{name}` | JSON alert body (`contracts/openapi/gateway.yaml` description) |
 | out | HTTPS | Web Push to allowlisted push services; Cloudflare Access keys from `https://<team>/cdn-cgi/access/certs` | RFC 8291/8292; JWKS |
 | in | NATS (core subscribe) | `md.bar.<tf>.<id>`, `md.bar.correction.*`, `md.bar.partial.*`, `exec.>`, `sig.*.<id>` for the chart stream; `exec.>` for fill pushes | `tb.marketdata.v1.Bar`, `tb.orders.v1.ExecutionReport`, `tb.signals.v1.Signal` |
-| out | Postgres | schemas `auth` (incl. `push_subscriptions`), `config` (settings and `publications`, UI-053), `audit` (append + read) | `libs/go/db/migrations/` |
+| out | Postgres | schemas `auth` (incl. `push_subscriptions`), `config` (settings, `publications` UI-053, `api_keys` and `risk_disclosures` SE-067), `audit` (append + read) | `libs/go/db/migrations/` |
 
 ## Business rules enforced here
 - `SE-004` public allowlist → `internal/gateway/server.go` (`registerRoutes`, `wrap`); test `TestSE004RouteInventory`
@@ -44,6 +44,9 @@ The only service reachable from outside the host. Owns owner authentication, ses
 - `SE-060`..`SE-063` Web Push (VAPID, RFC 8291, sealed subscriptions, push-host allowlist, redaction, internal Alertmanager webhook) → `internal/webpush`, `internal/gateway/push.go`; `webpush_test.go`, `push_test.go`
 - `SE-064` TradingView intake and the Cloudflare Access gate, `SE-065` widget CSP, `UI-047` tearsheet embed, `UI-049` signals, `UI-051` freshness, `RM-020` phone halt step-up → `internal/gateway/tradingview.go`, `server.go`, `signals.go`, `research.go`, `trading.go`, `internal/cfaccess`; `tradingview_test.go`, `cfaccess_test.go`, `trading_test.go`
 - `UI-053` strategy publications (definition and backtest parameters only; no performance fields or result sort; no order path) → `internal/gateway/publications.go`; `publications_test.go`
+- `UI-054` `X-Robots-Tag: noindex, nofollow` on app responses → `internal/gateway/server.go`; `TestStaticUIServing`
+- `SE-066` Clerk CSP stays `script-src 'self'` unless `TB_CLERK_FRONTEND_API` is one `https` origin → `server.go` (`withClerkCSP`); `TestSE066ClerkCSPStaysClosedUnlessOriginIsHTTPS`
+- `SE-067` FMP keys write-only, paper only, sealed, owner-scoped → `internal/gateway/apikeys.go`; `apikeys_test.go` (`TestSE067FMPKeyIsWriteOnlyAndPaperOnly`). Risk-disclosure acceptance requires `accepted: true` (`TestUI055DisclosureAcceptsOnlyTrue`)
 - `AN-060` (owner submits approved analyst actions at level 0, caller always replaced by the owner), `AN-061` (raising analyst autonomy or budgets needs a passkey step-up; audited before the change), `AN-073` (proposal review), `AN-080` (chat) → `internal/gateway/analyst.go`; `analyst_test.go` (`TestAN060*`, `TestAN061*`)
 
 ## Layout
@@ -70,6 +73,7 @@ The only service reachable from outside the host. Owns owner authentication, ses
 | `internal/gateway/push.go` | Web Push: subscription API, delivery fan-out, fill notifications, Alertmanager webhook on the internal listener, Postgres store |
 | `internal/gateway/tradingview.go` | TradingView webhook listener (verification chain, audit, signal publication), per-strategy secrets, `/api/v1/tradingview` status |
 | `internal/gateway/publications.go` | Strategy publications (UI-053): create, list, read, withdraw. No performance columns and no order route |
+| `internal/gateway/apikeys.go` | Paper FMP keys (SE-067) and risk-disclosure acceptance. Responses carry a last-four hint, never the secret |
 | `internal/webpush/` | RFC 8291 encryption, RFC 8292 VAPID, sender, push-host allowlist (standard library only) |
 | `internal/cfaccess/` | Cloudflare Access JWT verifier (RS256 via the team's published keys, audience, issuer, expiry) |
 | `internal/gateway/*_test.go` | Route inventory, CSRF/headers, static UI serving, end-to-end integration tests (passkeys via `libs/go/webauthntest`), trading handlers against fake gRPC clients and a fake bus |
@@ -96,6 +100,7 @@ The only service reachable from outside the host. Owns owner authentication, ses
 | `TB_TV_WEBHOOK_ADDR` | empty (off) | TradingView listener (e.g. `:8090`); must differ from `TB_HTTP_ADDR` |
 | `TB_TV_PUBLIC_URL` / `TB_TV_ALLOWED_IPS` / `TB_TV_TRUSTED_PROXIES` / `TB_TV_MAX_AGE` | — / TradingView's four IPs / — / `60s` | Display URL; client allowlist; peers whose `Cf-Connecting-Ip` counts (cloudflared); alert age window |
 | `TB_CF_ACCESS_TEAM` / `TB_CF_ACCESS_TV_AUD` / `TB_CF_ACCESS_UI_AUD` / `TB_CF_ACCESS_UI_HOSTS` | empty | Cloudflare Access verification for the webhook application and the public UI hostnames (SE-064) |
+| `TB_CLERK_FRONTEND_API` | empty | One `https` origin added to `script-src` and `connect-src` for Clerk. Anything else is ignored and CSP stays `script-src 'self'` (SE-066) |
 | Secrets | — | `gateway_auth_key`, `pg_svc_api_gateway_password`, `nats_api_gateway_password`, `svc_api_gateway_ed25519`, `webpush_vapid_key`, `alertmanager_webhook_token`, `tv_webhook_key` |
 
 ## Run and test
@@ -118,3 +123,5 @@ The only service reachable from outside the host. Owns owner authentication, ses
 - The TradingView listener never shares the UI address (config validation); it is off unless `TB_TV_WEBHOOK_ADDR` is set and `tv_webhook_key` exists.
 - Kill-switch engagement from a phone needs a fresh passkey (RM-020); the UI's step-up dialog retries it.
 - The chart stream needs the gateway NATS user's `md.bar.>`, `exec.>`, and `sig.>` subscribe permissions, and `/api/v1/signals` its SIGNALS-stream consumer permissions (`tools/tbctl/secrets.go`); on an existing install run `make secrets` (rewrites `nats_users.conf`) and restart `nats`.
+- FMP keys need migration `config/000003` (`make migrate`). Without a Postgres pool the handlers keep keys in memory so unit tests run; that store is not durable.
+- Do not set `TB_CLERK_FRONTEND_API` on the Mac Mini self-hosted gateway. A bad value must not open `script-src`.

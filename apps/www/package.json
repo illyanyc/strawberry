@@ -1,0 +1,11 @@
+{
+  "name": "@strawberry/www",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Static marketing site for Strwbrry (strwbrry.ai). Not the trading SPA.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test test/site.test.mjs"
+  }
+}

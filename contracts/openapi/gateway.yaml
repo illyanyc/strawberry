@@ -174,6 +174,19 @@ paths:
       requestBody: { content: { application/json: { schema: { type: object, required: [broker, secret], additionalProperties: false, properties: { broker: { enum: [alpaca, ibkr] }, secret: { type: object, additionalProperties: { type: string }, maxProperties: 8 } } } } } }
       responses: { '200': { description: Stored (metadata returned) }, '403': { $ref: '#/components/responses/Forbidden' } }
     delete: { responses: { '204': { description: Deleted }, '403': { $ref: '#/components/responses/Forbidden' } } }
+  /api/v1/keys:
+    get: { responses: { '200': { description: FMP key metadata only (kind, environment, hint, times). Never the secret. SE-067 }, '403': { $ref: '#/components/responses/Forbidden' } } }
+  /api/v1/keys/{kind}:
+    parameters: [{ name: kind, in: path, required: true, schema: { enum: [fmp] } }]
+    put:
+      requestBody: { content: { application/json: { schema: { type: object, required: [key_id, secret], additionalProperties: false, properties: { key_id: { type: string }, secret: { type: string } } } } } }
+      responses: { '200': { description: Stored metadata. Paper only. Secret is not returned. }, '403': { $ref: '#/components/responses/Forbidden' } }
+    delete: { responses: { '204': { description: Deleted }, '403': { $ref: '#/components/responses/Forbidden' } } }
+  /api/v1/risk-disclosure:
+    get: { responses: { '200': { description: Whether this owner accepted the risk disclosure } } }
+    post:
+      requestBody: { content: { application/json: { schema: { type: object, required: [accepted], additionalProperties: false, properties: { accepted: { type: boolean, const: true } } } } } }
+      responses: { '200': { description: Accepted }, '400': { description: accepted must be true } }
   /api/v1/system/status:
     get: { responses: { '200': { description: "Trading-status snapshot: environment, live flag, mode, session expiry, `trading` (tb.orders.v1.TradingStatus, null with `trading_error` when execution is unreachable; UI-013), and `feeds` (tb.marketdata.v1.GetFeedStatusResponse, null with `feeds_error` when marketdata is unreachable)" } } }
   /api/v1/events:

@@ -9,7 +9,7 @@ import { chromium } from "@playwright/test";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const svg = readFileSync(`${root}public/icon.svg`, "utf8");
 const mark = svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "").replace(/<rect[^>]*\/>/, "");
-const bg = "#0b0f14";
+const bg = "#1e1e1e";
 
 const icons = [
   { file: "icon-192.png", size: 192, html: svg },

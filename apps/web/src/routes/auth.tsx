@@ -148,7 +148,7 @@ export function SetupPage() {
   }
 
   return (
-    <AuthFrame title="Set up Strawberry" subtitle="Create the owner account with a passkey.">
+    <AuthFrame title="Set up Strwbrry" subtitle="Create the owner account with a passkey.">
       <Card>
         <CardHeader title="First-run setup" description={<>Run <code className="font-mono">make setup-token</code> on the host to get a one-time token.</>} />
         <CardBody>

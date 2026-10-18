@@ -35,7 +35,8 @@ Stack choices are accepted per [`docs/decisions.md`](docs/decisions.md) (researc
 | Assistant | `services/assistant/` | LLM agent with constrained tools | Python, Pydantic AI + MCP; hybrid API/local LLM (D26) |
 | Monitor | `services/monitor/` | Drift, divergence, health, alerts, auto-demotion | Python |
 | Shared libs | `libs/go/`, `libs/py/tbcore/` | Config, logging, secrets, policy, audit, bus, clock; **features, labels, splitters, cost models, strategy API** (shared by train, backtest, and live) | Go / Python |
-| Web UI | `apps/web/` | Desktop + mobile PWA, charts, order entry, research dashboards | Vite + React 19 SPA, TanStack, Tailwind, shadcn/ui (D11); SSE (D14); PWA + Pushover (D13) |
+| Web UI | `apps/web/` | Desktop + mobile PWA, charts, order entry, research dashboards, hosted signup and billing | Vite + React 19 SPA, TanStack, Tailwind, shadcn/ui (D11); SSE (D14); PWA + Pushover (D13); Clerk when configured, else a local mock (D73) |
+| Marketing site | `apps/www/` | Public pages for https://strwbrry.ai (pricing, help, legal, status) | Static HTML generator, no framework (D73, [ADR-0055](docs/adr/0055-strwbrry-hosted-product-shell.md)) |
 | Infra | `infra/` | Compose profiles, images, macOS host setup, observability config, encrypted secrets | Docker Compose on Mac Mini via Colima (D21, D28); Grafana/Prometheus/VictoriaLogs/Alloy (D22); SOPS + age (D16); Tailscale + optional Cloudflare Access (D17) |
 | Storage | — | Bars/ticks: Parquet lake + DuckDB on host APFS (D4); state: PostgreSQL (D5); cache: Valkey 9 (D6); bus: NATS JetStream (D2); artifacts: filesystem (D8) | |
 
@@ -92,6 +93,7 @@ Prerequisites: Docker (Colima on the Mac Mini, ADR-0013), `make`, `git`. Develop
 | `make test-ibkr-paper` | Opt-in tests and spike V1 against a real IB Gateway paper session |
 | `make port-check` / `make check-arm64` | Loopback-only ports / arm64 availability of every image |
 | `make docs-check` | File-map coverage and same-commit documentation rules |
+| `pnpm --filter @strawberry/www test` | Build the Strwbrry marketing site and check titles, index rules, and the operator address |
 | `make gen-calendar` | Regenerate the shared XNYS session table (Go + Python) from `exchange_calendars` |
 | `make ctx-backfill SOURCE=… START=… END=…` | Context-data backfill of one source in the running stack (idempotent) |
 | `make test-ctx-live` | Opt-in context-data tests against real APIs (FINRA, EDGAR; FRED/FMP with keys) |

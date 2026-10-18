@@ -37,7 +37,7 @@ func TestSE004RouteInventory(t *testing.T) {
 			gotPublic = append(gotPublic, rt.Method+" "+rt.Pattern)
 			continue
 		}
-		path := strings.NewReplacer("{id}", "x", "{key}", "ui.theme", "{account}", "acct", "{environment}", "paper", "{scope}", "global").Replace(rt.Pattern)
+		path := strings.NewReplacer("{id}", "x", "{key}", "ui.theme", "{account}", "acct", "{environment}", "paper", "{scope}", "global", "{kind}", "fmp").Replace(rt.Pattern)
 		req := httptest.NewRequest(rt.Method, path, strings.NewReader("{}"))
 		// Valid CSRF so the session check (not CSRF) is what rejects the request.
 		req.Header.Set("Origin", "http://localhost:8080")
@@ -142,5 +142,21 @@ func TestStaticUIServing(t *testing.T) {
 	}
 	if r := get("GET", "/"); !strings.Contains(r.Header().Get("Content-Security-Policy"), "script-src 'self';") {
 		t.Fatalf("CSP on UI: %q", r.Header().Get("Content-Security-Policy"))
+	}
+	if r := get("GET", "/"); r.Header().Get("X-Robots-Tag") != "noindex, nofollow" {
+		t.Fatalf("robots: %q", r.Header().Get("X-Robots-Tag"))
+	}
+}
+
+func TestSE066ClerkCSPStaysClosedUnlessOriginIsHTTPS(t *testing.T) {
+	if got := withClerkCSP(cspPolicy, ""); got != cspPolicy {
+		t.Fatalf("empty: %s", got)
+	}
+	if got := withClerkCSP(cspPolicy, "https://evil.example; script-src https://attacker"); got != cspPolicy {
+		t.Fatalf("injection: %s", got)
+	}
+	got := withClerkCSP(cspPolicy, "https://example.clerk.accounts.dev")
+	if !strings.Contains(got, "script-src 'self' https://example.clerk.accounts.dev") || !strings.Contains(got, "connect-src 'self' https://example.clerk.accounts.dev") {
+		t.Fatalf("allowlist: %s", got)
 	}
 }
