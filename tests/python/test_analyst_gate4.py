@@ -308,10 +308,14 @@ def test_gate4_an040_level1_runs_preregistered_rounds_unattended_and_stops_with_
     assert rounds[-1].summary.startswith("Loop stopped after")
     analyst_studies = [s for s in stack.ocore.studies(lid) if s.created_by.actor == tp.ACTOR_ANALYST]
     assert len(analyst_studies) >= 2
+    assert any(st.status == op.STUDY_STATUS_COMPLETED for st in analyst_studies)
     for st in analyst_studies:
         pr = st.spec.preregistration
         assert pr.hypothesis and pr.stop_rule and pr.metric == (st.spec.objective.metric or "sharpe")  # EX-026
-        assert st.status == op.STUDY_STATUS_COMPLETED, st.message
+        # A study the cycle budget cuts short ends stopped, its trials still counted (EX-025).
+        assert st.status == op.STUDY_STATUS_COMPLETED or (
+            st.status == op.STUDY_STATUS_STOPPED and "EX-025" in st.message
+        ), st.message
         assert st.created_by.analyst_round_id in {r.round_id for r in rounds}
     launched = [r for r in rounds if any(a.tool == "launch_study" and a.launched_ids for a in r.plan.actions)]
     assert all(r.preregistration.hypothesis and r.preregistration.prereg_hash for r in launched)
