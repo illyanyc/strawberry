@@ -147,6 +147,13 @@ flowchart TB
         GF[Grafana :3000 → 127.0.0.1]
         AM[Alertmanager]
       end
+      subgraph research[research network · internal: postgres, nats, ml, optimizer, api-gateway]
+        AST[assistant · AI analyst]
+        EGR[llm-egress · allowlist proxy, also on edge]
+      end
+      subgraph nonet[network_mode none]
+        SBX[analyst-sandbox · candidate-checker]
+      end
       subgraph backend[backend network · internal, no egress]
         BG[broker-gateway]
         MDS[marketdata / execution / ledger]
@@ -155,7 +162,7 @@ flowchart TB
         NATS{{NATS JetStream}}
         VK[(Valkey 9)]
         OBS[Prometheus · VictoriaLogs · Alloy · exporters]
-        MLP[ml profile: MLflow · Prefect · assistant]
+        MLP[ml profile: MLflow · Prefect]
       end
     end
   end
@@ -170,7 +177,8 @@ flowchart TB
   MLP --- DATA
 ```
 
-- Only the gateway and Grafana publish ports, on `127.0.0.1` (SE-051, OP-041). `make up NATIVE_ML=1` additionally exposes Postgres and NATS on loopback for native workers (D29).
+- Only the gateway and Grafana publish ports, on `127.0.0.1` (SE-051, OP-041).
+- The AI analyst (`assistant`) is only on the internal `research` network, which no order-path service joins (AN-032); it reaches LLM providers only through `llm-egress` (AN-053); candidate code runs in `analyst-sandbox` with no network, exchanging files with `candidate-checker` (also no network) over the `analyst-jobs` volume (AN-071). `make up NATIVE_ML=1` additionally exposes Postgres and NATS on loopback for native workers (D29).
 - The same Compose file runs on a Linux droplet later (D21); the `ml-workers` profile replaces native launchd workers there.
 
 ### IBKR (profiles `ibkr`, `ibkr-live`; ADR-0023)
