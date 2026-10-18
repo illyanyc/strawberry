@@ -295,7 +295,7 @@ func TestGate2EveryDecisionAudited(t *testing.T) {
 	mustReject(t, h.submit(h.intent("orb", Alpaca, "AMD", commonv1.Side_SIDE_BUY, "10", ordersv1.IntentKind_INTENT_KIND_OPEN, commonv1.Horizon_HORIZON_INTRADAY, "", "")), "protective_order")
 	mustApprove(t, h.submit(h.intent("orb", Alpaca, "AMD", commonv1.Side_SIDE_BUY, "10", ordersv1.IntentKind_INTENT_KIND_OPEN, commonv1.Horizon_HORIZON_INTRADAY, "78", "")))
 	n := 0
-	for _, a := range h.ExecSt.Audits[before:] {
+	for _, a := range h.ExecSt.AuditSnapshot()[before:] {
 		if a.Action == "execution.risk.decision" {
 			n++
 			if _, ok := a.Details["checks"]; !ok {

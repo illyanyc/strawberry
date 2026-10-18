@@ -144,6 +144,14 @@ func (m *Memory) Commit(_ context.Context, tx *Tx) error {
 }
 
 // AuditActions returns recorded audit actions (tests).
+// AuditSnapshot returns a copy of the audit records under the store lock (tests read it while the
+// engine's tick goroutine commits).
+func (m *Memory) AuditSnapshot() []audit.Event {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return append([]audit.Event(nil), m.Audits...)
+}
+
 func (m *Memory) AuditActions() []string {
 	m.mu.Lock()
 	defer m.mu.Unlock()
