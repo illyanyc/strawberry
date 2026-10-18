@@ -129,6 +129,29 @@ func TestEX052ResearchStepUps(t *testing.T) {
 	}
 }
 
+// AN-032 / AN-061: the analyst (actor assistant) may perform no analyst owner action, never raises its
+// own autonomy, and never reaches an order-path, limit, kill-switch, promotion, or credential action.
+func TestAN032AssistantDeniedEveryOwnerAndAnalystAction(t *testing.T) {
+	now := time.Now()
+	a := Actor{Kind: KindAssistant, StepUpMethod: StepUpPasskey, StepUpUntil: now.Add(time.Minute)}
+	for _, act := range OwnerActions() {
+		if act == ActAssistantExperiment {
+			continue
+		}
+		if d := Authorize(a, act, Resource{Mode: "paper"}, now); d.Effect != Deny {
+			t.Errorf("assistant %s: got %s, want deny", act, d.Effect)
+		}
+	}
+	if d := Authorize(Actor{Kind: KindOwner}, ActAnalystAutonomySet, Resource{Mode: "raise"}, now); d.Effect != RequireStepUp {
+		t.Errorf("owner raising analyst autonomy without step-up: %v", d)
+	}
+	for _, act := range []Action{ActAnalystLoopPause, ActAnalystActionsReview, ActAnalystCodeReview, ActAssistantChat} {
+		if d := Authorize(Actor{Kind: KindOwner}, act, Resource{}, now); d.Effect != Allow {
+			t.Errorf("owner %s: %v", act, d)
+		}
+	}
+}
+
 func TestStepUpListCoversSection02(t *testing.T) {
 	for _, a := range mustRequirePasskeyStepUp {
 		if !RequiresPasskeyStepUp(a, Resource{}) {

@@ -389,3 +389,61 @@ paths:
     post: { description: 'Body {"toStage": paper|retired, "reason"}.', responses: { '200': { description: tb.optimizer.v1.DemoteCandidateResponse } } }
   /api/v1/research/candidates/{id}/holdout:
     post: { description: 'Body {"reason"}; passkey step-up (`holdout.evaluate`), one touch per family per quarter, pass/fail + DSR only (EX-011).', responses: { '200': { description: tb.optimizer.v1.EvaluateOnHoldoutResponse }, '403': { $ref: '#/components/responses/Forbidden' } } }
+  # ---- AI Research Analyst and assistant (section 14 Phase 4 slice; AN-060, AN-061, AN-073, AN-080) ----
+  /api/v1/analyst/lineages:
+    get: { responses: { '200': { description: tb.analyst.v1.ListLineagesResponse (loop status, autonomy, budgets, LLM spend) } } }
+  /api/v1/analyst/lineages/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9_-]{1,64}$' } }]
+    get: { responses: { '200': { description: tb.analyst.v1.GetLoopStatusResponse } } }
+  /api/v1/analyst/lineages/{id}/journal:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      parameters: [{ name: limit, in: query, schema: { type: integer, maximum: 500 } }]
+      responses: { '200': { description: tb.analyst.v1.GetJournalResponse (research journal, newest first) } }
+  /api/v1/analyst/lineages/{id}/trials:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get: { responses: { '200': { description: tb.analyst.v1.GetTrialLedgerResponse (every trial with source and status, deflated outcome, cycle budget) } } }
+  /api/v1/analyst/lineages/{id}/pause:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      requestBody: { content: { application/json: { schema: { type: object, required: [paused], additionalProperties: false, properties: { paused: { type: boolean }, reason: { type: string, maxLength: 300 } } } } } }
+      responses: { '200': { description: tb.analyst.v1.SetLoopPausedResponse } }
+  /api/v1/analyst/lineages/{id}/analyze:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      description: Opens an owner-requested analyst round (optional run, study, candidate, or strategy reference and a question).
+      requestBody: { content: { application/json: { schema: { type: object, additionalProperties: false, properties: { refKind: { enum: [run, study, candidate, strategy] }, refId: { type: string }, question: { type: string, maxLength: 2000 } } } } } }
+      responses: { '200': { description: tb.analyst.v1.RequestAnalysisResponse } }
+  /api/v1/analyst/rounds/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get: { responses: { '200': { description: tb.analyst.v1.GetRoundResponse (diagnosis, ranked plan with config diffs, outcome, decision, summary) } } }
+  /api/v1/analyst/rounds/{id}/review:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      description: Approve or reject plan actions (AN-060). At level 0 the gateway submits approved actions to the ml and optimizer services as the owner (with the round ID) and records the launches with the assistant.
+      requestBody: { content: { application/json: { schema: { type: object, required: [actionIds, approve], additionalProperties: false, properties: { actionIds: { type: array, maxItems: 20, items: { type: string } }, approve: { type: boolean }, reason: { type: string, maxLength: 300 } } } } } }
+      responses: { '200': { description: tb.analyst.v1.ReviewActionsResponse } }
+  /api/v1/analyst/proposals:
+    get:
+      parameters: [{ name: lineage, in: query, schema: { type: string } }]
+      responses: { '200': { description: tb.analyst.v1.ListCodeProposalsResponse } }
+  /api/v1/analyst/proposals/{id}/review:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      description: Approve (ready for a human merge; never applied automatically, AN-073) or reject a candidate feature.
+      requestBody: { content: { application/json: { schema: { type: object, required: [approve], additionalProperties: false, properties: { approve: { type: boolean }, note: { type: string, maxLength: 1000 } } } } } }
+      responses: { '200': { description: tb.analyst.v1.ReviewCodeProposalResponse } }
+  /api/v1/assistant/conversations:
+    get: { responses: { '200': { description: tb.analyst.v1.ListConversationsResponse } } }
+    post:
+      requestBody: { content: { application/json: { schema: { type: object, additionalProperties: false, properties: { title: { type: string, maxLength: 120 }, lineageId: { type: string } } } } } }
+      responses: { '200': { description: tb.analyst.v1.CreateConversationResponse } }
+  /api/v1/assistant/conversations/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get: { responses: { '200': { description: tb.analyst.v1.GetConversationResponse } } }
+  /api/v1/assistant/conversations/{id}/messages:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      description: Ask the assistant; the reply cites the run, study, round, or report IDs it used (AN-080).
+      requestBody: { content: { application/json: { schema: { type: object, required: [content], additionalProperties: false, properties: { content: { type: string, minLength: 1, maxLength: 4000 } } } } } }
+      responses: { '200': { description: tb.analyst.v1.PostMessageResponse } }

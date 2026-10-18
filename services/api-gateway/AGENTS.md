@@ -18,6 +18,7 @@ The only service reachable from outside the host. Owns owner authentication, ses
 | out | gRPC | `tb.marketdata.v1.MarketDataService` (`GetBars`, `ResolveSymbols`) | `contracts/proto/tb/marketdata/v1/marketdata.proto` |
 | out | gRPC | `tb.ml.v1.MLService` (families, feature sets, label presets, estimate, jobs + stream, runs, diagnostics, importance, model card, tearsheet, register, ablations) | `contracts/proto/tb/ml/v1/ml_service.proto` |
 | out | gRPC | `tb.optimizer.v1.OptimizerService` (lineages, autonomy, cycles, studies + stream, trials, diagnostics, ledger, stats, candidates, gate report, evidence, graph, check/promote/demote, retraining) and `HoldoutService` (status, boundary, evaluate; audience `holdout`) | `contracts/proto/tb/optimizer/v1/` |
+| out | gRPC | `tb.analyst.v1.AnalystService` (journal, rounds, status, review + record launches, pause, analysis requests, trial ledger, code proposals, chat); approved level-0 actions go to ml/optimizer through the research clients as the owner (AN-060) | `contracts/proto/tb/analyst/v1/analyst.proto` |
 | out | NATS | `alert.security` | `tb.alerts.v1.Alert` |
 | in | NATS (core subscribe) | `md.bar.<tf>.<id>`, `md.bar.correction.*`, `md.bar.partial.*`, `exec.>` for the chart stream | `tb.marketdata.v1.Bar`, `tb.orders.v1.ExecutionReport` |
 | out | Postgres | schemas `auth`, `config` (CRUD), `audit` (append + read) | `libs/go/db/migrations/` |
@@ -32,6 +33,7 @@ The only service reachable from outside the host. Owns owner authentication, ses
 - All of the above end to end: `TestSEAuthEndToEnd`, `TestSSEStreamRequiresSessionAndEndsOnRevoke`
 - `EX-052`/`EX-011`/`EX-033`/`EX-025` research step-ups (promotion to paper or live_eligible, holdout evaluation and boundary, raising analyst autonomy, opening a cycle), `UI-025` sandboxed tearsheets → `internal/gateway/research.go`; `research_test.go` (`TestEX052*`, `TestUI025*`)
 - `RM-007` (kill release desktop + passkey, allocation increase, limit loosening), `VP-019` break resolution step-up, `SE-003` live/unknown-account manual orders, `UI-006`, `UI-012`..`UI-016` → `internal/gateway/trading.go`, `stream.go`; `trading_test.go` (`TestRM007*`, `TestVP019*`, `TestUI0*`)
+- `AN-060` (owner submits approved analyst actions at level 0, caller always replaced by the owner), `AN-061` (raising analyst autonomy or budgets needs a passkey step-up; audited before the change), `AN-073` (proposal review), `AN-080` (chat) → `internal/gateway/analyst.go`; `analyst_test.go` (`TestAN060*`, `TestAN061*`)
 
 ## Layout
 | Path | Purpose |
@@ -48,6 +50,7 @@ The only service reachable from outside the host. Owns owner authentication, ses
 | `internal/gateway/events.go` | SSE `trading-status` stream and status snapshot (includes execution's `TradingStatus`) |
 | `internal/gateway/trading.go` | Trading BFF: signed gRPC clients to execution/ledger/marketdata, protojson responses, owner actions with step-up |
 | `internal/gateway/research.go` | Research BFF (section 14 Phase 4): signed gRPC clients to ml, optimizer, holdout; owner caller with step-up attestation; SSE job and study progress; sandboxed tearsheet documents |
+| `internal/gateway/analyst.go` | Analyst BFF: AnalystService client; approvals with owner submission of prepared launches through the research clients, pause, analysis requests, proposals, chat (autonomy changes use the research autonomy route) |
 | `internal/gateway/stream.go` | SSE chart stream (`/api/v1/stream/market`): bars, coalesced partials, executions |
 | `internal/gateway/static.go` | SPA file server with index fallback |
 | `internal/gateway/*_test.go` | Route inventory, CSRF/headers, static UI serving, end-to-end integration tests (passkeys via `libs/go/webauthntest`), trading handlers against fake gRPC clients and a fake bus |
@@ -66,6 +69,7 @@ The only service reachable from outside the host. Owns owner authentication, ses
 | `TB_BROKER_GATEWAY_ADDR` | `broker-gateway:9090` | gRPC |
 | `TB_EXECUTION_ADDR` / `TB_LEDGER_ADDR` / `TB_MARKETDATA_ADDR` | `execution:9090` / `ledger:9090` / `marketdata:9090` | gRPC (lazy connections; routes answer 503 `<service>_unavailable` while a service is down) |
 | `TB_ML_ADDR` / `TB_OPTIMIZER_ADDR` / `TB_HOLDOUT_ADDR` | `ml:9090` / `optimizer:9091` / `optimizer:9092` | Research services (profile `ml-workers`; native macOS workers need an address the Colima VM can reach) |
+| `TB_ASSISTANT_ADDR` | `assistant:9090` | AnalystService for the analyst page (routes answer 503 `assistant_unavailable` while down) |
 | `TB_WEB_DIR` | `/app/web` | Static SPA build |
 | Secrets | — | `gateway_auth_key`, `pg_svc_api_gateway_password`, `nats_api_gateway_password`, `svc_api_gateway_ed25519` |
 

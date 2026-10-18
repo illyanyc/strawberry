@@ -44,11 +44,14 @@ type Server struct {
 	creds    CredentialClient
 	trading  *TradingClients
 	research *ResearchClients
+	analyst  *AnalystClients
 	market   MarketBus
-	web      *webUI
-	now      func() time.Time
-	proxies  []netip.Prefix
-	routes   []route
+	// appendAudit is the audit writer (tests substitute it; production is audit.Writer.Append).
+	appendAudit func(context.Context, audit.Event) (int64, string, error)
+	web         *webUI
+	now         func() time.Time
+	proxies     []netip.Prefix
+	routes      []route
 
 	limMu     sync.Mutex
 	limiters  map[string]*rate.Limiter
@@ -65,6 +68,7 @@ type Deps struct {
 	Creds     CredentialClient
 	Trading   *TradingClients
 	Research  *ResearchClients
+	Analyst   *AnalystClients
 	Market    MarketBus
 }
 
@@ -114,9 +118,10 @@ func New(cfg Config, d Deps) (*Server, error) {
 	}
 	s := &Server{
 		cfg: cfg, store: &Store{pool: d.Pool}, pool: d.Pool, wa: wa, keys: k, audit: audit.NewWriter(d.Pool),
-		log: d.Log, alerts: d.Alerts, creds: d.Creds, trading: d.Trading, research: d.Research, market: d.Market, now: time.Now, limiters: map[string]*rate.Limiter{},
+		log: d.Log, alerts: d.Alerts, creds: d.Creds, trading: d.Trading, research: d.Research, analyst: d.Analyst, market: d.Market, now: time.Now, limiters: map[string]*rate.Limiter{},
 		rateEvery: 200 * time.Millisecond, rateBurst: 30,
 	}
+	s.appendAudit = s.audit.Append
 	for _, p := range cfg.TrustedProxies {
 		s.proxies = append(s.proxies, netip.MustParsePrefix(strings.TrimSpace(p)))
 	}
@@ -183,6 +188,7 @@ func (s *Server) registerRoutes() {
 	priv("GET", "/api/v1/events", s.handleEvents)
 	s.registerTradingRoutes(priv)
 	s.registerResearchRoutes(priv)
+	s.registerAnalystRoutes(priv)
 }
 
 // Handler returns the full HTTP handler (API + static UI).
@@ -395,7 +401,7 @@ func (s *Server) authorize(w http.ResponseWriter, rc *reqCtx, action policy.Acti
 
 // record appends an audit event; callers MUST abort the action when it returns an error (SE-021).
 func (s *Server) record(ctx context.Context, rc *reqCtx, actor, action, target string, details map[string]any, before, after string) error {
-	_, _, err := s.audit.Append(ctx, audit.Event{
+	_, _, err := s.appendAudit(ctx, audit.Event{
 		Actor: actor, Action: action, Target: target, BeforeHash: before, AfterHash: after,
 		IP: rc.ip, Device: rc.ua, Details: details,
 	})

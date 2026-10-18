@@ -47,6 +47,8 @@ type Config struct {
 	MLAddr        string `env:"TB_ML_ADDR" envDefault:"ml:9090" json:"ml_addr"`
 	OptimizerAddr string `env:"TB_OPTIMIZER_ADDR" envDefault:"optimizer:9091" json:"optimizer_addr"`
 	HoldoutAddr   string `env:"TB_HOLDOUT_ADDR" envDefault:"optimizer:9092" json:"holdout_addr"`
+	// The AI analyst behind the analyst page (section 14 Phase 4 slice, ADR-0041).
+	AssistantAddr string `env:"TB_ASSISTANT_ADDR" envDefault:"assistant:9090" json:"assistant_addr"`
 	// WebDir holds the static UI export (apps/web out/). Empty disables UI serving.
 	WebDir string `env:"TB_WEB_DIR" envDefault:"/app/web" json:"web_dir"`
 	// OwnerID is the single owner's ID (U7: single owner today, owner_id on every row).
