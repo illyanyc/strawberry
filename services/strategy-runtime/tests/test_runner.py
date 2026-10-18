@@ -340,6 +340,8 @@ def test_sm020_tradingview_class_requires_a_tv_strategy_id() -> None:
     data["strategies"][0]["strategy_id"] = "breakout"
     with pytest.raises(ValueError, match="tv-<name>"):
         Runner.from_registry_data(data)
+
+
 def test_sm016_research_registry_reload_hosts_added_drops_retired_never_live(tmp_path: Path) -> None:
     def orb(sid: str, mode: str) -> dict[str, object]:
         return {
