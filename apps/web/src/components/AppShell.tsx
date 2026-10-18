@@ -20,6 +20,7 @@ const nav = [
   { to: "/risk", label: "Risk & kill switches", short: "Risk" },
   { to: "/training", label: "Training", short: "Train" },
   { to: "/experiments", label: "Experiments", short: "Research" },
+  { to: "/analyst", label: "AI analyst", short: "Analyst" },
   { to: "/settings/security", label: "Security", short: "Security" },
   { to: "/settings/brokers", label: "Broker connections", short: "Brokers" },
   { to: "/settings/platform", label: "Platform settings", short: "Settings" },
