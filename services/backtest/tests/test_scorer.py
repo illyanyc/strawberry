@@ -39,3 +39,10 @@ def test_bt080_analyst_sees_only_pass_fail_and_dsr() -> None:
     assert isinstance(view, AnalystView)
     assert [f.name for f in dataclasses.fields(view)] == ["candidate_id", "passed", "dsr"]
     assert view.passed == v.passed
+
+
+def test_bt080_ex021_uncounted_trials_lower_the_dsr() -> None:
+    base = score(evidence(0.0012))
+    inflated = score(evidence(0.0012, extra_trials=500.0))
+    assert inflated.dsr < base.dsr
+    assert inflated.details["n_effective"] == base.details["n_effective"] + 500.0

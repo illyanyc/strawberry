@@ -388,10 +388,11 @@ services:
     build: { <<: *py-build, args: { SERVICE: strategy-runtime } }
     # Same UID/GID as marketdata so the read-only lake (0640 files) is readable (CX-016 events).
     user: "${TB_HOST_UID:-65532}:${TB_HOST_GID:-65532}"
-    environment: { <<: *common-env, TB_SERVICE: strategy-runtime, TB_NATS_URL: "nats://nats:4222", TB_NATS_USER: strategy_runtime, TB_STRATEGY_REGISTRY: /etc/tb/strategies.json, TB_LAKE_DIR: /data/lake }
+    environment: { <<: *common-env, TB_SERVICE: strategy-runtime, TB_NATS_URL: "nats://nats:4222", TB_NATS_USER: strategy_runtime, TB_STRATEGY_REGISTRY: /etc/tb/strategies.json, TB_LAKE_DIR: /data/lake, TB_RESEARCH_REGISTRY: /data/ml-artifacts/deploy/research-strategies.json }
     secrets: [nats_strategy_runtime_password]
-    # Read-only lake: scheduled events for EventBlackout (CX-016).
-    volumes: ["./strategies.json:/etc/tb/strategies.json:ro", "${TB_LAKE_DIR:-../../data/lake}:/data/lake:ro"]
+    # Read-only lake: scheduled events for EventBlackout (CX-016). Read-only ML artifacts: model bundles
+    # and the optimizer's research deployments (shadow/paper challengers, EX-056).
+    volumes: ["./strategies.json:/etc/tb/strategies.json:ro", "${TB_LAKE_DIR:-../../data/lake}:/data/lake:ro", "${TB_ML_ARTIFACTS_DIR:-../../data/ml-artifacts}:/data/ml-artifacts:ro"]
     networks: [backend]
     healthcheck: *py-healthcheck
     depends_on: { bus-init: { condition: service_completed_successfully } }
@@ -607,7 +608,7 @@ services:
       TB_LAKE_DIR: /data/lake
       TB_ML_MLFLOW_URL: ${TB_ML_MLFLOW_URL:-}
       TB_OPTIMIZER_ADDR: optimizer:9091
-      TB_HOLDOUT_ADDR: optimizer:9091
+      TB_HOLDOUT_ADDR: optimizer:9092
       TB_NATS_URL: "nats://nats:4222"
       TB_NATS_USER: ml
     secrets: [pg_svc_ml_password, nats_ml_password, svc_ml_ed25519, svc_api_gateway_ed25519.pub, svc_optimizer_ed25519.pub]
@@ -640,6 +641,7 @@ services:
       TB_DB_USER: svc_optimizer
       TB_HOLDOUT_DB_USER: svc_holdout
       TB_OPT_GRPC_ADDR: "0.0.0.0:9091"
+      TB_OPT_DEPLOY_REGISTRY: /data/ml-artifacts/deploy/research-strategies.json
       TB_ML_ARTIFACTS_DIR: /data/ml-artifacts
       TB_LAKE_DIR: /data/lake
       TB_ML_MLFLOW_URL: ${TB_ML_MLFLOW_URL:-}

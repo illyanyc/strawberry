@@ -13,7 +13,7 @@ import time
 
 from tb.ml.v1 import training_pb2 as tp
 
-INTERNAL = {"ml", "optimizer"}
+INTERNAL = {"ml", "optimizer", "monitor"}
 ACTOR_NAMES = {
     tp.ACTOR_OWNER: "owner",
     tp.ACTOR_ANALYST: "analyst",

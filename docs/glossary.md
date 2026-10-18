@@ -58,6 +58,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Flatten (strategy-owned)** | Closing all positions of a strategy (or all strategies). Never includes `manual` quantity. |
 | **Dataset snapshot** | Immutable, content-addressed feature extract (`snapshots/<id>/`) whose ID hashes the feature set, universe, range, as-of, and exact input files (DF-009). |
 | **Gap (market data)** | Regular-session minutes the calendar says should have bars but the lake does not; runs of ≥ 5 are recorded in `marketdata.gaps` and re-fetched (MD-006). |
+| **Gate report** | Per-candidate report: outer walk-forward estimate rerun event-driven, DSR and PBO over the lineage ledger, SPA/Romano–Wolf vs the champion, walk-forward and regime breakdowns, 1×/1.5×/2× costs, parameter stability, leakage check, scorer verdict (EX-024, BT-080). |
 | **Generated contracts** | Code under `contracts/gen/` produced by `make gen` from `contracts/proto/`; committed, and CI fails if stale (`make gen-check`). |
 | **Halt (OMS)** | A block on new intents for a strategy (optionally one instrument) raised by the OMS for an unknown order state, an orphan order, or a protective stop that could not be placed; cleared when the cause is resolved (OE-005, OE-019, OE-014). |
 | **Halted pair** | An `owner|instrument` key (with `*` wildcards) on `recon.result` that execution must block until the break behind it is resolved (VP-008). |
@@ -90,6 +91,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Outbox (transactional)** | A Postgres table written in the same transaction as the state change it announces; a relay publishes rows to NATS with a dedupe ID, so events are never lost or duplicated by a crash (D2, ADR-0018). |
 | **Natural key (bar)** | `(instrument_id, timeframe, ts_open, feed)`: the identity used for idempotent writes and reader deduplication (ST-004). |
 | **Order intent** | A strategy's or user's request to trade, before risk checks. Becomes an order only after an approved risk decision. |
+| **Outer estimate** | The stitched out-of-sample result of a study's whole selection procedure over its outer walk-forward folds; the only performance a study reports (EX-001). |
 | **Owner** | The strategy ID or `manual` that a position, lot, or order belongs to. |
 | **Ownership note** | The line in an order preview that says whose holdings the order affects: `manual` for UI orders, or only the named strategy's virtual portfolio (UI-015). |
 | **Parity report** | The comparison of a recorded paper or live period with its event-driven replay: matched, missed, and extra intents and legs, decision differences, per-leg slippage, and the realized P&L difference split into price, size, and fee effects (BT-070, BT-071). |
@@ -115,6 +117,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Reconciliation (cross-source)** | The nightly comparison of Alpaca SIP daily bars with FMP EOD bars within fixed tolerances (MD-010). Distinct from ledger reconciliation. |
 | **Regime label** | Point-in-time market state (`vol_regime`, `trend_regime`, `stress`) computed only from past SPY bars and VIX data, versioned (`regime_v1`, CX-017). |
 | **Research cycle** | A window of research in a lineage with a fixed effective-trial budget from MinBTL; when spent, only the owner opens the next (D31 rule 3, EX-025). |
+| **Research deployment registry** | JSON file the optimizer writes for shadow and paper challengers (strategy registry format) and strategy-runtime adds to its seed at start; never hosts live strategies (EX-056). |
 | **Reservation** | Cash (buys) or own quantity (sells) the ledger holds for an intent's open orders, so concurrent intents cannot spend the same capital; shrinks with fills, released on terminal states (VP-020). |
 | **Risk decision** | The recorded outcome of pre-trade checks for an intent: approved or rejected, with each check's value and limit. |
 | **Rule + ML filter** | A rule-based primary signal (ORB, residual reversal) whose trades are taken only when a meta-label classifier's probability clears a threshold (D23, ML-016). |

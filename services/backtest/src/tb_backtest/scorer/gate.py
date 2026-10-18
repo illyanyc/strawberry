@@ -47,6 +47,9 @@ class CandidateEvidence:
     net_pnl_2x: float
     max_drawdown: float
     champion_returns: F64 | None = None  # aligned with oos_returns
+    # Trials counted in the lineage without a usable return series (pruned, failed, holdout
+    # evaluations, EX-013, EX-021): added to the ONC effective N.
+    extra_trials: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -73,7 +76,8 @@ def score(ev: CandidateEvidence, policy: GatePolicy = GatePolicy()) -> Verdict: 
     eff = effective_trials(trials)
     sr = sharpe(r)
     skew, kurt = moments(r)
-    dsr = deflated_sharpe(sr, eff.n_effective, eff.sr_variance, skew, kurt, r.size) if math.isfinite(sr) else math.nan
+    n_eff = eff.n_effective + max(ev.extra_trials, 0.0)
+    dsr = deflated_sharpe(sr, n_eff, eff.sr_variance, skew, kurt, r.size) if math.isfinite(sr) else math.nan
     pbo = (
         pbo_cscv(trials, policy.pbo_partitions).pbo
         if trials.shape[1] >= 2 and trials.shape[0] >= policy.pbo_partitions
@@ -97,7 +101,7 @@ def score(ev: CandidateEvidence, policy: GatePolicy = GatePolicy()) -> Verdict: 
         reasons.append("drawdown")
     details = {
         "sharpe": sr,
-        "n_effective": float(eff.n_effective),
+        "n_effective": float(n_eff),
         "sr_variance": eff.sr_variance,
         "pbo": pbo,
         "spa_p": spa_p,

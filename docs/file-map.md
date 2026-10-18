@@ -132,6 +132,9 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0035-ml-and-optimizer-contracts-and-analyst-tool-apis.md` | Exists | ADR (D53): `MLService`, `OptimizerService`, separate `HoldoutService`, analyst tool APIs, actor from the service token, permission table in the optimizer |
 | `docs/adr/0036-ml-training-library-model-zoo-and-diagnostics.md` | Exists | ADR (D54, implements D23/D24): `tbcore.ml` datasets, model zoo, folds, evaluation, diagnostics |
 | `docs/adr/0037-ml-worker-run-store-and-tracking.md` | Exists | ADR (D55): ml worker, run store on the filesystem + `research.docs`, MLflow REST mirror, research/holdout schemas and roles, in-process queue (Prefect adapter Planned), devices and burst hook, `RESEARCH` stream |
+| `docs/adr/0038-nested-studies-trial-ledger-and-research-cycles.md` | Exists | ADR (D56, implements D9/D31): nested Optuna sub-studies, lineage trial ledger, effective N, MinBTL cycles, pre-registration |
+| `docs/adr/0039-sealed-holdout-service.md` | Exists | ADR (D57): `HoldoutService`, holdout schema and role, forward-only boundary, quarterly touches, frozen-model evaluation |
+| `docs/adr/0040-registry-promotion-gates-and-analyst-permissions.md` | Exists | ADR (D58): registry stages, permission table, gates, evidence packs, research deployments, retraining |
 | `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, IBKR weekly 2FA / manual VNC login / gateway outages (`ibkr-weekly-2fa.md`), broker outage, market data (stale, slow, gaps, reconciliation breaches, corporate-action disputes), context data (stale sources, poison events, backfills, scoring model), IBKR weekly 2FA, ledger reconciliation break, kill switches, halts, and dead-man alerts |
 | `docs/threat-model.md` | Exists | Assets, actors, entry points, STRIDE table mapped to SE-/OP- rules, residual risks |
 
@@ -176,7 +179,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `services/assistant/` | Exists (placeholder) | Python on `tbcore`: ops surface; assistant in Phase 4 |
 | `services/ml/` | Exists | Python ml worker (section 10, ADR-0037): `MLService` over gRPC, job queue and cost guard, run store (artifacts + `research.docs` + MLflow REST mirror), diagnostics reads, ablations, model versions, batch prediction, `ml.run.completed`; native launchd worker on macOS (D29). Layout in [`services/ml/AGENTS.md`](../services/ml/AGENTS.md) |
 | `services/backtest/` | Exists | Python on `tbcore`: backtest CLI (`run` with 2× stress and tearsheet, `parity`, `leakage`), the D31 promotion scorer (`tb_backtest.scorer`, BT-080), the evaluator manifest (`evaluator_manifest.json`, BT-081), ops surface. [`AGENTS.md`](../services/backtest/AGENTS.md) |
-| `services/optimizer/` | Exists (placeholder) | Python on `tbcore`: ops surface; optimizer in Phase 4 |
+| `services/optimizer/` | Exists | Python optimizer worker (section 11, ADR-0038..0040): `OptimizerService` and `HoldoutService` over gRPC, nested Optuna studies, lineage trial ledger and statistics, research cycles, gate reports, registry and permission table, evidence packs, research deployments, retraining. Layout in [`services/optimizer/AGENTS.md`](../services/optimizer/AGENTS.md) |
 
 ## Apps: `apps/`
 

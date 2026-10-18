@@ -193,3 +193,43 @@ def test_cx016_blackout_unknown_at_decision_time_does_not_block(tmp_path: Path) 
     r.on_context_event(cpi_event(release, int(s.close.timestamp()) * NS))  # published after the decision
     r.on_bar(bar(0, "100", "101", "99", "100.5"))
     assert len(r.on_bar(bar(1, "100.5", "101.5", "100.4", "101.4"))) == 1
+
+
+def test_ex056_research_deployments_join_the_seed_but_never_live(tmp_path: Path) -> None:
+    seed = {
+        "strategies": [
+            {
+                "strategy_id": "orb-15m",
+                "short_id": "orb15aa",
+                "broker_account_id": "sim-paper",
+                "mode": "paper",
+                "allocation": "1000",
+                "runtime": {"class": "orb", "timeframe": "15m", "instruments": ["i1"], "params": {}},
+            }
+        ]
+    }
+    research = {
+        "strategies": [
+            {
+                "strategy_id": "ml-shadow",
+                "short_id": "mlshad1",
+                "broker_account_id": "sim-paper",
+                "mode": "shadow",
+                "allocation": "1000",
+                "runtime": {"class": "orb", "timeframe": "15m", "instruments": ["i1"], "params": {}},
+            },
+            {
+                "strategy_id": "ml-live",
+                "short_id": "mllive1",
+                "broker_account_id": "sim-live",
+                "mode": "live",
+                "allocation": "1000",
+                "runtime": {"class": "orb", "timeframe": "15m", "instruments": ["i1"], "params": {}},
+            },
+        ]
+    }
+    (tmp_path / "seed.json").write_text(json.dumps(seed))
+    (tmp_path / "research.json").write_text(json.dumps(research))
+    r = entry.load_runner(str(tmp_path / "seed.json"), str(tmp_path / "research.json"))
+    assert {h.strategy_id: h.mode for h in r.hosted} == {"orb-15m": "paper", "ml-shadow": "shadow"}
+    assert len(entry.load_runner(str(tmp_path / "seed.json"), str(tmp_path / "missing.json")).hosted) == 1

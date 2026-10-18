@@ -53,3 +53,6 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0035](0035-ml-and-optimizer-contracts-and-analyst-tool-apis.md) | ML and optimizer contracts, the separate holdout service, and the analyst tool APIs with server-side actor resolution | Accepted | 2026-10-18 |
 | [0036](0036-ml-training-library-model-zoo-and-diagnostics.md) | ML training library in `tbcore.ml`: datasets, model zoo, fold-correct training, after-cost evaluation, diagnostics | Accepted | 2026-10-18 |
 | [0037](0037-ml-worker-run-store-and-tracking.md) | ML worker, run store, research and holdout schemas, and MLflow as a REST-fed mirror | Accepted | 2026-10-18 |
+| [0038](0038-nested-studies-trial-ledger-and-research-cycles.md) | Nested Optuna studies, one trial ledger per lineage, and MinBTL research cycles | Accepted | 2026-10-18 |
+| [0039](0039-sealed-holdout-service.md) | Sealed holdout service with its own schema, role, and audience | Accepted | 2026-10-18 |
+| [0040](0040-registry-promotion-gates-and-analyst-permissions.md) | Registry stages, promotion gates, the analyst permission table, evidence packs, and retraining | Accepted | 2026-10-18 |
