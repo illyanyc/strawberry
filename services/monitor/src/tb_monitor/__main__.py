@@ -6,6 +6,9 @@
   (10 minutes after the close) from bus events and sends them as report alerts.
 * Exposes ``tb_monitor_last_forward_seconds`` (the monitoring pipeline's own dead-man) and the
   latest reports on the ops port (``/reports``).
+* Section 13 analyst feedback slice (ADR-0044): daily ``LiveFeedbackReport`` per configured
+  strategy after the close (and on demand at ``/feedback``), retraining triggers, and autonomy
+  lowering on critical alarms (``tb_monitor.feedback_runner``).
 """
 
 from __future__ import annotations
@@ -27,6 +30,8 @@ from tb.alerts.v1 import alerts_pb2
 from tb.ledger.v1 import ledger_pb2
 from tb.orders.v1 import execution_pb2, orders_pb2
 from tb_monitor.alerts import SEVERITIES, post, report_alert, to_alertmanager
+from tb_monitor.feedback import FeedbackConfig
+from tb_monitor.feedback_runner import FeedbackRunner, load_config
 from tb_monitor.reports import Reports
 from tbcore.data.calendar import xnys
 from tbcore.logging import configure
@@ -45,6 +50,11 @@ class Settings(ServiceSettings):
     alertmanager_url: str = "http://alertmanager:9093"
     premarket_lead_minutes: int = 15
     eod_delay_minutes: int = 10
+    # Analyst feedback slice (MN-020..MN-026).
+    monitor_feedback_config: str = "/etc/tb/feedback.json"
+    monitor_feedback_delay_minutes: int = 20
+    monitor_feedback_min_trades: int = 30
+    monitor_feedback_min_resolved: int = 100
 
 
 def session_date(ts: datetime) -> str:
@@ -55,7 +65,14 @@ def session_date(ts: datetime) -> str:
     return s.date.isoformat()
 
 
-async def run(cfg: Settings, password: str, reports: Reports, latest: dict[str, str], stop: asyncio.Event) -> None:
+async def run(
+    cfg: Settings,
+    password: str,
+    reports: Reports,
+    latest: dict[str, str],
+    stop: asyncio.Event,
+    holder: dict[str, FeedbackRunner] | None = None,
+) -> None:
     opts: dict[str, object] = {"servers": [cfg.nats_url], "name": "monitor", "max_reconnect_attempts": -1}
     if cfg.nats_user:
         opts["user"], opts["password"] = cfg.nats_user, password
@@ -64,6 +81,18 @@ async def run(cfg: Settings, password: str, reports: Reports, latest: dict[str, 
 
     def today() -> str:
         return session_date(datetime.now(tz=UTC))
+
+    async def publish(subject: str, msg: object, msg_id: str) -> None:
+        data = msg.SerializeToString()  # type: ignore[attr-defined]
+        await js.publish(subject, data, headers={"Nats-Msg-Id": msg_id})
+
+    feedback = FeedbackRunner(
+        load_config(cfg.monitor_feedback_config),
+        FeedbackConfig(min_trades=cfg.monitor_feedback_min_trades, min_resolved=cfg.monitor_feedback_min_resolved),
+        publish,
+    )
+    if holder is not None:
+        holder["runner"] = feedback
 
     async def on_alert(msg: Msg) -> None:
         a = alerts_pb2.Alert()
@@ -75,6 +104,8 @@ async def run(cfg: Settings, password: str, reports: Reports, latest: dict[str, 
             await msg.nak(delay=10)
             return
         reports.on_alert(today(), SEVERITIES.get(a.severity, "warning"))
+        with contextlib.suppress(Exception):
+            await feedback.on_alert(a)
         LAST_FORWARD.set(time.time())
         await msg.ack()
 
@@ -94,7 +125,9 @@ async def run(cfg: Settings, password: str, reports: Reports, latest: dict[str, 
         reports.on_decision(today(), parse(orders_pb2.RiskDecision, msg.data))
 
     async def on_exec(msg: Msg) -> None:
-        reports.on_fill(today(), parse(orders_pb2.ExecutionReport, msg.data))
+        x = parse(orders_pb2.ExecutionReport, msg.data)
+        reports.on_fill(today(), x)
+        feedback.on_execution(x)
 
     async def on_ledger(msg: Msg) -> None:
         reports.on_ledger_update(today(), parse(ledger_pb2.LedgerUpdate, msg.data))
@@ -136,6 +169,12 @@ async def run(cfg: Settings, password: str, reports: Reports, latest: dict[str, 
                 with contextlib.suppress(Exception):
                     await asyncio.to_thread(post, cfg.alertmanager_url, [report_alert("EndOfDaySummary", text, now)])
                     sent.add(f"eod:{s.date}")
+            if now >= s.close + timedelta(minutes=cfg.monitor_feedback_delay_minutes) and f"fb:{s.date}" not in sent:
+                try:
+                    await feedback.run(now)
+                    sent.add(f"fb:{s.date}")
+                except Exception as exc:
+                    log.warning("live feedback run failed; will retry", extra={"error": str(exc)[:200]})
         with contextlib.suppress(TimeoutError):
             await asyncio.wait_for(stop.wait(), timeout=30)
     await nc.drain()
@@ -151,14 +190,16 @@ def main() -> None:
         except SecretNotFoundError:
             raise SystemExit(f"missing secret nats_{cfg.nats_user}_password") from None
     reports, latest = Reports(), {"premarket": "", "eod": ""}
+    holder: dict[str, FeedbackRunner] = {}
     app = create_ops_app(cfg)
     app.add_api_route("/reports", lambda: latest, methods=["GET"])
+    app.add_api_route("/feedback", lambda: holder["runner"].snapshot() if "runner" in holder else {}, methods=["GET"])
     threading.Thread(
         target=lambda: uvicorn.run(app, host=cfg.ops_host, port=cfg.ops_port, log_config=None, access_log=False),
         daemon=True,
     ).start()
     stop = asyncio.Event()
-    asyncio.run(run(cfg, password, reports, latest, stop))
+    asyncio.run(run(cfg, password, reports, latest, stop, holder))
 
 
 if __name__ == "__main__":

@@ -6,7 +6,8 @@ Without arguments it serves the ops surface (healthz, readyz, metrics). Commands
   one event-driven backtest (plus the 2x cost stress with ``--stress``, BT-015), saved as artifacts with
   a tearsheet;
 * ``parity RECORDING --config CFG.json --mode recorded|model`` (BT-070, BT-071);
-* ``leakage --config CFG.json --bars FILE.parquet``: the strategy-level leakage suite (BT-065).
+* ``leakage --config CFG.json --bars FILE.parquet``: the strategy-level leakage suite (BT-065);
+* ``candidates watch|step JOBS_DIR``: evaluator-side checks of analyst candidate features (AN-072).
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ from pathlib import Path
 
 import polars as pl
 
+from tb_backtest import candidates
 from tbcore.backtest import report, tearsheet
 from tbcore.backtest.config import BacktestConfig
 from tbcore.backtest.event import run_event_backtest
@@ -70,6 +72,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args[0] == "parity":
         return parity_main(args[1:])
+    if args[0] == "candidates":
+        return candidates.main(args[1:])
     ap = argparse.ArgumentParser(prog="python -m tb_backtest")
     sub = ap.add_subparsers(dest="cmd", required=True)
     r = sub.add_parser("run")

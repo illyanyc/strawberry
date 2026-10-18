@@ -84,11 +84,23 @@ name = "assistant"
 version = "0.0.0"
 source = { editable = "services/assistant" }
 dependencies = [
+    { name = "asyncpg" },
+    { name = "grpcio" },
+    { name = "httpx" },
+    { name = "nats-py" },
+    { name = "tbcontracts" },
     { name = "tbcore" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "tbcore", editable = "libs/py/tbcore" }]
+requires-dist = [
+    { name = "asyncpg", specifier = "==0.32.0" },
+    { name = "grpcio", specifier = "==1.84.0" },
+    { name = "httpx", specifier = "==0.28.1" },
+    { name = "nats-py", specifier = "==2.16.0" },
+    { name = "tbcontracts", editable = "contracts/gen/python" },
+    { name = "tbcore", editable = "libs/py/tbcore" },
+]
 
 [[package]]
 name = "ast-serialize"

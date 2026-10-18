@@ -127,6 +127,11 @@ func TestSE032SchemaIsolation(t *testing.T) {
 		"svc_optimizer": {`SELECT * FROM holdout.docs`},
 		"svc_ml":        {`SELECT * FROM holdout.docs`, `SELECT * FROM secrets.broker_credentials`},
 		"svc_holdout":   {`SELECT * FROM research.docs`},
+		// AN-030 / AN-032: the analyst reads research only through the services, never the holdout,
+		// credentials, the order path, or the ledger; it cannot write reference data.
+		"svc_assistant": {`SELECT * FROM holdout.docs`, `SELECT * FROM research.docs`, `SELECT * FROM secrets.broker_credentials`,
+			`SELECT * FROM broker.executions`, `SELECT * FROM auth.sessions`, `SELECT * FROM config.settings`,
+			`INSERT INTO refdata.instruments (instrument_id, asset_class) VALUES ('x', 'us_equity')`},
 	}
 	for role, queries := range deny {
 		pool := connect(role)
@@ -148,6 +153,7 @@ func TestSE032SchemaIsolation(t *testing.T) {
 		"svc_ml":             `SELECT count(*) FROM research.docs`,
 		"svc_optimizer":      `SELECT count(*) FROM research.docs`,
 		"svc_holdout":        `SELECT count(*) FROM holdout.docs`,
+		"svc_assistant":      `SELECT count(*) FROM analyst.rounds`,
 	} {
 		if _, err := connect(role).Exec(ctx, q); err != nil {
 			t.Errorf("%s: %q should be allowed: %v", role, q, err)
@@ -162,6 +168,19 @@ func TestSE032SchemaIsolation(t *testing.T) {
 		if _, err := connect(role).Exec(ctx, q); err != nil {
 			t.Errorf("%s: %q should be allowed: %v", role, q, err)
 		}
+	}
+	if _, err := connect("svc_assistant").Exec(ctx, `SELECT count(*) FROM refdata.symbols`); err != nil {
+		t.Errorf("svc_assistant: refdata read (masking, AN-051) should be allowed: %v", err)
+	}
+	// AN-055: the analyst's LLM call log is append-only, even for its writer.
+	asst := connect("svc_assistant")
+	if _, err := asst.Exec(ctx, `INSERT INTO analyst.llm_calls (call_id, role, provider, model, prompt_sha256, prompt, response,
+		input_tokens, output_tokens, cost_usd, latency_ms, ok, error, lineage_id, round_id, created_at)
+		VALUES ('c1', 'planner', 'fake', 'm', 'h', 'p', 'r', 1, 1, 0, 0, true, '', 'l', 'r', now())`); err != nil {
+		t.Fatalf("svc_assistant insert: %v", err)
+	}
+	if _, err := asst.Exec(ctx, `DELETE FROM analyst.llm_calls WHERE call_id = 'c1'`); err == nil {
+		t.Error("analyst.llm_calls delete should be refused")
 	}
 	// EX-I1 / EX-I2: research and holdout records are append-only, even for their writers.
 	opt := connect("svc_optimizer")

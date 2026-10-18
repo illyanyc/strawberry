@@ -4,6 +4,7 @@ import { createRootRoute, createRoute, createRouter, Outlet, redirect } from "@t
 import { AppShell } from "@/components/AppShell";
 import { StepUpDialog } from "@/components/StepUpDialog";
 import { api, type AuthState } from "@/lib/api";
+import { AnalystPage } from "@/routes/analyst";
 import { AuditPage } from "@/routes/audit";
 import { ChartsPage } from "@/routes/charts";
 import { OrderTicketPage } from "@/routes/order-ticket";
@@ -85,6 +86,7 @@ const experimentsRoute = createRoute({ getParentRoute: () => appRoute, path: "/e
 const lineageRoute = createRoute({ getParentRoute: () => appRoute, path: "/experiments/lineages/$lineageId", component: LineagePage });
 const studyRoute = createRoute({ getParentRoute: () => appRoute, path: "/experiments/studies/$studyId", component: StudyPage });
 const candidateRoute = createRoute({ getParentRoute: () => appRoute, path: "/experiments/candidates/$candidateId", component: CandidatePage });
+const analystRoute = createRoute({ getParentRoute: () => appRoute, path: "/analyst", component: AnalystPage });
 
 const routeTree = rootRoute.addChildren([
   loginRoute,
@@ -105,6 +107,7 @@ const routeTree = rootRoute.addChildren([
     lineageRoute,
     studyRoute,
     candidateRoute,
+    analystRoute,
     securityRoute,
     brokersRoute,
     platformRoute,

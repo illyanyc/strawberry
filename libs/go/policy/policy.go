@@ -56,6 +56,13 @@ const (
 	ActHoldoutEvaluate    Action = "holdout.evaluate"
 	ActHoldoutSchedule    Action = "holdout.schedule"
 	ActAnalystAutonomySet Action = "analyst.autonomy.set"
+	// AI Research Analyst (section 12, AN-060..AN-063, AN-073, AN-080).
+	ActAnalystRead          Action = "analyst.read"
+	ActAnalystActionsReview Action = "analyst.actions.review"
+	ActAnalystLoopPause     Action = "analyst.loop.pause"
+	ActAnalystAnalysis      Action = "analyst.analysis.request"
+	ActAnalystCodeReview    Action = "analyst.code.review"
+	ActAssistantChat        Action = "assistant.chat"
 )
 
 // stepUp says which fresh second factor an owner action needs.
@@ -114,6 +121,14 @@ var ownerActions = map[Action]stepUp{
 	ActHoldoutEvaluate:    stepUpPasskey,
 	ActHoldoutSchedule:    stepUpPasskey,
 	ActAnalystAutonomySet: noStepUp,
+	// Analyst views, pausing, reviewing proposals, and chat reduce or do not change risk; raising its
+	// autonomy is analyst.autonomy.set in raise mode (AN-061, escalated above).
+	ActAnalystRead:          noStepUp,
+	ActAnalystActionsReview: noStepUp,
+	ActAnalystLoopPause:     noStepUp,
+	ActAnalystAnalysis:      noStepUp,
+	ActAnalystCodeReview:    noStepUp,
+	ActAssistantChat:        noStepUp,
 }
 
 // escalated reports actions whose step-up depends on the resource (live manual orders, promotion to

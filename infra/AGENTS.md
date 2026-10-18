@@ -7,12 +7,14 @@ Everything that builds, runs, observes, backs up, and hosts the stack. The same 
 ## Layout
 | Path | Purpose |
 |---|---|
-| `compose/docker-compose.yml` | The stack: profiles `core`, `observability`, `ml`, `ml-workers` (Linux), `ops`, `remote-cloudflare`, `ibkr` (paper IB Gateway + adapter), `ibkr-live`, `ibkr-vnc` (on-demand VNC proxy) |
+| `compose/docker-compose.yml` | The stack: profiles `core`, `observability`, `ml` (MLflow, Prefect, the AI analyst: `assistant`, `llm-egress`, `analyst-sandbox`, `candidate-checker`), `ml-workers` (Linux), `ops`, `remote-cloudflare`, `ibkr` (paper IB Gateway + adapter), `ibkr-live`, `ibkr-vnc` (on-demand VNC proxy) |
+| `compose/feedback.json` | Live-feedback expectations per strategy for the monitor (MN-026); `[]` disables reports |
 | `compose/docker-compose.native-ml.yml` | Overlay publishing Postgres/NATS on 127.0.0.1 for native macOS ML workers (`make up NATIVE_ML=1`) |
 | `compose/nats/nats.conf` | JetStream config (`sync_interval: always`); users come from the generated secret |
 | `compose/env.example` | Non-secret overrides (copy to `compose/.env`): remote RP ID/origins, trusted proxies, ports |
 | `docker/go-service.Dockerfile` | Go services (targets `service`, `gateway` = binary + SPA), distroless, non-root, cross-compiled |
 | `docker/python-service.Dockerfile` | Python services, uv non-editable venv, slim, non-root |
+| `docker/analyst-sandbox.Dockerfile` | Standalone analyst sandbox (pinned Python + numpy + `services/assistant/sandbox/worker.py`; no tbcore or evaluator code) |
 | `docker/ops.Dockerfile` | Operator toolbox: `tbctl`, pg client 17, age, sops, jq |
 | `docker/mlflow.Dockerfile`, `docker/mlflow-entrypoint.sh` | MLflow 3 server, Postgres backend, filesystem artifacts |
 | `ops/backup.sh`, `ops/restore.sh` | Encrypted backup and verified restore (run in the ops container) |
@@ -32,6 +34,7 @@ Everything that builds, runs, observes, backs up, and hosts the stack. The same 
 - `OP-061` smoke test → `scripts/smoke.sh`
 - `OP-062` survive reboots → `macos/`, `restart: unless-stopped`
 - `SE-010` secrets as files, `SE-051` no public exposure
+- `AN-032`, `AN-053`, `AN-071` analyst network isolation (`research` network only), `llm-egress` as the only egress, sandbox and checker with `network_mode: none` → `compose/docker-compose.yml`; checked by `tests/python/test_analyst_compose.py`
 - `IB-070`..`IB-073`, `SE-034` IB Gateway login custody, internal `ibkr` network, on-demand VNC, pinned image → `compose/docker-compose.yml`, `Makefile` (`ibkr-vnc`); runbook `docs/runbooks/ibkr-weekly-2fa.md`
 
 ## Run and test
@@ -43,7 +46,9 @@ Everything that builds, runs, observes, backs up, and hosts the stack. The same 
 ## Configuration
 | Variable | Default | Notes |
 |---|---|---|
-| `PROFILES` | `core,observability` | Add `ml` for MLflow/Prefect/assistant |
+| `PROFILES` | `core,observability` | Add `ml` for MLflow/Prefect/the analyst (`assistant`, `llm-egress`, `analyst-sandbox`, `candidate-checker`) |
+| `TB_LLM_PLANNER_PROVIDER` (and `_CODER_`, `_CHAT_`, `_QUARANTINE_`), `TB_LLM_LOCAL_ONLY`, `TB_LLM_EGRESS_ALLOW`, `TB_MAX_LLM_USD_PER_DAY`/`_MONTH` | `fake`, `false`, providers + host Ollama/MLX, `5`/`50` | Analyst LLM settings (AN-050..AN-053); keys go in `.secrets/llm_anthropic_api_key` / `llm_openai_api_key` |
+| `TB_ASSISTANT_ADDR`, `TB_ML_ADDR`, `TB_OPTIMIZER_ADDR` | `assistant:9090`, `ml:9090`, `optimizer:9091` | On macOS with native workers point ML/optimizer at `host.docker.internal` |
 | `NATIVE_ML` | unset | `1` publishes Postgres/NATS on loopback (D29) |
 | `TB_SECRETS_DIR` / `TB_LAKE_DIR` / `TB_ARTIFACTS_DIR` / `TB_BACKUP_DIR` | repo `.secrets`, `data/lake`, `data/mlflow-artifacts`, `backups` | Host paths (APFS on the Mac) |
 | `TB_HOST_UID/GID` | `id -u/-g` | Writers of host bind mounts run as the owner |
@@ -62,3 +67,5 @@ Everything that builds, runs, observes, backs up, and hosts the stack. The same 
 - IB Gateway is a third-party image that renders its IBC/jts config at start, so it is not read-only (non-root, cap-drop-all, `no-new-privileges`, pinned by digest). Restarting or recreating `ib-gateway-<env>` mid-week forces a fresh IBKR login with 2FA; restart the adapter instead.
 - Python images install `libgomp1` in the runtime stage: LightGBM (imported by every service that hosts `tbcore` strategies) links the system OpenMP library and fails at import without it.
 - Internal networks cannot publish ports, which is why `ibkr-vnc` also joins its own `ibkr-vnc` bridge network.
+- The analyst's `research` network is internal and excludes every order-path service; never add `assistant` to `backend` or `edge` (AN-032). Provider traffic goes through `llm-egress` (`TB_LLM_EGRESS_ALLOW`).
+- `analyst-jobs` is a named volume shared by three uid-10001 containers; the images pre-create `/jobs` owned by 10001 so the first mount gets that ownership.

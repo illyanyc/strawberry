@@ -41,17 +41,22 @@ var natsUsers = map[string]struct{ pub, sub []string }{
 		sub: []string{"_INBOX.>", "md.bar.>", "ledger.update.>", "ctx.calendar", "ctx.earnings"}},
 	// The monitor forwards bus alerts to Alertmanager and builds daily reports from order-path and
 	// ledger events (section 13).
-	"monitor": {pub: []string{"alert.>", "sys.health.monitor", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
+	// Phase 4: live feedback and retraining triggers (monitor.>) and analyst autonomy lowering (ADR-0044).
+	"monitor": {pub: []string{"alert.>", "sys.health.monitor", "monitor.>", "analyst.autonomy.lower", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
 		sub: []string{"_INBOX.>", "alert.>", "sys.health.>", "recon.result.>", "ord.decision", "exec.>", "ledger.update.>"}},
 	// ML and optimizer workers publish run, study, backtest, and registry events for the analyst and
 	// the UI (ADR-0035); the optimizer reads monitoring retrain triggers (EX-040).
 	"ml":        {pub: []string{"ml.>", "backtest.>", "alert.>", "sys.health.ml"}, sub: []string{"_INBOX.>"}},
 	"optimizer": {pub: []string{"optimizer.>", "ml.registry.>", "backtest.>", "alert.>", "sys.health.optimizer"}, sub: []string{"_INBOX.>", "monitor.>"}},
-	"ops":       {pub: []string{">"}, sub: []string{">"}},
+	// The AI analyst (ADR-0041): research completions, live feedback, and lowering requests in;
+	// analyst events and alerts out. No order-path subject in either direction.
+	"assistant": {pub: []string{"analyst.>", "alert.>", "sys.health.assistant", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
+		sub: []string{"_INBOX.>", "ml.run.completed", "optimizer.study.completed", "backtest.completed", "monitor.feedback.>", "monitor.retrain_suggested.>", "analyst.autonomy.lower"}},
+	"ops": {pub: []string{">"}, sub: []string{">"}},
 }
 
 // signingServices get Ed25519 service-token keys (SE-040).
-var signingServices = []string{"api-gateway", "broker-gateway", "context-data", "execution", "ledger", "marketdata", "ml", "optimizer"}
+var signingServices = []string{"api-gateway", "assistant", "broker-gateway", "context-data", "execution", "ledger", "marketdata", "ml", "optimizer"}
 
 // initSecrets writes every missing secret into dir. Existing files are never overwritten, so the
 // command is safe to re-run after adding a new service. Files are 0644 inside a 0700 directory: the
@@ -171,6 +176,8 @@ func initSecrets(dir string) error {
 	// login files are mounted only into the matching ib-gateway container (IB-070).
 	for _, name := range []string{
 		"pushover_user_key", "pushover_app_token", "cloudflared_tunnel_token", "fmp_api_key", "fred_api_key",
+		// LLM provider keys for the analyst (AN-050); "unset" means that provider is not used.
+		"llm_anthropic_api_key", "llm_openai_api_key",
 		"ibkr_paper_username", "ibkr_paper_password", "ibkr_live_username", "ibkr_live_password",
 	} {
 		if err := put(name, func() (string, error) { return "unset", nil }); err != nil {

@@ -20,6 +20,7 @@ The specification of how the platform behaves, by domain. **These docs are the s
 | Backtesting and validation | [backtesting.md](backtesting.md) | `BT-` | `libs/py/tbcore` (`backtest`, `validation`, `parity`), `services/backtest`, `services/execution/cmd/tb-simcore` |
 | ML training and diagnostics | [ml.md](ml.md) | `ML-` | `libs/py/tbcore` (`ml`, `labels`), `services/ml`, `services/strategy-runtime` (shadow inference) |
 | Optimization, experiments, holdout, registry | [optimization.md](optimization.md) | `EX-` | `services/optimizer` (studies, trial ledger, gates, registry, holdout), `services/backtest` (scorer) |
+| AI research analyst and assistant | [assistant.md](assistant.md) | `AN-` | `assistant`, `backtest` (candidate checker), `monitor` (feedback), `api-gateway` (owner actions) |
 | Security | [security.md](security.md) | `SE-` | `libs/go` (policy, audit, secrets, svcauth, db), `api-gateway`, `broker-gateway` |
 
 New domain: copy [`_template.md`](_template.md), pick a two-letter prefix, add it to this table and to `.cursor/rules/documentation-discipline.mdc`.

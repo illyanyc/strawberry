@@ -1,0 +1,135 @@
+syntax = "proto3";
+
+// Live feedback to the AI Research Analyst (section 13 analyst feedback slice, ADR-0037).
+//
+// A LiveFeedbackReport compares how a strategy behaves in shadow, paper, or live trading with the
+// distribution its backtest promised. It is aggregated and size-limited for LLM use and never carries
+// account balances, positions, quantities, or account identifiers (MN-021).
+package tb.monitor.v1;
+
+// One live metric against the backtest's expected distribution (walk-forward/CPCV paths).
+message MetricVsExpected {
+  // e.g. "sharpe", "hit_rate", "mean_trade_return_bps", "max_drawdown_pct".
+  string name = 1;
+  double live_value = 2;
+  double expected_p10 = 3;
+  double expected_p50 = 4;
+  double expected_p90 = 5;
+  // Percentile of live_value inside the expected distribution, 0..100.
+  double percentile = 6;
+}
+
+message ParitySummary {
+  double trade_match_rate = 1;
+  int32 missed_trades = 2;
+  int32 extra_trades = 3;
+  double slippage_bps_live = 4;
+  double slippage_bps_modeled = 5;
+  // Live P&L minus replayed P&L, in basis points of allocation (never currency amounts).
+  double pnl_gap_bps = 6;
+}
+
+// Sequential decay test on live per-trade returns vs the backtest-expected mean (CUSUM, MN-022).
+message DecayTest {
+  string method = 1;
+  double statistic = 2;
+  double threshold = 3;
+  bool breached = 4;
+  int32 samples = 5;
+}
+
+message FeatureDrift {
+  string feature = 1;
+  double psi = 2;
+  double ks = 3;
+  // Importance rank in the training run (1 = most important; 0 = unknown).
+  int32 importance_rank = 4;
+}
+
+message Calibration {
+  double brier = 1;
+  // Expected calibration error over equal-width probability bins.
+  double ece = 2;
+  int32 resolved = 3;
+  double reference_ece = 4;
+}
+
+message ErrorSlice {
+  // e.g. "time_of_day", "regime", "volatility_bucket", "instrument" (instruments are aliased).
+  string slice_by = 1;
+  string slice = 2;
+  string metric = 3;
+  double value = 4;
+  int32 samples = 5;
+}
+
+message RegimeContext {
+  string current = 1;
+  bool seen_in_training = 2;
+  double training_share = 3;
+}
+
+message ExecutionQuality {
+  double shortfall_bps = 1;
+  double modeled_shortfall_bps = 2;
+  double limit_fill_rate = 3;
+}
+
+// One retraining-trigger condition that fired (MN-023).
+message TriggeredCondition {
+  // decay, feature_drift, calibration, below_p10, divergence, unseen_regime.
+  string condition = 1;
+  double value = 2;
+  double threshold = 3;
+  // "warning" or "critical".
+  string severity = 4;
+  string detail = 5;
+}
+
+message LiveFeedbackReport {
+  string report_id = 1;
+  string strategy_id = 2;
+  string lineage_id = 3;
+  string model_version = 4;
+  // shadow, paper, or live.
+  string mode = 5;
+  int64 window_start = 6;
+  int64 window_end = 7;
+  int32 sessions = 8;
+  int32 trades = 9;
+  int32 resolved_predictions = 10;
+  repeated MetricVsExpected metrics = 11;
+  ParitySummary parity = 12;
+  DecayTest decay = 13;
+  // Top-N by PSI (N = monitor.feedback.top_drift_features, default 10).
+  repeated FeatureDrift feature_drift = 14;
+  FeatureDrift prediction_drift = 15;
+  Calibration calibration = 16;
+  repeated ErrorSlice error_slices = 17;
+  RegimeContext regime = 18;
+  ExecutionQuality execution = 19;
+  repeated TriggeredCondition triggered = 20;
+  // False when the window has fewer resolved predictions or trades than the minimum (MN-024):
+  // the report is still produced, but no trigger fires.
+  bool sample_sufficient = 21;
+  string backtest_report_id = 22;
+  string training_run_id = 23;
+  int64 generated_at = 24;
+  string correlation_id = 25;
+}
+
+// monitor.retrain_suggested.<lineage_id> (and the matching monitor.decay/drift/divergence subjects);
+// the full report is published on monitor.feedback.<strategy_id>.
+message RetrainSuggested {
+  string trigger_id = 1;
+  string strategy_id = 2;
+  string lineage_id = 3;
+  string model_version = 4;
+  string mode = 5;
+  repeated TriggeredCondition conditions = 6;
+  string report_id = 7;
+  // "warning" or "critical"; critical also lowers the lineage's analyst autonomy to 0 (MN-025).
+  string severity = 8;
+  int64 occurred_at = 9;
+  string correlation_id = 10;
+}

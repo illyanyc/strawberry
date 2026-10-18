@@ -59,7 +59,10 @@ flowchart LR
   BRK -- executions --> BUS --> LED --> PG
   OMS --> PG
   LAKE --> BT --> OPT --> ML --> OBJ
-  AST --> OPT
+  AST -- typed tools --> OPT
+  AST -- typed tools --> ML
+  BUS -- run/backtest/study completed, retrain_suggested --> AST
+  AST -- analyst.round.completed / plan.ready --> BUS
   BUS --> MON --> BUS
   GW <--> UI
   GW --> BUS
@@ -77,6 +80,9 @@ data snapshot → features + labels → train → backtest + validation → opti
 Rules: [data and features](../business-logic/data-and-features.md), [strategies and model lifecycle](../business-logic/strategies-and-model-lifecycle.md), [backtesting](../business-logic/backtesting.md).
 
 **ML and optimization services** ([ADR-0035](../adr/0035-ml-and-optimizer-contracts-and-analyst-tool-apis.md)): `ml` (`MLService`) builds datasets, trains, evaluates, and writes a `DiagnosticsReport` for every run; `optimizer` (`OptimizerService`) runs nested Optuna studies, keeps one trial ledger per research lineage, scores candidates through the backtest scorer, and owns the registry stages and the analyst permission table; `HoldoutService` is the only path to the sealed holdout and never accepts the assistant. api-gateway calls them as the owner (with step-up attestations); the assistant calls them as actor `analyst`, which the services derive from its service token. Rules: [ML](../business-logic/ml.md), [optimization](../business-logic/optimization.md).
+
+**Analyst loop (closes the research loop; [assistant](../business-logic/assistant.md)):**
+completed training run, backtest, or study (`ml.run.completed`, `backtest.completed`, `optimizer.study.completed`) or live feedback (`monitor.retrain_suggested.<lineage>` with a `LiveFeedbackReport`) → the assistant's deterministic orchestrator collects the reports by ID through its tool server → masked planner prompt → validated `Diagnosis` + ranked `ImprovementPlan` → pre-registered round in section 11's cycle → owner approval (level 0) or auto-launch within budget (levels 1–2) through section 10/11 tools → every trial in the lineage's trial ledger → deflated outcome → journal (`AnalystRound` in Postgres `analyst`, `analyst.round.completed`) → next round or stop (plateau, no edge, budget, unreachable). Optimizer does the numerical search; the LLM plans (Centaur). The holdout service, the scorer, live promotion, and the order path are outside the analyst's reach (AN-030..AN-032).
 
 **Backtests reuse the trading path** ([ADR-0031](../adr/0031-two-tier-backtester-and-simcore.md)): the event-driven tier replays lake bars or a recorded bus stream (`RecordedMessage`) through the live runtime core (`tbcore.strategy.host`) and sends each `OrderIntent` to `tb-simcore`, a Go process that runs the production OMS engine and pre-trade gate with the ledger's accounting core behind a passive simulated broker; the backtester's fill and cost models (or recorded executions) decide fills. The vectorized tier screens signal matrices with the same cost model.
 
@@ -112,6 +118,8 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 | `tb.ml.v1` | `ModelVersion` (with `RegistryStage`), `BacktestRun`; `MLService` (training jobs, runs, model cards, prediction, diagnostics and analyst tools), `TrainingConfig`, `DiagnosticsReport`, `MLRunCompleted`, `BacktestCompleted` ([ADR-0035](../adr/0035-ml-and-optimizer-contracts-and-analyst-tool-apis.md), [ML-](../business-logic/ml.md)) | ml, backtest, optimizer → registry, UI, assistant |
 | `tb.optimizer.v1` | `OptimizerService` (lineages, cycles, studies, trial ledger, overfitting statistics, gate reports, registry transitions, evidence packs, retraining), `HoldoutService`, `StudyCompleted`, `StageChanged` ([ADR-0035](../adr/0035-ml-and-optimizer-contracts-and-analyst-tool-apis.md), [EX-](../business-logic/optimization.md)) | optimizer → api-gateway, assistant (no holdout), UI |
 | `tb.backtest.v1` | `SimRequest`/`SimResponse` (simcore protocol over stdio, length-delimited) and `RecordedMessage` (bus recordings for replay and parity) ([ADR-0031](../adr/0031-two-tier-backtester-and-simcore.md), [BT-](../business-logic/backtesting.md)) | `tbcore.backtest` ↔ `tb-simcore`; recorder → backtester |
+| `tb.analyst.v1` | `AnalystRound` (trigger, pre-registration, `Diagnosis` with evidence-cited findings, `ImprovementPlan` with schema-validated config diffs, budget used, deflated outcome, decision, provider and prompt hashes), `AutonomySetting` (level, budget, promotion limits), `LoopStatus`, `CodeProposal`; events `RoundCompleted`, `PlanReady`, `Escalation`, `LowerAutonomy`; `AnalystService` (journal, review actions with `PreparedLaunch`es for owner submission at level 0, record launches, pause/resume, request analysis, trial ledger view, code proposals, chat) ([assistant](../business-logic/assistant.md)) | assistant → api-gateway (only caller), bus `analyst.*` → monitor, UI |
+| `tb.monitor.v1` | `LiveFeedbackReport` (live vs expected percentiles, parity, decay test, drift, calibration, error slices, regime, execution quality, triggered conditions; no balances or account IDs), `RetrainSuggested` ([monitoring](../business-logic/monitoring.md)) | monitor → bus `monitor.retrain_suggested.<id>` → assistant (analyst loop), optimizer (default retraining policy) |
 | `tb.alerts.v1` | `Alert` | any → monitor → channels |
 | `tb.audit.v1` | `AuditEvent` | all → audit store |
 | `tb.broker.v1` | `CredentialService` (gRPC: put, delete, list status; no plaintext read) | api-gateway → broker-gateway |
@@ -139,6 +147,13 @@ flowchart TB
         GF[Grafana :3000 → 127.0.0.1]
         AM[Alertmanager]
       end
+      subgraph research[research network · internal: postgres, nats, ml, optimizer, api-gateway]
+        AST[assistant · AI analyst]
+        EGR[llm-egress · allowlist proxy, also on edge]
+      end
+      subgraph nonet[network_mode none]
+        SBX[analyst-sandbox · candidate-checker]
+      end
       subgraph backend[backend network · internal, no egress]
         BG[broker-gateway]
         MDS[marketdata / execution / ledger]
@@ -147,7 +162,7 @@ flowchart TB
         NATS{{NATS JetStream}}
         VK[(Valkey 9)]
         OBS[Prometheus · VictoriaLogs · Alloy · exporters]
-        MLP[ml profile: MLflow · Prefect · assistant]
+        MLP[ml profile: MLflow · Prefect]
       end
     end
   end
@@ -162,7 +177,8 @@ flowchart TB
   MLP --- DATA
 ```
 
-- Only the gateway and Grafana publish ports, on `127.0.0.1` (SE-051, OP-041). `make up NATIVE_ML=1` additionally exposes Postgres and NATS on loopback for native workers (D29).
+- Only the gateway and Grafana publish ports, on `127.0.0.1` (SE-051, OP-041).
+- The AI analyst (`assistant`) is only on the internal `research` network, which no order-path service joins (AN-032); it reaches LLM providers only through `llm-egress` (AN-053); candidate code runs in `analyst-sandbox` with no network, exchanging files with `candidate-checker` (also no network) over the `analyst-jobs` volume (AN-071). `make up NATIVE_ML=1` additionally exposes Postgres and NATS on loopback for native workers (D29).
 - The same Compose file runs on a Linux droplet later (D21); the `ml-workers` profile replaces native launchd workers there.
 
 ### IBKR (profiles `ibkr`, `ibkr-live`; ADR-0023)
@@ -194,7 +210,11 @@ ledger.update.<broker_account>        recon.result.<broker_account>   recon.requ
 risk.kill                             alert.<severity>           sys.health.<service>
 ml.run.completed                      backtest.completed         optimizer.study.completed   ml.registry.stage_changed
 monitor.retrain_suggested.<lineage>
+monitor.decay.<lineage>              monitor.drift.<lineage>    monitor.divergence.<lineage>   monitor.feedback.<strategy>
+analyst.round.completed               analyst.plan.ready         analyst.escalation         analyst.autonomy.lower
 ```
+
+Live feedback (section 13 analyst slice): the monitor builds a `LiveFeedbackReport` per shadow/paper/live strategy on `monitor.feedback.<strategy>` and, when a trigger condition fires with enough samples, publishes `RetrainSuggested` on `monitor.retrain_suggested.<lineage>` (plus the matching decay/drift/divergence subject) in the durable `MONITOR` stream; the optimizer runs its default retraining policy for lineages at autonomy 0 (EX-040). The assistant opens a round for that lineage; a critical trigger also publishes `analyst.autonomy.lower` (level 0, paused). The analyst publishes `analyst.*` in the durable `ANALYST` stream. At autonomy level 0 the analyst may not launch (ML-024, EX-031): `ReviewActions` returns validated `PreparedLaunch` requests that api-gateway submits to `MLService`/`OptimizerService` as the owner (with the round ID for ledger linkage) and reports back with `RecordLaunches`.
 
 Context data (section 09, ADR-0032) flows context-data → `ctx.<kind>` (durable stream `CONTEXT`, `Nats-Msg-Id` per version) → marketdata's context sink, which stays the only lake writer and compacts `context/kind=…` partitions (CX-003, ST-011). Alpaca news reaches context-data through `BrokerMarketDataService.GetNews` on broker-gateway (credential custody, BR-022); FMP, FRED/ALFRED, FINRA, and SEC EDGAR are called directly from context-data. Readers use `tbcore.context.ContextStore` (point-in-time per `record_key`). Source health goes to `sys.health.ctx.<job>`. strategy-runtime reads `ctx.calendar`/`ctx.earnings` and the lake for `EventBlackout` (CX-016).
 
