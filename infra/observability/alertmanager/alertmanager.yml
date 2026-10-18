@@ -1,7 +1,7 @@
 # Alert routing (D13, D22). Critical alerts page through Pushover emergency priority (repeats until
 # acknowledged). Fill in .secrets/pushover_user_key and pushover_app_token to enable delivery; until
 # then sends fail and are logged. Every notifying receiver also posts to the gateway's internal
-# webhook, which fans the group out as Web Push to the installed PWA (ADR-0053, SE-063).
+# webhook, which fans the group out as Web Push to the installed PWA (ADR-0052, SE-063).
 route:
   receiver: log-only
   group_by: [alertname, service]

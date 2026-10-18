@@ -1,9 +1,9 @@
-# ADR-0052: TradingView: opt-in `tv-<name>` webhook strategies behind Cloudflare Access, and chart embedding where licensing allows
+# ADR-0051: TradingView: opt-in `tv-<name>` webhook strategies behind Cloudflare Access, and chart embedding where licensing allows
 
 - **Status:** Accepted
 - **Date:** 2026-10-18
-- **Decision register:** D70 (settles section 14's "TradingView webhooks as signal source" and "Advanced Charts" items; applies D12, D17)
-- **Related:** SM-020, SE-064, SE-065, UI-048, UI-049, RM-001, VP-002, [ADR-0016](0016-remote-access.md), [ADR-0051](0051-signals-on-the-bus-and-chart-overlays.md), section 02 Stage B, section 14 prompt, research 07 §5, research 08 §1
+- **Decision register:** D69 (settles section 14's "TradingView webhooks as signal source" and "Advanced Charts" items; applies D12, D17)
+- **Related:** SM-020, SE-064, SE-065, UI-048, UI-049, RM-001, VP-002, [ADR-0016](0016-remote-access.md), [ADR-0050](0050-signals-on-the-bus-and-chart-overlays.md), section 02 Stage B, section 14 prompt, research 07 §5, research 08 §1
 
 ## Context
 

@@ -1,8 +1,8 @@
-# ADR-0053: Web Push from the gateway, fed by Alertmanager, to the installed PWA
+# ADR-0052: Web Push from the gateway, fed by Alertmanager, to the installed PWA
 
 - **Status:** Accepted
 - **Date:** 2026-10-18
-- **Decision register:** D71 (implements D13's Web Push half; Pushover emergency stays the critical path, D45)
+- **Decision register:** D70 (implements D13's Web Push half; Pushover emergency stays the critical path, D45)
 - **Related:** SE-060..SE-063, UI-044, MN-003, [ADR-0012](0012-web-ui-spa-sse-pwa.md), [ADR-0027](0027-monitoring-ops-slice.md), section 14 prompt (PWA), section 13 prompt (alert channels), research 07 §4
 
 ## Context

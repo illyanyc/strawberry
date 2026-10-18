@@ -6,7 +6,7 @@ durable subject ``ord.intent`` with ``Nats-Msg-Id`` = intent ID (execution is id
 OE-006). It never talks to brokers. A heartbeat goes to ``sys.health.strategy-runtime`` every
 ``TB_HEARTBEAT_INTERVAL`` seconds and after each bar (dead-man, RM-017).
 
-Phase 5 (ADR-0052): ``tv-<name>`` strategies consume their webhook signals from
+Phase 5 (ADR-0051): ``tv-<name>`` strategies consume their webhook signals from
 ``sig.tv-<name>.<instrument>`` (new messages only: a signal that arrived while the runtime was down is
 never acted on late, SM-020).
 """

@@ -2,7 +2,7 @@
 
 The only human interface: a static Vite + React 19 SPA served by `api-gateway`. It talks only to the gateway (REST + SSE), never to internal services or brokers, never sees credentials, and never decides authorization or computes risk, P&L, or ownership.
 
-**Status:** In progress (Phase 0 shell; Phase 2 trading; Phase 4 research and analyst; Phase 5 full UI, PWA, Web Push, TradingView)  ·  **Stack:** Vite 8, React 19, TanStack Router + Query, Tailwind 4, shadcn/ui-style components, `lucide-react` icons, `@simplewebauthn/browser`, Lightweight Charts 5.2.1, generated types from `@strawberry/contracts` ([ADR-0012](../../docs/adr/0012-web-ui-spa-sse-pwa.md), D11/D13/D14; [ADR-0028](../../docs/adr/0028-ui-trading-slice-charts-and-bff.md), D46; [ADR-0050](../../docs/adr/0050-full-ui-shell-design-system-and-performance.md), D68)
+**Status:** In progress (Phase 0 shell; Phase 2 trading; Phase 4 research and analyst; Phase 5 full UI, PWA, Web Push, TradingView)  ·  **Stack:** Vite 8, React 19, TanStack Router + Query, Tailwind 4, shadcn/ui-style components, `lucide-react` icons, `@simplewebauthn/browser`, Lightweight Charts 5.2.1, generated types from `@strawberry/contracts` ([ADR-0012](../../docs/adr/0012-web-ui-spa-sse-pwa.md), D11/D13/D14; [ADR-0028](../../docs/adr/0028-ui-trading-slice-charts-and-bff.md), D46; [ADR-0049](../../docs/adr/0049-full-ui-shell-design-system-and-performance.md), D67)
 
 ## Responsibilities
 - Owns: screens, client-side routing, the navigation registry, the step-up dialog, SSE subscriptions, the PWA manifest, icons, and the notification-only service worker.
@@ -14,7 +14,7 @@ The only human interface: a static Vite + React 19 SPA served by `api-gateway`. 
 | out | HTTP | `/auth/*`, `/api/v1/*` | `contracts/openapi/gateway.yaml` |
 | in | SSE | `/api/v1/events` (`trading-status`, `session-ended`) | same |
 | in | SSE | `/api/v1/stream/market` (`ready`, `bar`, `partial`, `fill`, `signal`, `resync`, `session-ended`) | same |
-| in | Push | Web Push payloads (Declarative Web Push shape) handled by `public/sw.js` | ADR-0053 |
+| in | Push | Web Push payloads (Declarative Web Push shape) handled by `public/sw.js` | ADR-0052 |
 | in | SSE | `/api/v1/research/training/jobs/{id}/stream`, `/api/v1/research/studies/{id}/stream` (`progress`, `done`) | same |
 | types | TS | `@strawberry/contracts` `*Json` types (protoc-gen-es `json_types`) wrapped in `Emitted<T>` | `contracts/proto` |
 

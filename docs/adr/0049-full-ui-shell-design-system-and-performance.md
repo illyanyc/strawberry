@@ -1,8 +1,8 @@
-# ADR-0050: Full UI: one shell and navigation registry, a shared design system, keyboard-first desktop, route-level code splitting, and in-app tearsheets
+# ADR-0049: Full UI: one shell and navigation registry, a shared design system, keyboard-first desktop, route-level code splitting, and in-app tearsheets
 
 - **Status:** Accepted
 - **Date:** 2026-10-18
-- **Decision register:** D68 (applies D11, D12, D14 to the full UI)
+- **Decision register:** D67 (applies D11, D12, D14 to the full UI)
 - **Related:** UI-040..UI-047, UI-049, UI-051, UI-005, UI-007, UI-013, UI-025, [ADR-0012](0012-web-ui-spa-sse-pwa.md), [ADR-0028](0028-ui-trading-slice-charts-and-bff.md), section 14 prompt (Phase 5), research 07 §1–§2
 
 ## Context
@@ -30,7 +30,7 @@ Constraints: the CSP is `script-src 'self'; style-src 'self'` (UI-005); the UI c
 | Hand-written SVG icons | Equivalent output with more code to maintain; `lucide-react` is the shadcn/ui default and tree-shakes |
 | Manual chunks only (`build.rollupOptions.output.manualChunks`) | Splits files but still loads them all at start; route-level lazy loading defers them |
 | Inline the tearsheet HTML in the SPA | Needs `style-src 'unsafe-inline'` on the SPA and trusts generated HTML in the app's origin; a sandboxed frame keeps both out |
-| Service-worker caching of the app shell for speed | A trading UI must never run a stale bundle; the SW caches nothing (ADR-0053) |
+| Service-worker caching of the app shell for speed | A trading UI must never run a stale bundle; the SW caches nothing (ADR-0052) |
 
 ## Consequences
 

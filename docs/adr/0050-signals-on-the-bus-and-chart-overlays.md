@@ -1,9 +1,9 @@
-# ADR-0051: Signals keyed by strategy and instrument on the bus, served to charts as overlays
+# ADR-0050: Signals keyed by strategy and instrument on the bus, served to charts as overlays
 
 - **Status:** Accepted
 - **Date:** 2026-10-18
-- **Decision register:** D69 (refines the master prompt's `sig.<strategy_id>` subject; applies D12, D14)
-- **Related:** UI-049, UI-012, SM-020, ML-042, [ADR-0028](0028-ui-trading-slice-charts-and-bff.md), [ADR-0052](0052-tradingview-webhook-strategies-and-chart-embedding.md), section 14 prompt (Charts: "overlays of model signals, strategy orders, fills, stops/targets"), research 07 §5
+- **Decision register:** D68 (refines the master prompt's `sig.<strategy_id>` subject; applies D12, D14)
+- **Related:** UI-049, UI-012, SM-020, ML-042, [ADR-0028](0028-ui-trading-slice-charts-and-bff.md), [ADR-0051](0051-tradingview-webhook-strategies-and-chart-embedding.md), section 14 prompt (Charts: "overlays of model signals, strategy orders, fills, stops/targets"), research 07 §5
 
 ## Context
 
@@ -15,7 +15,7 @@ Section 14 asks the Charts page to overlay model signals next to fills, orders, 
 - **History: `GET /api/v1/signals?instrument_id=&since=&limit=`.** The gateway creates a short-lived JetStream ordered consumer on `SIGNALS` filtered to `sig.*.<instrument_id>` from `since` (default 24 h, at most 30 days), reads at most 20,000 messages, and returns the newest `limit` (≤ 2,000) oldest first, as protojson. The gateway's NATS user may create consumers on the `SIGNALS` stream only.
 - **Live: a `signal` event on the chart SSE stream** (`/api/v1/stream/market`), from a core subscription on `sig.*.<instrument_id>`, under the same back-pressure rule as bars and fills (UI-012: `resync` when the client falls behind).
 - **Drawing.** Signals are markers labelled in text with the strategy, direction, and score (circle = long, square = flat/exit, arrow down = short), never conveyed by color alone; model scores (signals with a model version) are plotted per strategy in a score pane. The chart filters overlays by owner (all, `manual`, or one strategy). Signals are information: no UI action uses them.
-- **Producers.** The TradingView intake publishes on this subject (ADR-0052). Model strategies' online scorings are published by the strategy runtime (section 13's ML-042 work); its publisher uses this subject.
+- **Producers.** The TradingView intake publishes on this subject (ADR-0051). Model strategies' online scorings are published by the strategy runtime (section 13's ML-042 work); its publisher uses this subject.
 
 ## Alternatives considered
 

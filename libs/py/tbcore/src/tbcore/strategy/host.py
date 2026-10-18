@@ -89,7 +89,7 @@ CLASSES: dict[str, StrategyFactory] = {
     "model_signal": _model_signal,
     "meta_filter": _meta_filter,
     "residual_reversal": lambda sid, params: ResidualReversal(sid, ResidualReversalParams.from_dict(dict(params))),
-    # Section 14 Phase 5: TradingView webhook strategies (SM-020, ADR-0052); instruments are bound
+    # Section 14 Phase 5: TradingView webhook strategies (SM-020, ADR-0051); instruments are bound
     # from the registry entry in Runner.from_registry_data.
     "tradingview": lambda sid, params: TradingViewStrategy(sid, TradingViewParams.from_dict(dict(params)), []),
 }

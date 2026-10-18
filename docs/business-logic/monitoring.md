@@ -44,5 +44,5 @@ Phase 2 ops slice of section 13: health and trading-operations alert rules, aler
 
 ## Open questions
 
-- Web Push to the PWA: delivered by api-gateway from Alertmanager's receivers (SE-060..SE-063, [ADR-0053](../adr/0053-web-push-from-the-gateway-and-the-installed-pwa.md)); Pushover emergency remains the independent critical channel.
+- Web Push to the PWA: delivered by api-gateway from Alertmanager's receivers (SE-060..SE-063, [ADR-0052](../adr/0052-web-push-from-the-gateway-and-the-installed-pwa.md)); Pushover emergency remains the independent critical channel.
 - Strategy health score, drift and divergence dashboards, auto-demotion (Phase 5); expectations served from section 11 gate reports instead of a config file.

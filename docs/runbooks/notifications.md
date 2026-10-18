@@ -1,6 +1,6 @@
 # Runbook: Notifications (Pushover and Web Push)
 
-Rules: MN-002, MN-003, SE-060..SE-063, UI-044 · Decisions: [ADR-0027](../adr/0027-monitoring-ops-slice.md), [ADR-0053](../adr/0053-web-push-from-the-gateway-and-the-installed-pwa.md) · Page: Notifications (`/settings/notifications`)
+Rules: MN-002, MN-003, SE-060..SE-063, UI-044 · Decisions: [ADR-0027](../adr/0027-monitoring-ops-slice.md), [ADR-0052](../adr/0052-web-push-from-the-gateway-and-the-installed-pwa.md) · Page: Notifications (`/settings/notifications`)
 
 Alertmanager routes every alert. Each notifying receiver sends to **Pushover** (critical = emergency priority, repeating until acknowledged) and to the gateway, which sends **Web Push** to every subscribed browser or installed PWA. Pushover is the critical path: it works when the gateway or the PWA is down.
 

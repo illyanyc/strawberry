@@ -63,7 +63,7 @@ type Config struct {
 	// PushAllowedHosts are the push services subscriptions may point at (SE-061); empty = defaults.
 	PushAllowedHosts []string `env:"TB_PUSH_ALLOWED_HOSTS" envSeparator:"," json:"push_allowed_hosts"`
 
-	// TVWebhookAddr enables the TradingView webhook listener (empty = off, the default; D70).
+	// TVWebhookAddr enables the TradingView webhook listener (empty = off, the default; D69).
 	TVWebhookAddr string `env:"TB_TV_WEBHOOK_ADDR" json:"tv_webhook_addr"`
 	// TVPublicURL is the dedicated Cloudflare Access hostname, for display (e.g. https://tv.example.com).
 	TVPublicURL string `env:"TB_TV_PUBLIC_URL" json:"tv_public_url"`

@@ -40,7 +40,7 @@ var TradingViewIPs = []string{"52.89.214.238/32", "34.212.75.30/32", "54.218.53.
 
 var tvNameRe = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,39}$`)
 
-// tvIntake is the TradingView webhook intake (section 14, D70, SE-064): a separate listener that
+// tvIntake is the TradingView webhook intake (section 14, D69, SE-064): a separate listener that
 // turns verified alerts into Signals for the matching tv-<name> strategy. It never creates orders;
 // the strategy runtime turns signals into intents, which pass the normal risk gate (RM-001).
 type tvIntake struct {

@@ -10,7 +10,7 @@ import (
 )
 
 // SignalBus reads recent signals from the JetStream SIGNALS stream and publishes TradingView
-// webhook signals into it. Subjects are sig.<strategy_id>.<instrument_id> (UI-049, D69).
+// webhook signals into it. Subjects are sig.<strategy_id>.<instrument_id> (UI-049, D68).
 type SignalBus interface {
 	// Recent returns up to limit signals for the instrument with a stream time at or after since,
 	// oldest first.

@@ -136,7 +136,7 @@ func (rig *tvRig) body(secret, ticker, action string, at time.Time) string {
 
 const tvIP, cfPeer = "52.89.214.238", "172.18.0.9"
 
-// SE-064, D70: only verified alerts become signals for their own tv-<name> strategy; every
+// SE-064, D69: only verified alerts become signals for their own tv-<name> strategy; every
 // rejection path is covered, and authenticated outcomes are audited.
 func TestSE064TradingViewWebhookRejectionPaths(t *testing.T) {
 	rig := newTVRig(t, fakeAccess{ok: true})

@@ -60,8 +60,8 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0042](0042-analyst-llm-providers-masking-and-egress.md) | Analyst LLM providers per role, prompt masking, the egress guard and allowlisting proxy, and spend caps | Accepted | 2026-10-18 |
 | [0043](0043-analyst-coder-sandbox-and-candidate-review.md) | Analyst coder sandbox: AST policy, no-network file-based jobs, synthetic inputs, evaluator-side checks, review before merge | Accepted | 2026-10-18 |
 | [0044](0044-live-feedback-and-retraining-triggers.md) | Live feedback reports and retraining triggers for the analyst (section 13 Phase 4 slice) | Accepted | 2026-10-18 |
-| [0050](0050-full-ui-shell-design-system-and-performance.md) | Full UI: one shell and navigation registry, a shared design system, keyboard-first desktop, route-level code splitting, in-app tearsheets | Accepted | 2026-10-18 |
-| [0051](0051-signals-on-the-bus-and-chart-overlays.md) | Signals keyed by strategy and instrument on the bus, served to charts as overlays | Accepted | 2026-10-18 |
-| [0052](0052-tradingview-webhook-strategies-and-chart-embedding.md) | TradingView: opt-in `tv-<name>` webhook strategies behind Cloudflare Access, and chart embedding where licensing allows | Accepted | 2026-10-18 |
-| [0053](0053-web-push-from-the-gateway-and-the-installed-pwa.md) | Web Push from the gateway, fed by Alertmanager, to the installed PWA | Accepted | 2026-10-18 |
-| [0054](0054-phone-halts-need-a-fresh-passkey.md) | A phone halts after a fresh passkey; a desktop with one confirmation; only a desktop resumes | Accepted | 2026-10-18 |
+| [0049](0049-full-ui-shell-design-system-and-performance.md) | Full UI: one shell and navigation registry, a shared design system, keyboard-first desktop, route-level code splitting, in-app tearsheets | Accepted | 2026-10-18 |
+| [0050](0050-signals-on-the-bus-and-chart-overlays.md) | Signals keyed by strategy and instrument on the bus, served to charts as overlays | Accepted | 2026-10-18 |
+| [0051](0051-tradingview-webhook-strategies-and-chart-embedding.md) | TradingView: opt-in `tv-<name>` webhook strategies behind Cloudflare Access, and chart embedding where licensing allows | Accepted | 2026-10-18 |
+| [0052](0052-web-push-from-the-gateway-and-the-installed-pwa.md) | Web Push from the gateway, fed by Alertmanager, to the installed PWA | Accepted | 2026-10-18 |
+| [0053](0053-phone-halts-need-a-fresh-passkey.md) | A phone halts after a fresh passkey; a desktop with one confirmation; only a desktop resumes | Accepted | 2026-10-18 |

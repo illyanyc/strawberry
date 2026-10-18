@@ -45,7 +45,7 @@ export function alertTemplate(): string {
 }
 
 /**
- * TradingView integration (UI-048, D70): the opt-in `tv-<name>` webhook strategies (signals only,
+ * TradingView integration (UI-048, D69): the opt-in `tv-<name>` webhook strategies (signals only,
  * through normal risk with their own ledger and limits), the dedicated Cloudflare Access ingress,
  * recent deliveries from the audit log, and chart options (Lightweight Charts with attribution,
  * deep links, and the optional widget).

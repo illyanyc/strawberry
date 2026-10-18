@@ -15,7 +15,7 @@ info:
     are UTC-nanosecond strings, enums are full names (ADR-0028). The web UI types them with the
     generated `*Json` types from `contracts/gen/ts`. Upstream outages answer 503 `<service>_unavailable`.
 
-    Two more listeners are not part of this API and never share its address (ADR-0052, ADR-0053):
+    Two more listeners are not part of this API and never share its address (ADR-0051, ADR-0052):
     the internal listener (`TB_INTERNAL_HTTP_ADDR`, backend network only) serves
     `POST /internal/alertmanager/webhook` (bearer token; Alertmanager v4 payload → Web Push, SE-063),
     and the optional TradingView listener (`TB_TV_WEBHOOK_ADDR`, reached only through the dedicated
@@ -311,7 +311,7 @@ paths:
         - { name: instrument_id, in: query, required: true, schema: { type: string, pattern: '^[A-Za-z0-9_-]{1,64}$' } }
         - { name: timeframe, in: query, required: true, schema: { enum: ['1m', '5m', '15m', '30m', '1h', '1d'] } }
       responses: { '200': { description: text/event-stream } }
-  # ---- section 14 Phase 5: signals, Web Push, TradingView (ADR-0051..ADR-0053) ----
+  # ---- section 14 Phase 5: signals, Web Push, TradingView (ADR-0050..ADR-0052) ----
   /api/v1/instruments/{id}/freshness:
     parameters: [{ name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9_-]{1,64}$' } }]
     get: { description: 'Per timeframe (1m..1d): marketdata IsFresh (RM-004) for the data explorer (UI-051); a failed timeframe carries `error`, never `fresh: true`.', responses: { '200': { description: '{"instrument_id", "timeframes": [{timeframe, fresh, last_bar_close (UTC ns), reason, error?}]}' } } }

@@ -1,8 +1,8 @@
-# ADR-0054: A phone halts after a fresh passkey assertion; a desktop halts with one confirmation; only a desktop resumes
+# ADR-0053: A phone halts after a fresh passkey assertion; a desktop halts with one confirmation; only a desktop resumes
 
 - **Status:** Accepted
 - **Date:** 2026-10-18
-- **Decision register:** D72 (refines UI-006 for phones; keeps RM-007)
+- **Decision register:** D71 (refines UI-006 for phones; keeps RM-007)
 - **Related:** RM-020, RM-006, RM-007, UI-050, UI-006, UI-015, SE-003, [ADR-0025](0025-oms-risk-gate-and-kill-switches.md), section 14 prompt (mobile), master prompt Gate 5, research 07 §4
 
 ## Context

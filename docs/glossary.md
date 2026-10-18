@@ -52,7 +52,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Dataset snapshot** | Immutable, content-addressed feature extract (`snapshots/<id>/`) whose ID hashes the feature set, universe, range, as-of, and exact input files (DF-009). |
 | **Dead-man check** | Heartbeat watch that contains risk when a component stops: execution latches cancel-open kill switches when the strategy runtime's heartbeat is lost; broker-gateway cancels working platform orders when execution's heartbeat is lost (RM-017). |
 | **Decimal (contract type)** | `tb.common.v1.Decimal`: an exact base-10 number carried as a string; the only representation for money and quantity in contracts. |
-| **Declarative Web Push** | A Web Push payload (`{"web_push": 8030, "notification": {...}}`) the browser can display without a service worker (Safari 18.4+); the gateway sends this shape to every browser (ADR-0053). |
+| **Declarative Web Push** | A Web Push payload (`{"web_push": 8030, "notification": {...}}`) the browser can display without a service worker (Safari 18.4+); the gateway sends this shape to every browser (ADR-0052). |
 | **Deflated Sharpe ratio (DSR)** | Sharpe ratio corrected for the number of trials and non-normal returns; used to rank strategies honestly. |
 | **Demotion** | Automatic or manual move of a strategy to `paper` or `halted`. Re-promotion is always manual. |
 | **DiagnosticsReport** | Deterministic, size-limited report produced for every training run: data quality, feature shift and leakage flags, learning curves, fold metrics, importance stability, error slices, and rule-based findings with evidence (ML-020..ML-023). |
@@ -169,4 +169,4 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Virtual portfolio (sub-portfolio)** | A strategy's own capital allocation, positions, lots, P&L, and limits, carved out of a real broker account. |
 | **Walk-forward** | Validation that repeatedly trains on a past window and tests on the following window. |
 | **Wash-sale flag** | Informational marker on a loss-realizing sale within 30 days of a purchase of the same instrument by any owner in any account (VP-022). |
-| **Web Push** | Browser push notifications through the vendor push services (FCM, Mozilla, Apple, Windows), encrypted end to end with RFC 8291; delivered to the installed PWA from Alertmanager via the gateway (ADR-0053). |
+| **Web Push** | Browser push notifications through the vendor push services (FCM, Mozilla, Apple, Windows), encrypted end to end with RFC 8291; delivered to the installed PWA from Alertmanager via the gateway (ADR-0052). |

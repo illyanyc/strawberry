@@ -1,4 +1,4 @@
-"""TradingView webhook strategy (SM-020, ADR-0052)."""
+"""TradingView webhook strategy (SM-020, ADR-0051)."""
 
 from __future__ import annotations
 

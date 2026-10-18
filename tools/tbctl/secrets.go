@@ -23,7 +23,7 @@ import (
 
 // natsUsers lists bus users and their subject permissions (least privilege; widened per phase).
 var natsUsers = map[string]struct{ pub, sub []string }{
-	// Phase 5 (ADR-0051, ADR-0052): reads recent signals from the SIGNALS stream for chart overlays
+	// Phase 5 (ADR-0050, ADR-0051): reads recent signals from the SIGNALS stream for chart overlays
 	// (ordered consumers on that stream only), streams live sig.> to charts, and publishes
 	// TradingView signals (code limits them to sig.tv-<name>.<instrument>).
 	"api_gateway": {pub: []string{"alert.>", "sys.health.api-gateway", "sig.>", "$JS.API.INFO", "$JS.API.STREAM.INFO.SIGNALS",
@@ -47,7 +47,7 @@ var natsUsers = map[string]struct{ pub, sub []string }{
 	// The strategy runtime only publishes intents and its heartbeat; it reads bars and its own
 	// strategies' ledger updates (ADR-0026).
 	// Phase 5: publishes model signals (sig.<strategy>.<instrument>) and consumes its tv-<name>
-	// strategies' webhook signals (D70).
+	// strategies' webhook signals (D69).
 	"strategy_runtime": {pub: []string{"ord.intent", "sig.>", "sys.health.strategy-runtime", "alert.>", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
 		sub: []string{"_INBOX.>", "md.bar.>", "ledger.update.>", "ctx.calendar", "ctx.earnings", "sig.>"}},
 	// The monitor forwards bus alerts to Alertmanager and builds daily reports from order-path and
@@ -166,8 +166,8 @@ func initSecrets(dir string) error {
 	if err := put("grafana_admin_password", pw); err != nil {
 		return err
 	}
-	// Phase 5 Web Push (ADR-0053): the VAPID key pair and the token Alertmanager presents to the
-	// gateway's internal webhook; the TradingView webhook key derives per-strategy secrets (ADR-0052).
+	// Phase 5 Web Push (ADR-0052): the VAPID key pair and the token Alertmanager presents to the
+	// gateway's internal webhook; the TradingView webhook key derives per-strategy secrets (ADR-0051).
 	if err := put("webpush_vapid_key", vapidKey); err != nil {
 		return err
 	}

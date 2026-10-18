@@ -1,4 +1,4 @@
-"""TradingView webhook strategy (runtime class ``tradingview``, section 14, ADR-0052, SM-020).
+"""TradingView webhook strategy (runtime class ``tradingview``, section 14, ADR-0051, SM-020).
 
 A ``tv-<name>`` strategy turns verified TradingView alerts (``Signal`` messages the gateway
 publishes on ``sig.tv-<name>.<instrument>``) into intents for its own virtual portfolio. It is an

@@ -1,6 +1,6 @@
 # Runbook: TradingView webhook strategies
 
-Rules: SM-020, SE-064, SE-065 · Decision: [ADR-0052](../adr/0052-tradingview-webhook-strategies-and-chart-embedding.md) · Page: TradingView (`/settings/tradingview`)
+Rules: SM-020, SE-064, SE-065 · Decision: [ADR-0051](../adr/0051-tradingview-webhook-strategies-and-chart-embedding.md) · Page: TradingView (`/settings/tradingview`)
 
 TradingView alerts can drive a dedicated `tv-<name>` strategy. They produce **signals**, never orders: the strategy runtime sizes and protects each trade from the platform's own bars, and every intent passes the normal pre-trade gate with the strategy's own allocation and limits. Intake is **off** by default.
 
