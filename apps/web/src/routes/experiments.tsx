@@ -74,7 +74,7 @@ function StudyStatusBadge({ status }: { status: string }) {
 
 const AUTONOMY = ["0 · suggest only", "1 · auto-run on paper", "2 · auto-promote within limits"];
 
-/** Research lineages (UI-021): each groups every trial for one family on one data domain. */
+/** Research lineages (UI-024): each groups every trial for one family on one data domain. */
 export function ExperimentsPage() {
   const lineages = useLineages();
   return (
@@ -182,7 +182,7 @@ function NewLineage() {
 }
 
 /**
- * Lineage detail (UI-021): trial ledger and lineage-level overfitting statistics (effective N, DSR,
+ * Lineage detail (UI-024): trial ledger and lineage-level overfitting statistics (effective N, DSR,
  * PBO, MinTRL/MinBTL), the research cycle budget, the holdout counter, analyst autonomy, studies,
  * and candidates. Every number is the optimizer's; the UI never recomputes it.
  */
@@ -419,7 +419,7 @@ function useHoldout(lineageId: string) {
   return useQuery({ queryKey: ["research", "holdout", lineageId], queryFn: () => api<HoldoutResponse>(`${R}/lineages/${seg(lineageId)}/holdout`) });
 }
 
-/** Holdout access counter (UI-023): touches this quarter, remaining, trial inflation per look. */
+/** Holdout access counter (UI-026): touches this quarter, remaining, trial inflation per look. */
 function HoldoutCard({ lineageId }: { lineageId: string }) {
   const queryClient = useQueryClient();
   const holdout = useHoldout(lineageId);
@@ -552,7 +552,7 @@ interface SpaceRow {
 
 const METRICS = ["sharpe", "ic", "rank_ic", "net_return"];
 
-/** Study creation with pre-registration (UI-021, EX-026): hypothesis, metric, and stop rule are required. */
+/** Study creation with pre-registration (UI-024, EX-026): hypothesis, metric, and stop rule are required. */
 function NewStudy({ lineage }: { lineage: Lineage }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -704,7 +704,7 @@ function NewStudy({ lineage }: { lineage: Lineage }) {
 }
 
 /**
- * Study detail (UI-021): controls, pre-registration, live progress over SSE, the honest outer
+ * Study detail (UI-024): controls, pre-registration, live progress over SSE, the honest outer
  * estimate (inner metrics are labelled selection-only), trials with parallel coordinates, parameter
  * importance and stability, convergence (raw vs deflated), and the Pareto front.
  */
@@ -993,7 +993,7 @@ function TrialsView({ trials }: { trials: Trial[] }) {
 }
 
 /**
- * Candidate (UI-022, UI-023): the gate report with every reason, the tearsheet and evidence pack,
+ * Candidate (UI-025, UI-026): the gate report with every reason, the tearsheet and evidence pack,
  * permission dry runs, promotion (paper and live_eligible need a passkey; live is never offered),
  * demotion, the holdout evaluation (passkey, reason required, counter shown), and champion vs
  * challenger from paper results.
@@ -1213,7 +1213,7 @@ function PromotionCard({ candidate }: { candidate: Candidate }) {
   );
 }
 
-/** Holdout evaluation (UI-023, EX-011): owner only, passkey, reason required; pass/fail and DSR only. */
+/** Holdout evaluation (UI-026, EX-011): owner only, passkey, reason required; pass/fail and DSR only. */
 function HoldoutEvaluateCard({ candidate }: { candidate: Candidate }) {
   const queryClient = useQueryClient();
   const holdout = useHoldout(candidate.lineageId);
@@ -1271,7 +1271,7 @@ function usePaper(strategyId: string) {
   });
 }
 
-/** Champion vs challenger (UI-024): gate estimates side by side and each one's paper/shadow ledger results. */
+/** Champion vs challenger (UI-027): gate estimates side by side and each one's paper/shadow ledger results. */
 function ChampionChallenger({ candidate }: { candidate: Candidate }) {
   const lineage = useQuery({ queryKey: ["research", "lineage", candidate.lineageId], queryFn: () => api<LineageResponse>(`${R}/lineages/${seg(candidate.lineageId)}`) });
   const championId = lineage.data?.lineage?.championCandidateId ?? "";

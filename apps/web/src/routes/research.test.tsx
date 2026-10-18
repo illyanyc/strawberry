@@ -120,8 +120,8 @@ function renderAt(path: string) {
   return router;
 }
 
-describe("hyperparameter schema forms (UI-020)", () => {
-  it("UI-020: renders the ML-011 subset, reports unsupported keywords, and validates ranges and types", () => {
+describe("hyperparameter schema forms (UI-023)", () => {
+  it("UI-023: renders the ML-011 subset, reports unsupported keywords, and validates ranges and types", () => {
     const { fields, unsupported } = schemaFields(LGBM_SCHEMA);
     expect(fields.map((f) => f.name)).toEqual(["num_leaves", "learning_rate", "filter"]);
     expect(unsupported).toEqual(["nested"]);
@@ -144,8 +144,8 @@ describe("hyperparameter schema forms (UI-020)", () => {
   });
 });
 
-describe("registry stages (UI-023)", () => {
-  it("UI-023, SM-004: the UI never offers live; synthetic candidates never reach live_eligible (EX-052)", () => {
+describe("registry stages (UI-026)", () => {
+  it("UI-026, SM-004: the UI never offers live; synthetic candidates never reach live_eligible (EX-052)", () => {
     for (const s of [...STAGE_ORDER, "unknown" as const]) {
       for (const synthetic of [true, false]) {
         const t = promotionTargets(s, synthetic);
@@ -158,7 +158,7 @@ describe("registry stages (UI-023)", () => {
   });
 });
 
-describe("progress streams (UI-020, D14)", () => {
+describe("progress streams (UI-023, D14)", () => {
   it("collects progress events and closes on done so a finished job is not reconnected", () => {
     const { result } = renderHook(() => useProgressStream<JobProgress>("/api/v1/research/training/jobs/J1/stream"));
     const es = FakeEventSource.instances[0]!;
@@ -179,7 +179,7 @@ describe("progress streams (UI-020, D14)", () => {
   });
 });
 
-describe("Training page (UI-020)", () => {
+describe("Training page (UI-023)", () => {
   beforeEach(() => {
     routes["GET /api/v1/research/families"] = () => ({ families: [family("lgbm_regression"), family("lgbm_lambdarank", "swing")] });
     routes["GET /api/v1/research/feature-sets"] = () => ({ featureSets: [{ name: "core_intraday", version: 1, hash: "h", features: ["a", "b"], description: "core", maxLookback: 20 }] });
@@ -189,7 +189,7 @@ describe("Training page (UI-020)", () => {
     routes["GET /api/v1/research/runs"] = () => ({ runs: [] });
   });
 
-  it("UI-020, ML-031: estimates before launch, refuses a stale estimate, and launches the estimated config", async () => {
+  it("UI-023, ML-031: estimates before launch, refuses a stale estimate, and launches the estimated config", async () => {
     routes["POST /api/v1/research/training/estimate"] = () => ({ estimate: { rows: "1000", fits: 6, cpuSeconds: 12, gpuSeconds: 0, memoryMb: 300, overBudget: false, device: "cpu" }, errors: [] });
     routes["POST /api/v1/research/training/jobs"] = () => ({ job: { jobId: "JOB1", runId: "run_JOB1", status: "JOB_STATUS_QUEUED" } });
     routes["GET /api/v1/research/training/jobs/JOB1"] = () => ({ job: { jobId: "JOB1", runId: "run_JOB1", status: "JOB_STATUS_QUEUED", progress: 0, phase: "queued", config: { family: "lgbm_regression" } } });
@@ -207,7 +207,7 @@ describe("Training page (UI-020)", () => {
     expect(submit?.body).toMatchObject({ config: { family: "lgbm_regression", timeframe: "15m", hyperparams: { num_leaves: 31 } }, confirmOverBudget: false });
   });
 
-  it("UI-020: a field outside the schema range shows its message and blocks the estimate", async () => {
+  it("UI-023: a field outside the schema range shows its message and blocks the estimate", async () => {
     renderAt("/training");
     fireEvent.change(await screen.findByLabelText("num_leaves"), { target: { value: "1000" } });
     expect(screen.getByText("Must be ≤ 256")).toBeInTheDocument();
@@ -230,7 +230,7 @@ describe("Training page (UI-020)", () => {
     expect(screen.queryByRole("button", { name: "Launch training" })).toBeNull();
   });
 
-  it("UI-020: the job page shows live progress from the stream", async () => {
+  it("UI-023: the job page shows live progress from the stream", async () => {
     routes["GET /api/v1/research/training/jobs/JOB1"] = () => ({ job: { jobId: "JOB1", runId: "run_JOB1", status: "JOB_STATUS_RUNNING", progress: 0.1, phase: "fold", submittedAt: "0", config: { family: "lgbm_regression" } } });
     renderAt("/training/jobs/JOB1");
     expect(await screen.findByText("Job JOB1")).toBeInTheDocument();
@@ -242,8 +242,8 @@ describe("Training page (UI-020)", () => {
   });
 });
 
-describe("Run page (UI-020, UI-022)", () => {
-  it("UI-022: the tearsheet opens as its own document; findings show critical first with evidence", async () => {
+describe("Run page (UI-023, UI-025)", () => {
+  it("UI-025: the tearsheet opens as its own document; findings show critical first with evidence", async () => {
     routes["GET /api/v1/research/runs/RUN1"] = () => ({
       run: { runId: "RUN1", config: { family: "ridge", dataSource: "synthetic:intraday_edge", featureSet: { name: "core_intraday", version: 1 } }, oosMetrics: { oos_ic: 0.05 }, folds: [], repro: null, dataset: null, lineageId: "", trialId: "" },
     });
@@ -291,7 +291,7 @@ const lineage = {
   championCandidateId: "",
 };
 
-describe("Experiments (UI-021, UI-023)", () => {
+describe("Experiments (UI-024, UI-026)", () => {
   beforeEach(() => {
     routes["GET /api/v1/research/lineages/LIN1"] = () => ({ lineage });
     routes["GET /api/v1/research/lineages/LIN1/ledger"] = () => ({
@@ -304,7 +304,7 @@ describe("Experiments (UI-021, UI-023)", () => {
     routes["GET /api/v1/research/families"] = () => ({ families: [family("lgbm_regression")] });
   });
 
-  it("UI-021, EX-023: shows the optimizer's ledger, effective N, cycle budget, holdout counter, and the stop signal verbatim", async () => {
+  it("UI-024, EX-023: shows the optimizer's ledger, effective N, cycle budget, holdout counter, and the stop signal verbatim", async () => {
     renderAt("/experiments/lineages/LIN1");
     expect(await screen.findByText("14 / 6.5")).toBeInTheDocument();
     expect(screen.getByText("6.5 / 20.0")).toBeInTheDocument();
@@ -315,7 +315,7 @@ describe("Experiments (UI-021, UI-023)", () => {
     expect(screen.getByText(/owner 12/)).toHaveTextContent("abandoned 2");
   });
 
-  it("UI-021, EX-026: a study cannot be launched without a pre-registered hypothesis, and launches with it", async () => {
+  it("UI-024, EX-026: a study cannot be launched without a pre-registered hypothesis, and launches with it", async () => {
     routes["POST /api/v1/research/studies"] = () => ({ study: { studyId: "ST1", status: "STUDY_STATUS_CREATED" } });
     routes["POST /api/v1/research/studies/ST1/start"] = () => ({ study: { studyId: "ST1", status: "STUDY_STATUS_RUNNING" } });
     routes["GET /api/v1/research/studies/ST1"] = () => ({ study: { studyId: "ST1", status: "STUDY_STATUS_RUNNING", spec: null, bestTrials: [], trialsCompleted: 0, trialsPruned: 0, trialsFailed: 0, trialCountTotal: 14, budgetUsed: null, outerEstimate: null, message: "", candidateId: "" } });
@@ -334,7 +334,7 @@ describe("Experiments (UI-021, UI-023)", () => {
     expect(calls.some((c) => c.method === "POST" && c.path === "/api/v1/research/studies/ST1/start")).toBe(true);
   });
 
-  it("UI-022, UI-023: the candidate page shows every gate reason, never offers live, and blocks a spent holdout", async () => {
+  it("UI-025, UI-026: the candidate page shows every gate reason, never offers live, and blocks a spent holdout", async () => {
     routes["GET /api/v1/research/candidates/CAND1"] = () => ({
       candidate: { candidateId: "CAND1", lineageId: "LIN1", runId: "RUN9", stage: "REGISTRY_STAGE_PAPER", syntheticData: true, demoted: false, config: { family: "lgbm_regression" }, strategyId: "", shadowSessions: 5, createdAt: "0", origin: "training" },
     });
@@ -352,7 +352,7 @@ describe("Experiments (UI-021, UI-023)", () => {
     expect(screen.getByRole("button", { name: /Evaluate on holdout/ })).toBeDisabled();
   });
 
-  it("UI-023: promotion to paper is offered with the passkey label and posts the target stage", async () => {
+  it("UI-026: promotion to paper is offered with the passkey label and posts the target stage", async () => {
     routes["GET /api/v1/research/candidates/CAND2"] = () => ({
       candidate: { candidateId: "CAND2", lineageId: "LIN1", runId: "", stage: "REGISTRY_STAGE_SHADOW", syntheticData: false, demoted: false, config: null, strategyId: "", shadowSessions: 12, createdAt: "0", origin: "training" },
     });

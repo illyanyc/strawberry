@@ -305,7 +305,7 @@ paths:
   # Bodies and responses are the canonical protojson of tb.ml.v1 / tb.optimizer.v1 messages. The
   # gateway sets the caller (actor owner, step-up attestation only while a passkey step-up is fresh).
   /api/v1/research/families:
-    get: { responses: { '200': { description: tb.ml.v1.ListModelFamiliesResponse (hyperparameter JSON Schemas for forms, UI-020) } } }
+    get: { responses: { '200': { description: tb.ml.v1.ListModelFamiliesResponse (hyperparameter JSON Schemas for forms, UI-023) } } }
   /api/v1/research/feature-sets:
     get: { responses: { '200': { description: tb.ml.v1.ListFeatureSetsResponse } } }
   /api/v1/research/label-presets:
@@ -332,7 +332,7 @@ paths:
   /api/v1/research/runs/{id}/importance:
     get: { parameters: [{ name: method, in: query, schema: { enum: [gain, permutation, shap] } }], responses: { '200': { description: tb.ml.v1.GetFeatureImportanceResponse } } }
   /api/v1/research/runs/{id}/tearsheet:
-    get: { description: 'Static HTML document with a sandboxed CSP (no scripts, UI-022); open as its own page.', responses: { '200': { description: text/html } } }
+    get: { description: 'Static HTML document with a sandboxed CSP (no scripts, UI-025); open as its own page.', responses: { '200': { description: text/html } } }
   /api/v1/research/runs/{id}/register:
     post: { description: 'Body {"name"}.', responses: { '200': { description: tb.ml.v1.RegisterModelResponse } } }
   /api/v1/research/runs/{id}/ablations:
@@ -351,7 +351,7 @@ paths:
   /api/v1/research/lineages/{id}/stats:
     get: { responses: { '200': { description: tb.optimizer.v1.GetCumulativeOverfittingStatsResponse } } }
   /api/v1/research/lineages/{id}/holdout:
-    get: { responses: { '200': { description: tb.optimizer.v1.GetHoldoutStatusResponse (touch counter, UI-023) } } }
+    get: { responses: { '200': { description: tb.optimizer.v1.GetHoldoutStatusResponse (touch counter, UI-026) } } }
   /api/v1/research/lineages/{id}/holdout/boundary:
     post: { description: 'Body {"boundary"} (UTC ns, forward only); passkey step-up (`holdout.schedule`, EX-014).', responses: { '200': { description: tb.optimizer.v1.SetHoldoutBoundaryResponse }, '403': { $ref: '#/components/responses/Forbidden' } } }
   /api/v1/research/lineages/{id}/retraining:

@@ -2,7 +2,7 @@
  * Types and helpers for the gateway's research resources (`/api/v1/research/*`, section 14 Phase 4
  * slice). Responses are canonical protojson of the tb.ml.v1 / tb.optimizer.v1 messages typed with the
  * generated `*Json` types (ADR-0028). The UI displays what ml and optimizer compute (metrics, DSR,
- * effective N, gate verdicts, permissions) and never derives or overrides them (UI-I2, UI-023).
+ * effective N, gate verdicts, permissions) and never derives or overrides them (UI-I2, UI-026).
  */
 
 import { useEffect, useState } from "react";
@@ -98,7 +98,7 @@ export const R = "/api/v1/research";
 /** Path segment for an ID taken from a server response or the URL. */
 export const seg = (id: string) => encodeURIComponent(id);
 
-/** The tearsheet is its own sandboxed document (UI-022): opened in a new tab, never inlined. */
+/** The tearsheet is its own sandboxed document (UI-025): opened in a new tab, never inlined. */
 export const tearsheetUrl = (runId: string) => `${R}/runs/${seg(runId)}/tearsheet`;
 export const evidenceUrl = (candidateId: string) => `${R}/candidates/${seg(candidateId)}/evidence?format=html`;
 
@@ -146,7 +146,7 @@ export interface SchemaField {
 /**
  * Fields of a family's hyperparameter schema. Only the subset ml validates is supported (flat object,
  * number/integer/boolean/string, minimum/maximum/enum/default); anything else is reported so the form
- * never silently drops a parameter (UI-020).
+ * never silently drops a parameter (UI-023).
  */
 export function schemaFields(schemaJson: string): { fields: SchemaField[]; unsupported: string[] } {
   let schema: unknown;
@@ -256,7 +256,7 @@ export function stageOf(name: string | undefined): Stage | "unknown" {
 
 /**
  * Stages the UI offers as promotion targets from `current`. `live` is never offered: going live is
- * the section 15 flow only (SM-004, UI-023). Synthetic-data candidates never reach live_eligible
+ * the section 15 flow only (SM-004, UI-026). Synthetic-data candidates never reach live_eligible
  * (EX-052); the server enforces both regardless.
  */
 export function promotionTargets(current: Stage | "unknown", synthetic: boolean): Stage[] {

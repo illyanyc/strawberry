@@ -82,7 +82,7 @@ func newResearchRig(t *testing.T) (*tradingRig, *fakeML, *fakeOpt, *fakeHold) {
 	return rig, ml, opt, hold
 }
 
-// EX-030, EX-052, EX-011, EX-033, UI-021: launches need no step-up and forward the owner; promotion to
+// EX-030, EX-052, EX-011, EX-033, UI-024: launches need no step-up and forward the owner; promotion to
 // paper, holdout evaluation, and raising autonomy need a fresh passkey, which the gateway attests.
 func TestEX052ResearchRoutesStepUpAndCaller(t *testing.T) {
 	rig, ml, opt, hold := newResearchRig(t)
@@ -147,8 +147,8 @@ func TestEX052ResearchRoutesStepUpAndCaller(t *testing.T) {
 	}
 }
 
-// UI-022: tearsheets are served as their own sandboxed document (no scripts, no external loads).
-func TestUI022TearsheetIsSandboxed(t *testing.T) {
+// UI-025: tearsheets are served as their own sandboxed document (no scripts, no external loads).
+func TestUI025TearsheetIsSandboxed(t *testing.T) {
 	rig, _, _, _ := newResearchRig(t)
 	rec := rig.call(rig.srv.handleRunTearsheet, "GET", "/", "", desktopUA, "", "id", "run_1")
 	if rec.Code != 200 || !strings.Contains(rec.Body.String(), "<svg") {

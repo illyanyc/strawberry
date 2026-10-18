@@ -22,7 +22,7 @@ import (
 )
 
 // ResearchClients are the ML, optimizer, and holdout services behind the training, experiments, and
-// tearsheet pages (section 14 Phase 4 slice, UI-020..UI-024). Any may be nil; routes then answer 503.
+// tearsheet pages (section 14 Phase 4 slice, UI-023..UI-027). Any may be nil; routes then answer 503.
 type ResearchClients struct {
 	ML   mlv1.MLServiceClient
 	Opt  optv1.OptimizerServiceClient
@@ -316,7 +316,7 @@ func (s *Server) handleRunImportance(w http.ResponseWriter, r *http.Request, rc 
 }
 
 // tearsheetCSP lets the static tearsheet render its inline styles and SVG but never run scripts or
-// load anything (UI-022): it is opened as its own document, never inlined into the SPA.
+// load anything (UI-025): it is opened as its own document, never inlined into the SPA.
 const tearsheetCSP = "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox; frame-ancestors 'none'"
 
 func (s *Server) handleRunTearsheet(w http.ResponseWriter, r *http.Request, rc *reqCtx) {

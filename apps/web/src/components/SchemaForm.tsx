@@ -4,7 +4,7 @@ import { Alert, Field, Switch } from "@/components/ui/form";
 import type { HyperparamDraft, SchemaField } from "@/lib/research";
 
 /**
- * Form generated from a model family's hyperparameter JSON Schema (UI-020). Every field shows its
+ * Form generated from a model family's hyperparameter JSON Schema (UI-023). Every field shows its
  * range and default; validation messages come from `hyperparamErrors`, which mirrors ml's checks.
  */
 export function SchemaForm({

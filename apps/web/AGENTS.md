@@ -33,11 +33,11 @@ The only human interface: a static Vite + React 19 SPA served by `api-gateway`. 
 - `UI-016` portfolio → `src/routes/portfolio.tsx`, `src/components/trading.tsx` (`OwnershipTable`); `trading.test.tsx`
 - `UI-017` blotter and trace → `src/routes/orders.tsx`
 - `UI-I2` no P&L/ownership/risk math → `src/lib/trading.ts` (display helpers only)
-- `UI-020` training (schema forms, estimate-before-launch, SSE progress, run diagnostics) → `src/routes/training.tsx`, `src/components/SchemaForm.tsx`, `src/lib/research.ts`; `research.test.tsx`
-- `UI-021` experiments (ledger, lineage stats, cycles, pre-registered studies, trials, convergence) → `src/routes/experiments.tsx`; `research.test.tsx`
-- `UI-022` tearsheets and evidence packs as their own sandboxed documents → `src/lib/research.ts` (`tearsheetUrl`, `evidenceUrl`); `research.test.tsx`
-- `UI-023` registry stages (never `live`) and the holdout counter → `src/lib/research.ts` (`promotionTargets`), `src/routes/experiments.tsx`; `research.test.tsx`
-- `UI-024` champion vs challenger → `src/routes/experiments.tsx` (`ChampionChallenger`)
+- `UI-023` training (schema forms, estimate-before-launch, SSE progress, run diagnostics) → `src/routes/training.tsx`, `src/components/SchemaForm.tsx`, `src/lib/research.ts`; `research.test.tsx`
+- `UI-024` experiments (ledger, lineage stats, cycles, pre-registered studies, trials, convergence) → `src/routes/experiments.tsx`; `research.test.tsx`
+- `UI-025` tearsheets and evidence packs as their own sandboxed documents → `src/lib/research.ts` (`tearsheetUrl`, `evidenceUrl`); `research.test.tsx`
+- `UI-026` registry stages (never `live`) and the holdout counter → `src/lib/research.ts` (`promotionTargets`), `src/routes/experiments.tsx`; `research.test.tsx`
+- `UI-027` champion vs challenger → `src/routes/experiments.tsx` (`ChampionChallenger`)
 
 ## Layout
 | Path | Purpose |

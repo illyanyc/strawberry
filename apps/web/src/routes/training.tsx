@@ -76,7 +76,7 @@ function defaultTimeframe(f: ModelFamily | undefined): string {
 }
 
 /**
- * Training (section 14, UI-020): family picker with a schema-generated hyperparameter form, feature
+ * Training (section 14, UI-023): family picker with a schema-generated hyperparameter form, feature
  * set and label pickers, universe/timeframe/period, the cost estimate before launch (ML-031), and the
  * job and run lists. Launching needs no step-up; training never trades (EX-030).
  */
@@ -391,7 +391,7 @@ function Metric({ label, v }: { label: string; v: ReactNode }) {
   );
 }
 
-/** Live job progress (UI-020): phase, fold, boosting-step curves, metrics, and the log over SSE. */
+/** Live job progress (UI-023): phase, fold, boosting-step curves, metrics, and the log over SSE. */
 export function TrainingJobPage() {
   const { jobId } = useParams({ from: "/app/training/jobs/$jobId" });
   const queryClient = useQueryClient();
@@ -492,7 +492,7 @@ export function TrainingJobPage() {
 const IMPORTANCE = ["gain", "permutation", "shap"] as const;
 
 /**
- * Run detail (UI-020, UI-022): out-of-sample and per-fold metrics, the DiagnosticsReport findings,
+ * Run detail (UI-023, UI-025): out-of-sample and per-fold metrics, the DiagnosticsReport findings,
  * learning curves, importance with stability, error slices, the model card, registration, and the
  * tearsheet link (opened as its own sandboxed document).
  */
