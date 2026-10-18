@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+import time
 from datetime import UTC, datetime
 from decimal import Decimal
 
@@ -14,7 +16,7 @@ from tbcore.backtest.event import LeakageError, run_event_backtest
 from tbcore.backtest.simcore import SimCore
 from tbcore.data.calendar import xnys
 
-from .btkit import NS, gate_bars, iid, orb_config
+from .btkit import NS, gate_bars, iid, orb_config, random_walk_bars
 
 SYMS = ["AAPL", "NVDA", "AMD", "XLK", "SPY"]
 SCALES = {"AAPL": 1.0, "NVDA": 1.5, "AMD": 0.8, "XLK": 1.2, "SPY": 4.0}
@@ -189,3 +191,45 @@ def test_bt005_warnings_label_survivorship_and_coarse_fills() -> None:
     r = run_event_backtest(orb_config([iid("GOLD")], START, END), golden_bars())
     kinds = {w.split(":")[0] for w in r.warnings}
     assert {"coarse_fills", "survivorship", "low_trade_count"} <= kinds
+
+
+@pytest.mark.perf
+@pytest.mark.skipif(
+    os.environ.get("TB_PERF") != "1", reason="performance target; run with TB_PERF=1 (make perf-backtest)"
+)
+def test_bt003_perf_event_driven_one_year_100_symbols_5m_under_60s() -> None:
+    bars = random_walk_bars(100, 252, 5, seed=1)
+    ids = bars["instrument_id"].unique().sort().to_list()
+    limits = {
+        "max_positions": "100",
+        "max_order_notional": "1000000",
+        "max_position_notional": "1000000",
+        "max_position_pct_allocation": "1",
+        "max_gross_exposure": "10000000",
+        "max_net_exposure": "10000000",
+        "max_daily_loss": "100000",
+        "max_drawdown": "1000000",
+        "max_orders_per_minute": "1000",
+        "max_open_orders": "1000",
+        "max_consecutive_losses": "100000",
+        "fat_finger_multiple": "1000",
+    }
+    cfg = orb_config(
+        ids,
+        datetime(2025, 1, 1, tzinfo=UTC),
+        datetime(2027, 1, 1, tzinfo=UTC),
+        allocation="1000000",
+        cash="5000000",
+        risk_limits=limits,
+    )
+    spec = cfg.strategies[0].model_copy(
+        update={"timeframe": "5m", "params": {**cfg.strategies[0].params, "risk_per_trade": "0.0005"}}
+    )
+    cfg = cfg.model_copy(update={"strategies": (spec,), "timeframe": "5m"})
+    t0 = time.perf_counter()
+    r = run_event_backtest(cfg, bars)
+    elapsed = time.perf_counter() - t0
+    print(
+        f"BT-003 perf: {bars.height:,} bars, {r.stats['simcore_requests']:,} simcore requests, {r.trades.height:,} trades in {elapsed:.1f} s"
+    )
+    assert elapsed < 60
