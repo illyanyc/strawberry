@@ -1118,11 +1118,13 @@ func (e *Engine) submit(ctx context.Context, rec *ordersv1.IntentRecord, o *orde
 		Details: map[string]any{"state": o.GetState().String(), "reject": o.GetRejectReason(), "role": o.GetRole().String()}})
 	_ = e.commit(ctx, tx)
 	covered := e.killCovers(o)
+	// Read the state under the lock: a broker update may change it as soon as the lock is released.
+	state := o.GetState()
 	e.mu.Unlock()
-	if o.GetState() == ordersv1.OrderState_ORDER_STATE_REJECTED {
+	if state == ordersv1.OrderState_ORDER_STATE_REJECTED {
 		e.afterFinal(ctx, o)
 	}
-	if covered && !IsFinal(o.GetState()) && !isProtective(o) {
+	if covered && !IsFinal(state) && !isProtective(o) {
 		// A kill switch engaged while this order was in flight: cancel it now (RM-006).
 		e.cancelOrder(ctx, o)
 	}
