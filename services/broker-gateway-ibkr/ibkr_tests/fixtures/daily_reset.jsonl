@@ -1,0 +1,7 @@
+// Recorded-format fixture, hand-built: the message sequence around an IBKR server reset (farms drop, 1100, then 1102).
+{"t": 0.0, "event": "error", "reqId": -1, "code": 2103, "message": "Market data farm connection is broken:usfarm"}
+{"t": 0.1, "event": "error", "reqId": -1, "code": 1100, "message": "Connectivity between IB and Trader Workstation has been lost."}
+{"t": 0.2, "event": "error", "reqId": -1, "code": 2105, "message": "HMDS data farm connection is broken:ushmds"}
+{"t": 45.0, "event": "error", "reqId": -1, "code": 1102, "message": "Connectivity between IB and Trader Workstation has been restored - data maintained."}
+{"t": 45.1, "event": "error", "reqId": -1, "code": 2104, "message": "Market data farm connection is OK:usfarm"}
+{"t": 45.2, "event": "error", "reqId": -1, "code": 2106, "message": "HMDS data farm connection is OK:ushmds"}

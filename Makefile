@@ -133,6 +133,23 @@ e2e-ui: ## Browser e2e (Playwright + virtual passkey) against a FRESH running st
 	TB_E2E_SETUP_TOKEN=$$($(COMPOSE) exec -T api-gateway /app/service setup-token | awk '{print $$NF}') \
 	  pnpm --filter @strawberry/web e2e
 
+.PHONY: ibkr-vnc
+ibkr-vnc: ## Publish IB Gateway VNC on 127.0.0.1:5900 for a manual login (IBKR_ENV=live|paper; runbook ibkr-weekly-2fa)
+	TB_IBKR_VNC_TARGET=$${IBKR_ENV:-live} COMPOSE_PROFILES=ibkr-vnc $(COMPOSE) up -d --no-deps ibkr-vnc
+	@echo "VNC on 127.0.0.1:5900 (password: .secrets/ibkr_vnc_password). From your laptop: ssh -L 5900:127.0.0.1:5900 <mac-mini> over Tailscale. Run 'make ibkr-vnc-stop' when done."
+
+.PHONY: ibkr-vnc-stop
+ibkr-vnc-stop: ## Remove the on-demand VNC proxy (the gateway keeps running)
+	COMPOSE_PROFILES=ibkr-vnc $(COMPOSE) rm -sf ibkr-vnc
+
+.PHONY: test-ibkr-contract
+test-ibkr-contract: ## Shared Go broker contract suite (BR-001) against the IBKR adapter over its fake gateway
+	scripts/ibkr-contract.sh
+
+.PHONY: test-ibkr-paper
+test-ibkr-paper: ## Opt-in tests against a real IB Gateway paper session, incl. spike V1 (TB_IBKR_PAPER_* env)
+	TB_IBKR_PAPER_TEST=1 uv run pytest services/broker-gateway-ibkr/ibkr_tests/paper -m ibkr_paper -v
+
 .PHONY: port-check
 port-check: ## Fail if any container publishes a port on a non-loopback address (SE-051)
 	scripts/port-check.sh

@@ -6,6 +6,7 @@ Scope: the self-hosted platform on the owner's Mac Mini, reachable only over Tai
 | Asset | Why it matters |
 |---|---|
 | Broker credentials (Alpaca, IBKR) | Direct control of real money |
+| IB Gateway API socket (unauthenticated TWS API) | Anyone who reaches it can trade the IBKR accounts; mitigated by the internal `ibkr` network and no published port (IB-071, SE-034) |
 | Owner sessions and passkeys | Equivalent to the owner |
 | Order path and risk configuration (Phase 2+) | Unauthorized or unbounded trading |
 | Audit log | Accountability; detects tampering |

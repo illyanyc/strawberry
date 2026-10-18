@@ -14,6 +14,7 @@ The specification of how the platform behaves, by domain. **These docs are the s
 | Brokers | [brokers.md](brokers.md) | `BR-` | `broker-gateway`, `broker-gateway-ibkr` |
 | Storage | [storage.md](storage.md) | `ST-` | `marketdata` (lake/refdata writer), `libs/go/cache`, `tbcore.data` |
 | Market data | [market-data.md](market-data.md) | `MD-` | `marketdata`, `broker-gateway` |
+| Brokers: IBKR adapter | [brokers-ibkr.md](brokers-ibkr.md) | `IB-` | `broker-gateway-ibkr`, IB Gateway containers |
 | Security | [security.md](security.md) | `SE-` | `libs/go` (policy, audit, secrets, svcauth, db), `api-gateway`, `broker-gateway` |
 
 New domain: copy [`_template.md`](_template.md), pick a two-letter prefix, add it to this table and to `.cursor/rules/documentation-discipline.mdc`.

@@ -34,7 +34,7 @@ stateDiagram-v2
 
 | ID | Rule | Status | Code / tests |
 |---|---|---|---|
-| BR-001 | Every adapter MUST implement the full `BrokerGatewayService` contract and pass the shared contract test suite (`services/broker-gateway/internal/contract`) against its paper environment; the simulator MUST pass it in CI. | Implemented | `internal/contract`; `TestBR001ContractSimulator`, `TestBR001ContractAlpacaFake`, opt-in `TestBR001ContractAlpacaPaper`, `TestBR001ContractRemote` |
+| BR-001 | Every adapter MUST implement the full `BrokerGatewayService` contract and pass the shared contract test suite (`services/broker-gateway/internal/contract`) against its paper environment; the simulator MUST pass it in CI. | Implemented | `internal/contract`; `TestBR001ContractSimulator`, `TestBR001ContractAlpacaFake`, opt-in `TestBR001ContractAlpacaPaper`, `TestBR001ContractRemote`; IBKR adapter: `make test-ibkr-contract` (CI, fake gateway) |
 | BR-002 | Each account MUST declare `Capabilities`; adapters MUST reject (locally, `REJECT_CODE_INVALID_ORDER`) an order whose type, TIF, order class, extended-hours flag, fractional quantity, or short side the account does not support. | Implemented | `internal/adapter/validate.go`; `TestBR002CapabilityRejects` |
 | BR-003 | The attribution ID MUST match `^tb1-[a-z0-9]{6,8}-[0-9A-HJKMNP-TV-Z]{26}-[0-9]{1,4}$` (VP-002) or the reserved manual form `tb1-manual-<ULID>-<n>`, and fit `max_client_order_id_len`; otherwise the order is rejected locally with `REJECT_CODE_INVALID_ATTRIBUTION` and never sent (OE-002). | Implemented | `internal/attribution`; `TestBR003AttributionFormat` |
 | BR-004 | Error model: broker or adapter rejections are responses (`SUBMIT_OUTCOME_REJECTED` + `RejectReason`); a non-`ready` session returns gRPC `FAILED_PRECONDITION` with `ErrorInfo{reason: BROKER_UNAVAILABLE}` (OE-004); transport middleware MUST NOT retry order RPCs. | Implemented | `internal/grpcsvc`; `TestBR004NotReadyIsFailedPrecondition` |
@@ -83,7 +83,18 @@ The simulator emits normalized states directly (`ACCEPTED`, `PARTIALLY_FILLED`, 
 
 ### IBKR
 
-Owned by the IBKR track (`broker-gateway-ibkr`, D1/D18): `PendingSubmit`, `PreSubmitted`, `Submitted`, `ApiPending`, `PendingCancel`, `ApiCancelled`, `Cancelled`, `Filled`, `Inactive` must each get an explicit row here, with `permId` stored as the durable key (V1).
+Full table, rationale, and IBKR-only rules (`IB-`): [brokers-ibkr.md](brokers-ibkr.md) (IB-020). `permId` is the durable `broker_order_id` (IB-003).
+
+| IBKR status | Normalized |
+|---|---|
+| `ApiPending`, `PendingSubmit` | `SUBMITTED` (`PARTIALLY_FILLED` if filled > 0) |
+| `PreSubmitted`, `Submitted`, `ApiUpdate` | `ACCEPTED` / `PARTIALLY_FILLED` |
+| `PendingCancel` | `PENDING_CANCEL` |
+| `Cancelled`, `ApiCancelled` | `CANCELED`; `EXPIRED` when unrequested after the TIF cutoff |
+| `Filled` | `FILLED` (`PARTIALLY_FILLED` if quantity remains) |
+| `Inactive` | `REJECTED` after an order-reject error, else `UNKNOWN` |
+| `ValidationError` | `REJECTED` |
+| anything else | `UNKNOWN` |
 
 ## Alpaca specifics
 
@@ -121,5 +132,5 @@ Owned by the IBKR track (`broker-gateway-ibkr`, D1/D18): `PendingSubmit`, `PreSu
 
 ## Open questions
 
-- IBKR mapping, error-code categories, pacing, and the daily/weekly reset flow: IBKR track (V1).
+- IBKR mapping, error-code categories, pacing, and the daily/weekly reset flow: specified in [brokers-ibkr.md](brokers-ibkr.md); the `orderRef` limit (spike V1) awaits an owner paper run.
 - Whether a TradingView broker-panel connection occupies the Alpaca market-data slot: spike V7 (needs the owner's key).

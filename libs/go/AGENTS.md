@@ -21,7 +21,7 @@ Shared Go module `github.com/illyanyc/strawberry/libs/go` used by every Go servi
 | `policy/` | `Authorize(actor, action, resource, now)`; closed action list; step-up requirements | SE-001..SE-003, SE-014 |
 | `audit/` | `Writer.Append` (via `audit.append`), canonical encoding, `Verify` | SE-020..SE-022 |
 | `db/` | Pool connect as `svc_<service>`; `Bootstrap` (roles, databases, schemas) and embedded migrations per schema | SE-032, SE-050 |
-| `db/migrations/<schema>/` | SQL migrations, applied as `<schema>_owner` by `tbctl db init` (schemas: audit, auth, config, secrets, broker) | — |
+| `db/migrations/<schema>/` | SQL migrations, applied as `<schema>_owner` by `tbctl db init` (schemas: audit, auth, config, secrets, broker, broker_ibkr) | — |
 | `bus/` | NATS connect, JetStream stream definitions, proto publish with dedupe + correlation headers | OP-030 |
 | `resilience/` | Full-jitter backoff, `Retry` with `Retry-After`, priority token-bucket `Limiter`, circuit `Breaker` | BR-012, BR-016, MD-008 |
 | `outbox/` | Transactional outbox: `Enqueue` in the caller's transaction, `Relay` publishing to JetStream with `Nats-Msg-Id`, `Purge` | ADR-0018, D2 |

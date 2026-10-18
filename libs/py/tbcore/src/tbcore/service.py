@@ -44,9 +44,16 @@ class ServiceSettings(BaseSettings):
     secrets_dir: str = "/run/secrets"
 
 
-def create_ops_app(settings: ServiceSettings, checks: dict[str, ReadinessCheck] | None = None) -> FastAPI:
-    """Build the ops app with health, readiness, and Prometheus metrics endpoints."""
-    registry = CollectorRegistry()
+def create_ops_app(
+    settings: ServiceSettings,
+    checks: dict[str, ReadinessCheck] | None = None,
+    registry: CollectorRegistry | None = None,
+) -> FastAPI:
+    """Build the ops app with health, readiness, and Prometheus metrics endpoints.
+
+    Services pass their own ``registry`` to export service metrics alongside the defaults.
+    """
+    registry = registry if registry is not None else CollectorRegistry()
     process_collector.ProcessCollector(registry=registry)
     platform_collector.PlatformCollector(registry=registry)
     gc_collector.GCCollector(registry=registry)

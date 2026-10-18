@@ -143,8 +143,16 @@ func initSecrets(dir string) error {
 		}
 		created = append(created, "backup_age_identity", "backup_age_recipient")
 	}
-	// Optional integrations: placeholders keep Compose happy until the owner fills them in.
-	for _, name := range []string{"pushover_user_key", "pushover_app_token", "cloudflared_tunnel_token", "fmp_api_key"} {
+	// VNC for the manual IBKR login fallback (ADR-0023). x11vnc uses only the first 8 characters.
+	if err := put("ibkr_vnc_password", func() (string, error) { return randomHex(4) }); err != nil {
+		return err
+	}
+	// Optional integrations: placeholders keep Compose happy until the owner fills them in. The IBKR
+	// login files are mounted only into the matching ib-gateway container (IB-070).
+	for _, name := range []string{
+		"pushover_user_key", "pushover_app_token", "cloudflared_tunnel_token", "fmp_api_key",
+		"ibkr_paper_username", "ibkr_paper_password", "ibkr_live_username", "ibkr_live_password",
+	} {
 		if err := put(name, func() (string, error) { return "unset", nil }); err != nil {
 			return err
 		}

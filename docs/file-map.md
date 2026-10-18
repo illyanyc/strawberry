@@ -43,6 +43,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `scripts/check-arm64.sh` | Exists | Verifies every pinned image has a linux/arm64 variant (OP-043) |
 | `scripts/gen_calendar.py` | Exists | Generates the shared XNYS session table (Go + Python copies) from `exchange_calendars`; `--check` fails on drift (MD-005) |
 | `scripts/spike_v4_reader.py` | Exists | Spike V4 native macOS reader for `make spike-v4` |
+| `scripts/ibkr-contract.sh` | Exists | Runs the shared Go broker contract suite (BR-001) against the IBKR adapter served over its fake gateway (`make test-ibkr-contract`, CI python job) |
 | `scripts/backup-drill.sh` | Exists | Backup → wipe → fresh stack → restore → verify drill (OP-051) |
 
 ## Agent rules: `.cursor/rules/`
@@ -83,6 +84,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/business-logic/storage.md` | Exists | `ST-` rules: lake layout, atomic writes, manifest, idempotent compaction, revisions, reader dedupe, refdata mirrors, retention, cache keys, data-quality checks |
 | `docs/business-logic/market-data.md` | Exists | `MD-` rules: bar alignment, calendar, corporate-action availability and cross-source agreement (more with section 05) |
 | `docs/verify-early.md` | Exists | Verify-early spike register V1–V9: method, result, evidence, default until resolved |
+| `docs/business-logic/brokers-ibkr.md` | Exists | `IB-` rules: IBKR adapter (gateway login and custody, session supervision across daily/weekly resets, orderRef attribution and echo check, status and error-code tables, executions, pacing, spike V1) |
 | `docs/business-logic/brokers.md` | Exists | `BR-` rules: broker interface, capabilities, error model, order-state mapping per broker, attribution validation, session lifecycle, resync, rate limits, live gating, market-data fan-out |
 | `docs/business-logic/security.md` | Exists | `SE-` rules: policy, step-up, sessions, CSRF, secrets, credential encryption, redaction, audit, DB privileges |
 | `docs/adr/README.md` | Exists | ADR process and index |
@@ -107,9 +109,10 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0021-feature-store.md` | Exists | ADR (D39): thin feature store, single compute path, finite lookback, scale invariance, snapshots |
 | `docs/adr/0022-market-data-ingestion.md` | Exists | ADR (D40): Alpaca via broker-gateway, finality window, resumable backfill, FMP `/stable`, reconciliation and quarantine |
 | `docs/adr/0019-alpaca-adapter-and-simulator.md` | Exists | ADR (D37): hand-written Alpaca adapter, in-process simulator, single market-data socket, credential-free test fake |
+| `docs/adr/0023-ibkr-adapter-gateway-and-sessions.md` | Exists | ADR (D41, implements D18): pinned IB Gateway, per-environment `ib_async` adapter, credential custody, network isolation, maintenance-aware supervision, V1 interim |
 | `docs/adr/0018-broker-gateway-interface.md` | Exists | ADR (D36): one gRPC broker interface for every adapter, typed error model, canonical execution IDs, outbox-backed events |
 | `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2): NATS JetStream, `sync_interval: always`, stream layout, outbox |
-| `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, broker outage, market data (stale, slow, gaps, reconciliation breaches, corporate-action disputes) (later: kill switch, ledger reconciliation break) |
+| `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, IBKR weekly 2FA / manual VNC login / gateway outages (`ibkr-weekly-2fa.md`), broker outage, market data (stale, slow, gaps, reconciliation breaches, corporate-action disputes) (later: kill switch, ledger reconciliation break) |
 | `docs/threat-model.md` | Exists | Assets, actors, entry points, STRIDE table mapped to SE-/OP- rules, residual risks |
 
 ## Contracts: `contracts/`
@@ -144,6 +147,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `services/api-gateway/` | Exists | Go: owner auth (passkeys, TOTP, recovery), sessions, CSRF, step-up, settings, audit API, credential write-through, SSE status stream, static UI. Layout in [`services/api-gateway/AGENTS.md`](../services/api-gateway/AGENTS.md) |
 | `services/broker-gateway/` | Exists | Go: broker-credential custody (envelope encryption, KEK ring, write-only gRPC `CredentialService`); `BrokerGatewayService` + `BrokerMarketDataService` with the Alpaca adapter, simulator, session engine, outbox-backed events, market-data hub, and the shared contract suite. Layout in [`services/broker-gateway/AGENTS.md`](../services/broker-gateway/AGENTS.md) |
 | `services/marketdata/` | Exists | Go: single lake writer (Parquet staging/compaction/revisions, manifest), reference data (`refdata`) and its daily sync, data-quality checks, resumable backfill, live bar pipeline (finality, resampling, gap repair, bus/cache/lake sinks), FMP client, cross-source reconciliation, scheduler, `MarketDataService`, spike harnesses (V2, V3, V4). [`AGENTS.md`](../services/marketdata/AGENTS.md) |
+| `services/broker-gateway-ibkr/` | Exists | Python (`ib_async`): IBKR adapter serving `BrokerGatewayService` per environment; session supervision across IB Gateway daily/weekly resets, orders with attribution in `orderRef`, executions + commissions, snapshots, pacing; fake gateways, recorded-format fixtures, opt-in paper suite. Layout in [`services/broker-gateway-ibkr/AGENTS.md`](../services/broker-gateway-ibkr/AGENTS.md) |
 | `services/execution/` | Exists (placeholder) | Go: ops surface + NATS + clock-skew check; `tb_trading_enabled=0` until Phase 2. [`AGENTS.md`](../services/execution/AGENTS.md) |
 | `services/ledger/` | Exists (placeholder) | Go: ops surface + NATS; ledgers in Phase 2. [`AGENTS.md`](../services/ledger/AGENTS.md) |
 | `services/context-data/` | Exists (placeholder) | Python on `tbcore`: ops surface; context data in Phase 3 |
@@ -179,18 +183,16 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | Path | Status | Purpose |
 |---|---|---|
 | `infra/AGENTS.md` | Exists | Agent notes: layout, rules, run/test, configuration, gotchas |
-| `infra/compose/` | Exists | `docker-compose.yml` (profiles core, observability, ml, ml-workers, ops, remote-cloudflare), native-ML overlay, `nats/nats.conf`, `env.example` |
-| `infra/docker/` | Exists | Go (service/gateway targets), Python, ops, and MLflow images; MLflow entrypoint |
+| `infra/compose/` | Exists | `docker-compose.yml` (profiles core, observability, ml, ml-workers, ops, remote-cloudflare, ibkr, ibkr-live, ibkr-vnc), native-ML overlay, `nats/nats.conf`, `env.example` |
+| `infra/docker/` | Exists | Go (service/gateway targets), Python (incl. `broker-gateway-ibkr`), ops, and MLflow images; MLflow entrypoint |
 | `infra/ops/` | Exists | `backup.sh`, `restore.sh`, `secrets-bundle.sh` (run in the ops image) |
-| `infra/observability/` | Exists | Prometheus scrape config and alert rules, Alertmanager routing, Alloy config, Grafana provisioning and the "Stack overview" and "Market data and brokers" dashboards; market-data/broker alert rules (`prometheus/rules/marketdata-brokers.yml`) |
+| `infra/observability/` | Exists | Prometheus scrape config and alert rules (incl. `rules/ibkr.yml`), Alertmanager routing, Alloy config, Grafana provisioning and the "Stack overview" and "Market data and brokers" dashboards; market-data/broker alert rules (`prometheus/rules/marketdata-brokers.yml`) |
 | `infra/macos/` | Exists | LaunchDaemon templates (Colima at boot, stack auto-start, native ML worker), `install.sh`, `start-stack.sh` |
 | `infra/secrets/` | Exists | SOPS-encrypted bundles only (`.gitkeep` until the owner runs `make secrets-encrypt`) |
 | `infra/terraform/` | Planned | Remote server provisioning (Phase 6) |
 
 ## Planned code
 
-| Path | Status | Purpose |
-|---|---|---|
-| `services/broker-gateway-ibkr/` | Planned | IBKR adapter (Python, `ib_async`) next to IB Gateway + IBC (D1, D18; Phase 1) |
+None outside the sections above (Planned rows live in their section).
 
 When a Planned path is created, change its status to Exists (or move it into the matching section) and add any new paths.

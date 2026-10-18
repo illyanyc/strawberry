@@ -38,3 +38,4 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0020](0020-lake-layout-write-path-and-query-layer.md) | Lake layout, single-writer path, reference data, and the point-in-time query layer | Accepted | 2026-10-17 |
 | [0021](0021-feature-store.md) | Thin feature store in tbcore with one computation path, finite lookback, and scale invariance | Accepted | 2026-10-17 |
 | [0022](0022-market-data-ingestion.md) | Market data ingestion: Alpaca through broker-gateway, FMP `/stable`, finality window, resumable backfill, nightly reconciliation | Accepted | 2026-10-17 |
+| [0023](0023-ibkr-adapter-gateway-and-sessions.md) | IBKR adapter: pinned IB Gateway, per-environment `ib_async` process, maintenance-aware session supervision | Accepted | 2026-10-17 |

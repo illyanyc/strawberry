@@ -18,6 +18,7 @@ COPY contracts/gen/python/ contracts/gen/python/
 COPY libs/py/ libs/py/
 COPY services/assistant/ services/assistant/
 COPY services/backtest/ services/backtest/
+COPY services/broker-gateway-ibkr/ services/broker-gateway-ibkr/
 COPY services/context-data/ services/context-data/
 COPY services/ml/ services/ml/
 COPY services/monitor/ services/monitor/
@@ -27,7 +28,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     ln -s "/app/.venv/bin/$SERVICE" /app/service
 
 FROM ${PYTHON_IMAGE}
-RUN groupadd --system --gid 10001 app && useradd --system --uid 10001 --gid app --no-create-home app
+# /var/lib/broker-gateway-ibkr is the IBKR adapter's execution cursor; a named volume mounted there
+# inherits this ownership on first use, so the read-only, non-root container can write it.
+RUN groupadd --system --gid 10001 app && useradd --system --uid 10001 --gid app --no-create-home app && \
+    install -d -o 10001 -g 10001 -m 0700 /var/lib/broker-gateway-ibkr
 COPY --from=build /app /app
 ENV PATH=/app/.venv/bin:$PATH PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 USER 10001:10001
