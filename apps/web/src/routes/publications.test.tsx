@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { PublicationDetailPage, PublicationsPage, type Publication } from "@/routes/publications";
 
-const notice = "Each entry is user content. It is not advice from Alpha Inertia LLC, not a live signal, and not an instruction to trade.";
+const notice = "Each entry is user content. It is not advice from Adwise Partners LLC, not a live signal, and not an instruction to trade.";
 
 const sample: Publication = {
   id: "01PUB",
@@ -47,7 +47,7 @@ describe("publications (UI-053)", () => {
     vi.spyOn(globalThis, "fetch").mockImplementation(async () => Response.json({ sort: "published_at", notice, publications: [sample] }));
     renderPublications("/publications");
     expect(await screen.findByText("Opening range")).toBeTruthy();
-    expect(screen.getByText(/not advice from Alpha Inertia LLC/)).toBeTruthy();
+    expect(screen.getByText(/not advice from Adwise Partners LLC/)).toBeTruthy();
     expect(screen.getByText("User content")).toBeTruthy();
     expect(screen.queryByRole("columnheader", { name: /return|p&l|profit|rank|sharpe/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /deploy|copy|follow|trade|order/i })).toBeNull();
@@ -92,7 +92,7 @@ describe("publications (UI-053)", () => {
   it("shows another user's post as user content without a remove or order control", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation(async () => Response.json({ notice, publication: sample }));
     renderPublications("/publications/01PUB");
-    expect(await screen.findByText(/not advice from Alpha Inertia LLC/)).toBeTruthy();
+    expect(await screen.findByText(/not advice from Adwise Partners LLC/)).toBeTruthy();
     expect(screen.getByText("Buy the open when the first five-minute range breaks.")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /deploy|copy|follow|trade|order|remove/i })).toBeNull();
   });
