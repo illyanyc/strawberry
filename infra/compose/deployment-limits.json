@@ -1,0 +1,30 @@
+{
+  "intraday": {
+    "allocation": "20000",
+    "limits": {
+      "max_order_notional": "10000",
+      "max_position_notional": "10000",
+      "max_position_pct_allocation": "0.5",
+      "max_gross_exposure": "20000",
+      "max_net_exposure": "20000",
+      "max_positions": "8",
+      "max_daily_loss": "600",
+      "max_drawdown": "3000",
+      "max_consecutive_losses": "12"
+    }
+  },
+  "swing": {
+    "allocation": "50000",
+    "limits": {
+      "max_order_notional": "12500",
+      "max_position_notional": "12500",
+      "max_position_pct_allocation": "0.25",
+      "max_gross_exposure": "50000",
+      "max_net_exposure": "50000",
+      "max_positions": "15",
+      "max_daily_loss": "2000",
+      "max_drawdown": "10000",
+      "max_consecutive_losses": "15"
+    }
+  }
+}

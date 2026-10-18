@@ -13,6 +13,7 @@ package tb.optimizer.v1;
 import "google/protobuf/struct.proto";
 import "tb/ml/v1/ml.proto";
 import "tb/ml/v1/training.proto";
+import "tb/orders/v1/execution.proto";
 
 service OptimizerService {
   rpc CreateLineage(CreateLineageRequest) returns (CreateLineageResponse);
@@ -61,6 +62,13 @@ service OptimizerService {
 
   rpc SetRetrainingPolicy(SetRetrainingPolicyRequest) returns (SetRetrainingPolicyResponse);
   rpc TriggerRetrain(TriggerRetrainRequest) returns (TriggerRetrainResponse);
+
+  // Candidate deployment limits (EX-062, ADR-0047): the risk limits and allocation a lineage's
+  // candidates are judged under in the event-driven gate rerun and registered with in execution.
+  rpc GetDeploymentLimits(GetDeploymentLimitsRequest) returns (GetDeploymentLimitsResponse);
+  // Owner only; raising any limit above the lineage's current effective limits needs a passkey
+  // step-up (RM-007). The analyst is denied at every level.
+  rpc SetDeploymentLimits(SetDeploymentLimitsRequest) returns (SetDeploymentLimitsResponse);
 }
 
 // Budget limits a study, a lineage, or the analyst (EX-060).
@@ -411,6 +419,8 @@ message GateReport {
   // event | vectorized: only event-driven evidence may pass (BT-006).
   string engine = 20;
   string champion_candidate_id = 21;
+  // Limits and allocation the event-driven rerun ran under (EX-062).
+  DeploymentLimits deployment_limits = 22;
 }
 
 message Candidate {
@@ -808,4 +818,43 @@ message TriggerRetrainRequest {
 
 message TriggerRetrainResponse {
   Study study = 1;
+}
+
+// Effective deployment limits for a lineage: the horizon profile from the optimizer's config
+// (TB_OPT_DEPLOYMENT_LIMITS) overlaid with the owner's per-lineage override (EX-062).
+message DeploymentLimits {
+  string lineage_id = 1;
+  // intraday | swing
+  string horizon = 2;
+  tb.orders.v1.RiskLimits limits = 3;
+  // Decimal string, currency of the broker account.
+  string allocation = 4;
+  // profile:<horizon> | lineage
+  string source = 5;
+  int64 updated_at = 6;
+  string updated_by = 7;
+}
+
+message GetDeploymentLimitsRequest {
+  string lineage_id = 1;
+}
+
+message GetDeploymentLimitsResponse {
+  DeploymentLimits limits = 1;
+  // The horizon profile alone, for comparison in the UI.
+  DeploymentLimits profile = 2;
+}
+
+message SetDeploymentLimitsRequest {
+  string lineage_id = 1;
+  // Unset fields keep the profile value.
+  tb.orders.v1.RiskLimits limits = 2;
+  string allocation = 3;
+  tb.ml.v1.CallerContext caller = 4;
+}
+
+message SetDeploymentLimitsResponse {
+  DeploymentLimits limits = 1;
+  // True when the change raised a limit or the allocation (and therefore needed step-up).
+  bool raised = 2;
 }

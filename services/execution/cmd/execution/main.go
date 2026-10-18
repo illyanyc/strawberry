@@ -131,7 +131,7 @@ func main() {
 		}
 	}()
 	go a.Run(rt.Ctx)
-	verifier, err := svcauth.LoadVerifier(rt.Secrets, c.Service, "api-gateway")
+	verifier, err := svcauth.LoadVerifier(rt.Secrets, c.Service, "api-gateway", "monitor")
 	if err != nil {
 		svc.Fatal(rt.Log, "service keys", err)
 	}

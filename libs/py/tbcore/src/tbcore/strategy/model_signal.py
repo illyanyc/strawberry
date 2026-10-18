@@ -16,7 +16,9 @@ batch; decisions for a bar time are emitted when its last bar arrives.
 from __future__ import annotations
 
 import math
+import time
 from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from decimal import ROUND_FLOOR, Decimal
 from pathlib import Path
@@ -43,6 +45,24 @@ class Decision:
     score: float
     bar: Bar
     feature_snapshot_id: str = ""
+    # Feature values the model scored (online sources only; published as FeatureVector, MN-038).
+    features: dict[str, float] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class ScoredBatch:
+    """One online scoring of a bar time across the model's universe (ML-042, ML-043)."""
+
+    ts_open: int
+    decisions: list[Decision]
+    model_version: str
+    feature_set_id: str
+    horizon_bars: int
+    timeframe: str
+    task: str
+    # Wall time of the online feature update and of the model scoring (ML-043 measures scoring).
+    feature_seconds: float
+    score_seconds: float
 
 
 class ScoreSource(Protocol):
@@ -75,6 +95,8 @@ class OnlineModelScores:
         self.engine = OnlineFeatureEngine(fs)
         self.expected = set(instruments) | {bundle.benchmark}
         self._pending: dict[int, dict[str, Bar]] = {}
+        # Called with every scored batch (the runtime publishes signals and measures latency).
+        self.listeners: list[Callable[[ScoredBatch], None]] = []
 
     def decisions(self, bar: Bar) -> list[Decision]:
         batch = self._pending.setdefault(bar.ts_open, {})
@@ -99,10 +121,13 @@ class OnlineModelScores:
                 "trade_count": [0.0 for _ in batch.values()],
             }
         )
+        t0 = time.perf_counter()
         feats = self.engine.update(frame).filter(pl.col("instrument_id") != self.bundle.benchmark)
+        t1 = time.perf_counter()
         if feats.is_empty():
             return []
         scores = self.bundle.score_frame(feats)
+        t2 = time.perf_counter()
         out = []
         for row, s in zip(feats.iter_rows(named=True), scores, strict=True):
             vec = [row[f] for f in self.bundle.features]
@@ -114,8 +139,26 @@ class OnlineModelScores:
                     float(s) if ok else math.nan,
                     batch[str(row["instrument_id"])],
                     feature_vector_id(vec),
+                    {
+                        f: float(v) if v is not None else math.nan
+                        for f, v in zip(self.bundle.features, vec, strict=True)
+                    },
                 )
             )
+        if self.listeners:
+            sb = ScoredBatch(
+                ts_open=bar.ts_open,
+                decisions=out,
+                model_version=self.bundle.model_version or self.bundle.run_id,
+                feature_set_id=self.bundle.feature_set_id,
+                horizon_bars=self.bundle.horizon,
+                timeframe=self.bundle.timeframe,
+                task=self.bundle.task,
+                feature_seconds=t1 - t0,
+                score_seconds=t2 - t1,
+            )
+            for fn in self.listeners:
+                fn(sb)
         return out
 
 

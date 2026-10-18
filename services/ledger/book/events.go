@@ -21,6 +21,10 @@ const (
 	KindCashRebaseline = "cash_rebaseline"
 	KindResolve        = "resolve"
 	KindManualAdjust   = "manual_adjust"
+	// KindFee and KindDelisting are produced by the backtest simcore only (BT-014, BT-008); the live
+	// ledger learns about borrow fees and delistings from broker cash and position snapshots.
+	KindFee       = "fee"
+	KindDelisting = "delisting"
 )
 
 // Event is one append-only ledger entry source.
@@ -42,6 +46,23 @@ type Event struct {
 	Cash     *CashRebaseline `json:"cash,omitempty"`
 	Resolve  *Resolve        `json:"resolve,omitempty"`
 	Adjust   *ManualAdjust   `json:"adjust,omitempty"`
+	Fee      *Fee            `json:"fee,omitempty"`
+	Delist   *Delisting      `json:"delist,omitempty"`
+}
+
+// Fee is a charge to one owner that is not part of a fill (short borrow, BT-014). It is realized
+// (owner equity and cash go down) and counted in the owner's fees.
+type Fee struct {
+	Owner        string          `json:"owner"`
+	InstrumentID string          `json:"instrument_id"`
+	Amount       decimal.Decimal `json:"amount"`
+}
+
+// Delisting closes every owner's position in the instrument at Price (the last traded price after
+// the delisting haircut, BT-008), longs and shorts alike, with the cash flow of a closing trade.
+type Delisting struct {
+	InstrumentID string          `json:"instrument_id"`
+	Price        decimal.Decimal `json:"price"`
 }
 
 // ManualAdjust books an unexplained broker quantity difference to `manual` without a cash flow
@@ -209,6 +230,10 @@ func (b *Book) Apply(e Event, brk *Breaks, res *Reservations) (*Effects, bool, e
 		fx.touch(a.ID, Manual, e.Adjust.InstrumentID)
 	case KindCashRebaseline:
 		a.Cash, a.CashBaseline = e.Cash.Cash, true
+	case KindFee:
+		err = b.applyFee(a, e, fx)
+	case KindDelisting:
+		err = b.applyDelisting(a, e, fx)
 	case KindResolve:
 		if bk := brk.Get(e.Resolve.BreakID); bk != nil {
 			bk.Status, bk.Resolution, bk.ResolvedBy, bk.Resolved = BreakResolved, e.Resolve.Resolution, e.Actor, e.Time
@@ -408,6 +433,48 @@ func (b *Book) applyDividend(a *Account, e Event, fx *Effects) {
 		a.Cash = a.Cash.Add(cash)
 		fx.touch(a.ID, id, d.InstrumentID)
 	}
+}
+
+func (b *Book) applyFee(a *Account, e Event, fx *Effects) error {
+	f := e.Fee
+	o := a.Owner(f.Owner)
+	if o == nil {
+		return fmt.Errorf("ledger: fee for unknown owner %q", f.Owner)
+	}
+	if f.Amount.IsNegative() {
+		return fmt.Errorf("ledger: fee %s is negative", f.Amount)
+	}
+	pos := o.position(f.InstrumentID)
+	pos.Realized = pos.Realized.Sub(f.Amount)
+	o.Realized = o.Realized.Sub(f.Amount)
+	o.Fees = o.Fees.Add(f.Amount)
+	o.CashFlow = o.CashFlow.Sub(f.Amount)
+	a.Cash = a.Cash.Sub(f.Amount)
+	fx.touch(a.ID, o.ID, f.InstrumentID)
+	return nil
+}
+
+func (b *Book) applyDelisting(a *Account, e Event, fx *Effects) error {
+	d := e.Delist
+	if d.Price.IsNegative() {
+		return fmt.Errorf("ledger: delisting price %s is negative", d.Price)
+	}
+	for _, id := range a.OwnerIDs() {
+		o := a.Owners[id]
+		q := o.Qty(d.InstrumentID)
+		if q.IsZero() {
+			continue
+		}
+		src := "delist:" + e.Source + ":" + id
+		b.applyFill(o, d.InstrumentID, q.Neg(), d.Price, Zero, e.Time, src)
+		a.applyShadow(d.InstrumentID, id, q.Neg(), d.Price, e.Time, src, src)
+		flow := q.Mul(d.Price)
+		a.Cash = a.Cash.Add(flow)
+		o.CashFlow = o.CashFlow.Add(flow)
+		fx.touch(a.ID, id, d.InstrumentID)
+	}
+	a.Marks[d.InstrumentID] = d.Price
+	return nil
 }
 
 func (b *Book) applyTransfer(a *Account, e Event, fx *Effects) error {

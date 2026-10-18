@@ -112,6 +112,11 @@ func main() {
 		svc.Fatal(rt.Log, "analyst clients", err)
 	}
 	defer closeAnalyst()
+	monitor, closeMonitor, err := gateway.DialMonitor(cfg, signer)
+	if err != nil {
+		svc.Fatal(rt.Log, "monitor client", err)
+	}
+	defer closeMonitor()
 
 	var alerts gateway.AlertPublisher
 	var market gateway.MarketBus
@@ -145,7 +150,7 @@ func main() {
 		access = &cfaccess.Verifier{Team: cfg.CFAccessTeam}
 	}
 	srv, err := gateway.New(cfg, gateway.Deps{Pool: pool, MasterKey: master, Log: rt.Log, Alerts: alerts, Creds: creds, Trading: trading, Research: research,
-		Analyst: analyst, Market: market, Signals: signals, Push: push, TVKey: tvKey, AccessVerifier: access})
+		Analyst: analyst, Monitor: monitor, Market: market, Signals: signals, Push: push, TVKey: tvKey, AccessVerifier: access})
 	if err != nil {
 		svc.Fatal(rt.Log, "init", err)
 	}

@@ -129,6 +129,9 @@ func TestSE032SchemaIsolation(t *testing.T) {
 		"svc_holdout":   {`SELECT * FROM research.docs`},
 		// AN-030 / AN-032: the analyst reads research only through the services, never the holdout,
 		// credentials, the order path, or the ledger; it cannot write reference data.
+		// SE-036: the monitor reads the order path only from the bus and writes only its own schema.
+		"svc_monitor": {`SELECT * FROM secrets.broker_credentials`, `SELECT * FROM research.docs`, `SELECT * FROM execution.strategies`,
+			`SELECT * FROM auth.sessions`, `DELETE FROM monitor.docs`},
 		"svc_assistant": {`SELECT * FROM holdout.docs`, `SELECT * FROM research.docs`, `SELECT * FROM secrets.broker_credentials`,
 			`SELECT * FROM broker.executions`, `SELECT * FROM auth.sessions`, `SELECT * FROM config.settings`,
 			`INSERT INTO refdata.instruments (instrument_id, asset_class) VALUES ('x', 'us_equity')`},
@@ -154,6 +157,7 @@ func TestSE032SchemaIsolation(t *testing.T) {
 		"svc_optimizer":      `SELECT count(*) FROM research.docs`,
 		"svc_holdout":        `SELECT count(*) FROM holdout.docs`,
 		"svc_assistant":      `SELECT count(*) FROM analyst.rounds`,
+		"svc_monitor":        `SELECT count(*) FROM monitor.docs`,
 	} {
 		if _, err := connect(role).Exec(ctx, q); err != nil {
 			t.Errorf("%s: %q should be allowed: %v", role, q, err)

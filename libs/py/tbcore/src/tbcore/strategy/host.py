@@ -23,6 +23,7 @@ from google.protobuf.json_format import MessageToDict
 
 from tb.common.v1 import common_pb2
 from tb.context.v1 import context_pb2
+from tb.features.v1 import features_pb2
 from tb.ledger.v1 import ledger_pb2
 from tb.marketdata.v1 import marketdata_pb2
 from tb.orders.v1 import orders_pb2
@@ -32,12 +33,15 @@ from tbcore.context.events import BlackoutStrategy, EventBlackout, InMemoryEvent
 from tbcore.context.store import ContextStore
 from tbcore.data.calendar import Calendar, xnys
 from tbcore.strategy import Bar, Intent, OpeningRangeBreakout, ORBParams, OwnPosition, Strategy, StrategyContext
+from tbcore.strategy.api import new_ulid
 from tbcore.strategy.model_signal import (
     MetaFilterStrategy,
     ModelSignalParams,
     ModelSignalStrategy,
+    OnlineModelScores,
     ResidualReversal,
     ResidualReversalParams,
+    ScoredBatch,
     score_source,
 )
 from tbcore.strategy.tradingview import ExternalSignal, TradingViewParams, TradingViewStrategy
@@ -60,6 +64,7 @@ MODES = {
     "backtest": common_pb2.MODE_BACKTEST,
 }
 StrategyFactory = Callable[[str, dict[str, object]], Strategy]
+TIMEFRAME_NS = {"1m": 60, "5m": 300, "15m": 900, "30m": 1800, "1h": 3600, "1d": 86_400}
 
 
 def _primary(name: str, sid: str, params: dict[str, object]) -> Strategy:
@@ -173,6 +178,8 @@ class Runner:
     intent_mode: str | None = None
     # Webhook signals dropped by their strategy (stale, no fresh bar, not allowed; SM-020).
     signals_dropped: int = 0
+    # Online model scorings since the last drain (signals and feature vectors for the bus, ML-042).
+    scored: list[tuple[Hosted, ScoredBatch]] = field(default_factory=list)
 
     @classmethod
     def from_registry(cls, path: str | Path, calendar: Calendar | None = None) -> Runner:
@@ -187,9 +194,18 @@ class Runner:
         ``infra/compose/strategies.json``)."""
         cal = calendar or xnys()
         r = cls(calendar=cal, intent_mode=intent_mode)
-        for e in data.get("strategies", []):
+        r.add_entries(data.get("strategies", []))
+        return r
+
+    def add_entries(self, entries: list[dict[str, Any]]) -> list[str]:
+        """Host registry entries in mode paper, shadow, or live that are not hosted yet; returns the
+        strategy IDs added (the runtime's research-deployment reload, SM-016)."""
+        r, cal = self, self.calendar
+        known = {h.strategy_id for h in self.hosted}
+        added: list[str] = []
+        for e in entries:
             rt = e.get("runtime")
-            if not rt or e.get("mode") not in ("paper", "shadow", "live"):
+            if not rt or e.get("mode") not in ("paper", "shadow", "live") or e.get("strategy_id") in known:
                 continue
             make = CLASSES.get(rt.get("class", ""))
             if make is None:
@@ -213,20 +229,39 @@ class Runner:
                 params=rt.get("params", {}),
             )
             impl.on_start(ctx)
-            r.hosted.append(
-                Hosted(
-                    strategy_id=sid,
-                    account=e["broker_account_id"],
-                    horizon=e.get("horizon", "intraday"),
-                    mode=e.get("mode", "paper"),
-                    timeframe=rt.get("timeframe", "15m"),
-                    instruments=list(rt.get("instruments", [])),
-                    allocation=ctx.allocation,
-                    impl=impl,
-                    ctx=ctx,
-                )
+            hosted = Hosted(
+                strategy_id=sid,
+                account=e["broker_account_id"],
+                horizon=e.get("horizon", "intraday"),
+                mode=e.get("mode", "paper"),
+                timeframe=rt.get("timeframe", "15m"),
+                instruments=list(rt.get("instruments", [])),
+                allocation=ctx.allocation,
+                impl=impl,
+                ctx=ctx,
             )
-        return r
+            src = _online_source(impl)
+            if src is not None:
+                src.listeners.append(self._collector(hosted))
+            r.hosted.append(hosted)
+            added.append(sid)
+        return added
+
+    def _collector(self, h: Hosted) -> Callable[[ScoredBatch], None]:
+        def collect(sb: ScoredBatch) -> None:
+            self.scored.append((h, sb))
+
+        return collect
+
+    def remove(self, strategy_ids: set[str]) -> list[str]:
+        """Stop hosting these strategies (a research deployment was retired, SM-016)."""
+        gone = [h.strategy_id for h in self.hosted if h.strategy_id in strategy_ids]
+        self.hosted = [h for h in self.hosted if h.strategy_id not in strategy_ids]
+        return gone
+
+    def drain_scored(self) -> list[tuple[Hosted, ScoredBatch]]:
+        out, self.scored = self.scored, []
+        return out
 
     def uses_events(self) -> bool:
         return any(isinstance(h.impl, BlackoutStrategy) for h in self.hosted)
@@ -379,6 +414,64 @@ class Runner:
 def _webhook(impl: Strategy) -> TradingViewStrategy | None:
     inner = getattr(impl, "inner", impl)  # BlackoutStrategy wraps the strategy
     return inner if isinstance(inner, TradingViewStrategy) else None
+
+
+def _online_source(impl: Strategy) -> OnlineModelScores | None:
+    inner = getattr(impl, "inner", impl)  # BlackoutStrategy wraps the model strategy
+    src = getattr(inner, "source", None)
+    return src if isinstance(src, OnlineModelScores) else None
+
+
+def signal_messages(h: Hosted, sb: ScoredBatch) -> list[signals_pb2.Signal]:
+    """One ``Signal`` per scored instrument (ML-042): model version and feature snapshot ID on the
+    bus for monitoring (MN-038). A signal is never an order."""
+    horizon_ns = sb.horizon_bars * TIMEFRAME_NS.get(sb.timeframe, 0) * 1_000_000_000
+    out = []
+    for d in sb.decisions:
+        ok = d.score == d.score  # NaN scores fail closed as flat
+        sid = new_ulid(d.bar.available_at // 1_000_000, f"sig|{h.strategy_id}|{d.instrument_id}|{d.bar.ts_open}")
+        out.append(
+            signals_pb2.Signal(
+                signal_id=sid,
+                strategy_id=h.strategy_id,
+                model_version=sb.model_version,
+                instrument_id=d.instrument_id,
+                as_of=d.bar.available_at,
+                direction=signals_pb2.DIRECTION_LONG if d.take else signals_pb2.DIRECTION_FLAT,
+                score=d.score if ok else 0.0,
+                probability=d.score if ok and sb.task == "classification" else 0.0,
+                horizon=horizon_ns,
+                feature_snapshot_id=d.feature_snapshot_id,
+                correlation_id=sid,
+            )
+        )
+    return out
+
+
+def feature_vector_messages(sb: ScoredBatch) -> list[features_pb2.FeatureVector]:
+    """The exact feature values each signal was scored on (``feat.<feature_set>.<instrument>``)."""
+    name, _, version = sb.feature_set_id.partition("@")
+    return [
+        features_pb2.FeatureVector(
+            feature_set_id=name,
+            feature_set_version=version,
+            instrument_id=d.instrument_id,
+            as_of=d.bar.available_at,
+            values={k: v for k, v in d.features.items() if v == v},
+            snapshot_id=d.feature_snapshot_id,
+        )
+        for d in sb.decisions
+    ]
+
+
+def signal_subject(strategy_id: str, instrument_id: str) -> str:
+    """``sig.<strategy_id>.<instrument_id>``: one subject per strategy and instrument for every producer, so
+    chart overlays can filter by instrument (``sig.*.<instrument>``)."""
+    return f"sig.{strategy_id}.{instrument_id}"
+
+
+def feature_subject(feature_set_id: str, instrument_id: str) -> str:
+    return f"feat.{feature_set_id.partition('@')[0].replace('.', '_')}.{instrument_id}"
 
 
 def bar_from_proto(b: marketdata_pb2.Bar) -> Bar:

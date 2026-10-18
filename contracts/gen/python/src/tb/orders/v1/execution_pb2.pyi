@@ -426,6 +426,33 @@ class SetStrategyModeResponse(_message.Message):
     strategy: Strategy
     def __init__(self, strategy: _Optional[_Union[Strategy, _Mapping]] = ...) -> None: ...
 
+class DemoteStrategyRequest(_message.Message):
+    __slots__ = ("strategy_id", "reason", "evidence_id", "actor", "correlation_id")
+    STRATEGY_ID_FIELD_NUMBER: _ClassVar[int]
+    REASON_FIELD_NUMBER: _ClassVar[int]
+    EVIDENCE_ID_FIELD_NUMBER: _ClassVar[int]
+    ACTOR_FIELD_NUMBER: _ClassVar[int]
+    CORRELATION_ID_FIELD_NUMBER: _ClassVar[int]
+    strategy_id: str
+    reason: str
+    evidence_id: str
+    actor: Actor
+    correlation_id: str
+    def __init__(self, strategy_id: _Optional[str] = ..., reason: _Optional[str] = ..., evidence_id: _Optional[str] = ..., actor: _Optional[_Union[Actor, _Mapping]] = ..., correlation_id: _Optional[str] = ...) -> None: ...
+
+class DemoteStrategyResponse(_message.Message):
+    __slots__ = ("strategy", "changed", "kill_switch_event_id", "orders_canceled")
+    STRATEGY_FIELD_NUMBER: _ClassVar[int]
+    FROM_FIELD_NUMBER: _ClassVar[int]
+    CHANGED_FIELD_NUMBER: _ClassVar[int]
+    KILL_SWITCH_EVENT_ID_FIELD_NUMBER: _ClassVar[int]
+    ORDERS_CANCELED_FIELD_NUMBER: _ClassVar[int]
+    strategy: Strategy
+    changed: bool
+    kill_switch_event_id: str
+    orders_canceled: int
+    def __init__(self, strategy: _Optional[_Union[Strategy, _Mapping]] = ..., changed: _Optional[bool] = ..., kill_switch_event_id: _Optional[str] = ..., orders_canceled: _Optional[int] = ..., **kwargs) -> None: ...
+
 class GetRiskLimitsRequest(_message.Message):
     __slots__ = ("scope",)
     SCOPE_FIELD_NUMBER: _ClassVar[int]

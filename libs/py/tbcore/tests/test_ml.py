@@ -3,6 +3,7 @@ DiagnosticsReport (section 10; ML-001..ML-016, ML-020..ML-023)."""
 
 from __future__ import annotations
 
+import json
 import math
 from collections.abc import Mapping
 from functools import lru_cache
@@ -17,7 +18,7 @@ from tbcore.backtest.costs import CostModelConfig
 from tbcore.backtest.signals import SignalEvalConfig, evaluate_decisions
 from tbcore.backtest.vectorized import VectorData
 from tbcore.labels import rank_relevance, sample_weights
-from tbcore.ml import config, dataset, diagnostics, models, schema, synthetic, train
+from tbcore.ml import config, dataset, diagnostics, models, runs, schema, synthetic, train
 from tbcore.ml.bundle import FeatureMismatchError, ModelBundle
 from tbcore.ml.preprocess import Pipeline
 from tbcore.ml.rules import residual_reversal_signals, residual_z
@@ -261,3 +262,53 @@ def test_ml021_diagnostics_are_size_limited() -> None:
     )
     assert len(rep.data_quality.features) == 3 and len(rep.error_slices) <= 4 and rep.truncated
     assert rep.ByteSize() < 64_000
+
+
+def test_bt014_vectorized_swing_shorts_pay_borrow_for_calendar_days() -> None:
+    bars = synthetic.generate(synthetic.preset("daily_small")).filter(pl.col("instrument_id") != synthetic.MARKET_ID)
+    vd = VectorData.from_bars(bars)
+    inst, t = vd.instruments[0], 10
+    cfg = SignalEvalConfig(horizon=5, cap_at_session_close=False)
+    args = (vd, [inst], np.array([vd.ts_open[t]]), np.array([-1]), cfg)
+    paid = evaluate_decisions(*args, CostModelConfig(borrow_fee_bps_annual=360.0))
+    free = evaluate_decisions(*args, CostModelConfig(borrow_fee_bps_annual=0.0))
+    tr = paid.trades.row(0, named=True)
+    days = (tr["exit_time"] - tr["entry_time"]) // (86_400 * 10**9)
+    assert days >= 5
+    expect = tr["qty"] * vd.open[t + 1, 0] * 0.036 * days / 360
+    assert paid.metrics["borrow_cost"] == pytest.approx(expect, rel=1e-9)
+    assert free.trades["pnl"][0] - tr["pnl"] == pytest.approx(expect, rel=1e-9)
+    longs = evaluate_decisions(
+        vd, [inst], np.array([vd.ts_open[t]]), np.array([1]), cfg, CostModelConfig(borrow_fee_bps_annual=360.0)
+    )
+    assert longs.metrics["borrow_cost"] == 0.0
+
+
+def test_bt008_vectorized_delisted_name_exits_at_last_close_less_haircut() -> None:
+    bars = synthetic.generate(synthetic.preset("daily_small")).filter(pl.col("instrument_id") != synthetic.MARKET_ID)
+    vd0 = VectorData.from_bars(bars)
+    inst = vd0.instruments[0]
+    cut = int(vd0.ts_open[14])
+    gone = bars.filter((pl.col("instrument_id") != inst) | (pl.col("ts_open") <= cut))
+    vd = VectorData.from_bars(gone)
+    k = int(np.flatnonzero(vd.ts_open == cut)[0])
+    cfg = SignalEvalConfig(horizon=10, cap_at_session_close=False, delisting_haircut=0.5)
+    r = evaluate_decisions(vd, [inst], np.array([vd.ts_open[10]]), np.array([1]), cfg, CostModelConfig())
+    assert r.trades.height == 1 and r.metrics["delisted_trades"] == 1.0  # never silently dropped (survivorship)
+    assert r.trades["exit_price"][0] == pytest.approx(vd.close[k, 0] * 0.5)
+
+
+def test_ml044_training_reference_for_drift_monitoring(tmp_path: Path) -> None:
+    """ML-044, MN-038: a run stores a deterministic training-window feature sample and importance ranks."""
+    cfg = _cfg("lgbm_regression", "synthetic:intraday_small", "15m")
+    ds = _ds("lgbm_regression", "synthetic:intraday_small", "15m")
+    res = train.train(cfg, ds, size_curve=False, explain=False)
+    runs.write_monitoring_reference(res, diagnostics.build_report(res, "r1"), tmp_path)
+    ref = pl.read_parquet(tmp_path / "reference.parquet")
+    assert 0 < ref.height <= runs.REFERENCE_ROWS
+    assert ref.columns == ["instrument_id", "decision_time", *ds.features]
+    assert ref["decision_time"].to_numpy().max() <= ds.frame["decision_time"].to_numpy().max()  # training window only
+    ranks = json.loads((tmp_path / "importance.json").read_text())
+    assert sorted(ranks) == sorted(ds.features) and sorted(ranks.values()) == list(range(1, len(ds.features) + 1))
+    runs.write_monitoring_reference(res, diagnostics.build_report(res, "r1"), tmp_path / "again")
+    assert pl.read_parquet(tmp_path / "again" / "reference.parquet").equals(ref)  # deterministic

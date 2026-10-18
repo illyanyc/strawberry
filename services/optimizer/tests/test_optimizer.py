@@ -15,7 +15,7 @@ import numpy as np
 import pytest
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from cryptography.hazmat.primitives.serialization import Encoding, NoEncryption, PrivateFormat, PublicFormat
-from tb_optimizer import registry
+from tb_optimizer import deployment, registry
 from tb_optimizer.core import OptimizerCore
 from tb_optimizer.grpc_api import HOLD, HOLD_ALLOW, OPT, OPT_ALLOW, HoldoutServicer, OptimizerServicer
 from tb_optimizer.stats import Series, align, cumulative, cycle_budget, effective_n
@@ -390,6 +390,15 @@ def test_ex050_ex056_ex057_transitions_deploy_shadow_and_paper_with_evidence(wor
     entry = next(s for s in deployed if s["strategy_id"] == cand.strategy_id)
     assert entry["mode"] == "shadow" and entry["runtime"]["class"] == "model_signal"
     assert Path(entry["runtime"]["params"]["bundle"]).exists()
+    # EX-064: the entry carries the lineage's deployment limits and the monitor's expectation block.
+    eff, _ = core.deployment_limits(cand.lineage_id)
+    assert entry["allocation"] == eff.allocation and entry["limits"]["max_consecutive_losses"] == str(
+        eff.limits.max_consecutive_losses
+    )
+    mon = entry["monitoring"]
+    assert mon["lineage_id"] == cand.lineage_id and mon["model_version"] == cand.model_version.version
+    for k in ("expectation", "reference", "oof", "importance"):
+        assert Path(mon[k]).exists(), k
     _, denied = core.promote(cand.candidate_id, S.REGISTRY_STAGE_PAPER, owner())
     assert not denied.allowed and denied.requires_step_up
     cand, ok = core.promote(cand.candidate_id, S.REGISTRY_STAGE_PAPER, owner(step_up=True))
@@ -466,3 +475,55 @@ def test_ex012_ex030_grpc_boundaries_for_the_assistant(world: dict[str, Any], tm
     finally:
         s1.stop(None)
         s2.stop(None)
+
+
+def test_ex062_deployment_limits_owner_only_passkey_to_raise(world: dict[str, Any]) -> None:
+    core: OptimizerCore = world["core"]
+    lid = world["lin"].lineage_id
+    eff, prof = core.deployment_limits(lid)
+    assert eff.source == "profile:intraday" and eff.allocation == "20000"
+    assert eff.limits.max_consecutive_losses == 12 and eff.limits.max_drawdown.value == "3000"
+    tighter = op.SetDeploymentLimitsRequest().limits
+    tighter.max_consecutive_losses = 8
+    lim, up = core.set_deployment_limits(lid, tighter, "", owner())
+    assert not up and lim.limits.max_consecutive_losses == 8 and lim.source == "lineage"
+    assert lim.limits.max_drawdown.value == "3000"  # unset fields keep the profile value
+    looser = op.SetDeploymentLimitsRequest().limits
+    looser.max_consecutive_losses = 20
+    with pytest.raises(PermissionDenied, match="passkey"):
+        core.set_deployment_limits(lid, looser, "", owner())
+    with pytest.raises(PermissionDenied, match="passkey"):
+        core.set_deployment_limits(lid, tighter, "50000", owner())  # a larger allocation is a raise too
+    for who in (ANALYST, SCHEDULE):
+        with pytest.raises(PermissionDenied, match="owner-only"):
+            core.set_deployment_limits(lid, tighter, "", who)
+    lim, up = core.set_deployment_limits(lid, looser, "", owner(step_up=True))
+    assert up and lim.limits.max_consecutive_losses == 20
+    sets = [e for e in world["audit"].actions("optimizer.deployment_limits.set") if e.target == lid]
+    assert [e.details["raised"] for e in sets] == [False, True]
+    core.set_deployment_limits(lid, prof.limits, "", owner(step_up=True))  # back to the profile for later tests
+
+
+def test_ex063_gate_report_and_expectation_record_the_deployment_limits(world: dict[str, Any]) -> None:
+    core: OptimizerCore = world["core"]
+    cand = core.candidate(world["study"].candidate_id)
+    rep = core.gate_report(cand.candidate_id, owner())
+    assert rep.deployment_limits.allocation == "20000" and rep.deployment_limits.limits.max_consecutive_losses == 12
+    exp = json.loads((world["tmp"] / "candidates" / cand.candidate_id / "expectation.json").read_text())
+    assert exp["candidate_id"] == cand.candidate_id and exp["allocation"] == "20000" and exp["horizon"] == "intraday"
+    assert exp["engine"] in ("event", "vectorized") and exp["session_returns_bps"]
+    assert exp["backtest_report_id"] == rep.report_id and exp["training_run_id"] == cand.run_id
+
+
+def test_ex062_profiles_file_validation(tmp_path: Path) -> None:
+    p = tmp_path / "limits.json"
+    p.write_text(json.dumps({"swing": {"allocation": "40000", "limits": {"max_drawdown": "8000"}}}))
+    prof = deployment.load_profiles(str(p))
+    assert prof["swing"] == {"allocation": "40000", "limits": {"max_drawdown": "8000"}}
+    assert prof["intraday"]["allocation"] == "20000"
+    p.write_text(json.dumps({"swing": {"limits": {"max_leverage": "3"}}}))
+    with pytest.raises(ValueError, match="unknown field"):
+        deployment.load_profiles(str(p))
+    assert deployment.raised({"max_drawdown": "3000"}, "20000", {"max_drawdown": "2000"}, "20000") is False
+    assert deployment.raised({"max_drawdown": "3000"}, "20000", {}, "20000") is True
+    assert deployment.raised({}, "20000", {"max_order_qty": "10"}, "20000") is True

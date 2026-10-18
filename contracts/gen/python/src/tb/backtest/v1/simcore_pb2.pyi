@@ -13,7 +13,7 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class SimAccount(_message.Message):
-    __slots__ = ("broker_account_id", "broker", "cash", "supports_bracket", "supports_fractional", "margin_multiple", "margin_util_cap", "pdt_guard", "pdt_max", "segregation", "opening_positions")
+    __slots__ = ("broker_account_id", "broker", "cash", "supports_bracket", "supports_fractional", "margin_multiple", "margin_util_cap", "pdt_guard", "pdt_max", "segregation", "opening_positions", "dedicated")
     BROKER_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     BROKER_FIELD_NUMBER: _ClassVar[int]
     CASH_FIELD_NUMBER: _ClassVar[int]
@@ -25,6 +25,7 @@ class SimAccount(_message.Message):
     PDT_MAX_FIELD_NUMBER: _ClassVar[int]
     SEGREGATION_FIELD_NUMBER: _ClassVar[int]
     OPENING_POSITIONS_FIELD_NUMBER: _ClassVar[int]
+    DEDICATED_FIELD_NUMBER: _ClassVar[int]
     broker_account_id: str
     broker: _common_pb2.Broker
     cash: _common_pb2.Decimal
@@ -36,7 +37,8 @@ class SimAccount(_message.Message):
     pdt_max: int
     segregation: bool
     opening_positions: _containers.RepeatedCompositeFieldContainer[_ledger_pb2.Position]
-    def __init__(self, broker_account_id: _Optional[str] = ..., broker: _Optional[_Union[_common_pb2.Broker, str]] = ..., cash: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., supports_bracket: _Optional[bool] = ..., supports_fractional: _Optional[bool] = ..., margin_multiple: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., margin_util_cap: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., pdt_guard: _Optional[str] = ..., pdt_max: _Optional[int] = ..., segregation: _Optional[bool] = ..., opening_positions: _Optional[_Iterable[_Union[_ledger_pb2.Position, _Mapping]]] = ...) -> None: ...
+    dedicated: bool
+    def __init__(self, broker_account_id: _Optional[str] = ..., broker: _Optional[_Union[_common_pb2.Broker, str]] = ..., cash: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., supports_bracket: _Optional[bool] = ..., supports_fractional: _Optional[bool] = ..., margin_multiple: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., margin_util_cap: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., pdt_guard: _Optional[str] = ..., pdt_max: _Optional[int] = ..., segregation: _Optional[bool] = ..., opening_positions: _Optional[_Iterable[_Union[_ledger_pb2.Position, _Mapping]]] = ..., dedicated: _Optional[bool] = ...) -> None: ...
 
 class SimRoute(_message.Message):
     __slots__ = ("horizon", "broker_account_ids")
@@ -174,6 +176,22 @@ class SimCorporateAction(_message.Message):
     source_id: str
     def __init__(self, now: _Optional[int] = ..., instrument_id: _Optional[str] = ..., kind: _Optional[str] = ..., value: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., source_id: _Optional[str] = ...) -> None: ...
 
+class SimFee(_message.Message):
+    __slots__ = ("now", "broker_account_id", "owner", "instrument_id", "amount", "source_id")
+    NOW_FIELD_NUMBER: _ClassVar[int]
+    BROKER_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    OWNER_FIELD_NUMBER: _ClassVar[int]
+    INSTRUMENT_ID_FIELD_NUMBER: _ClassVar[int]
+    AMOUNT_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_ID_FIELD_NUMBER: _ClassVar[int]
+    now: int
+    broker_account_id: str
+    owner: str
+    instrument_id: str
+    amount: _common_pb2.Decimal
+    source_id: str
+    def __init__(self, now: _Optional[int] = ..., broker_account_id: _Optional[str] = ..., owner: _Optional[str] = ..., instrument_id: _Optional[str] = ..., amount: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., source_id: _Optional[str] = ...) -> None: ...
+
 class SimQuery(_message.Message):
     __slots__ = ("owner", "broker_account_id")
     OWNER_FIELD_NUMBER: _ClassVar[int]
@@ -183,7 +201,7 @@ class SimQuery(_message.Message):
     def __init__(self, owner: _Optional[str] = ..., broker_account_id: _Optional[str] = ...) -> None: ...
 
 class SimRequest(_message.Message):
-    __slots__ = ("setup", "advance", "submit", "fill", "order_end", "manual_fill", "corporate_action", "query")
+    __slots__ = ("setup", "advance", "submit", "fill", "order_end", "manual_fill", "corporate_action", "query", "fee")
     SETUP_FIELD_NUMBER: _ClassVar[int]
     ADVANCE_FIELD_NUMBER: _ClassVar[int]
     SUBMIT_FIELD_NUMBER: _ClassVar[int]
@@ -192,6 +210,7 @@ class SimRequest(_message.Message):
     MANUAL_FILL_FIELD_NUMBER: _ClassVar[int]
     CORPORATE_ACTION_FIELD_NUMBER: _ClassVar[int]
     QUERY_FIELD_NUMBER: _ClassVar[int]
+    FEE_FIELD_NUMBER: _ClassVar[int]
     setup: SimSetup
     advance: SimAdvance
     submit: SimSubmit
@@ -200,7 +219,8 @@ class SimRequest(_message.Message):
     manual_fill: SimManualFill
     corporate_action: SimCorporateAction
     query: SimQuery
-    def __init__(self, setup: _Optional[_Union[SimSetup, _Mapping]] = ..., advance: _Optional[_Union[SimAdvance, _Mapping]] = ..., submit: _Optional[_Union[SimSubmit, _Mapping]] = ..., fill: _Optional[_Union[SimFill, _Mapping]] = ..., order_end: _Optional[_Union[SimOrderEnd, _Mapping]] = ..., manual_fill: _Optional[_Union[SimManualFill, _Mapping]] = ..., corporate_action: _Optional[_Union[SimCorporateAction, _Mapping]] = ..., query: _Optional[_Union[SimQuery, _Mapping]] = ...) -> None: ...
+    fee: SimFee
+    def __init__(self, setup: _Optional[_Union[SimSetup, _Mapping]] = ..., advance: _Optional[_Union[SimAdvance, _Mapping]] = ..., submit: _Optional[_Union[SimSubmit, _Mapping]] = ..., fill: _Optional[_Union[SimFill, _Mapping]] = ..., order_end: _Optional[_Union[SimOrderEnd, _Mapping]] = ..., manual_fill: _Optional[_Union[SimManualFill, _Mapping]] = ..., corporate_action: _Optional[_Union[SimCorporateAction, _Mapping]] = ..., query: _Optional[_Union[SimQuery, _Mapping]] = ..., fee: _Optional[_Union[SimFee, _Mapping]] = ...) -> None: ...
 
 class SimResponse(_message.Message):
     __slots__ = ("error", "orders", "decision", "ledger_updates", "portfolio")

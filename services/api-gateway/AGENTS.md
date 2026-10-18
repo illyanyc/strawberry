@@ -13,12 +13,13 @@ The only service reachable from outside the host. Owns owner authentication, ses
 |---|---|---|---|
 | in | HTTP (REST + SSE) | `/auth/*`, `/api/v1/*`, `/healthz`, static `/` | `contracts/openapi/gateway.yaml` |
 | out | gRPC | `tb.broker.v1.CredentialService` (Put/Delete/ListStatus) | `contracts/proto/tb/broker/v1/credentials.proto` |
-| out | gRPC | `tb.orders.v1.ExecutionService` (status, strategies, limits, orders, intents, fills, trace, kill switches, preview/submit/cancel) | `contracts/proto/tb/orders/v1/execution.proto` |
+| out | gRPC | `tb.orders.v1.ExecutionService` (status, strategies, limits, orders, intents, fills, trace, kill switches, preview/submit/cancel, `RegisterStrategy` + `SetRiskLimits` for research candidates, SM-016) | `contracts/proto/tb/orders/v1/execution.proto` |
 | out | gRPC | `tb.ledger.v1.LedgerService` (accounts, portfolio, lots, breaks + resolve, allocation, equity, recon reports) | `contracts/proto/tb/ledger/v1/ledger_service.proto` |
 | out | gRPC | `tb.marketdata.v1.MarketDataService` (`GetBars`, `ResolveSymbols`) | `contracts/proto/tb/marketdata/v1/marketdata.proto` |
 | out | gRPC | `tb.ml.v1.MLService` (families, feature sets, label presets, estimate, jobs + stream, runs, diagnostics, importance, model card, tearsheet, register, ablations) | `contracts/proto/tb/ml/v1/ml_service.proto` |
-| out | gRPC | `tb.optimizer.v1.OptimizerService` (lineages, autonomy, cycles, studies + stream, trials, diagnostics, ledger, stats, candidates, gate report, evidence, graph, check/promote/demote, retraining) and `HoldoutService` (status, boundary, evaluate; audience `holdout`) | `contracts/proto/tb/optimizer/v1/` |
+| out | gRPC | `tb.optimizer.v1.OptimizerService` (lineages, autonomy, cycles, studies + stream, trials, diagnostics, ledger, stats, candidates, gate report, evidence, graph, check/promote/demote, deployment limits (EX-062), retraining) and `HoldoutService` (status, boundary, evaluate; audience `holdout`) | `contracts/proto/tb/optimizer/v1/` |
 | out | gRPC | `tb.analyst.v1.AnalystService` (journal, rounds, status, review + record launches, pause, analysis requests, trial ledger, code proposals, chat); approved level-0 actions go to ml/optimizer through the research clients as the owner (AN-060) | `contracts/proto/tb/analyst/v1/analyst.proto` |
+| out | gRPC | `tb.monitor.v1.MonitorService` (health, reports, alert inbox with ack and silence, daily reports, containment policies and actions, graduation evidence; audience `monitor`) | `contracts/proto/tb/monitor/v1/monitor.proto` |
 | out | NATS | `alert.security` | `tb.alerts.v1.Alert` |
 | out | NATS (JetStream) | `sig.tv-<name>.<instrument_id>` (TradingView signals, dedupe ID = idempotency key) | `tb.signals.v1.Signal` |
 | in | NATS (ordered consumers on stream `SIGNALS`) | `sig.*.<instrument_id>` for `/api/v1/signals` | `tb.signals.v1.Signal` |
@@ -37,6 +38,8 @@ The only service reachable from outside the host. Owns owner authentication, ses
 - `SE-031` credentials write-only → `internal/gateway/credentials.go`
 - All of the above end to end: `TestSEAuthEndToEnd`, `TestSSEStreamRequiresSessionAndEndsOnRevoke`
 - `EX-052`/`EX-011`/`EX-033`/`EX-025` research step-ups (promotion to paper or live_eligible, holdout evaluation and boundary, raising analyst autonomy, opening a cycle), `UI-025` sandboxed tearsheets → `internal/gateway/research.go`; `research_test.go` (`TestEX052*`, `TestUI025*`)
+- `EX-062` deployment-limit raises and `SM-016` candidate registration → `internal/gateway/deployment.go`; `deployment_test.go`
+- `MN-036` containment loosening and `MN-042` alert silences (passkey) → `internal/gateway/monitoring.go`; `monitoring_test.go`
 - `RM-007` (kill release desktop + passkey, allocation increase, limit loosening), `VP-019` break resolution step-up, `SE-003` live/unknown-account manual orders, `UI-006`, `UI-012`..`UI-016` → `internal/gateway/trading.go`, `stream.go`; `trading_test.go` (`TestRM007*`, `TestVP019*`, `TestUI0*`)
 - `SE-060`..`SE-063` Web Push (VAPID, RFC 8291, sealed subscriptions, push-host allowlist, redaction, internal Alertmanager webhook) → `internal/webpush`, `internal/gateway/push.go`; `webpush_test.go`, `push_test.go`
 - `SE-064` TradingView intake and the Cloudflare Access gate, `SE-065` widget CSP, `UI-047` tearsheet embed, `UI-049` signals, `UI-051` freshness, `RM-020` phone halt step-up → `internal/gateway/tradingview.go`, `server.go`, `signals.go`, `research.go`, `trading.go`, `internal/cfaccess`; `tradingview_test.go`, `cfaccess_test.go`, `trading_test.go`
@@ -57,6 +60,8 @@ The only service reachable from outside the host. Owns owner authentication, ses
 | `internal/gateway/events.go` | SSE `trading-status` stream and status snapshot (includes execution's `TradingStatus`) |
 | `internal/gateway/trading.go` | Trading BFF: signed gRPC clients to execution/ledger/marketdata, protojson responses, owner actions with step-up |
 | `internal/gateway/research.go` | Research BFF (section 14 Phase 4): signed gRPC clients to ml, optimizer, holdout; owner caller with step-up attestation; SSE job and study progress; sandboxed tearsheet documents |
+| `internal/gateway/deployment.go` | Lineage deployment limits (EX-062, passkey to raise) and registering a shadow/paper candidate with execution (SM-016, EX-064, `strategy.register`) |
+| `internal/gateway/monitoring.go` | Monitoring BFF (section 13 Phase 5): `/api/v1/monitoring/*` over `MonitorService`; silencing and loosening containment need a passkey (MN-036, MN-042) |
 | `internal/gateway/analyst.go` | Analyst BFF: AnalystService client; approvals with owner submission of prepared launches through the research clients, pause, analysis requests, proposals, chat (autonomy changes use the research autonomy route) |
 | `internal/gateway/stream.go` | SSE chart stream (`/api/v1/stream/market`): bars, coalesced partials, executions |
 | `internal/gateway/static.go` | SPA file server with index fallback |
@@ -82,6 +87,7 @@ The only service reachable from outside the host. Owns owner authentication, ses
 | `TB_EXECUTION_ADDR` / `TB_LEDGER_ADDR` / `TB_MARKETDATA_ADDR` | `execution:9090` / `ledger:9090` / `marketdata:9090` | gRPC (lazy connections; routes answer 503 `<service>_unavailable` while a service is down) |
 | `TB_ML_ADDR` / `TB_OPTIMIZER_ADDR` / `TB_HOLDOUT_ADDR` | `ml:9090` / `optimizer:9091` / `optimizer:9092` | Research services (profile `ml-workers`; native macOS workers need an address the Colima VM can reach) |
 | `TB_ASSISTANT_ADDR` | `assistant:9090` | AnalystService for the analyst page (routes answer 503 `assistant_unavailable` while down) |
+| `TB_MONITOR_ADDR` | `monitor:9090` | MonitorService for the Monitoring page (routes answer 503 `monitor_unavailable` while down) |
 | `TB_WEB_DIR` | `/app/web` | Static SPA build |
 | `TB_INTERNAL_HTTP_ADDR` | `:8082` | Internal listener: Alertmanager → Web Push webhook (backend network only) |
 | `TB_PUSH_SUBJECT` / `TB_PUSH_REDACT` / `TB_PUSH_ALLOWED_HOSTS` | `mailto:owner@strawberry.invalid` / `true` / FCM, Mozilla, Apple, Windows | VAPID contact; lock-screen redaction; push-service hosts (SE-061) |

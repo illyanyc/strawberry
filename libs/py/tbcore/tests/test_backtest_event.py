@@ -10,13 +10,22 @@ from decimal import Decimal
 import polars as pl
 import pytest
 
-from tbcore.backtest.config import ManualPosition
+from tbcore.backtest.config import (
+    AccountSimConfig,
+    BacktestConfig,
+    FillModelConfig,
+    ManualPosition,
+    StrategySpec,
+    UniverseRef,
+)
 from tbcore.backtest.costs import CostModelConfig
 from tbcore.backtest.event import LeakageError, run_event_backtest
 from tbcore.backtest.simcore import SimCore
 from tbcore.backtest.synthetic import random_walk_bars
 from tbcore.context.events import ScheduledEvent
 from tbcore.data.calendar import xnys
+from tbcore.strategy.api import Bar, Fill, Intent, StrategyContext, new_ulid
+from tbcore.strategy.host import CLASSES, register_class
 
 from .btkit import NS, gate_bars, iid, orb_config
 
@@ -260,3 +269,125 @@ def test_cx016_event_blackout_blocks_entries_in_backtests() -> None:
     assert blocked.intents.filter((pl.col("kind") == "open") & (pl.col("decision_time") < day1)).height == 0
     assert blocked.stats["blackout_blocked"] == 4
     assert any(w.startswith("blackout_without_events") for w in run_event_backtest(cfg, bars).warnings)
+
+
+class _HoldOnce:
+    """Test strategy: opens once on the first bar of ``params.instrument`` (``params.side``), never closes."""
+
+    def __init__(self, sid: str, params: dict[str, object]) -> None:
+        self.strategy_id, self.p, self.done = sid, params, False
+
+    def on_start(self, ctx: StrategyContext) -> None:
+        self.done = False
+
+    def on_bar(self, ctx: StrategyContext, bar: Bar) -> list[Intent]:
+        if self.done or bar.instrument_id != self.p["instrument"]:
+            return []
+        self.done = True
+        short = self.p["side"] == "sell_short"
+        stop = (bar.close * (Decimal("1.2") if short else Decimal("0.8"))).quantize(Decimal("0.01"))
+        return [
+            Intent(
+                new_ulid(bar.available_at // 1_000_000, f"hold|{bar.instrument_id}"),
+                bar.instrument_id,
+                str(self.p["side"]),
+                Decimal(str(self.p["qty"])),
+                "open",
+                "test hold",
+                bar.close,
+                stop_loss=stop,
+                protective_tif="gtc",
+            )
+        ]
+
+    def on_fill(self, ctx: StrategyContext, fill: Fill) -> list[Intent]:
+        return []
+
+
+if "hold_test" not in CLASSES:
+    register_class("hold_test", lambda sid, params: _HoldOnce(sid, params))  # type: ignore[arg-type,return-value]
+
+
+def flat_bars(sym: str, sessions: int, price: float = 100.0) -> pl.DataFrame:
+    rows = []
+    for s in xnys().sessions(START, datetime(2026, 12, 31, tzinfo=UTC))[:sessions]:
+        opn = int(s.open.timestamp()) * NS
+        for i in range(26):
+            close = opn + (i + 1) * 900 * NS
+            rows.append((iid(sym), close - 900 * NS, close, close + 60 * NS, price, price, price, price, 1e6))
+    return pl.DataFrame(
+        rows,
+        schema=["instrument_id", "ts_open", "ts_close", "available_at", "open", "high", "low", "close", "volume"],
+        orient="row",
+    )
+
+
+def hold_config(sym: str, side: str, **account: object) -> BacktestConfig:
+    return BacktestConfig(
+        strategies=(
+            StrategySpec(
+                strategy_id="hold",
+                short_id="holdaaa",
+                horizon="swing",
+                allocation=Decimal(30000),
+                allow_short=True,
+                runtime_class="hold_test",
+                timeframe="15m",
+                instruments=(iid(sym),),
+                params={"instrument": iid(sym), "side": side, "qty": 100},
+            ),
+        ),
+        universe=UniverseRef(name="test", instruments=(iid(sym),)),
+        timeframe="15m",
+        start=START,
+        end=END,
+        cost_model=FREE,
+        account=AccountSimConfig(cash=Decimal(60000), shortable=(iid(sym),), dedicated=True, **account),  # type: ignore[arg-type]
+    )
+
+
+def test_bt014_short_held_overnight_pays_borrow_for_calendar_days() -> None:
+    # 100 shares short at a flat 100: notional 10,000 at 360 bps/yr = 1.00 per calendar day. Closes Mon..Thu
+    # roll one day each, Friday rolls three (to Monday): 7 days = 7.00, booked by the ledger core.
+    bars = flat_bars("SHRT", 5)
+    paid = run_event_backtest(hold_config("SHRT", "sell_short", borrow_fee_bps={iid("SHRT"): 360.0}), bars)
+    free = run_event_backtest(hold_config("SHRT", "sell_short", borrow_fee_bps={iid("SHRT"): 0.0}), bars)
+    assert paid.stats["borrow_cost"] == {"hold": 7.0} and free.stats["borrow_cost"] == {}
+    last = paid.daily.sort("time").row(-1, named=True)
+    ref = free.daily.sort("time").row(-1, named=True)
+    assert ref["equity"] - last["equity"] == pytest.approx(7.0, abs=1e-9)
+    assert last["fees"] - ref["fees"] == pytest.approx(7.0, abs=1e-9)
+    assert not any(w.startswith("valuation_mismatch") for w in paid.warnings)
+    stressed = run_event_backtest(
+        hold_config("SHRT", "sell_short", borrow_fee_bps={iid("SHRT"): 360.0}).model_copy(
+            update={"cost_model": FREE.model_copy(update={"cost_multiplier": 2.0})}
+        ),
+        bars,
+    )
+    assert stressed.stats["borrow_cost"] == {"hold": 14.0}  # BT-015: borrow scales with the stress multiplier
+
+
+def test_bt014_long_positions_pay_no_borrow() -> None:
+    r = run_event_backtest(hold_config("LONG", "buy", borrow_fee_bps={iid("LONG"): 360.0}), flat_bars("LONG", 5))
+    assert r.stats["borrow_cost"] == {}
+
+
+def test_bt008_delisting_closes_the_position_at_the_last_price_less_the_haircut() -> None:
+    # Long 100 at 100 from Monday; the name stops trading after Tuesday and is delisted on Wednesday. The
+    # position closes at 100 x (1 - 0.3) = 70: a 3,000 loss, exit reason "delisting", stop canceled.
+    bars = flat_bars("GONE", 2)
+    ex = int(xnys().session(datetime(2026, 10, 14).date()).open.timestamp()) * NS  # type: ignore[union-attr]
+    ca = pl.DataFrame(
+        {"instrument_id": [iid("GONE")], "type": ["delisting"], "ex_date": [ex], "ratio": [None], "amount": [None]},
+        schema={"instrument_id": pl.Utf8, "type": pl.Utf8, "ex_date": pl.Int64, "ratio": pl.Utf8, "amount": pl.Utf8},
+    )
+    cfg = hold_config("GONE", "buy").model_copy(update={"fill_model": FillModelConfig(delisting_haircut=0.3)})
+    r = run_event_backtest(cfg, bars, corporate_actions=ca)
+    (t,) = r.trades.iter_rows(named=True)
+    assert (t["exit_reason"], t["exit_price"], t["qty"]) == ("delisting", 70.0, 100.0)
+    assert t["pnl"] == pytest.approx(-3000.0 - t["fees"], abs=1e-6)
+    assert r.stats["delisted"] == [iid("GONE")] and r.stats["open_episodes"] == 0
+    assert (r.daily.sort("time")["gross_exposure"].tail(3) == 0).all()
+    stops = r.orders.filter(pl.col("role") == "stop")
+    assert stops.height == 1 and stops["state"].to_list() == ["canceled"]
+    assert not any(w.startswith("valuation_mismatch") for w in r.warnings)

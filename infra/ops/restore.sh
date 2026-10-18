@@ -24,7 +24,7 @@ for db in platform mlflow prefect; do
 done
 echo "restore: databases restored"
 
-for d in lake mlflow-artifacts; do
+for d in lake mlflow-artifacts recordings; do
   if [ -f "$work/$d.tar" ]; then
     rm -rf "/data/${d:?}/"* 2>/dev/null || true
     tar -C /data -xf "$work/$d.tar"

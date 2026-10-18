@@ -1,6 +1,6 @@
 # strategy-runtime
 
-Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes their order intents to execution over the bus (section 07, [ADR-0026](../../docs/adr/0026-strategy-runtime-and-orb-baseline.md), D44). Phase 2 hosts the ORB baseline; Phase 3 adds event blackouts (CX-016). Rules: SM-011, SM-013, SM-014, RM-017, CX-016.
+Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes their order intents to execution over the bus (section 07, [ADR-0026](../../docs/adr/0026-strategy-runtime-and-orb-baseline.md), D44). Phase 2 hosts the ORB baseline; Phase 3 adds event blackouts (CX-016). Rules: SM-011, SM-013, SM-014, SM-016, RM-017, CX-016, ML-042, ML-043.
 
 **Status:** Phase 2 (paper)  ·  **Language/stack:** Python 3.12, `tbcore`, `nats-py` ([ADR-0004](../../docs/adr/0004-core-language-split.md), D1)
 
@@ -14,8 +14,10 @@ Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes t
 | in | NATS (ordered consumers) | `md.bar.<tf>.<instrument>` for hosted instruments; `ledger.update.<acct>` from today's start | `tb.marketdata.v1.Bar`, `tb.ledger.v1.LedgerUpdate` |
 | out | NATS (JetStream) | `ord.intent` (`Nats-Msg-Id` = intent ID) | `tb.orders.v1.OrderIntent` |
 | out | NATS (core) | `sys.health.strategy-runtime` | `tb.signals.v1.RuntimeHeartbeat` |
+| out | NATS (JetStream) | `sig.<strategy_id>.<instrument_id>` and `feat.<feature_set>.<instrument_id>` for every online model scoring (ML-042; monitor drift inputs, MN-038) | `tb.signals.v1.Signal`, `tb.features.v1.FeatureVector` |
+| out | HTTP (ops) | `/metrics`: `tb_inference_seconds{strategy, stage=features\|score}` (ML-043) | Prometheus |
 | in | file | registry seed (`TB_STRATEGY_REGISTRY`) shared with execution | `infra/compose/strategies.json` |
-| in | file | research deployments (`TB_RESEARCH_REGISTRY`, written by the optimizer): shadow/paper model strategies, never live (EX-056) | same entry format, runtime classes `model_signal`/`meta_filter` (SM-015) |
+| in | file | research deployments (`TB_RESEARCH_REGISTRY`, written by the optimizer): shadow/paper model strategies, never live (EX-056), re-read every 30 s (SM-016) | same entry format, runtime classes `model_signal`/`meta_filter` (SM-015) |
 | in | NATS (ordered consumers, stream `CONTEXT`) | `ctx.calendar`, `ctx.earnings` (only when a hosted strategy has `runtime.blackout`) | `tb.context.v1.ContextEvent`, CX-016 |
 | in | filesystem | lake (read-only): stored calendar and earnings versions at start and hourly (the bus keeps 7 days) | `tbcore.context.ContextStore`, CX-016 |
 | in | NATS (ordered consumers, stream `SIGNALS`, new messages only) | `sig.<tv-strategy>.>` for hosted `tradingview` strategies (webhook signals from api-gateway) | `tb.signals.v1.Signal`, SM-020 |
@@ -24,8 +26,8 @@ Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes t
 | Path | Purpose |
 |---|---|
 | `src/tb_strategy_runtime/__main__.py` | NATS loop around `tbcore.strategy.host.Runner` (the pure core: registry, dispatch, own positions, proto conversion, event blackouts with `BlackoutStrategy` + `InMemoryEventSource`), shared with the backtester (BT-002) |
-| `src/tb_strategy_runtime/__main__.py` | NATS loop, heartbeat, ops listener |
-| `tests/` | Runner tests (SM-014 isolation, protected opens, CPI blackout in paper) |
+| `src/tb_strategy_runtime/__main__.py` | NATS loop, heartbeat, ops listener, signal/feature publication, inference histogram, research reload |
+| `tests/` | Runner tests (SM-014 isolation, protected opens, CPI blackout in paper, SM-016 reload) |
 
 ## Configuration
 | Variable | Default | Notes |
@@ -33,7 +35,8 @@ Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes t
 | `TB_STRATEGY_REGISTRY` | `/etc/tb/strategies.json` | Strategies with a `runtime` block and mode paper/shadow/live are hosted |
 | `TB_NATS_URL` / `TB_NATS_USER` | `nats://nats:4222` / `strategy_runtime` | Password from secret `nats_strategy_runtime_password`; empty user = no auth (tests only) |
 | `TB_HEARTBEAT_INTERVAL` | `5` | Seconds |
-| `TB_RESEARCH_REGISTRY` | empty (Compose: `/data/ml-artifacts/deploy/research-strategies.json`) | Optimizer deployments added at start (shadow/paper only); model bundles are read from the read-only ML artifacts mount |
+| `TB_RESEARCH_REGISTRY` | empty (Compose: `/data/ml-artifacts/deploy/research-strategies.json`) | Optimizer deployments (shadow/paper only); model bundles are read from the read-only ML artifacts mount |
+| `TB_RESEARCH_RELOAD_SECONDS` | `30` | Research deployments re-read interval (SM-016) |
 | `TB_LAKE_DIR` | empty (Compose: `/data/lake`, read-only, marketdata's UID) | Scheduled events for blackouts; without it only bus events are used |
 | `TB_OPS_DISABLED` | — | `1` skips the ops listener (paper harness) |
 
@@ -44,6 +47,7 @@ Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes t
 ## Operational notes
 - Execution latches a cancel-open kill switch for hosted strategies if this heartbeat stops during the session (RM-017).
 - A restart replays the day's ledger updates to rebuild positions; replayed decisions produce the same intent IDs, which execution deduplicates.
+- A newly promoted research strategy is hosted within 30 s, but its intents are rejected by the OMS until the owner registers it with execution (Experiments → candidate → Register with execution, EX-064).
 
 ## Gotchas
 - Every JetStream subscribe passes `stream=`: the NATS user (least privilege) may not call `$JS.API.STREAM.NAMES`, and nats-py looks the stream up when it is missing, which times out after 5 s and kills startup. Tested by `test_every_jetstream_subscription_names_its_stream`.

@@ -41,6 +41,8 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Command palette** | The ⌘K/Ctrl+K search dialog listing pages, a ticker's chart, and actions; built from the navigation registry (UI-042). |
 | **Compaction (lake)** | Merging a partition's staging and part files into one sorted part file with one row per natural key (ST-004). |
 | **Compose profile** | Named group of services in `infra/compose/docker-compose.yml` (`core`, `observability`, `ml`, `ml-workers`, `ops`, `remote-cloudflare`); `make up` starts `core,observability`. |
+| **Containment action** | An automatic, reduce-only step the monitor takes when a strategy breaches its containment policy: demote (live → paper, paper → halted) or a latched strategy kill switch plus demotion; recorded, audited, and alerted with its evidence (MN-035). |
+| **Containment policy** | Per-strategy warning/breach thresholds and actions for drawdown, divergence, drift, and execution quality; loosening needs a passkey (MN-034, MN-036). |
 | **Contaminated score** | A model-scored feature (news sentiment) for data published before that model's training cutoff; stored but excluded from features and backtests by default (CX-014, D31 rule 10). |
 | **Context record / record key** | One logical context datum (a news item, a series period, a filing) identified by `record_key`; its versions differ in payload and `available_at` (CX-002). |
 | **Continuation round** | An analyst round opened by the completion of the previous round's own launches; plateau counting happens on these (AN-040). |
@@ -55,7 +57,9 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Declarative Web Push** | A Web Push payload (`{"web_push": 8030, "notification": {...}}`) the browser can display without a service worker (Safari 18.4+); the gateway sends this shape to every browser (ADR-0052). |
 | **Deflated Sharpe ratio (DSR)** | Sharpe ratio corrected for the number of trials and non-normal returns; used to rank strategies honestly. |
 | **Demotion** | Automatic or manual move of a strategy to `paper` or `halted`. Re-promotion is always manual. |
+| **Deployment limits** | The risk limits and allocation a research lineage's candidates are judged under in the gate rerun and registered with in execution (EX-062). |
 | **DiagnosticsReport** | Deterministic, size-limited report produced for every training run: data quality, feature shift and leakage flags, learning curves, fold metrics, importance stability, error slices, and rule-based findings with evidence (ML-020..ML-023). |
+| **Divergence report** | Daily replay of a paper/live session's recording through the backtester: match rate, missed/extra intents, slippage gap vs model (MN-037). |
 | **Effective number of trials** | The number of independent trials behind a search, estimated as the ONC cluster count of the trials' return correlations; DSR deflates against it (BT-044). |
 | **Egress guard** | The last check on an outbound LLM payload: blocks known tickers or instrument IDs, dates, epoch timestamps, account identifiers, and currency amounts (AN-052). |
 | **Encroachment** | A manual sell (in the broker's app) that takes manual quantity below zero while a strategy holds the instrument, i.e. the owner sold strategy-attributed shares; raises a critical break (VP-016). |
@@ -73,11 +77,15 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Gap (market data)** | Regular-session minutes the calendar says should have bars but the lake does not; runs of ≥ 5 are recorded in `marketdata.gaps` and re-fetched (MD-006). |
 | **Gate report** | Per-candidate report: outer walk-forward estimate rerun event-driven, DSR and PBO over the lineage ledger, SPA/Romano–Wolf vs the champion, walk-forward and regime breakdowns, 1×/1.5×/2× costs, parameter stability, leakage check, scorer verdict (EX-024, BT-080). |
 | **Generated contracts** | Code under `contracts/gen/` produced by `make gen` from `contracts/proto/`; committed, and CI fails if stale (`make gen-check`). |
+| **Graduation evidence** | The paper/shadow record per strategy (sessions, trades, drawdown vs p95, divergence, shortfall, breaks) that section 15's graduation report consumes (MN-040). |
 | **Halt (OMS)** | A block on new intents for a strategy (optionally one instrument) raised by the OMS for an unknown order state, an orphan order, or a protective stop that could not be placed; cleared when the cause is resolved (OE-005, OE-019, OE-014). |
 | **Halted pair** | An `owner|instrument` key (with `*` wildcards) on `recon.result` that execution must block until the break behind it is resolved (VP-008). |
+| **Health score** | 0–100 summary of a strategy's monitored components; the minimum component score (MN-031). |
 | **Holdout boundary** | The UTC time from which a lineage's data is sealed; studies and training must end at or before it; only the owner moves it, only forward (EX-010, EX-014). |
+| **Horizon-matched band** | Percentile band of a metric from a block bootstrap of the backtest's session returns over the same number of sessions the strategy has traded live (MN-030). |
 | **IB Gateway** | IBKR's headless trading application exposing the TWS API socket; runs in `ib-gateway-<env>` containers (D18). |
 | **IBC** | The open-source tool that logs IB Gateway in and restarts it on schedule; archived 2026-09-01, pinned at 3.24.2 (D18, IB-073). |
+| **Implementation shortfall** | Fill price versus the intent's decision (reference) price, side-signed, plus fees, in bps (MN-033). |
 | **Intraday-margin guard** | Pre-trade check capping leverage and margin utilization per account so strategies cannot consume the manual book's buying power (RM-012). |
 | **Kill switch** | Scoped emergency control (global, broker account, strategy, instrument): freeze new orders, cancel open orders, optionally flatten strategy-owned quantity. |
 | **Kill switch latch** | A kill-switch engagement persisted until an owner releases it with a desktop passkey step-up; engaging needs no step-up (RM-006, RM-007). |
@@ -127,6 +135,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Quiet hours** | 22:00–07:00 New York: warning notifications are muted; critical alerts are never muted (MN-003). |
 | **Reconciliation** | Check that broker positions equal the sum of virtual ledgers plus the manual bucket; unexplained differences halt affected strategies. |
 | **Reconciliation (cross-source)** | The nightly comparison of Alpaca SIP daily bars with FMP EOD bars within fixed tolerances (MD-010). Distinct from ledger reconciliation. |
+| **Recording manifest** | JSON sidecar of a session recording: counts, gaps, and whether the session is complete (MN-045). |
 | **Reference data mirror** | Parquet copy of a `refdata` table in the lake's `ref/` directory for Python readers (ST-007). |
 | **Regime label** | Point-in-time market state (`vol_regime`, `trend_regime`, `stress`) computed only from past SPY bars and VIX data, versioned (`regime_v1`, CX-017). |
 | **Repaired bar** | A final bar recovered over REST after a stream outage instead of from the stream; published once, counted in `tb_md_bars_repaired_total` (MD-006). |

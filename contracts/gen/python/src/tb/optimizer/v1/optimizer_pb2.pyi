@@ -1,6 +1,7 @@
 from google.protobuf import struct_pb2 as _struct_pb2
 from tb.ml.v1 import ml_pb2 as _ml_pb2
 from tb.ml.v1 import training_pb2 as _training_pb2
+from tb.orders.v1 import execution_pb2 as _execution_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
@@ -575,7 +576,7 @@ class CostSensitivity(_message.Message):
     def __init__(self, net_return: _Optional[_Mapping[str, float]] = ..., sharpe: _Optional[_Mapping[str, float]] = ...) -> None: ...
 
 class GateReport(_message.Message):
-    __slots__ = ("report_id", "candidate_id", "created_at", "passed", "reasons", "outer", "dsr", "n_effective", "pbo", "spa_p", "romano_wolf_p", "walk_forward", "regimes", "cost_sensitivity", "param_stability", "leakage_passed", "survivorship_status", "warnings", "thresholds", "engine", "champion_candidate_id")
+    __slots__ = ("report_id", "candidate_id", "created_at", "passed", "reasons", "outer", "dsr", "n_effective", "pbo", "spa_p", "romano_wolf_p", "walk_forward", "regimes", "cost_sensitivity", "param_stability", "leakage_passed", "survivorship_status", "warnings", "thresholds", "engine", "champion_candidate_id", "deployment_limits")
     class ThresholdsEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -604,6 +605,7 @@ class GateReport(_message.Message):
     THRESHOLDS_FIELD_NUMBER: _ClassVar[int]
     ENGINE_FIELD_NUMBER: _ClassVar[int]
     CHAMPION_CANDIDATE_ID_FIELD_NUMBER: _ClassVar[int]
+    DEPLOYMENT_LIMITS_FIELD_NUMBER: _ClassVar[int]
     report_id: str
     candidate_id: str
     created_at: int
@@ -625,7 +627,8 @@ class GateReport(_message.Message):
     thresholds: _containers.ScalarMap[str, float]
     engine: str
     champion_candidate_id: str
-    def __init__(self, report_id: _Optional[str] = ..., candidate_id: _Optional[str] = ..., created_at: _Optional[int] = ..., passed: _Optional[bool] = ..., reasons: _Optional[_Iterable[str]] = ..., outer: _Optional[_Union[OuterEstimate, _Mapping]] = ..., dsr: _Optional[float] = ..., n_effective: _Optional[float] = ..., pbo: _Optional[float] = ..., spa_p: _Optional[float] = ..., romano_wolf_p: _Optional[float] = ..., walk_forward: _Optional[_Iterable[_Union[FoldResult, _Mapping]]] = ..., regimes: _Optional[_Iterable[_Union[RegimeResult, _Mapping]]] = ..., cost_sensitivity: _Optional[_Union[CostSensitivity, _Mapping]] = ..., param_stability: _Optional[_Iterable[_Union[ParamStability, _Mapping]]] = ..., leakage_passed: _Optional[bool] = ..., survivorship_status: _Optional[str] = ..., warnings: _Optional[_Iterable[str]] = ..., thresholds: _Optional[_Mapping[str, float]] = ..., engine: _Optional[str] = ..., champion_candidate_id: _Optional[str] = ...) -> None: ...
+    deployment_limits: DeploymentLimits
+    def __init__(self, report_id: _Optional[str] = ..., candidate_id: _Optional[str] = ..., created_at: _Optional[int] = ..., passed: _Optional[bool] = ..., reasons: _Optional[_Iterable[str]] = ..., outer: _Optional[_Union[OuterEstimate, _Mapping]] = ..., dsr: _Optional[float] = ..., n_effective: _Optional[float] = ..., pbo: _Optional[float] = ..., spa_p: _Optional[float] = ..., romano_wolf_p: _Optional[float] = ..., walk_forward: _Optional[_Iterable[_Union[FoldResult, _Mapping]]] = ..., regimes: _Optional[_Iterable[_Union[RegimeResult, _Mapping]]] = ..., cost_sensitivity: _Optional[_Union[CostSensitivity, _Mapping]] = ..., param_stability: _Optional[_Iterable[_Union[ParamStability, _Mapping]]] = ..., leakage_passed: _Optional[bool] = ..., survivorship_status: _Optional[str] = ..., warnings: _Optional[_Iterable[str]] = ..., thresholds: _Optional[_Mapping[str, float]] = ..., engine: _Optional[str] = ..., champion_candidate_id: _Optional[str] = ..., deployment_limits: _Optional[_Union[DeploymentLimits, _Mapping]] = ...) -> None: ...
 
 class Candidate(_message.Message):
     __slots__ = ("candidate_id", "lineage_id", "study_id", "run_id", "model_version", "config", "stage", "created_at", "gate_report_id", "synthetic_data", "registry_entry_json", "strategy_id", "stage_changed_at", "shadow_sessions", "demoted", "origin")
@@ -1251,3 +1254,55 @@ class TriggerRetrainResponse(_message.Message):
     STUDY_FIELD_NUMBER: _ClassVar[int]
     study: Study
     def __init__(self, study: _Optional[_Union[Study, _Mapping]] = ...) -> None: ...
+
+class DeploymentLimits(_message.Message):
+    __slots__ = ("lineage_id", "horizon", "limits", "allocation", "source", "updated_at", "updated_by")
+    LINEAGE_ID_FIELD_NUMBER: _ClassVar[int]
+    HORIZON_FIELD_NUMBER: _ClassVar[int]
+    LIMITS_FIELD_NUMBER: _ClassVar[int]
+    ALLOCATION_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_FIELD_NUMBER: _ClassVar[int]
+    UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
+    UPDATED_BY_FIELD_NUMBER: _ClassVar[int]
+    lineage_id: str
+    horizon: str
+    limits: _execution_pb2.RiskLimits
+    allocation: str
+    source: str
+    updated_at: int
+    updated_by: str
+    def __init__(self, lineage_id: _Optional[str] = ..., horizon: _Optional[str] = ..., limits: _Optional[_Union[_execution_pb2.RiskLimits, _Mapping]] = ..., allocation: _Optional[str] = ..., source: _Optional[str] = ..., updated_at: _Optional[int] = ..., updated_by: _Optional[str] = ...) -> None: ...
+
+class GetDeploymentLimitsRequest(_message.Message):
+    __slots__ = ("lineage_id",)
+    LINEAGE_ID_FIELD_NUMBER: _ClassVar[int]
+    lineage_id: str
+    def __init__(self, lineage_id: _Optional[str] = ...) -> None: ...
+
+class GetDeploymentLimitsResponse(_message.Message):
+    __slots__ = ("limits", "profile")
+    LIMITS_FIELD_NUMBER: _ClassVar[int]
+    PROFILE_FIELD_NUMBER: _ClassVar[int]
+    limits: DeploymentLimits
+    profile: DeploymentLimits
+    def __init__(self, limits: _Optional[_Union[DeploymentLimits, _Mapping]] = ..., profile: _Optional[_Union[DeploymentLimits, _Mapping]] = ...) -> None: ...
+
+class SetDeploymentLimitsRequest(_message.Message):
+    __slots__ = ("lineage_id", "limits", "allocation", "caller")
+    LINEAGE_ID_FIELD_NUMBER: _ClassVar[int]
+    LIMITS_FIELD_NUMBER: _ClassVar[int]
+    ALLOCATION_FIELD_NUMBER: _ClassVar[int]
+    CALLER_FIELD_NUMBER: _ClassVar[int]
+    lineage_id: str
+    limits: _execution_pb2.RiskLimits
+    allocation: str
+    caller: _training_pb2.CallerContext
+    def __init__(self, lineage_id: _Optional[str] = ..., limits: _Optional[_Union[_execution_pb2.RiskLimits, _Mapping]] = ..., allocation: _Optional[str] = ..., caller: _Optional[_Union[_training_pb2.CallerContext, _Mapping]] = ...) -> None: ...
+
+class SetDeploymentLimitsResponse(_message.Message):
+    __slots__ = ("limits", "raised")
+    LIMITS_FIELD_NUMBER: _ClassVar[int]
+    RAISED_FIELD_NUMBER: _ClassVar[int]
+    limits: DeploymentLimits
+    raised: bool
+    def __init__(self, limits: _Optional[_Union[DeploymentLimits, _Mapping]] = ..., raised: _Optional[bool] = ...) -> None: ...

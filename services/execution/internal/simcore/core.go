@@ -170,6 +170,8 @@ func (c *Core) handle(ctx context.Context, req *backtestv1.SimRequest) (*backtes
 				ev.Kind, ev.Split = book.KindSplit, &book.Split{InstrumentID: ca.GetInstrumentId(), Ratio: pd(ca.GetValue())}
 			case "dividend":
 				ev.Kind, ev.Dividend = book.KindDividend, &book.Dividend{InstrumentID: ca.GetInstrumentId(), Amount: pd(ca.GetValue())}
+			case "delisting":
+				ev.Kind, ev.Delist = book.KindDelisting, &book.Delisting{InstrumentID: ca.GetInstrumentId(), Price: pd(ca.GetValue())}
 			default:
 				return nil, fmt.Errorf("simcore: unknown corporate action %q", ca.GetKind())
 			}
@@ -180,6 +182,19 @@ func (c *Core) handle(ctx context.Context, req *backtestv1.SimRequest) (*backtes
 			if upd != nil {
 				out.LedgerUpdates = append(out.LedgerUpdates, upd)
 			}
+		}
+	case *backtestv1.SimRequest_Fee:
+		f := b.Fee
+		if err := c.advanceClock(f.GetNow()); err != nil {
+			return nil, err
+		}
+		upd, err := c.ledger.apply(book.Event{Kind: book.KindFee, Account: f.GetBrokerAccountId(), Source: f.GetSourceId(), Time: c.clock,
+			Fee: &book.Fee{Owner: f.GetOwner(), InstrumentID: f.GetInstrumentId(), Amount: pd(f.GetAmount())}})
+		if err != nil {
+			return nil, err
+		}
+		if upd != nil {
+			out.LedgerUpdates = append(out.LedgerUpdates, upd)
 		}
 	case *backtestv1.SimRequest_Query:
 		q := b.Query
@@ -296,6 +311,12 @@ func (c *Core) setup(ctx context.Context, s *backtestv1.SimSetup) error {
 	for _, a := range s.GetAccounts() {
 		acct := a.GetBrokerAccountId()
 		c.accounts = append(c.accounts, acct)
+		if a.GetDedicated() {
+			if c.ledger.dedicated == nil {
+				c.ledger.dedicated = map[string]bool{}
+			}
+			c.ledger.dedicated[acct] = true
+		}
 		cfg.Policies[acct] = oms.AccountPolicy{MarginMultiple: orOne(pd(a.GetMarginMultiple())), MarginUtilCap: orOne(pd(a.GetMarginUtilCap())),
 			PDTGuard: orStr(a.GetPdtGuard(), "off"), PDTMax: int(orInt(a.GetPdtMax(), 3)), Segregation: a.GetSegregation()}
 		c.broker.accounts[acct] = &brokerv1.BrokerAccount{BrokerAccountId: acct, Broker: a.GetBroker(), Environment: brokerv1.Environment_ENVIRONMENT_PAPER,

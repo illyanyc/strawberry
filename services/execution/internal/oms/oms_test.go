@@ -2,10 +2,13 @@ package oms
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/rand/v2"
 	"testing"
 	"time"
+
+	"github.com/shopspring/decimal"
 
 	brokerv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/broker/v1"
 	commonv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/common/v1"
@@ -160,5 +163,67 @@ func TestRM004DailyFreshnessCountsSessions(t *testing.T) {
 	}
 	if fresh(openOf("2026-02-09"), closeOf("2026-02-06"), m15) {
 		t.Error("a friday 15m bar must be stale at monday's open")
+	}
+}
+
+// RM-019: a strategy's own limit replaces the global default field by field (looser or tighter);
+// unset fields inherit the global default; the account scope stays a ceiling for everyone.
+func TestRM019StrategyLimitsReplaceGlobalDefaultsAccountCaps(t *testing.T) {
+	ctx := context.Background()
+	e, err := New(ctx, DefaultConfig(), NewMemory(), nil, nopLedger{}, StaticInstruments{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.RegisterStrategy(ctx, &ordersv1.Strategy{StrategyId: "cand", ShortId: "candaaa", BrokerAccountId: "a",
+		Horizon: commonv1.Horizon_HORIZON_SWING, Mode: ordersv1.StrategyMode_STRATEGY_MODE_PAPER}, decimal.Zero, "test"); err != nil {
+		t.Fatal(err)
+	}
+	owner := &ordersv1.Actor{Name: "owner", StepUpMethod: "passkey"}
+	if _, err := e.SetLimits(ctx, "strategy:cand", &ordersv1.RiskLimits{MaxConsecutiveLosses: 12, MaxDrawdown: dec("5000"), MaxPositions: 3}, owner); err != nil {
+		t.Fatal(err)
+	}
+	l := e.effective("a", "cand", false)
+	if l.MaxConsecutiveLosses != 12 || !l.MaxDrawdown.Equal(decimal.RequireFromString("5000")) || l.MaxPositions != 3 {
+		t.Fatalf("strategy scope must replace the global default: %+v", l)
+	}
+	if !l.MaxDailyLoss.Equal(decimal.RequireFromString("1000")) {
+		t.Fatalf("unset fields inherit the global default: daily loss %s", l.MaxDailyLoss)
+	}
+	if _, err := e.SetLimits(ctx, "account:a", &ordersv1.RiskLimits{MaxDrawdown: dec("4000"), MaxConsecutiveLosses: 8}, owner); err != nil {
+		t.Fatal(err)
+	}
+	l = e.effective("a", "cand", false)
+	if l.MaxConsecutiveLosses != 8 || !l.MaxDrawdown.Equal(decimal.RequireFromString("4000")) {
+		t.Fatalf("the account scope caps the strategy scope: %+v", l)
+	}
+	if m := e.effective("a", "", true); !m.PriceCollarPct.Equal(decimal.RequireFromString("0.03")) {
+		t.Fatalf("manual collar default 3%% applies (documented default), got %s", m.PriceCollarPct)
+	}
+}
+
+// RM-007, RM-019: a strategy limit looser than the effective limit is a raise and needs a passkey,
+// including the first time a strategy scope is set (empty record, global default in force).
+func TestRM007FirstStrategyLimitAboveGlobalNeedsPasskey(t *testing.T) {
+	ctx := context.Background()
+	e, err := New(ctx, DefaultConfig(), NewMemory(), nil, nopLedger{}, StaticInstruments{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.RegisterStrategy(ctx, &ordersv1.Strategy{StrategyId: "cand", ShortId: "candaaa", BrokerAccountId: "a",
+		Horizon: commonv1.Horizon_HORIZON_SWING, Mode: ordersv1.StrategyMode_STRATEGY_MODE_PAPER}, decimal.Zero, "test"); err != nil {
+		t.Fatal(err)
+	}
+	loose := &ordersv1.RiskLimits{MaxConsecutiveLosses: 12}
+	if raised, err := e.SetLimits(ctx, "strategy:cand", loose, &ordersv1.Actor{Name: "owner"}); !errors.Is(err, ErrStepUp) || !raised {
+		t.Fatalf("first loosening without step-up: raised=%v err=%v", raised, err)
+	}
+	if l := e.effective("a", "cand", false); l.MaxConsecutiveLosses != 5 {
+		t.Fatalf("refused raise must not apply: %d", l.MaxConsecutiveLosses)
+	}
+	if raised, err := e.SetLimits(ctx, "strategy:cand", &ordersv1.RiskLimits{MaxConsecutiveLosses: 3}, &ordersv1.Actor{Name: "owner"}); err != nil || raised {
+		t.Fatalf("tightening needs no step-up: raised=%v err=%v", raised, err)
+	}
+	if raised, err := e.SetLimits(ctx, "strategy:cand", loose, &ordersv1.Actor{Name: "owner", StepUpMethod: "passkey"}); err != nil || !raised {
+		t.Fatalf("raise with passkey: raised=%v err=%v", raised, err)
 	}
 }

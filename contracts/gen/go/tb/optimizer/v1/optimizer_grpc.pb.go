@@ -61,6 +61,8 @@ const (
 	OptimizerService_GetLineageGraph_FullMethodName               = "/tb.optimizer.v1.OptimizerService/GetLineageGraph"
 	OptimizerService_SetRetrainingPolicy_FullMethodName           = "/tb.optimizer.v1.OptimizerService/SetRetrainingPolicy"
 	OptimizerService_TriggerRetrain_FullMethodName                = "/tb.optimizer.v1.OptimizerService/TriggerRetrain"
+	OptimizerService_GetDeploymentLimits_FullMethodName           = "/tb.optimizer.v1.OptimizerService/GetDeploymentLimits"
+	OptimizerService_SetDeploymentLimits_FullMethodName           = "/tb.optimizer.v1.OptimizerService/SetDeploymentLimits"
 )
 
 // OptimizerServiceClient is the client API for OptimizerService service.
@@ -109,6 +111,12 @@ type OptimizerServiceClient interface {
 	GetLineageGraph(ctx context.Context, in *GetLineageGraphRequest, opts ...grpc.CallOption) (*GetLineageGraphResponse, error)
 	SetRetrainingPolicy(ctx context.Context, in *SetRetrainingPolicyRequest, opts ...grpc.CallOption) (*SetRetrainingPolicyResponse, error)
 	TriggerRetrain(ctx context.Context, in *TriggerRetrainRequest, opts ...grpc.CallOption) (*TriggerRetrainResponse, error)
+	// Candidate deployment limits (EX-062, ADR-0047): the risk limits and allocation a lineage's
+	// candidates are judged under in the event-driven gate rerun and registered with in execution.
+	GetDeploymentLimits(ctx context.Context, in *GetDeploymentLimitsRequest, opts ...grpc.CallOption) (*GetDeploymentLimitsResponse, error)
+	// Owner only; raising any limit above the lineage's current effective limits needs a passkey
+	// step-up (RM-007). The analyst is denied at every level.
+	SetDeploymentLimits(ctx context.Context, in *SetDeploymentLimitsRequest, opts ...grpc.CallOption) (*SetDeploymentLimitsResponse, error)
 }
 
 type optimizerServiceClient struct {
@@ -458,6 +466,26 @@ func (c *optimizerServiceClient) TriggerRetrain(ctx context.Context, in *Trigger
 	return out, nil
 }
 
+func (c *optimizerServiceClient) GetDeploymentLimits(ctx context.Context, in *GetDeploymentLimitsRequest, opts ...grpc.CallOption) (*GetDeploymentLimitsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetDeploymentLimitsResponse)
+	err := c.cc.Invoke(ctx, OptimizerService_GetDeploymentLimits_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *optimizerServiceClient) SetDeploymentLimits(ctx context.Context, in *SetDeploymentLimitsRequest, opts ...grpc.CallOption) (*SetDeploymentLimitsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetDeploymentLimitsResponse)
+	err := c.cc.Invoke(ctx, OptimizerService_SetDeploymentLimits_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OptimizerServiceServer is the server API for OptimizerService service.
 // All implementations must embed UnimplementedOptimizerServiceServer
 // for forward compatibility.
@@ -504,6 +532,12 @@ type OptimizerServiceServer interface {
 	GetLineageGraph(context.Context, *GetLineageGraphRequest) (*GetLineageGraphResponse, error)
 	SetRetrainingPolicy(context.Context, *SetRetrainingPolicyRequest) (*SetRetrainingPolicyResponse, error)
 	TriggerRetrain(context.Context, *TriggerRetrainRequest) (*TriggerRetrainResponse, error)
+	// Candidate deployment limits (EX-062, ADR-0047): the risk limits and allocation a lineage's
+	// candidates are judged under in the event-driven gate rerun and registered with in execution.
+	GetDeploymentLimits(context.Context, *GetDeploymentLimitsRequest) (*GetDeploymentLimitsResponse, error)
+	// Owner only; raising any limit above the lineage's current effective limits needs a passkey
+	// step-up (RM-007). The analyst is denied at every level.
+	SetDeploymentLimits(context.Context, *SetDeploymentLimitsRequest) (*SetDeploymentLimitsResponse, error)
 	mustEmbedUnimplementedOptimizerServiceServer()
 }
 
@@ -612,6 +646,12 @@ func (UnimplementedOptimizerServiceServer) SetRetrainingPolicy(context.Context, 
 }
 func (UnimplementedOptimizerServiceServer) TriggerRetrain(context.Context, *TriggerRetrainRequest) (*TriggerRetrainResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TriggerRetrain not implemented")
+}
+func (UnimplementedOptimizerServiceServer) GetDeploymentLimits(context.Context, *GetDeploymentLimitsRequest) (*GetDeploymentLimitsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetDeploymentLimits not implemented")
+}
+func (UnimplementedOptimizerServiceServer) SetDeploymentLimits(context.Context, *SetDeploymentLimitsRequest) (*SetDeploymentLimitsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetDeploymentLimits not implemented")
 }
 func (UnimplementedOptimizerServiceServer) mustEmbedUnimplementedOptimizerServiceServer() {}
 func (UnimplementedOptimizerServiceServer) testEmbeddedByValue()                          {}
@@ -1221,6 +1261,42 @@ func _OptimizerService_TriggerRetrain_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OptimizerService_GetDeploymentLimits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDeploymentLimitsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OptimizerServiceServer).GetDeploymentLimits(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OptimizerService_GetDeploymentLimits_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OptimizerServiceServer).GetDeploymentLimits(ctx, req.(*GetDeploymentLimitsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OptimizerService_SetDeploymentLimits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetDeploymentLimitsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OptimizerServiceServer).SetDeploymentLimits(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OptimizerService_SetDeploymentLimits_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OptimizerServiceServer).SetDeploymentLimits(ctx, req.(*SetDeploymentLimitsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OptimizerService_ServiceDesc is the grpc.ServiceDesc for OptimizerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1355,6 +1431,14 @@ var OptimizerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TriggerRetrain",
 			Handler:    _OptimizerService_TriggerRetrain_Handler,
+		},
+		{
+			MethodName: "GetDeploymentLimits",
+			Handler:    _OptimizerService_GetDeploymentLimits_Handler,
+		},
+		{
+			MethodName: "SetDeploymentLimits",
+			Handler:    _OptimizerService_SetDeploymentLimits_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

@@ -46,15 +46,17 @@ var natsUsers = map[string]struct{ pub, sub []string }{
 	"broker_gateway_ibkr": {pub: []string{"ord.update.>", "exec.>", "acct.snapshot.>", "recon.request.>", "alert.>", "sys.health.broker-gateway-ibkr"}, sub: []string{"_INBOX.>"}},
 	// The strategy runtime only publishes intents and its heartbeat; it reads bars and its own
 	// strategies' ledger updates (ADR-0026).
-	// Phase 5: publishes model signals (sig.<strategy>.<instrument>) and consumes its tv-<name>
-	// strategies' webhook signals (D69).
-	"strategy_runtime": {pub: []string{"ord.intent", "sig.>", "sys.health.strategy-runtime", "alert.>", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
+	// Phase 5: publishes model signals (sig.<strategy>.<instrument>), the features they were scored on
+	// (feat.>, ML-042, ADR-0045), and consumes its tv-<name> strategies' webhook signals (D69).
+	"strategy_runtime": {pub: []string{"ord.intent", "sig.>", "feat.>", "sys.health.strategy-runtime", "alert.>", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
 		sub: []string{"_INBOX.>", "md.bar.>", "ledger.update.>", "ctx.calendar", "ctx.earnings", "sig.>"}},
 	// The monitor forwards bus alerts to Alertmanager and builds daily reports from order-path and
 	// ledger events (section 13).
 	// Phase 4: live feedback and retraining triggers (monitor.>) and analyst autonomy lowering (ADR-0044).
+	// Phase 5: the recorder and full monitoring read bars, features, signals, and the whole order path
+	// (read-only; containment acts through ExecutionService, ADR-0045, ADR-0046).
 	"monitor": {pub: []string{"alert.>", "sys.health.monitor", "monitor.>", "analyst.autonomy.lower", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
-		sub: []string{"_INBOX.>", "alert.>", "sys.health.>", "recon.result.>", "ord.decision", "exec.>", "ledger.update.>"}},
+		sub: []string{"_INBOX.>", "alert.>", "sys.health.>", "recon.result.>", "ord.>", "exec.>", "ledger.update.>", "md.bar.>", "feat.>", "sig.>", "risk.kill"}},
 	// ML and optimizer workers publish run, study, backtest, and registry events for the analyst and
 	// the UI (ADR-0035); the optimizer reads monitoring retrain triggers (EX-040).
 	"ml":        {pub: []string{"ml.>", "backtest.>", "alert.>", "sys.health.ml"}, sub: []string{"_INBOX.>"}},
@@ -67,7 +69,7 @@ var natsUsers = map[string]struct{ pub, sub []string }{
 }
 
 // signingServices get Ed25519 service-token keys (SE-040).
-var signingServices = []string{"api-gateway", "assistant", "broker-gateway", "context-data", "execution", "ledger", "marketdata", "ml", "optimizer"}
+var signingServices = []string{"api-gateway", "assistant", "broker-gateway", "context-data", "execution", "ledger", "marketdata", "ml", "monitor", "optimizer"}
 
 // initSecrets writes every missing secret into dir. Existing files are never overwritten, so the
 // command is safe to re-run after adding a new service. Files are 0644 inside a 0700 directory: the

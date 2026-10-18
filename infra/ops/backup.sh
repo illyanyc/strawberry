@@ -17,7 +17,7 @@ pg_dumpall --globals-only --no-role-passwords >"$work/globals.sql"
 for db in platform mlflow prefect; do
   pg_dump --format=custom --dbname="$db" --file="$work/$db.dump"
 done
-for d in lake mlflow-artifacts; do
+for d in lake mlflow-artifacts recordings; do
   if [ -d "/data/$d" ]; then tar -C /data -cf "$work/$d.tar" "$d"; fi
 done
 tbctl audit head >"$work/audit-head.json"

@@ -72,10 +72,10 @@ class MemoryDocStore:
 
 
 class PostgresDocStore:
-    """``<schema>.docs`` (migrations ``research``/``holdout``); upsert keeps the first ``created_at``."""
+    """``<schema>.docs`` (migrations ``research``/``holdout``/``monitor``); upsert keeps the first ``created_at``."""
 
     def __init__(self, dsn: str, schema: str = "research") -> None:
-        if schema not in ("research", "holdout"):
+        if schema not in ("research", "holdout", "monitor"):
             raise ValueError(f"unknown schema {schema!r}")
         self._dsn, self._schema = dsn, schema
         self._conn: psycopg.Connection[Any] | None = None
