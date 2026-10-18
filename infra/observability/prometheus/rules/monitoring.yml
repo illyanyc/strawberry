@@ -1,0 +1,14 @@
+# Phase 5 monitoring rules (section 13 full; ML-043, MN-035, MN-045). Every rule has a runbook
+# (tests/python/test_alert_rules.py). Containment decisions themselves are made by the monitor
+# against per-strategy policies (ADR-0045); these rules watch the inputs and the monitor's own path.
+groups:
+  - name: model-monitoring
+    rules:
+      - alert: InferenceLatencyHigh
+        expr: |
+          histogram_quantile(0.99, sum by (le, strategy) (rate(tb_inference_seconds_bucket{stage="score"}[30m]))) > 0.02
+        for: 30m
+        labels: { severity: warning }
+        annotations:
+          summary: "Model scoring p99 for {{ $labels.strategy }} is {{ $value | humanizeDuration }} (ML-043 target 20 ms per batch)"
+          runbook_url: docs/runbooks/model-monitoring.md

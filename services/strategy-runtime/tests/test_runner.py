@@ -340,3 +340,32 @@ def test_sm020_tradingview_class_requires_a_tv_strategy_id() -> None:
     data["strategies"][0]["strategy_id"] = "breakout"
     with pytest.raises(ValueError, match="tv-<name>"):
         Runner.from_registry_data(data)
+def test_sm016_research_registry_reload_hosts_added_drops_retired_never_live(tmp_path: Path) -> None:
+    def orb(sid: str, mode: str) -> dict[str, object]:
+        return {
+            "strategy_id": sid,
+            "short_id": (sid.replace("-", "") + "aaaaaa")[:7],
+            "broker_account_id": "sim-paper",
+            "mode": mode,
+            "allocation": "1000",
+            "runtime": {"class": "orb", "timeframe": "15m", "instruments": ["i1"], "params": {}},
+        }
+
+    seed = tmp_path / "seed.json"
+    research = tmp_path / "research.json"
+    seed.write_text(json.dumps({"strategies": [orb("orb-15m", "paper")]}))
+    research.write_text(json.dumps({"strategies": [orb("ml-a", "shadow")]}))
+    r = entry.load_runner(str(seed), str(research))
+    seed_ids = {"orb-15m"}
+    assert {h.strategy_id for h in r.hosted} == {"orb-15m", "ml-a"}
+    # ml-a retired, ml-b promoted to paper; a live entry and one reusing the seed's ID are ignored.
+    research.write_text(
+        json.dumps({"strategies": [orb("ml-b", "paper"), orb("ml-live", "live"), {**orb("orb-15m", "shadow")}]})
+    )
+    added, removed = entry.reload_research(r, str(research), seed_ids)
+    assert added == ["ml-b"] and removed == ["ml-a"]
+    assert {h.strategy_id: h.mode for h in r.hosted} == {"orb-15m": "paper", "ml-b": "paper"}
+    assert entry.reload_research(r, str(research), seed_ids) == ([], [])
+    research.write_text("{not json")
+    assert entry.reload_research(r, str(research), seed_ids) == ([], [])  # fail closed: keep the current set
+    assert {h.strategy_id for h in r.hosted} == {"orb-15m", "ml-b"}

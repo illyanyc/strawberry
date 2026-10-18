@@ -46,9 +46,9 @@ var natsUsers = map[string]struct{ pub, sub []string }{
 	"broker_gateway_ibkr": {pub: []string{"ord.update.>", "exec.>", "acct.snapshot.>", "recon.request.>", "alert.>", "sys.health.broker-gateway-ibkr"}, sub: []string{"_INBOX.>"}},
 	// The strategy runtime only publishes intents and its heartbeat; it reads bars and its own
 	// strategies' ledger updates (ADR-0026).
-	// Phase 5: publishes model signals (sig.<strategy>.<instrument>) and consumes its tv-<name>
-	// strategies' webhook signals (D69).
-	"strategy_runtime": {pub: []string{"ord.intent", "sig.>", "sys.health.strategy-runtime", "alert.>", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
+	// Phase 5: publishes model signals (sig.<strategy>.<instrument>), the features they were scored on
+	// (feat.>, ML-042, ADR-0045), and consumes its tv-<name> strategies' webhook signals (D69).
+	"strategy_runtime": {pub: []string{"ord.intent", "sig.>", "feat.>", "sys.health.strategy-runtime", "alert.>", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
 		sub: []string{"_INBOX.>", "md.bar.>", "ledger.update.>", "ctx.calendar", "ctx.earnings", "sig.>"}},
 	// The monitor forwards bus alerts to Alertmanager and builds daily reports from order-path and
 	// ledger events (section 13).
