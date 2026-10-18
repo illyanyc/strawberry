@@ -45,3 +45,4 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0027](0027-monitoring-ops-slice.md) | Monitoring ops slice: one alert router, bus alerts bridged by the monitor, daily reports as alerts | Accepted | 2026-10-18 |
 | [0028](0028-ui-trading-slice-charts-and-bff.md) | UI trading slice: Lightweight Charts under the strict CSP, protojson BFF resources, and an SSE chart stream | Accepted | 2026-10-18 |
 | [0032](0032-context-data-pipeline-and-point-in-time-rules.md) | Context data through the bus into the lake, with record keys, snapshot stamping, and per-source availability rules | Accepted | 2026-10-18 |
+| [0033](0033-quarantined-news-sentiment.md) | News sentiment through a quarantined local model, with a lexicon baseline and contamination flags | Accepted | 2026-10-18 |

@@ -12,7 +12,7 @@ A self-hosted platform for researching, training, backtesting, deploying, and mo
 - Runs each strategy in its own **virtual sub-portfolio** inside the real broker account. Strategies trade only their own positions and **never touch manual holdings**.
 - Desktop and mobile UI; local first (Docker Compose), later a remote server reachable only over a private network.
 
-**Status:** Phase 1 (data and brokers) in progress; Phase 0 merged. Stack choices are accepted from the research report; see [`docs/decisions.md`](docs/decisions.md). Build prompts live in [`docs/prompts/`](docs/prompts/00-master-prompt.md) and the owner's inputs in [`docs/project-context.md`](docs/project-context.md).
+**Status:** Phase 3 (research core) in progress; Phases 0–2 merged. Stack choices are accepted from the research report; see [`docs/decisions.md`](docs/decisions.md). Build prompts live in [`docs/prompts/`](docs/prompts/00-master-prompt.md) and the owner's inputs in [`docs/project-context.md`](docs/project-context.md).
 
 ## System map
 
@@ -27,7 +27,7 @@ Stack choices are accepted per [`docs/decisions.md`](docs/decisions.md) (researc
 | Market data | `services/marketdata/` | Backfill, streaming, bar building, gap repair, lake + cache writes | Go (D1); Alpaca SIP + FMP (D20) |
 | Ledger | `services/ledger/` | Real account snapshots, virtual strategy ledgers, `manual` bucket, lots, reconciliation | Go (D1); IBKR bot account + Alpaca symbol segregation (D19) |
 | Execution | `services/execution/` | Strategy runtime / signal intake, OMS state machine, pre-trade risk, kill switches, routing and margin guard | Go (D1); routing per D30 |
-| Context data | `services/context-data/` | News, sentiment, macro, earnings, regime series | Python |
+| Context data | `services/context-data/` | Point-in-time context: FMP calendars/earnings/statement snapshots, ALFRED vintages, FINRA short interest, EDGAR filings, Alpaca news (via broker-gateway) with quarantined sentiment, regimes; published on `ctx.<kind>`, written to the lake by marketdata | Python (ADR-0032, ADR-0033) |
 | Strategy runtime | `services/strategy-runtime/` | Runs `tbcore.strategy` strategies on final bars and publishes intents on `ord.intent` (never talks to brokers) | Python (D1, D44) |
 | ML | `services/ml/` | Training jobs, model zoo, inference | Python; MLflow 3 (D8), Optuna 5 (D9), LightGBM (D23); native launchd workers on macOS (D29) |
 | Backtest | `services/backtest/` | Vectorized + event-driven backtests, validation stats | Python, custom two-tier on `tbcore` (D7) |
@@ -88,6 +88,9 @@ Prerequisites: Docker (Colima on the Mac Mini, ADR-0013), `make`, `git`. Develop
 | `make port-check` / `make check-arm64` | Loopback-only ports / arm64 availability of every image |
 | `make docs-check` | File-map coverage and same-commit documentation rules |
 | `make gen-calendar` | Regenerate the shared XNYS session table (Go + Python) from `exchange_calendars` |
+| `make ctx-backfill SOURCE=… START=… END=…` | Context-data backfill of one source in the running stack (idempotent) |
+| `make test-ctx-live` | Opt-in context-data tests against real APIs (FINRA, EDGAR; FRED/FMP with keys) |
+| `make spike-v6` | Verify-early V6: FMP earnings report timing in `/stable` (needs `.secrets/fmp_api_key`) |
 | `make perf` | Storage performance targets (lake load, as-of join) on this machine |
 | `make spike-v4` | Verify-early V4: atomic rename across the lake bind mount (Mac Mini) |
 

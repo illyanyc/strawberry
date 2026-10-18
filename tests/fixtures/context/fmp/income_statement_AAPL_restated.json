@@ -1,0 +1,34 @@
+[
+ {
+  "date": "2026-06-27",
+  "symbol": "AAPL",
+  "reportedCurrency": "USD",
+  "cik": "0000320193",
+  "filingDate": "2026-08-01",
+  "acceptedDate": "2026-07-31 18:04:43",
+  "fiscalYear": "2026",
+  "period": "Q3",
+  "revenue": 94930000000,
+  "netIncome": 23434000000,
+  "eps": 1.58,
+  "epsDiluted": 1.57,
+  "weightedAverageShsOut": 14840000000,
+  "weightedAverageShsOutDil": 14948500000
+ },
+ {
+  "date": "2026-03-28",
+  "symbol": "AAPL",
+  "reportedCurrency": "USD",
+  "cik": "0000320193",
+  "filingDate": "2026-05-02",
+  "acceptedDate": "2026-05-01 18:03:12",
+  "fiscalYear": "2026",
+  "period": "Q2",
+  "revenue": 95360000000,
+  "netIncome": 24510000000,
+  "eps": 1.63,
+  "epsDiluted": 1.64,
+  "weightedAverageShsOut": 14990000000,
+  "weightedAverageShsOutDil": 15080000000
+ }
+]

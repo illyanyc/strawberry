@@ -48,3 +48,5 @@ playwright-report/
 # IBKR spike V1 output (make test-ibkr-paper)
 v1-order-ref*.json
 paper-gate-evidence.json
+# Spike V6 output (make spike-v6)
+spike-v6-report.json

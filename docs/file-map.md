@@ -13,7 +13,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `AGENTS.md` | Exists | Agent entry point: system map, where things live, run/test, documentation protocol |
 | `README.md` | Exists | Short project intro and quickstart for humans; points to `AGENTS.md` and `docs/` |
 | `CHANGELOG.md` | Exists | Keep a Changelog; every behavioral or structural change gets an `[Unreleased]` entry |
-| `Makefile` | Exists | Developer entry points (`make help`): tools, docs-check (more targets land with each Phase 0 section) |
+| `Makefile` | Exists | Developer entry points (`make help`): tools, stack, tests, lint, docs-check, spikes, context backfill |
 | `.gitignore` | Exists | Ignores local tooling (`.tools/`), runtime secrets (`.secrets/`), backups, build output, env files |
 | `.gitattributes` | Exists | LF line endings; marks generated code and lockfiles as generated |
 | `.editorconfig` | Exists | Editor whitespace conventions per language |
@@ -120,8 +120,9 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0027-monitoring-ops-slice.md` | Exists | ADR (D45): Alertmanager as the only router, monitor bridge for bus alerts, daily reports, trading rules and dashboard |
 | `docs/adr/0028-ui-trading-slice-charts-and-bff.md` | Exists | ADR (D46, settles D12 price charts): Lightweight Charts under the strict CSP, protojson BFF resources typed by generated `*Json` types, new owner actions, SSE chart stream |
 | `docs/adr/0032-context-data-pipeline-and-point-in-time-rules.md` | Exists | ADR (D50): context data through `ctx.<kind>` into the lake via marketdata, record keys, snapshot stamping, per-source availability rules, sources, `tbcore.context` |
+| `docs/adr/0033-quarantined-news-sentiment.md` | Exists | ADR (D51): quarantined news scoring (lexicon baseline, optional local model), contamination flags |
 | `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2): NATS JetStream, `sync_interval: always`, stream layout, outbox |
-| `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, IBKR weekly 2FA / manual VNC login / gateway outages (`ibkr-weekly-2fa.md`), broker outage, market data (stale, slow, gaps, reconciliation breaches, corporate-action disputes), IBKR weekly 2FA, ledger reconciliation break, kill switches, halts, and dead-man alerts |
+| `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, IBKR weekly 2FA / manual VNC login / gateway outages (`ibkr-weekly-2fa.md`), broker outage, market data (stale, slow, gaps, reconciliation breaches, corporate-action disputes), context data (stale sources, poison events, backfills, scoring model), IBKR weekly 2FA, ledger reconciliation break, kill switches, halts, and dead-man alerts |
 | `docs/threat-model.md` | Exists | Assets, actors, entry points, STRIDE table mapped to SE-/OP- rules, residual risks |
 
 ## Contracts: `contracts/`
@@ -159,7 +160,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `services/broker-gateway-ibkr/` | Exists | Python (`ib_async`): IBKR adapter serving `BrokerGatewayService` per environment; session supervision across IB Gateway daily/weekly resets, orders with attribution in `orderRef`, executions + commissions, snapshots, pacing; fake gateways, recorded-format fixtures, opt-in paper suite. Layout in [`services/broker-gateway-ibkr/AGENTS.md`](../services/broker-gateway-ibkr/AGENTS.md) |
 | `services/execution/` | Exists | Go: OMS (intents, order state machine, protective orders, exits, order reconciliation, startup recovery), pre-trade risk gate (`internal/risk`), D30 routing and margin guard, PDT guard, latched kill switches, dead-man, intraday lifecycle, `ExecutionService` gRPC; public wiring package `app/` (used by the paper harness). [`AGENTS.md`](../services/execution/AGENTS.md) |
 | `services/ledger/` | Exists | Go: event-sourced real-account and per-strategy virtual ledgers, `manual` bucket, FIFO lots, broker-lot shadow ledger, reservations, allocations, reconciliation and breaks, corporate actions, equity curves, wash-sale flags; `LedgerService` gRPC; public wiring package `app/` (used by the paper harness). Layout in [`services/ledger/AGENTS.md`](../services/ledger/AGENTS.md) |
-| `services/context-data/` | Exists (placeholder) | Python on `tbcore`: ops surface; context data in Phase 3 |
+| `services/context-data/` | Exists | Python on `tbcore`: point-in-time context data (FMP calendars/earnings/statements, ALFRED vintages, FINRA short interest, EDGAR filings, Alpaca news via broker-gateway with quarantined sentiment, regimes) published on `ctx.<kind>`; snapshot stamping, freshness, spike V6. [`AGENTS.md`](../services/context-data/AGENTS.md) |
 | `services/strategy-runtime/` | Exists | Python on `tbcore`: hosts `tbcore.strategy` strategies from the registry seed, consumes final bars and own ledger updates, publishes intents on `ord.intent`, heartbeat for the dead-man (ADR-0026). [`AGENTS.md`](../services/strategy-runtime/AGENTS.md) |
 | `services/monitor/` | Exists | Python on `tbcore`: Phase 2 ops slice (bus alerts → Alertmanager, pre-market checklist, end-of-day summary); drift/divergence in Phases 4–5. [`AGENTS.md`](../services/monitor/AGENTS.md) |
 | `services/assistant/` | Exists (placeholder) | Python on `tbcore`: ops surface; assistant in Phase 4 |
@@ -187,7 +188,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `tests/python/` | Exists | Cross-package Python tests (placeholder services' ops surface, alert rules have runbooks) |
 | `tests/paper/` | Exists | Go module: Phase 2 paper harness (simulated Alpaca- and IBKR-shaped accounts behind the adapter engine, ledger, execution, embedded NATS, gRPC, shared virtual clock) and the Gate 2 tests, including the five-session ORB gate that runs the real Python strategy runtime (`make paper-gate`) |
 | `tests/e2e/` | Exists | Go end-to-end test against the running stack: passkey setup/login, step-up, credential storage with leak canary, SSE, audit (`make e2e`, used by the smoke test) |
-| `tests/fixtures/` | Exists | Fixtures (no account data): `alpaca/` (bars, corporate actions, data-stream messages, news; README explains provenance), `lake/` (Go-written sample lake with a revision and a staged file, read by Python tests), `lake_context/` (Go-written context partition: a compacted vintage plus a staged revision, read by `tbcore.context` tests), `dq/` (injected-defect bars + expected report shared by Go and Python), `fmp/` (`/stable` response shapes for the FMP client tests) |
+| `tests/fixtures/` | Exists | Fixtures (no account data): `alpaca/` (bars, corporate actions, data-stream messages, news; README explains provenance), `lake/` (Go-written sample lake with a revision and a staged file, read by Python tests), `lake_context/` (Go-written context partition: a compacted vintage plus a staged revision, read by `tbcore.context` tests), `dq/` (injected-defect bars + expected report shared by Go and Python), `fmp/` (`/stable` response shapes for the FMP client tests), `context/` (context-data: recorded FINRA and EDGAR responses, documented-shape FMP/ALFRED responses, local-model replies; README explains provenance) |
 
 ## Infra: `infra/` (agent notes in `infra/AGENTS.md`)
 

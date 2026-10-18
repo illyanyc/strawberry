@@ -1,0 +1,7 @@
+[
+  {"date": "2026-09-11 12:30:00", "country": "US", "event": "CPI YoY", "currency": "USD", "previous": 2.9, "estimate": 2.8, "actual": 2.7, "change": -0.2, "impact": "High", "changePercentage": -6.897, "unit": "%"},
+  {"date": "2026-09-11 12:30:00", "country": "US", "event": "Core CPI MoM", "currency": "USD", "previous": 0.3, "estimate": 0.3, "actual": 0.2, "change": -0.1, "impact": "High", "changePercentage": -33.33, "unit": "%"},
+  {"date": "2026-09-16 18:00:00", "country": "US", "event": "Fed Interest Rate Decision", "currency": "USD", "previous": 4.25, "estimate": 4.0, "actual": null, "change": null, "impact": "High", "changePercentage": null, "unit": "%"},
+  {"date": "2026-09-11 06:00:00", "country": "DE", "event": "Inflation Rate YoY Final", "currency": "EUR", "previous": 2.2, "estimate": 2.1, "actual": 2.1, "change": -0.1, "impact": "Medium", "changePercentage": -4.5, "unit": "%"},
+  {"date": "2026-09-15 20:00:00", "country": "US", "event": "Baker Hughes Oil Rig Count", "currency": "USD", "previous": 412, "estimate": null, "actual": 409, "change": -3, "impact": "Low", "changePercentage": -0.73, "unit": ""}
+]

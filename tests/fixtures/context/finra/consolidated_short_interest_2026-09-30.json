@@ -1,0 +1,50 @@
+[
+    {
+        "stockSplitFlag": null,
+        "previousShortPositionQuantity": 128753092,
+        "averageDailyVolumeQuantity": 39858260,
+        "issueName": "Apple Inc. Common Stock",
+        "currentShortPositionQuantity": 120763539,
+        "changePreviousNumber": -7989553,
+        "accountingYearMonthNumber": 20260930,
+        "settlementDate": "2026-09-30",
+        "marketClassCode": "NNM",
+        "symbolCode": "AAPL",
+        "daysToCoverQuantity": 3.03,
+        "issuerServicesGroupExchangeCode": "R",
+        "revisionFlag": null,
+        "changePercent": -6.21
+    },
+    {
+        "stockSplitFlag": null,
+        "previousShortPositionQuantity": 67346414,
+        "averageDailyVolumeQuantity": 23981233,
+        "issueName": "Microsoft Corporation Common S",
+        "currentShortPositionQuantity": 61133927,
+        "changePreviousNumber": -6212487,
+        "accountingYearMonthNumber": 20260930,
+        "settlementDate": "2026-09-30",
+        "marketClassCode": "NNM",
+        "symbolCode": "MSFT",
+        "daysToCoverQuantity": 2.55,
+        "issuerServicesGroupExchangeCode": "R",
+        "revisionFlag": null,
+        "changePercent": -9.22
+    },
+    {
+        "stockSplitFlag": null,
+        "previousShortPositionQuantity": 294225803,
+        "averageDailyVolumeQuantity": 110290688,
+        "issueName": "NVIDIA Corporation Common Stoc",
+        "currentShortPositionQuantity": 311389688,
+        "changePreviousNumber": 17163885,
+        "accountingYearMonthNumber": 20260930,
+        "settlementDate": "2026-09-30",
+        "marketClassCode": "NNM",
+        "symbolCode": "NVDA",
+        "daysToCoverQuantity": 2.82,
+        "issuerServicesGroupExchangeCode": "R",
+        "revisionFlag": null,
+        "changePercent": 5.83
+    }
+]

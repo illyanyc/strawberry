@@ -96,6 +96,7 @@ secrets:
   nats_ledger_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_ledger_password" }
   nats_monitor_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_monitor_password" }
   nats_strategy_runtime_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_strategy_runtime_password" }
+  nats_context_data_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_context_data_password" }
   nats_ops_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_ops_password" }
   valkey_users_acl: { file: "${TB_SECRETS_DIR:-../../.secrets}/valkey_users.acl" }
   valkey_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/valkey_password" }
@@ -112,6 +113,7 @@ secrets:
   svc_context_data_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_context_data_ed25519.pub" }
   nats_broker_gateway_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_broker_gateway_password" }
   fmp_api_key: { file: "${TB_SECRETS_DIR:-../../.secrets}/fmp_api_key" }
+  fred_api_key: { file: "${TB_SECRETS_DIR:-../../.secrets}/fred_api_key" }
   grafana_admin_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/grafana_admin_password" }
   backup_age_recipient: { file: "${TB_SECRETS_DIR:-../../.secrets}/backup_age_recipient" }
   backup_age_identity: { file: "${TB_SECRETS_DIR:-../../.secrets}/backup_age_identity" }
@@ -334,15 +336,38 @@ services:
     depends_on: { db-init: { condition: service_completed_successfully }, bus-init: { condition: service_completed_successfully } }
     deploy: { resources: { limits: { memory: 256m } } }
 
+  # Section 09 (ADR-0032): point-in-time context data published on ctx.<kind>; marketdata writes it
+  # to the lake. Reads the lake (read-only) for reference data and stored versions. Alpaca news
+  # comes through broker-gateway (credential custody); FMP/FRED keys hold "unset" until the owner
+  # writes them, and EDGAR stays off until TB_CTX_SEC_USER_AGENT is set.
   context-data:
     <<: *hardening
     profiles: [core]
     image: strawberry/context-data:${TB_VERSION:-dev}
     build: { <<: *py-build, args: { SERVICE: context-data } }
-    environment: { <<: *common-env, TB_SERVICE: context-data }
-    networks: [backend]
+    # Same UID/GID as marketdata, the lake writer: lake files are 0640 and directories 0750.
+    user: "${TB_HOST_UID:-65532}:${TB_HOST_GID:-65532}"
+    environment:
+      <<: *common-env
+      TB_SERVICE: context-data
+      TB_NATS_URL: "nats://nats:4222"
+      TB_NATS_USER: context_data
+      TB_LAKE_DIR: /data/lake
+      TB_BROKER_GATEWAY_ADDR: broker-gateway:9090
+      TB_CTX_UNIVERSE: ${TB_UNIVERSE:-dev}
+      TB_CTX_FMP_RATE_PER_MIN: ${TB_CTX_FMP_RATE_PER_MIN:-50}
+      TB_CTX_SEC_USER_AGENT: ${TB_CTX_SEC_USER_AGENT:-}
+      TB_CTX_SENTIMENT_SCORER: ${TB_CTX_SENTIMENT_SCORER:-lexicon}
+      TB_CTX_LLM_URL: ${TB_CTX_LLM_URL:-}
+      TB_CTX_LLM_MODEL: ${TB_CTX_LLM_MODEL:-}
+      TB_CTX_LLM_MODEL_VERSION: ${TB_CTX_LLM_MODEL_VERSION:-}
+      TB_CTX_LLM_TRAINING_CUTOFF: ${TB_CTX_LLM_TRAINING_CUTOFF:-}
+    secrets: [nats_context_data_password, svc_context_data_ed25519, fmp_api_key, fred_api_key]
+    volumes: ["${TB_LAKE_DIR:-../../data/lake}:/data/lake:ro"]
+    networks: [backend, edge]
     healthcheck: *py-healthcheck
-    deploy: { resources: { limits: { memory: 256m } } }
+    depends_on: { bus-init: { condition: service_completed_successfully } }
+    deploy: { resources: { limits: { memory: 768m } } }
 
   # Section 07 (ADR-0026): runs tbcore.strategy strategies from the registry seed on final bars and
   # publishes intents on ord.intent. It never talks to brokers.

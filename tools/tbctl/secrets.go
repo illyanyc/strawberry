@@ -23,6 +23,8 @@ var natsUsers = map[string]struct{ pub, sub []string }{
 	// marketdata also persists context events (ctx.>) to the lake as its only writer (ADR-0032).
 	"marketdata": {pub: []string{"md.>", "ref.>", "alert.>", "sys.health.marketdata", "sys.health.alpaca.>", "sys.health.fmp", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
 		sub: []string{"_INBOX.>", "ctx.>"}},
+	// context-data publishes point-in-time context events and its source health (section 09).
+	"context_data": {pub: []string{"ctx.>", "alert.>", "sys.health.context-data", "sys.health.ctx.>"}, sub: []string{"_INBOX.>"}},
 	// JetStream pull consumers need the consumer API and ack subjects ($JS.API.CONSUMER.>,
 	// $JS.API.STREAM.INFO.>, $JS.ACK.>).
 	"execution": {pub: []string{"ord.>", "risk.kill", "alert.>", "sys.health.execution", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
@@ -164,7 +166,7 @@ func initSecrets(dir string) error {
 	// Optional integrations: placeholders keep Compose happy until the owner fills them in. The IBKR
 	// login files are mounted only into the matching ib-gateway container (IB-070).
 	for _, name := range []string{
-		"pushover_user_key", "pushover_app_token", "cloudflared_tunnel_token", "fmp_api_key",
+		"pushover_user_key", "pushover_app_token", "cloudflared_tunnel_token", "fmp_api_key", "fred_api_key",
 		"ibkr_paper_username", "ibkr_paper_password", "ibkr_live_username", "ibkr_live_password",
 	} {
 		if err := put(name, func() (string, error) { return "unset", nil }); err != nil {
