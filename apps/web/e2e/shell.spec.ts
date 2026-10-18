@@ -1,20 +1,16 @@
 import { createHmac } from "node:crypto";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 
-import { expect, type Page, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+
+import { addVirtualAuthenticator, AUTH_STATE, SHOTS } from "./helpers";
 
 // Phase 0 shell slice and the Phase 2 trading slice end to end in a real browser against the running stack (`make up`), using
 // Chrome's virtual authenticator for passkeys. Needs a fresh stack and TB_E2E_SETUP_TOKEN.
 // Screenshots go to TB_E2E_SCREENSHOTS (default test-results/screens).
 
-const shots = process.env.TB_E2E_SCREENSHOTS ?? "test-results/screens";
-
-async function addVirtualAuthenticator(page: Page) {
-  const cdp = await page.context().newCDPSession(page);
-  await cdp.send("WebAuthn.enable");
-  await cdp.send("WebAuthn.addVirtualAuthenticator", {
-    options: { protocol: "ctap2", transport: "internal", hasResidentKey: true, hasUserVerification: true, isUserVerified: true, automaticPresenceSimulation: true },
-  });
-}
+const shots = SHOTS;
 
 /** RFC 6238 TOTP (SHA-1, 30 s, 6 digits) for the secret shown during enrollment. */
 function totp(base32: string, offsetSteps = 0): string {
@@ -38,7 +34,7 @@ test("owner setup, passkey and TOTP login, step-up, credentials, audit", async (
   page.on("console", (m) => {
     if (m.type() === "error" && /Content Security Policy/i.test(m.text())) cspErrors.push(m.text());
   });
-  await addVirtualAuthenticator(page);
+  const auth = await addVirtualAuthenticator(page);
 
   // First-run setup → passkey → recovery codes.
   await page.goto("/");
@@ -49,6 +45,7 @@ test("owner setup, passkey and TOTP login, step-up, credentials, audit", async (
   await page.screenshot({ path: `${shots}/01-setup.png` });
   await page.getByRole("button", { name: "Create passkey" }).click();
   await expect(page.getByRole("list", { name: "Recovery codes" }).getByRole("listitem")).toHaveCount(10);
+  const recoveryCodes = (await page.getByRole("list", { name: "Recovery codes" }).getByRole("listitem").allInnerTexts()).map((c) => c.trim());
   await page.screenshot({ path: `${shots}/02-recovery-codes.png` });
   await page.getByRole("button", { name: /I saved them/ }).click();
 
@@ -175,4 +172,9 @@ test("owner setup, passkey and TOTP login, step-up, credentials, audit", async (
   await expect(page.getByText("No kill switch is engaged.")).toBeVisible();
   await page.screenshot({ path: `${shots}/16-risk-released.png`, fullPage: true });
   expect(cspErrors, "no CSP violations").toEqual([]);
+
+  // Hand the passkey and the unused recovery codes to the Phase 5 journeys on this stack.
+  const { credentials } = await auth.cdp.send("WebAuthn.getCredentials", { authenticatorId: auth.authenticatorId });
+  mkdirSync(dirname(AUTH_STATE), { recursive: true });
+  writeFileSync(AUTH_STATE, JSON.stringify({ credentials, recoveryCodes }), { mode: 0o600 });
 });
