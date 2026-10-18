@@ -24,3 +24,17 @@ message Signal {
   string feature_snapshot_id = 10;
   string correlation_id = 11;
 }
+
+// RuntimeHeartbeat is published by the strategy runtime on sys.health.strategy-runtime (core NATS)
+// every few seconds and after every processed bar batch. Execution's dead-man check watches it
+// (RM-017); tests use last_bar_available_at to know a bar was processed.
+message RuntimeHeartbeat {
+  string runtime_id = 1;
+  repeated string strategy_ids = 2;
+  // available_at of the newest bar processed, UTC ns.
+  int64 last_bar_available_at = 3;
+  int64 bars_processed = 4;
+  int64 intents_published = 5;
+  int64 sent_at = 6;
+  string version = 7;
+}

@@ -41,7 +41,7 @@ stateDiagram-v2
 | SM-011 | Backtest strategy code MUST be the same code that runs live (shared strategy API in `libs/py/tbcore`). | Specified | — |
 | SM-012 | Strategy modes are `disabled`, `shadow`, `paper`, `live`, `halted`. Owner actions may set `disabled`, `shadow`, `paper`, `halted`; `live` only through the section 15 go-live flow (SM-004). A paper strategy may only send to paper accounts and a live strategy only to live accounts, and only to its registered account. | Implemented | execution `SetMode`, risk `mode` |
 | SM-013 | A `shadow` strategy's intents are evaluated by the full gate and recorded with `shadow=true`, but never reserve capital or reach a broker. Hypothetical fills are Planned (section 08 parity). | Implemented | OMS `process` |
-| SM-014 | Strategies see only their own virtual portfolio (ledger updates filtered to their owner) and data with `available_at <= decision_time`; the runtime uses `tbcore.strategy` so backtests run the same code (SM-011). | Specified | — |
+| SM-014 | Strategies see only their own virtual portfolio (ledger updates filtered to their owner) and data with `available_at <= decision_time`; the runtime uses `tbcore.strategy` so backtests run the same code (SM-011). | Implemented | `tbcore.strategy`, `services/strategy-runtime` runner; `test_runner_sees_only_its_own_positions_sm014`, `test_orb_ignores_bars_from_the_future_df002` |
 
 ## Invariants
 

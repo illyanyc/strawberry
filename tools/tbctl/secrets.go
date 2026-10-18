@@ -31,7 +31,11 @@ var natsUsers = map[string]struct{ pub, sub []string }{
 	// reconciliation requests through their outbox relay (ADR-0018).
 	"broker_gateway":      {pub: []string{"ord.update.>", "exec.>", "acct.snapshot.>", "recon.request.>", "alert.>", "sys.health.broker-gateway"}, sub: []string{"_INBOX.>", "sys.health.execution"}},
 	"broker_gateway_ibkr": {pub: []string{"ord.update.>", "exec.>", "acct.snapshot.>", "recon.request.>", "alert.>", "sys.health.broker-gateway-ibkr"}, sub: []string{"_INBOX.>"}},
-	"ops":                 {pub: []string{">"}, sub: []string{">"}},
+	// The strategy runtime only publishes intents and its heartbeat; it reads bars and its own
+	// strategies' ledger updates (ADR-0026).
+	"strategy_runtime": {pub: []string{"ord.intent", "sys.health.strategy-runtime", "alert.>", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
+		sub: []string{"_INBOX.>", "md.bar.>", "ledger.update.>"}},
+	"ops": {pub: []string{">"}, sub: []string{">"}},
 }
 
 // signingServices get Ed25519 service-token keys (SE-040).

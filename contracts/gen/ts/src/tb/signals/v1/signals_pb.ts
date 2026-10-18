@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file tb/signals/v1/signals.proto.
  */
 export const file_tb_signals_v1_signals: GenFile = /*@__PURE__*/
-  fileDesc("Cht0Yi9zaWduYWxzL3YxL3NpZ25hbHMucHJvdG8SDXRiLnNpZ25hbHMudjEihAIKBlNpZ25hbBIRCglzaWduYWxfaWQYASABKAkSEwoLc3RyYXRlZ3lfaWQYAiABKAkSFQoNbW9kZWxfdmVyc2lvbhgDIAEoCRIVCg1pbnN0cnVtZW50X2lkGAQgASgJEg0KBWFzX29mGAUgASgDEisKCWRpcmVjdGlvbhgGIAEoDjIYLnRiLnNpZ25hbHMudjEuRGlyZWN0aW9uEg0KBXNjb3JlGAcgASgBEhMKC3Byb2JhYmlsaXR5GAggASgBEg8KB2hvcml6b24YCSABKAMSGwoTZmVhdHVyZV9zbmFwc2hvdF9pZBgKIAEoCRIWCg5jb3JyZWxhdGlvbl9pZBgLIAEoCSpjCglEaXJlY3Rpb24SGQoVRElSRUNUSU9OX1VOU1BFQ0lGSUVEEAASEgoORElSRUNUSU9OX0xPTkcQARITCg9ESVJFQ1RJT05fU0hPUlQQAhISCg5ESVJFQ1RJT05fRkxBVBADQsABChFjb20udGIuc2lnbmFscy52MUIMU2lnbmFsc1Byb3RvUAFaR2dpdGh1Yi5jb20vaWxseWFueWMvc3RyYXdiZXJyeS9jb250cmFjdHMvZ2VuL2dvL3RiL3NpZ25hbHMvdjE7c2lnbmFsc3YxogIDVFNYqgINVGIuU2lnbmFscy5WMcoCDVRiXFNpZ25hbHNcVjHiAhlUYlxTaWduYWxzXFYxXEdQQk1ldGFkYXRh6gIPVGI6OlNpZ25hbHM6OlYxYgZwcm90bzM");
+  fileDesc("Cht0Yi9zaWduYWxzL3YxL3NpZ25hbHMucHJvdG8SDXRiLnNpZ25hbHMudjEihAIKBlNpZ25hbBIRCglzaWduYWxfaWQYASABKAkSEwoLc3RyYXRlZ3lfaWQYAiABKAkSFQoNbW9kZWxfdmVyc2lvbhgDIAEoCRIVCg1pbnN0cnVtZW50X2lkGAQgASgJEg0KBWFzX29mGAUgASgDEisKCWRpcmVjdGlvbhgGIAEoDjIYLnRiLnNpZ25hbHMudjEuRGlyZWN0aW9uEg0KBXNjb3JlGAcgASgBEhMKC3Byb2JhYmlsaXR5GAggASgBEg8KB2hvcml6b24YCSABKAMSGwoTZmVhdHVyZV9zbmFwc2hvdF9pZBgKIAEoCRIWCg5jb3JyZWxhdGlvbl9pZBgLIAEoCSKwAQoQUnVudGltZUhlYXJ0YmVhdBISCgpydW50aW1lX2lkGAEgASgJEhQKDHN0cmF0ZWd5X2lkcxgCIAMoCRIdChVsYXN0X2Jhcl9hdmFpbGFibGVfYXQYAyABKAMSFgoOYmFyc19wcm9jZXNzZWQYBCABKAMSGQoRaW50ZW50c19wdWJsaXNoZWQYBSABKAMSDwoHc2VudF9hdBgGIAEoAxIPCgd2ZXJzaW9uGAcgASgJKmMKCURpcmVjdGlvbhIZChVESVJFQ1RJT05fVU5TUEVDSUZJRUQQABISCg5ESVJFQ1RJT05fTE9ORxABEhMKD0RJUkVDVElPTl9TSE9SVBACEhIKDkRJUkVDVElPTl9GTEFUEANCwAEKEWNvbS50Yi5zaWduYWxzLnYxQgxTaWduYWxzUHJvdG9QAVpHZ2l0aHViLmNvbS9pbGx5YW55Yy9zdHJhd2JlcnJ5L2NvbnRyYWN0cy9nZW4vZ28vdGIvc2lnbmFscy92MTtzaWduYWxzdjGiAgNUU1iqAg1UYi5TaWduYWxzLlYxygINVGJcU2lnbmFsc1xWMeICGVRiXFNpZ25hbHNcVjFcR1BCTWV0YWRhdGHqAg9UYjo6U2lnbmFsczo6VjFiBnByb3RvMw");
 
 /**
  * @generated from message tb.signals.v1.Signal
@@ -82,6 +82,59 @@ export type Signal = Message<"tb.signals.v1.Signal"> & {
  */
 export const SignalSchema: GenMessage<Signal> = /*@__PURE__*/
   messageDesc(file_tb_signals_v1_signals, 0);
+
+/**
+ * RuntimeHeartbeat is published by the strategy runtime on sys.health.strategy-runtime (core NATS)
+ * every few seconds and after every processed bar batch. Execution's dead-man check watches it
+ * (RM-017); tests use last_bar_available_at to know a bar was processed.
+ *
+ * @generated from message tb.signals.v1.RuntimeHeartbeat
+ */
+export type RuntimeHeartbeat = Message<"tb.signals.v1.RuntimeHeartbeat"> & {
+  /**
+   * @generated from field: string runtime_id = 1;
+   */
+  runtimeId: string;
+
+  /**
+   * @generated from field: repeated string strategy_ids = 2;
+   */
+  strategyIds: string[];
+
+  /**
+   * available_at of the newest bar processed, UTC ns.
+   *
+   * @generated from field: int64 last_bar_available_at = 3;
+   */
+  lastBarAvailableAt: bigint;
+
+  /**
+   * @generated from field: int64 bars_processed = 4;
+   */
+  barsProcessed: bigint;
+
+  /**
+   * @generated from field: int64 intents_published = 5;
+   */
+  intentsPublished: bigint;
+
+  /**
+   * @generated from field: int64 sent_at = 6;
+   */
+  sentAt: bigint;
+
+  /**
+   * @generated from field: string version = 7;
+   */
+  version: string;
+};
+
+/**
+ * Describes the message tb.signals.v1.RuntimeHeartbeat.
+ * Use `create(RuntimeHeartbeatSchema)` to create a new message.
+ */
+export const RuntimeHeartbeatSchema: GenMessage<RuntimeHeartbeat> = /*@__PURE__*/
+  messageDesc(file_tb_signals_v1_signals, 1);
 
 /**
  * @generated from enum tb.signals.v1.Direction

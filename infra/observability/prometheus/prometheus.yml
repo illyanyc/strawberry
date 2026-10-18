@@ -32,6 +32,8 @@ scrape_configs:
         labels: { service: context-data, tier: core }
       - targets: ["monitor:8081"]
         labels: { service: monitor, tier: core }
+      - targets: ["strategy-runtime:8081"]
+        labels: { service: strategy-runtime, tier: core }
 
   - job_name: infra
     static_configs:

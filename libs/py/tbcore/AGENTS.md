@@ -16,6 +16,7 @@ Shared Python library. It holds the code that MUST be shared by training, backte
 | `src/tbcore/features/core.py` | `@feature`, `FeatureDef`, `FeatureSet` (content hash), `compute` (the single computation path) | DF-003, DF-004, DF-013 |
 | `src/tbcore/features/library.py` | 16 MVP features, `mvp_feature_set` | DF-013 |
 | `src/tbcore/features/store.py` | `materialize` (snapshots), `gc_snapshots`, `OnlineFeatureEngine`, `compare`, `parity_check` | DF-002, DF-004, DF-009 |
+| `src/tbcore/strategy/` | Strategy API (`Strategy`, `StrategyContext`, `Bar`, `Intent`, deterministic `new_ulid`), `fixed_fractional_qty`, `OpeningRangeBreakout` (Phase 2 baseline) | SM-011, SM-014, DF-002, RM-010 |
 | `tests/` | Unit, property, parity, leakage, perf (`TB_PERF=1`) tests; `lakekit.py` writes test lakes in the production layout | — |
 
 ## Run and test

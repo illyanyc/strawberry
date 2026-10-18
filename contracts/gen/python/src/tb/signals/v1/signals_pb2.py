@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1btb/signals/v1/signals.proto\x12\rtb.signals.v1\"\x86\x03\n\x06Signal\x12\x1b\n\tsignal_id\x18\x01 \x01(\tR\x08signalId\x12\x1f\n\x0bstrategy_id\x18\x02 \x01(\tR\nstrategyId\x12#\n\rmodel_version\x18\x03 \x01(\tR\x0cmodelVersion\x12#\n\rinstrument_id\x18\x04 \x01(\tR\x0cinstrumentId\x12\x13\n\x05\x61s_of\x18\x05 \x01(\x03R\x04\x61sOf\x12\x36\n\tdirection\x18\x06 \x01(\x0e\x32\x18.tb.signals.v1.DirectionR\tdirection\x12\x14\n\x05score\x18\x07 \x01(\x01R\x05score\x12 \n\x0bprobability\x18\x08 \x01(\x01R\x0bprobability\x12\x18\n\x07horizon\x18\t \x01(\x03R\x07horizon\x12.\n\x13\x66\x65\x61ture_snapshot_id\x18\n \x01(\tR\x11\x66\x65\x61tureSnapshotId\x12%\n\x0e\x63orrelation_id\x18\x0b \x01(\tR\rcorrelationId*c\n\tDirection\x12\x19\n\x15\x44IRECTION_UNSPECIFIED\x10\x00\x12\x12\n\x0e\x44IRECTION_LONG\x10\x01\x12\x13\n\x0f\x44IRECTION_SHORT\x10\x02\x12\x12\n\x0e\x44IRECTION_FLAT\x10\x03\x42\xc0\x01\n\x11\x63om.tb.signals.v1B\x0cSignalsProtoP\x01ZGgithub.com/illyanyc/strawberry/contracts/gen/go/tb/signals/v1;signalsv1\xa2\x02\x03TSX\xaa\x02\rTb.Signals.V1\xca\x02\rTb\\Signals\\V1\xe2\x02\x19Tb\\Signals\\V1\\GPBMetadata\xea\x02\x0fTb::Signals::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1btb/signals/v1/signals.proto\x12\rtb.signals.v1\"\x86\x03\n\x06Signal\x12\x1b\n\tsignal_id\x18\x01 \x01(\tR\x08signalId\x12\x1f\n\x0bstrategy_id\x18\x02 \x01(\tR\nstrategyId\x12#\n\rmodel_version\x18\x03 \x01(\tR\x0cmodelVersion\x12#\n\rinstrument_id\x18\x04 \x01(\tR\x0cinstrumentId\x12\x13\n\x05\x61s_of\x18\x05 \x01(\x03R\x04\x61sOf\x12\x36\n\tdirection\x18\x06 \x01(\x0e\x32\x18.tb.signals.v1.DirectionR\tdirection\x12\x14\n\x05score\x18\x07 \x01(\x01R\x05score\x12 \n\x0bprobability\x18\x08 \x01(\x01R\x0bprobability\x12\x18\n\x07horizon\x18\t \x01(\x03R\x07horizon\x12.\n\x13\x66\x65\x61ture_snapshot_id\x18\n \x01(\tR\x11\x66\x65\x61tureSnapshotId\x12%\n\x0e\x63orrelation_id\x18\x0b \x01(\tR\rcorrelationId\"\x8e\x02\n\x10RuntimeHeartbeat\x12\x1d\n\nruntime_id\x18\x01 \x01(\tR\truntimeId\x12!\n\x0cstrategy_ids\x18\x02 \x03(\tR\x0bstrategyIds\x12\x31\n\x15last_bar_available_at\x18\x03 \x01(\x03R\x12lastBarAvailableAt\x12%\n\x0e\x62\x61rs_processed\x18\x04 \x01(\x03R\rbarsProcessed\x12+\n\x11intents_published\x18\x05 \x01(\x03R\x10intentsPublished\x12\x17\n\x07sent_at\x18\x06 \x01(\x03R\x06sentAt\x12\x18\n\x07version\x18\x07 \x01(\tR\x07version*c\n\tDirection\x12\x19\n\x15\x44IRECTION_UNSPECIFIED\x10\x00\x12\x12\n\x0e\x44IRECTION_LONG\x10\x01\x12\x13\n\x0f\x44IRECTION_SHORT\x10\x02\x12\x12\n\x0e\x44IRECTION_FLAT\x10\x03\x42\xc0\x01\n\x11\x63om.tb.signals.v1B\x0cSignalsProtoP\x01ZGgithub.com/illyanyc/strawberry/contracts/gen/go/tb/signals/v1;signalsv1\xa2\x02\x03TSX\xaa\x02\rTb.Signals.V1\xca\x02\rTb\\Signals\\V1\xe2\x02\x19Tb\\Signals\\V1\\GPBMetadata\xea\x02\x0fTb::Signals::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -32,8 +32,10 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'tb.signals.v1.signals_pb2',
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\n\021com.tb.signals.v1B\014SignalsProtoP\001ZGgithub.com/illyanyc/strawberry/contracts/gen/go/tb/signals/v1;signalsv1\242\002\003TSX\252\002\rTb.Signals.V1\312\002\rTb\\Signals\\V1\342\002\031Tb\\Signals\\V1\\GPBMetadata\352\002\017Tb::Signals::V1'
-  _globals['_DIRECTION']._serialized_start=439
-  _globals['_DIRECTION']._serialized_end=538
+  _globals['_DIRECTION']._serialized_start=712
+  _globals['_DIRECTION']._serialized_end=811
   _globals['_SIGNAL']._serialized_start=47
   _globals['_SIGNAL']._serialized_end=437
+  _globals['_RUNTIMEHEARTBEAT']._serialized_start=440
+  _globals['_RUNTIMEHEARTBEAT']._serialized_end=710
 # @@protoc_insertion_point(module_scope)

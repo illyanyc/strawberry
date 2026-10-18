@@ -94,6 +94,7 @@ secrets:
   nats_marketdata_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_marketdata_password" }
   nats_execution_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_execution_password" }
   nats_ledger_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_ledger_password" }
+  nats_strategy_runtime_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_strategy_runtime_password" }
   nats_ops_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_ops_password" }
   valkey_users_acl: { file: "${TB_SECRETS_DIR:-../../.secrets}/valkey_users.acl" }
   valkey_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/valkey_password" }
@@ -338,6 +339,21 @@ services:
     environment: { <<: *common-env, TB_SERVICE: context-data }
     networks: [backend]
     healthcheck: *py-healthcheck
+    deploy: { resources: { limits: { memory: 256m } } }
+
+  # Section 07 (ADR-0026): runs tbcore.strategy strategies from the registry seed on final bars and
+  # publishes intents on ord.intent. It never talks to brokers.
+  strategy-runtime:
+    <<: *hardening
+    profiles: [core]
+    image: strawberry/strategy-runtime:${TB_VERSION:-dev}
+    build: { <<: *py-build, args: { SERVICE: strategy-runtime } }
+    environment: { <<: *common-env, TB_SERVICE: strategy-runtime, TB_NATS_URL: "nats://nats:4222", TB_NATS_USER: strategy_runtime, TB_STRATEGY_REGISTRY: /etc/tb/strategies.json }
+    secrets: [nats_strategy_runtime_password]
+    volumes: ["./strategies.json:/etc/tb/strategies.json:ro"]
+    networks: [backend]
+    healthcheck: *py-healthcheck
+    depends_on: { bus-init: { condition: service_completed_successfully } }
     deploy: { resources: { limits: { memory: 256m } } }
 
   monitor:

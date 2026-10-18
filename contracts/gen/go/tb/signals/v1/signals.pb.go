@@ -200,6 +200,102 @@ func (x *Signal) GetCorrelationId() string {
 	return ""
 }
 
+// RuntimeHeartbeat is published by the strategy runtime on sys.health.strategy-runtime (core NATS)
+// every few seconds and after every processed bar batch. Execution's dead-man check watches it
+// (RM-017); tests use last_bar_available_at to know a bar was processed.
+type RuntimeHeartbeat struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	RuntimeId   string                 `protobuf:"bytes,1,opt,name=runtime_id,json=runtimeId,proto3" json:"runtime_id,omitempty"`
+	StrategyIds []string               `protobuf:"bytes,2,rep,name=strategy_ids,json=strategyIds,proto3" json:"strategy_ids,omitempty"`
+	// available_at of the newest bar processed, UTC ns.
+	LastBarAvailableAt int64  `protobuf:"varint,3,opt,name=last_bar_available_at,json=lastBarAvailableAt,proto3" json:"last_bar_available_at,omitempty"`
+	BarsProcessed      int64  `protobuf:"varint,4,opt,name=bars_processed,json=barsProcessed,proto3" json:"bars_processed,omitempty"`
+	IntentsPublished   int64  `protobuf:"varint,5,opt,name=intents_published,json=intentsPublished,proto3" json:"intents_published,omitempty"`
+	SentAt             int64  `protobuf:"varint,6,opt,name=sent_at,json=sentAt,proto3" json:"sent_at,omitempty"`
+	Version            string `protobuf:"bytes,7,opt,name=version,proto3" json:"version,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *RuntimeHeartbeat) Reset() {
+	*x = RuntimeHeartbeat{}
+	mi := &file_tb_signals_v1_signals_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RuntimeHeartbeat) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RuntimeHeartbeat) ProtoMessage() {}
+
+func (x *RuntimeHeartbeat) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_signals_v1_signals_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RuntimeHeartbeat.ProtoReflect.Descriptor instead.
+func (*RuntimeHeartbeat) Descriptor() ([]byte, []int) {
+	return file_tb_signals_v1_signals_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *RuntimeHeartbeat) GetRuntimeId() string {
+	if x != nil {
+		return x.RuntimeId
+	}
+	return ""
+}
+
+func (x *RuntimeHeartbeat) GetStrategyIds() []string {
+	if x != nil {
+		return x.StrategyIds
+	}
+	return nil
+}
+
+func (x *RuntimeHeartbeat) GetLastBarAvailableAt() int64 {
+	if x != nil {
+		return x.LastBarAvailableAt
+	}
+	return 0
+}
+
+func (x *RuntimeHeartbeat) GetBarsProcessed() int64 {
+	if x != nil {
+		return x.BarsProcessed
+	}
+	return 0
+}
+
+func (x *RuntimeHeartbeat) GetIntentsPublished() int64 {
+	if x != nil {
+		return x.IntentsPublished
+	}
+	return 0
+}
+
+func (x *RuntimeHeartbeat) GetSentAt() int64 {
+	if x != nil {
+		return x.SentAt
+	}
+	return 0
+}
+
+func (x *RuntimeHeartbeat) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
 var File_tb_signals_v1_signals_proto protoreflect.FileDescriptor
 
 const file_tb_signals_v1_signals_proto_rawDesc = "" +
@@ -218,7 +314,16 @@ const file_tb_signals_v1_signals_proto_rawDesc = "" +
 	"\ahorizon\x18\t \x01(\x03R\ahorizon\x12.\n" +
 	"\x13feature_snapshot_id\x18\n" +
 	" \x01(\tR\x11featureSnapshotId\x12%\n" +
-	"\x0ecorrelation_id\x18\v \x01(\tR\rcorrelationId*c\n" +
+	"\x0ecorrelation_id\x18\v \x01(\tR\rcorrelationId\"\x8e\x02\n" +
+	"\x10RuntimeHeartbeat\x12\x1d\n" +
+	"\n" +
+	"runtime_id\x18\x01 \x01(\tR\truntimeId\x12!\n" +
+	"\fstrategy_ids\x18\x02 \x03(\tR\vstrategyIds\x121\n" +
+	"\x15last_bar_available_at\x18\x03 \x01(\x03R\x12lastBarAvailableAt\x12%\n" +
+	"\x0ebars_processed\x18\x04 \x01(\x03R\rbarsProcessed\x12+\n" +
+	"\x11intents_published\x18\x05 \x01(\x03R\x10intentsPublished\x12\x17\n" +
+	"\asent_at\x18\x06 \x01(\x03R\x06sentAt\x12\x18\n" +
+	"\aversion\x18\a \x01(\tR\aversion*c\n" +
 	"\tDirection\x12\x19\n" +
 	"\x15DIRECTION_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eDIRECTION_LONG\x10\x01\x12\x13\n" +
@@ -239,10 +344,11 @@ func file_tb_signals_v1_signals_proto_rawDescGZIP() []byte {
 }
 
 var file_tb_signals_v1_signals_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_tb_signals_v1_signals_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_tb_signals_v1_signals_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_tb_signals_v1_signals_proto_goTypes = []any{
-	(Direction)(0), // 0: tb.signals.v1.Direction
-	(*Signal)(nil), // 1: tb.signals.v1.Signal
+	(Direction)(0),           // 0: tb.signals.v1.Direction
+	(*Signal)(nil),           // 1: tb.signals.v1.Signal
+	(*RuntimeHeartbeat)(nil), // 2: tb.signals.v1.RuntimeHeartbeat
 }
 var file_tb_signals_v1_signals_proto_depIdxs = []int32{
 	0, // 0: tb.signals.v1.Signal.direction:type_name -> tb.signals.v1.Direction
@@ -264,7 +370,7 @@ func file_tb_signals_v1_signals_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tb_signals_v1_signals_proto_rawDesc), len(file_tb_signals_v1_signals_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   1,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

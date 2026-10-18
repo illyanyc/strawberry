@@ -60,6 +60,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Mode** | `backtest`, `paper`, or `live`; carried by every strategy, order, and fill. |
 | **`orderRef`** | Free-text IBKR order field carrying the attribution ID; IBKR's echo of it must match what was sent (IB-001, IB-002, spike V1). |
 | **Opening balance** | The first broker snapshot of an account, booked entirely to `manual` with the broker's average cost and cash (VP-015). |
+| **Opening-range breakout (ORB)** | The Phase 2 rule-based baseline: the first 15-minute bar's range defines the opening range; the first close above its high opens a long with a stop below the range and a 2R target; flat before the close (ADR-0026). |
 | **Outbox (transactional)** | A Postgres table written in the same transaction as the state change it announces; a relay publishes rows to NATS with a dedupe ID, so events are never lost or duplicated by a crash (D2, ADR-0018). |
 | **Natural key (bar)** | `(instrument_id, timeframe, ts_open, feed)`: the identity used for idempotent writes and reader deduplication (ST-004). |
 | **Order intent** | A strategy's or user's request to trade, before risk checks. Becomes an order only after an approved risk decision. |
@@ -95,6 +96,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Startup recovery** | The state after an execution restart in which no intent is approved until every ready account's open orders were reconciled with the broker (OE-020). |
 | **Step-up auth** | Fresh re-authentication required for dangerous actions. |
 | **Strategy registry seed** | JSON file (`infra/compose/strategies.json`) shared by execution and the strategy runtime that registers strategies at startup; it never sets `live` and never changes an existing strategy's mode (SM-001). |
+| **Strategy runtime** | The Python service that runs `tbcore.strategy` strategies on final bars and publishes their intents on `ord.intent`; it sees only its strategies' own positions and never talks to brokers (ADR-0026, SM-014). |
 | **Timing difference** | A broker vs ledger difference inside the reconciliation grace window (60 s, ≥ 2 snapshots); blocks only that instrument and becomes a break if it persists (VP-013). |
 | **Triple-barrier label** | Label set by which of a profit-take, stop-loss, or time barrier is hit first. |
 | **Virtual portfolio (sub-portfolio)** | A strategy's own capital allocation, positions, lots, P&L, and limits, carved out of a real broker account. |

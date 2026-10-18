@@ -23,6 +23,7 @@ COPY services/context-data/ services/context-data/
 COPY services/ml/ services/ml/
 COPY services/monitor/ services/monitor/
 COPY services/optimizer/ services/optimizer/
+COPY services/strategy-runtime/ services/strategy-runtime/
 RUN --mount=type=cache,target=/root/.cache/uv \
     test -n "$SERVICE" && uv sync --frozen --no-dev --no-editable --package "$SERVICE" && \
     ln -s "/app/.venv/bin/$SERVICE" /app/service

@@ -98,7 +98,7 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 | `tb.marketdata.v1` | `MarketDataService` (backfill jobs and status, universe, feed status, `IsFresh`, `GetBars` for charts) ([ADR-0022](../adr/0022-market-data-ingestion.md), [MD-](../business-logic/market-data.md)) | marketdata → api-gateway, execution |
 | `tb.context.v1` | `ContextEvent` | context-data → lake, bus |
 | `tb.features.v1` | `FeatureVector` | feature service → ml-infer |
-| `tb.signals.v1` | `Signal` | ml-infer / strategy → execution |
+| `tb.signals.v1` | `Signal`, `RuntimeHeartbeat` (dead-man, RM-017) | ml-infer / strategy runtime → execution |
 | `tb.orders.v1` | `OrderIntent` (horizon, kind, protective spec, source), `RiskDecision`, `Order` (role, attempt, parent), `ExecutionReport`, `KillSwitchEvent` (latched) | strategy/UI → execution → broker-gateway → ledger |
 | `tb.orders.v1` | `ExecutionService` (submit/preview intents, orders, intents, fills, trace, strategy registry and modes, risk limits, kill switches, trading status) ([ADR-0025](../adr/0025-oms-risk-gate-and-kill-switches.md), [OE-](../business-logic/orders-and-execution.md), [RM-](../business-logic/risk-management.md)) | execution → api-gateway |
 | `tb.ledger.v1` | `AccountSnapshot`, `StrategyPosition`, `LedgerEntry`, `LedgerUpdate`, `ReconciliationResult` (breaks, halted pairs), `Break` | broker-gateway, ledger → UI, execution, monitor, strategy-runtime |
@@ -184,7 +184,7 @@ ledger.update.<broker_account>        recon.result.<broker_account>   recon.requ
 risk.kill                             alert.<severity>           sys.health.<service>
 ```
 
-`ord.update.<acct>` carries the broker's view (`tb.broker.v1.BrokerOrderUpdate`) from the adapters; the OMS's own `Order` state is published by execution on `ord.order.<acct>`, risk decisions on `ord.decision`, and strategy intents arrive on `ord.intent` (section 07). Execution's and the strategy runtime's heartbeats on `sys.health.execution` / `sys.health.strategy-runtime` feed the dead-man checks (RM-017). Broker adapters publish `ord.update.*`, `exec.*`, `acct.snapshot.*`, and `recon.request.*` through a Postgres transactional outbox (schema `broker`), so a crash never loses or double-publishes an execution (ADR-0018). `recon.request.<acct>` follows every reconnect resync (OE-008).
+`ord.update.<acct>` carries the broker's view (`tb.broker.v1.BrokerOrderUpdate`) from the adapters; the OMS's own `Order` state is published by execution on `ord.order.<acct>`, risk decisions on `ord.decision`, and strategy intents arrive on `ord.intent` (section 07). Execution's and the strategy runtime's heartbeats on `sys.health.execution` / `sys.health.strategy-runtime` feed the dead-man checks (RM-017). The strategy runtime (ADR-0026) consumes `md.bar.*` and its own strategies' `ledger.update.*` and publishes intents on `ord.intent`; it never talks to brokers. Broker adapters publish `ord.update.*`, `exec.*`, `acct.snapshot.*`, and `recon.request.*` through a Postgres transactional outbox (schema `broker`), so a crash never loses or double-publishes an execution (ADR-0018). `recon.request.<acct>` follows every reconnect resync (OE-008).
 
 Final bars (`md.bar.*`) are published 60 s after the bar closes, deduplicated by `Nats-Msg-Id`; partial bars are UI-only and never stored; corrections of final bars carry a higher `revision` (MD-002, DF-007). `ref.corporate_action.*` lives in the durable `REF` stream for the ledger; `sys.health.<source>` carries `SourceHealth` for each data source (ADR-0022).
 

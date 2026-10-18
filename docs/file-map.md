@@ -113,6 +113,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0018-broker-gateway-interface.md` | Exists | ADR (D36): one gRPC broker interface for every adapter, typed error model, canonical execution IDs, outbox-backed events |
 | `docs/adr/0024-virtual-ledgers-and-reconciliation.md` | Exists | ADR (D42, implements D19): event-sourced virtual ledgers, FIFO lots, broker-lot shadow ledger, reservations, reconciliation with a break taxonomy |
 | `docs/adr/0025-oms-risk-gate-and-kill-switches.md` | Exists | ADR (D43, implements D30): OMS, pre-trade gate, routing and margin guard, protective orders, latched kill switches, dead-man checks |
+| `docs/adr/0026-strategy-runtime-and-orb-baseline.md` | Exists | ADR (D44): strategy API in `tbcore.strategy`, Python strategy runtime publishing intents on the bus, ORB baseline |
 | `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2): NATS JetStream, `sync_interval: always`, stream layout, outbox |
 | `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, IBKR weekly 2FA / manual VNC login / gateway outages (`ibkr-weekly-2fa.md`), broker outage, market data (stale, slow, gaps, reconciliation breaches, corporate-action disputes), IBKR weekly 2FA, ledger reconciliation break, kill switches, halts, and dead-man alerts |
 | `docs/threat-model.md` | Exists | Assets, actors, entry points, STRIDE table mapped to SE-/OP- rules, residual risks |
@@ -140,7 +141,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | Path | Status | Purpose |
 |---|---|---|
 | `libs/go/` | Exists | Go module: config, logging/redaction, secrets, ops, telemetry, svc template, svcauth, policy, audit, db (+ embedded migrations), bus, clock, resilience (backoff, priority rate limiter, circuit breaker), outbox (transactional outbox + relay), calendar (embedded XNYS sessions), cache (Valkey key layout), attribution (attribution ID parser shared by broker-gateway, ledger, execution; VP-002), bus consumers (`bus.Consume`), webauthntest (software passkey authenticator for tests). Internal layout in [`libs/go/AGENTS.md`](../libs/go/AGENTS.md) |
-| `libs/py/tbcore/` | Exists | Python package: service template, JSON logging with redaction, secrets, lake query layer (`tbcore.data`: point-in-time bars, adjustments, as-of joins, universes, calendar), data quality (`tbcore.dq`), feature store (`tbcore.features`) (later: labels, strategy API). Layout in [`libs/py/tbcore/AGENTS.md`](../libs/py/tbcore/AGENTS.md) |
+| `libs/py/tbcore/` | Exists | Python package: service template, JSON logging with redaction, secrets, lake query layer (`tbcore.data`: point-in-time bars, adjustments, as-of joins, universes, calendar), data quality (`tbcore.dq`), feature store (`tbcore.features`), strategy API with sizing and the ORB baseline (`tbcore.strategy`) (later: labels, splitters). Layout in [`libs/py/tbcore/AGENTS.md`](../libs/py/tbcore/AGENTS.md) |
 
 ## Services: `services/`
 
@@ -153,6 +154,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `services/execution/` | Exists | Go: OMS (intents, order state machine, protective orders, exits, order reconciliation, startup recovery), pre-trade risk gate (`internal/risk`), D30 routing and margin guard, PDT guard, latched kill switches, dead-man, intraday lifecycle, `ExecutionService` gRPC; public wiring package `app/` (used by the paper harness). [`AGENTS.md`](../services/execution/AGENTS.md) |
 | `services/ledger/` | Exists | Go: event-sourced real-account and per-strategy virtual ledgers, `manual` bucket, FIFO lots, broker-lot shadow ledger, reservations, allocations, reconciliation and breaks, corporate actions, equity curves, wash-sale flags; `LedgerService` gRPC; public wiring package `app/` (used by the paper harness). Layout in [`services/ledger/AGENTS.md`](../services/ledger/AGENTS.md) |
 | `services/context-data/` | Exists (placeholder) | Python on `tbcore`: ops surface; context data in Phase 3 |
+| `services/strategy-runtime/` | Exists | Python on `tbcore`: hosts `tbcore.strategy` strategies from the registry seed, consumes final bars and own ledger updates, publishes intents on `ord.intent`, heartbeat for the dead-man (ADR-0026). [`AGENTS.md`](../services/strategy-runtime/AGENTS.md) |
 | `services/monitor/` | Exists (placeholder) | Python on `tbcore`: ops surface; monitoring in Phases 2/5 |
 | `services/assistant/` | Exists (placeholder) | Python on `tbcore`: ops surface; assistant in Phase 4 |
 | `services/ml/` | Exists (placeholder) | Python on `tbcore`: ops surface; native launchd worker on macOS (D29), Phase 4 |
@@ -177,7 +179,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | Path | Status | Purpose |
 |---|---|---|
 | `tests/python/` | Exists | Cross-package Python tests (placeholder services' ops surface) |
-| `tests/paper/` | Exists | Go module: Phase 2 paper harness (simulated Alpaca- and IBKR-shaped accounts behind the adapter engine, ledger, execution, embedded NATS, gRPC, shared virtual clock) and the Gate 2 scenario tests (`go test ./tests/paper/...`) |
+| `tests/paper/` | Exists | Go module: Phase 2 paper harness (simulated Alpaca- and IBKR-shaped accounts behind the adapter engine, ledger, execution, embedded NATS, gRPC, shared virtual clock) and the Gate 2 tests, including the five-session ORB gate that runs the real Python strategy runtime (`make paper-gate`) |
 | `tests/e2e/` | Exists | Go end-to-end test against the running stack: passkey setup/login, step-up, credential storage with leak canary, SSE, audit (`make e2e`, used by the smoke test) |
 | `tests/fixtures/` | Exists | Fixtures (no account data): `alpaca/` (bars, corporate actions, data-stream messages; README explains provenance), `lake/` (Go-written sample lake with a revision and a staged file, read by Python tests), `dq/` (injected-defect bars + expected report shared by Go and Python), `fmp/` (`/stable` response shapes for the FMP client tests) |
 

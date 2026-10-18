@@ -17,7 +17,7 @@ echo "1. readiness"
 for s in api-gateway broker-gateway marketdata execution ledger; do
   "${COMPOSE[@]}" exec -T "$s" /app/service healthcheck http://127.0.0.1:8081/readyz && pass "$s /readyz" || fail "$s /readyz"
 done
-for s in context-data monitor; do
+for s in context-data monitor strategy-runtime; do
   "${COMPOSE[@]}" exec -T "$s" /app/.venv/bin/python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8081/readyz', timeout=3)" \
     && pass "$s /readyz" || fail "$s /readyz"
 done

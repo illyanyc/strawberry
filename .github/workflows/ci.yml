@@ -99,6 +99,12 @@ jobs:
         with: { go-version: "${{ env.GO_VERSION }}", cache-dependency-path: "**/go.sum" }
       - name: Shared broker contract suite against the IBKR adapter (BR-001, fake gateway)
         run: make test-ibkr-contract
+      - name: Phase 2 gate - five ORB paper sessions through the full path (tests/paper)
+        run: make paper-gate
+      - name: Upload paper-gate evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with: { name: paper-gate-evidence, path: paper-gate-evidence.json, if-no-files-found: ignore }
 
   web:
     name: web (tsc, eslint, vitest, build)
@@ -149,6 +155,7 @@ jobs:
           - { name: ledger, file: infra/docker/go-service.Dockerfile, target: service, service: ledger }
           - { name: ops, file: infra/docker/ops.Dockerfile, target: "", service: "" }
           - { name: monitor, file: infra/docker/python-service.Dockerfile, target: "", service: monitor }
+          - { name: strategy-runtime, file: infra/docker/python-service.Dockerfile, target: "", service: strategy-runtime }
           - { name: context-data, file: infra/docker/python-service.Dockerfile, target: "", service: context-data }
           - { name: broker-gateway-ibkr, file: infra/docker/python-service.Dockerfile, target: "", service: broker-gateway-ibkr }
           - { name: mlflow, file: infra/docker/mlflow.Dockerfile, target: "", service: "" }

@@ -538,19 +538,26 @@ func (e *Engine) Tick(ctx context.Context) error {
 			return nil
 		}
 	}
-	trigger := ""
+	kind, boundary := "", time.Time{}
 	switch {
-	case part == calendar.PartRegular && e.sessions["open"] != s.Date:
-		e.sessions["open"], trigger = s.Date, "session_open"
-	case part == calendar.PartPost && !now.Before(s.Close) && e.sessions["close"] != s.Date:
-		e.sessions["close"], trigger = s.Date, "session_close"
+	case part == calendar.PartRegular:
+		kind, boundary = "open", s.Open
+	case part == calendar.PartPost && !now.Before(s.Close):
+		kind, boundary = "close", s.Close
 	}
-	if trigger == "" {
+	if kind == "" {
 		return nil
 	}
 	batch := &Batch{}
 	for _, acct := range e.b.AccountIDs() {
-		e.reconcileLocked(acct, trigger, "", batch)
+		key := kind + "|" + acct
+		// The boundary report reconciles against the first snapshot taken at or after the
+		// boundary (VP-025), so it never compares against pre-close positions.
+		if e.sessions[key] == s.Date || e.snaps[acct] == nil || e.snaps[acct].AsOf < boundary.UnixNano() {
+			continue
+		}
+		e.sessions[key] = s.Date
+		e.reconcileLocked(acct, "session_"+kind, "", batch)
 	}
 	return e.commit(ctx, batch)
 }

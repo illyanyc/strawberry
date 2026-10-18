@@ -45,7 +45,7 @@ Ownership of every position, lot, and order inside real broker accounts: the ful
 | VP-022 | A loss-realizing sale by any owner within 30 days before or after a purchase of the same instrument by any owner in any account is flagged as a potential wash sale. Flags are informational and never block. | Implemented | `book.washSale`; `TestVP022WashSaleAcrossOwners` |
 | VP-023 | Cash dividends credit every owner holding the instrument at the ex-date, pro rata by quantity; corporate actions without an automatic rule (merger, spin-off, delisting with a position) raise a critical `corporate_action` break. Disputed actions (MD-012) wait for the owner. | Implemented | `engine.applyDueActionsLocked` |
 | VP-024 | The ledger records an equity point per owner at most once per `EquityInterval` (default 1 minute) from each snapshot, plus the session-start equity (day P&L) and high-water mark used by RM-005. | Implemented | `engine.equityPoints` |
-| VP-025 | Every reconciliation run is published on `recon.result.<acct>`; runs that change status, every non-snapshot trigger, and the session-close run are stored as reports (`ledger.recon_reports`, `ListReconciliationReports`). | Implemented | `engine.reconcileLocked`; Phase 2 paper gate |
+| VP-025 | Every reconciliation run is published on `recon.result.<acct>`; runs that change status, every non-snapshot trigger, and the session-open and session-close runs (each against the first snapshot taken at or after the boundary) are stored as reports (`ledger.recon_reports`, `ListReconciliationReports`). | Implemented | `engine.reconcileLocked`; Phase 2 paper gate |
 
 ## Invariants
 
