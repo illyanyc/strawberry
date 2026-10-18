@@ -34,10 +34,10 @@ func (s *Server) keyCall(method, path, body string, rc *reqCtx) *httptest.Respon
 		req.SetPathValue("kind", "fmp")
 	}
 	rec := httptest.NewRecorder()
-	switch {
-	case method == http.MethodPut:
+	switch method {
+	case http.MethodPut:
 		s.handleKeyPut(rec, req, rc)
-	case method == http.MethodDelete:
+	case http.MethodDelete:
 		s.handleKeyDelete(rec, req, rc)
 	default:
 		s.handleKeysList(rec, req, rc)
