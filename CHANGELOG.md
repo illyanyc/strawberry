@@ -4,6 +4,10 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 
 ## [Unreleased]
 
+### Removed
+
+- Untracked two accidentally committed Go build outputs (`services/ledger/ledger`, `services/execution/execution`); `.gitignore` already excludes them.
+
 ### Added
 
 - Phase 2 contracts (sections 06/07): `tb.ledger.v1.LedgerService` (account view by owner, ownership constraints, reservations, allocations, reconcile, breaks, equity curve, owner and broker-shadow lots, wash-sale flags, reconciliation reports), `Break`/`BreakType`/`BreakStatus`, `LedgerUpdate`, `ReconciliationResult` breaks and halted pairs, `RECONCILIATION_STATUS_PENDING`; `tb.orders.v1.ExecutionService` (intents, preview, orders, fills, trace, strategy registry and modes, risk limits, kill switches, trading status), `StrategyMode`, `RiskLimits`, `KillSwitch`, `Halt`; `OrderIntent` horizon/kind/protective spec/source/decision time, `Order` role/attempt/parent, latched `KillSwitchEvent` and `DEMOTE_TO_PAPER`; `tb.common.v1.Horizon`; `MarketDataService.GetBars` for charts. Bus subject `ord.order.<acct>` for OMS order state. All additions are wire-compatible (`buf breaking` clean).
