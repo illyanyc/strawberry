@@ -55,3 +55,6 @@ paper-gate.tbrec
 parity-report-*.json
 # Spike V6 output (make spike-v6)
 spike-v6-report.json
+
+# Playwright hand-over state between e2e specs (test-only passkey and recovery codes)
+apps/web/playwright/

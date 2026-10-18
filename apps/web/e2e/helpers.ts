@@ -2,10 +2,10 @@ import type { Page } from "@playwright/test";
 
 /**
  * Handed from shell.spec.ts to ui-phase5.spec.ts on the same fresh stack: the owner's passkey (the
- * virtual authenticator's credential) and the unused recovery codes. Test-only, under the gitignored
- * test-results/ directory.
+ * virtual authenticator's credential) and the unused recovery codes. Test-only and gitignored; kept
+ * outside test-results/ because Playwright empties that directory at the start of every run.
  */
-export const AUTH_STATE = process.env.TB_E2E_AUTH_STATE ?? "test-results/.auth/owner.json";
+export const AUTH_STATE = process.env.TB_E2E_AUTH_STATE ?? "playwright/.auth/owner.json";
 
 export const SHOTS = process.env.TB_E2E_SCREENSHOTS ?? "test-results/screens";
 

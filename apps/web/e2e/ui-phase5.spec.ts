@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
 import { type Browser, type BrowserContext, devices, expect, type Page, test } from "@playwright/test";
 
@@ -15,7 +15,12 @@ interface OwnerState {
   recoveryCodes: string[];
 }
 
-const state: OwnerState | null = existsSync(AUTH_STATE) ? (JSON.parse(readFileSync(AUTH_STATE, "utf8")) as OwnerState) : null;
+// Read when a test starts: shell.spec.ts writes the file during the same run, after collection.
+let state: OwnerState | null = null;
+const loadState = () => {
+  state = existsSync(AUTH_STATE) ? (JSON.parse(readFileSync(AUTH_STATE, "utf8")) as OwnerState) : null;
+  return state;
+};
 
 async function withPasskey(page: Page) {
   const { cdp, authenticatorId } = await addVirtualAuthenticator(page);
@@ -38,7 +43,7 @@ const shot = (page: Page, name: string, fullPage = true) => page.screenshot({ pa
 test.describe.configure({ mode: "serial" });
 
 test("Phase 5 desktop: shell, palette, shortcuts, theme, overview, backtests, charts, notifications, TradingView", async ({ page }) => {
-  test.skip(!state, "needs shell.spec.ts first on a fresh stack (owner passkey hand-over)");
+  test.skip(!loadState(), "needs shell.spec.ts first on a fresh stack (owner passkey hand-over)");
   test.setTimeout(180_000);
   const csp: string[] = [];
   watchCSP(page, csp);
@@ -86,10 +91,10 @@ test("Phase 5 desktop: shell, palette, shortcuts, theme, overview, backtests, ch
   await expect(page.getByLabel(/Symbol \(chart 4\)/)).toBeVisible();
   await page.getByRole("button", { name: "SMA 20" }).click();
   await expect(page.getByRole("button", { name: "SMA 20" })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("link", { name: "TradingView" }).first()).toHaveAttribute("rel", "noopener noreferrer");
+  await expect(page.locator("main").getByRole("link", { name: "TradingView", exact: true }).first()).toHaveAttribute("rel", "noopener noreferrer");
   await shot(page, "p5-desktop-05-charts-4up");
   await page.getByRole("radio", { name: "Single chart" }).click();
-  await page.getByLabel("Symbol").fill("SPY");
+  await page.getByLabel("Symbol", { exact: true }).fill("SPY");
   await page.getByRole("button", { name: "Show" }).click();
   await expect(page.getByText(/SPY · 15m|Unknown symbol|unknown|not found|unavailable/i).first()).toBeVisible();
   await shot(page, "p5-desktop-06-charts");
@@ -127,7 +132,7 @@ test("Phase 5 desktop: shell, palette, shortcuts, theme, overview, backtests, ch
 });
 
 test("Phase 5 phone: tab bar, More sheet, passkey halt, desktop-only release, phone orders refused", async ({ browser, page }) => {
-  test.skip(!state || state.recoveryCodes.length < 3, "needs shell.spec.ts first on a fresh stack");
+  test.skip(!loadState() || state!.recoveryCodes.length < 3, "needs shell.spec.ts first on a fresh stack");
   test.setTimeout(180_000);
   const csp: string[] = [];
   const { ctx, page: mobile } = await phone(browser);
@@ -137,13 +142,16 @@ test("Phase 5 phone: tab bar, More sheet, passkey halt, desktop-only release, ph
   // Sign in with a recovery code: a reduced-assurance session with no passkey step-up (SE-014).
   await mobile.goto("/login");
   await mobile.getByRole("button", { name: "Use a recovery code" }).click();
-  await mobile.getByLabel("Recovery code").fill(state!.recoveryCodes.at(-1)!);
+  // Each code works once: take it out of the hand-over file so a rerun uses the next one.
+  const code = state!.recoveryCodes.pop()!;
+  writeFileSync(AUTH_STATE, JSON.stringify(state), { mode: 0o600 });
+  await mobile.getByLabel("Recovery code").fill(code);
   await mobile.getByRole("button", { name: "Sign in" }).click();
   await expect(mobile.getByRole("heading", { name: /Welcome, Illya/ })).toBeVisible();
   const tabs = mobile.getByRole("navigation", { name: "Main mobile" });
   for (const t of ["Home", "Portfolio", "Strategies", "Charts"]) await expect(tabs.getByRole("link", { name: t, exact: true })).toBeVisible();
   await expect(mobile.getByRole("navigation", { name: "Main", exact: true })).toBeHidden();
-  await shot(mobile, "p5-mobile-01-dashboard");
+  await shot(mobile, "p5-mobile-01-dashboard", false);
 
   // UI-041: the "More" sheet lists the remaining pages.
   await tabs.getByRole("button", { name: "More" }).click();
@@ -152,10 +160,10 @@ test("Phase 5 phone: tab bar, More sheet, passkey halt, desktop-only release, ph
   await shot(mobile, "p5-mobile-02-more-sheet", false);
   await sheet.getByRole("link", { name: "Portfolio overview" }).click();
   await expect(mobile.getByRole("heading", { name: "Portfolio overview" })).toBeVisible();
-  await shot(mobile, "p5-mobile-03-overview");
+  await shot(mobile, "p5-mobile-03-overview", false);
   await tabs.getByRole("link", { name: "Charts", exact: true }).click();
   await expect(mobile.getByRole("heading", { name: "Charts", exact: true })).toBeVisible();
-  await shot(mobile, "p5-mobile-04-charts");
+  await shot(mobile, "p5-mobile-04-charts", false);
 
   // RM-020 / UI-050: the phone halts only after a fresh passkey; the step-up offers no TOTP.
   await mobile.getByRole("button", { name: "Global kill switch" }).click();
@@ -170,7 +178,7 @@ test("Phase 5 phone: tab bar, More sheet, passkey halt, desktop-only release, ph
   await stepUp.getByRole("button", { name: "Use passkey" }).click();
   const frozen = mobile.getByRole("link", { name: /Trading frozen by 1 global kill switch/ });
   await expect(frozen).toBeVisible();
-  await shot(mobile, "p5-mobile-06-frozen");
+  await shot(mobile, "p5-mobile-06-frozen", false);
 
   // RM-007: release is refused on the phone.
   await frozen.click();
@@ -199,7 +207,7 @@ test("Phase 5 phone: tab bar, More sheet, passkey halt, desktop-only release, ph
   await tabs.getByRole("button", { name: "More" }).click();
   await mobile.getByRole("dialog", { name: "All pages" }).getByRole("link", { name: "Notifications" }).click();
   await expect(mobile.getByRole("heading", { name: "Notifications" })).toBeVisible();
-  await shot(mobile, "p5-mobile-08-notifications");
+  await shot(mobile, "p5-mobile-08-notifications", false);
   expect(csp, "no CSP violations on the phone").toEqual([]);
   await ctx.close();
 

@@ -97,7 +97,7 @@ export function NotificationsPage() {
       />
       {message && <Alert tone="ok">{message}</Alert>}
       {err && <Alert>{err instanceof ApiError || err instanceof Error ? err.message : "Request failed"}</Alert>}
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader icon={<Download />} title="Install the app" description="An installed PWA opens full screen and can receive Web Push on iOS 16.4+." />
           <CardBody className="space-y-3 text-sm">

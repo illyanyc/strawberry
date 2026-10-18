@@ -68,7 +68,7 @@ export function TradingViewPage() {
                 TradingView runbook.
               </Alert>
             )}
-            <div className="grid gap-5 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
               <Card>
                 <CardHeader icon={<ShieldCheck />} title="Ingress" description="A separate listener and hostname that serves only the webhook path." />
                 <CardBody className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">

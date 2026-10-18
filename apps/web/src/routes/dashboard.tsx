@@ -54,7 +54,7 @@ export function DashboardPage() {
         <Alert tone="warn">Only one passkey is registered. Add a second one (e.g. your phone) under Security so a lost device can't lock you out.</Alert>
       )}
       <AccountTiles />
-      <div className="grid gap-5 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
         <div className="space-y-5 xl:col-span-2">
           <StrategyCards />
         </div>
@@ -141,7 +141,7 @@ function AccountTiles() {
   const accounts = useAccounts();
   if (accounts.isPending) {
     return (
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Skeleton className="h-24" />
         <Skeleton className="h-24" />
       </div>
@@ -160,7 +160,7 @@ function AccountTiles() {
       </div>
       <QueryState q={accounts} empty="No broker account has reported yet." isEmpty={(d) => d.accounts.length === 0}>
         {(d) => (
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {d.accounts.map((a) => {
               const recon = enumLabel(a.reconStatus, "RECONCILIATION_STATUS_");
               return (
@@ -221,7 +221,7 @@ function StrategyCards() {
       <CardBody>
         <QueryState q={strategies} empty="No strategies registered yet." isEmpty={(d) => d.strategies.length === 0}>
           {(d) => (
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {d.strategies.map((s) => (
                 <StrategyCard key={s.strategyId} s={s} view={views.get(s.strategyId)} health={health.get(s.strategyId)} />
               ))}

@@ -182,7 +182,7 @@ function Sidebar({ collapsed }: { collapsed: boolean }) {
     <nav
       aria-label="Main"
       className={cn(
-        "sticky top-[var(--shell-top,0px)] hidden max-h-[calc(100dvh-var(--shell-top,0px))] shrink-0 self-start overflow-y-auto border-r border-border bg-panel py-3 md:block",
+        "sticky top-[var(--shell-top,0px)] hidden h-[calc(100dvh-var(--shell-top,0px))] shrink-0 self-start overflow-y-auto border-r border-border bg-panel py-3 md:block",
         collapsed ? "w-14 px-2" : "w-56 px-2.5",
       )}
     >

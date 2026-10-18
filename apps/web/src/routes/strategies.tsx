@@ -128,7 +128,7 @@ export function StrategyDetailPage() {
         </Button>
       </div>
       <EngageKillDialog open={killOpen} onClose={() => setKillOpen(false)} target={{ scope: "strategy", target: strategy.strategyId, label: strategy.strategyId }} />
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader title="Registry" />
           <CardBody className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
@@ -178,7 +178,7 @@ export function StrategyDetailPage() {
             {({ portfolio: pf }) =>
               pf && (
               <>
-                <div className="grid gap-3 text-sm sm:grid-cols-3 lg:grid-cols-6">
+                <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3 lg:grid-cols-6">
                   <Metric label="Allocation" v={<Num d={pf.allocation} />} />
                   <Metric label="Cash available" v={<Num d={pf.cashAvailable} />} />
                   <Metric label="Equity" v={<Num d={pf.equity} />} />
@@ -234,7 +234,7 @@ export function StrategyDetailPage() {
           <LimitsEditor scope={`strategy:${strategyId}`} />
         </CardBody>
       </Card>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader title="Equity curve" />
           <CardBody>

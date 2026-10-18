@@ -262,7 +262,7 @@ export function ComparePage() {
           </table>
         </CardBody>
       </Card>
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <TearsheetFrame runId={a} title={`Tearsheet for run ${a}`} className="h-[70vh] min-h-[420px]" />
         <TearsheetFrame runId={b} title={`Tearsheet for run ${b}`} className="h-[70vh] min-h-[420px]" />
       </div>

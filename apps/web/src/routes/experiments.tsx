@@ -146,7 +146,7 @@ function NewLineage() {
       <CardHeader title="New lineage" description="Starts at analyst level 0 (suggest only). The holdout boundary is fixed for its studies." />
       <CardBody>
         <form
-          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
+          className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5"
           onSubmit={(e) => {
             e.preventDefault();
             create.mutate();
@@ -207,7 +207,7 @@ export function LineagePage() {
                 </span>
                 {l.universe.startsWith("synthetic:") && <Badge tone="neutral">synthetic data</Badge>}
               </div>
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <Card>
                   <CardHeader title="Trial ledger" description="Abandoned and failed trials count too; each holdout look adds trials." />
                   <CardBody className="space-y-3 text-sm">
@@ -618,7 +618,7 @@ function NewStudy({ lineage }: { lineage: Lineage }) {
             if (valid) create.mutate();
           }}
         >
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Field label="Name" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} />
             <Select label="Objective metric" value={metric} onChange={setMetric} options={METRICS.map((m) => ({ value: m, label: m }))} />
             <Field label="Trial budget" inputMode="numeric" value={trials} onChange={(e) => setTrials(e.target.value.trim())} />
@@ -769,7 +769,7 @@ export function StudyPage() {
               </div>
               {act.isError && <Alert>{errMsg(act.error, "Study action failed")}</Alert>}
               {s.message && <Alert tone={s.status === "STUDY_STATUS_FAILED" ? "danger" : "warn"}>{s.message}</Alert>}
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <Card>
                   <CardHeader title="Progress" description={stream.done ? "Stream ended." : stream.connected ? "Live." : "Connecting…"} />
                   <CardBody className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
@@ -843,7 +843,7 @@ export function StudyPage() {
       <QueryState q={diag} empty="" isEmpty={(d) => d.diagnostics === null}>
         {({ diagnostics: g }) =>
           g && (
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <Card>
                 <CardHeader title="Convergence" description={`Best so far, raw vs deflated for the trial count. Plateau near trial ${g.plateauEstimate}.`} />
                 <CardBody>
@@ -1037,7 +1037,7 @@ export function CandidatePage() {
         </CardBody>
       </Card>
       {c && (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <PromotionCard candidate={c} />
           <HoldoutEvaluateCard candidate={c} />
         </div>
@@ -1088,7 +1088,7 @@ export function GateReportView({ report }: { report: NonNullable<GateReportRespo
         {o && <Metric label="Outer Sharpe (ann.)" v={`${fmt(o.sharpeAnnualized, 2)} [${fmt(o.ciLow, 2)}, ${fmt(o.ciHigh, 2)}]`} />}
         {o && <Metric label="Net return · max DD" v={`${pct(o.netReturn)} · ${pct(o.maxDrawdown)}`} />}
       </div>
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <MiniTable
           title="Walk-forward"
           head={["Fold", "Sharpe", "Net", "Trades"]}

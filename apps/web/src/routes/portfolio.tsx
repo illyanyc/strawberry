@@ -55,7 +55,7 @@ function AccountPanel({ view }: { view: AccountView }) {
   const env = enumLabel(snap?.mode, "MODE_");
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Equity (broker)" value={<Num d={snap?.equity} />} />
         <Stat label="Cash (broker)" value={<Num d={snap?.cash} />} />
         <Stat label="Unallocated cash" value={<Num d={view.unallocatedCash} />} />
@@ -206,7 +206,7 @@ function ResolveDialog({ brk, account, onClose }: { brk: LedgerBreak; account: s
           ))}
         </fieldset>
         {resolution === "transfer_to_manual" && (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="From strategy" value={fromOwner} onChange={(e) => setFromOwner(e.target.value)} />
             <Field label="Quantity" inputMode="decimal" value={qty} onChange={(e) => setQty(e.target.value)} />
           </div>

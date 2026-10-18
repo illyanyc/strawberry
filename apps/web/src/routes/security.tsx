@@ -138,7 +138,7 @@ export function SecurityPage() {
         <CardBody className="space-y-4">
           {totp ? (
             <form
-              className="grid gap-4 sm:grid-cols-[auto_1fr]"
+              className="grid grid-cols-1 gap-4 sm:grid-cols-[auto_1fr]"
               onSubmit={(e) => {
                 e.preventDefault();
                 verifyTotp.mutate();

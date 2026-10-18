@@ -95,7 +95,7 @@ export function TrainingPage() {
           </QueryState>
         </CardBody>
       </Card>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader title="Jobs" />
           <CardBody className="overflow-x-auto">
@@ -275,7 +275,7 @@ function TrainingForm({ families }: { families: ModelFamily[] }) {
         else estimate.mutate(config);
       }}
     >
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Select
           label="Model family"
           value={familyName}
@@ -311,7 +311,7 @@ function TrainingForm({ families }: { families: ModelFamily[] }) {
         <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Hyperparameters</h3>
         <SchemaForm fields={fields} unsupported={unsupported} draft={draft} errors={hpErrors} onChange={setDraft} />
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Select
           label="Lineage (optional)"
           value={lineageId}
@@ -518,7 +518,7 @@ export function RunPage() {
                   Tearsheet ↗
                 </a>
               </div>
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <Card>
                   <CardHeader title="Out-of-sample" description="Stitched over every test fold, after costs." />
                   <CardBody className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3">

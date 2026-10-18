@@ -24,7 +24,7 @@ export function SchemaForm({
   return (
     <div className="space-y-3">
       {unsupported.length > 0 && <Alert tone="warn">The form cannot edit: {unsupported.join(", ")}. The server defaults apply.</Alert>}
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {fields.map((f) => (
           <SchemaInput key={f.name} field={f} value={draft[f.name]} error={errors[f.name]} onChange={(v) => onChange({ ...draft, [f.name]: v })} />
         ))}

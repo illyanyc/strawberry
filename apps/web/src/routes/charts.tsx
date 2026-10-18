@@ -49,25 +49,42 @@ export function signalDirection(s: Signal): "long" | "short" | "flat" {
   return s.direction === "DIRECTION_LONG" ? "long" : s.direction === "DIRECTION_SHORT" ? "short" : "flat";
 }
 
-/** Signal markers: one per signal, labelled with the strategy and direction (and score when known). */
-export function signalMarkers(signals: Signal[]): ChartMarker[] {
+/**
+ * Signal markers (UI-049): webhook signals and model entries (long/short) get a marker labelled with
+ * the strategy and direction; a model's flat decisions appear only in its score pane, so a model
+ * scoring every bar does not bury the candles. Shapes are explained in the chart footer.
+ */
+export function signalMarkers(signals: Signal[], opts: { modelLabels?: boolean } = {}): ChartMarker[] {
+  const modelLabels = opts.modelLabels ?? true;
   const seen = new Set<string>();
+  const last = new Map<string, string>();
   const out: ChartMarker[] = [];
-  for (const s of signals) {
+  const sorted = [...signals].sort((a, b) => (BigInt(a.asOf) < BigInt(b.asOf) ? -1 : BigInt(a.asOf) > BigInt(b.asOf) ? 1 : 0));
+  for (const s of sorted) {
     if (seen.has(s.signalId)) continue;
     seen.add(s.signalId);
     const dir = signalDirection(s);
-    const score = typeof s.score === "number" && s.score !== 0 ? ` ${s.score.toFixed(3)}` : "";
-    out.push({ timeNs: s.asOf, side: dir === "long" ? "buy" : "sell", kind: "signal", direction: dir, text: `${s.strategyId} ${dir}${score}` });
+    const model = isModelSignal(s);
+    const repeat = last.get(s.strategyId) === dir;
+    last.set(s.strategyId, dir);
+    if (model && dir === "flat") continue;
+    // A run of identical model decisions is labelled once, at its first bar.
+    const score = model && typeof s.score === "number" ? ` ${s.score.toFixed(2)}` : "";
+    out.push({ timeNs: s.asOf, side: dir === "long" ? "buy" : "sell", kind: "signal", direction: dir, text: model && (repeat || !modelLabels) ? "" : `${s.strategyId} ${dir}${score}` });
   }
   return out;
+}
+
+/** Model signals carry a model version; webhook signals are stamped `tradingview` by the gateway. */
+export function isModelSignal(s: Signal): boolean {
+  return s.modelVersion !== "" && s.modelVersion !== "tradingview";
 }
 
 /** Per-strategy score series for the score pane (model signals carry scores; webhook signals do not). */
 export function scoreSeries(signals: Signal[]): ScoreSeries[] {
   const by = new Map<string, ScoreSeries>();
   for (const s of signals) {
-    if (typeof s.score !== "number" || !s.modelVersion) continue;
+    if (typeof s.score !== "number" || !isModelSignal(s)) continue;
     const id = `${s.strategyId} score`;
     const cur = by.get(id) ?? { id, points: [] };
     cur.points.push({ timeNs: s.asOf, value: s.score });
@@ -162,7 +179,7 @@ export function ChartsPage() {
           ))}
         </div>
       </div>
-      <div className={cn("grid gap-4", panes === 2 && "xl:grid-cols-2", panes === 4 && "lg:grid-cols-2")}>
+      <div className={cn("grid grid-cols-1 gap-4", panes === 2 && "xl:grid-cols-2", panes === 4 && "lg:grid-cols-2")}>
         {Array.from({ length: panes }, (_, i) => (
           <ChartPane
             key={i}
@@ -308,10 +325,12 @@ function ChartPane({
       for (const f of liveFills) add(f.brokerExecId, f.eventTime, f.side, dec(f.qty), dec(f.price), f.clientOrderId.startsWith("tb1-") ? f.clientOrderId.split("-")[1]! : "manual");
     }
     if (overlays.has("signals")) {
-      out.push(...signalMarkers([...(signals.data?.signals ?? []), ...liveSignals].filter((s) => s.instrumentId === id && ownerOk(s.strategyId))));
+      // Small charts (split layouts, phones) keep model markers unlabelled; the score pane names them.
+      const small = compact || (typeof window !== "undefined" && window.matchMedia?.("(max-width: 640px)").matches === true);
+      out.push(...signalMarkers([...(signals.data?.signals ?? []), ...liveSignals].filter((s) => s.instrumentId === id && ownerOk(s.strategyId)), { modelLabels: !small }));
     }
     return out;
-  }, [overlays, fills.data, liveFills, signals.data, liveSignals, id, ownerOk]);
+  }, [overlays, fills.data, liveFills, signals.data, liveSignals, id, ownerOk, compact]);
   const scores = useMemo(
     () => (overlays.has("signals") ? scoreSeries([...(signals.data?.signals ?? []), ...liveSignals].filter((s) => s.instrumentId === id && ownerOk(s.strategyId))) : []),
     [overlays, signals.data, liveSignals, id, ownerOk],
@@ -414,6 +433,14 @@ function ChartPane({
         {instrument && <span className="font-mono">{instrument.id}</span>}
         {lastMs > 0 && <span>last bar {new Date(lastMs).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", timeZoneName: "short" })}</span>}
         {signals.isError && overlays.has("signals") && <span className="text-warn">signals unavailable</span>}
+        {instrument && (overlays.has("signals") || overlays.has("fills")) && (
+          <span className="hidden items-center gap-2 md:flex" aria-label="Marker legend">
+            <span>▲▼ fills</span>
+            <span className="text-info">● long signal</span>
+            <span>■ exit</span>
+            <span>▼ short signal</span>
+          </span>
+        )}
         <span className="ml-auto flex items-center gap-3">
           {instrument && widget && (
             <button type="button" className="underline-offset-2 hover:text-fg hover:underline" onClick={() => setShowWidget((v) => !v)} aria-pressed={showWidget}>

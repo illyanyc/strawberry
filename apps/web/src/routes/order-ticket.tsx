@@ -132,12 +132,12 @@ export function OrderTicketPage() {
               Look up
             </Button>
           </div>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Select label="Side" value={t.side} options={["buy", "sell", "sell_short"]} onChange={(v) => set({ side: v as ManualTicket["side"] })} />
             <Select label="Type" value={t.order_type} options={["limit", "market"]} onChange={(v) => set({ order_type: v as ManualTicket["order_type"] })} />
             <Select label="Time in force" value={t.tif} options={["day", "gtc"]} onChange={(v) => set({ tif: v as ManualTicket["tif"] })} />
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Quantity" inputMode="decimal" value={t.quantity} onChange={(e) => set({ quantity: e.target.value.trim() })} />
             {t.order_type === "limit" && <Field label="Limit price" inputMode="decimal" value={t.limit_price} onChange={(e) => set({ limit_price: e.target.value.trim() })} />}
           </div>

@@ -99,7 +99,7 @@ function AccountOverview({ a, strategyById }: { a: AccountView; strategyById: Ma
         {a.openBreaks.length > 0 && <Badge tone="danger">{a.openBreaks.length} open break{a.openBreaks.length > 1 ? "s" : ""}</Badge>}
         <span className="text-xs text-muted">as of {formatNs(a.reconAsOf)}</span>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {(
           [
             ["Broker equity", a.brokerSnapshot?.equity],
@@ -188,7 +188,7 @@ function AccountOverview({ a, strategyById }: { a: AccountView; strategyById: Ma
           </table>
         </CardBody>
       </Card>
-      <div className="grid gap-5 xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-5">
         <Card className="xl:col-span-3">
           <CardHeader icon={<PieChart />} title="Positions by owner" description="Quantity per instrument split by owner, as the ledger holds it; broker vs ledger differences are flagged." />
           <CardBody className="space-y-4">
@@ -279,7 +279,7 @@ function EndOfDay({ a }: { a: AccountView }) {
           since {formatNs(since)}
         </span>
       </div>
-      <div className="grid gap-5 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <Card>
           <CardHeader icon={<Receipt />} title="Session P&L by owner" description="The ledger's day P&L (realized + unrealized change since the open, minus fees)." />
           <CardBody className="overflow-x-auto p-0 sm:p-0">

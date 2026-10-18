@@ -116,12 +116,20 @@ describe("signal overlays (UI-049)", () => {
     ({ signalId: id, strategyId: "ml-lgbm", modelVersion: "lgbm@3", instrumentId: "I1", asOf: "1760000000000000000", direction: dir, score: 0.42, probability: 0, horizon: "0", featureSnapshotId: "", correlationId: "", ...extra }) as Signal;
 
   it("labels every marker in text, de-duplicates by signal ID, and plots only model scores", () => {
-    const m = signalMarkers([sig("a", "DIRECTION_LONG"), sig("a", "DIRECTION_LONG"), sig("b", "DIRECTION_FLAT"), sig("c", "DIRECTION_SHORT", { strategyId: "tv-x", modelVersion: "", score: 0 })]);
-    expect(m).toHaveLength(3);
-    expect(m.map((x) => x.text)).toEqual(["ml-lgbm long 0.420", "ml-lgbm flat 0.420", "tv-x short"]);
+    const m = signalMarkers([
+      sig("a", "DIRECTION_LONG"),
+      sig("a", "DIRECTION_LONG"),
+      sig("a2", "DIRECTION_LONG", { asOf: "1760000000900000000" }),
+      sig("b", "DIRECTION_FLAT", { asOf: "1759990000000000000" }),
+      sig("c", "DIRECTION_SHORT", { strategyId: "tv-x", modelVersion: "tradingview", score: 0 }),
+      sig("d", "DIRECTION_FLAT", { strategyId: "tv-x", modelVersion: "tradingview", score: 0 }),
+    ]);
+    // A model's flat decisions live in the score pane only; webhook exits are markers.
+    // A repeated model decision keeps its marker but is labelled only once.
+    expect(m.map((x) => x.text)).toEqual(["ml-lgbm long 0.42", "tv-x short", "tv-x flat", ""]);
     const shapes = toMarkers(m, 900).map((x) => x.shape);
-    expect(shapes).toEqual(["circle", "square", "arrowDown"]);
-    const s = scoreSeries([sig("a", "DIRECTION_LONG"), sig("c", "DIRECTION_SHORT", { modelVersion: "", strategyId: "tv-x" })]);
+    expect(shapes).toEqual(["circle", "arrowDown", "square", "circle"]);
+    const s = scoreSeries([sig("a", "DIRECTION_LONG"), sig("c", "DIRECTION_SHORT", { modelVersion: "tradingview", strategyId: "tv-x" })]);
     expect(s.map((x) => x.id)).toEqual(["ml-lgbm score"]);
     expect(withAlpha("#3fb27f", 0.45)).toBe("#3fb27f73");
   });
