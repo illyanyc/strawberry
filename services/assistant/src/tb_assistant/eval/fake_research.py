@@ -483,6 +483,10 @@ class FakeResearch:
 
     def _StartStudy(self, req: optimizer_pb2.StartStudyRequest) -> Message:
         st = self.studies[req.study_id]
+        if st.spec.preregistration.metric != (st.spec.objective.metric or "sharpe"):
+            raise ResearchCallError(
+                OPT, "StartStudy", "FAILED_PRECONDITION", "the objective metric must equal the pre-registered metric"
+            )
         lin = self._lin(st.spec.lineage_id)
         cfg = training_pb2.TrainingConfig()
         cfg.CopyFrom(st.spec.base_config)

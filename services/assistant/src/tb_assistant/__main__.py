@@ -59,6 +59,7 @@ def loop_settings(cfg: Settings) -> LoopSettings:
         no_edge_max_dsr=cfg.no_edge_max_dsr,
         no_edge_min_pbo=cfg.no_edge_min_pbo,
         unreachable_dsr=cfg.unreachable_dsr,
+        unreachable_min_trials=cfg.unreachable_min_trials,
         max_failed_rounds=cfg.max_failed_rounds,
         max_active_loops=cfg.max_active_loops,
     )

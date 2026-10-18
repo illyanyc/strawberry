@@ -162,6 +162,9 @@ def apply_study_diff(
     out.lineage_id = base.lineage_id
     out.period.CopyFrom(base.period)
     out.preregistration.CopyFrom(preregistration)
+    # EX-026: a study is pre-registered on the metric it optimizes; the optimizer refuses a mismatch.
+    out.objective.metric = out.objective.metric or "sharpe"
+    out.preregistration.metric = out.objective.metric
     for ps in out.search_space:
         fams = list(ps.families) or list(out.families)
         for fam in fams:

@@ -96,6 +96,9 @@ def _bounded(props: dict[str, dict[str, Any]], key: str, want: float) -> float |
     return round(v) if p.get("type") == "integer" else float(v)
 
 
+NO_SKILL_MIN_TRIALS = 10
+
+
 class HeuristicAnalyst:
     """Reference analyst rules over canonical digest metrics (see tb_assistant.digest)."""
 
@@ -130,8 +133,13 @@ class HeuristicAnalyst:
         sharpe, sharpe2 = _ev(ev, "backtest.sharpe"), _ev(ev, "backtest.sharpe_2x")
         if dsr and trials and trials["value"] >= 20 and dsr["value"] < 0.2:
             no_edge = True
+        # Out-of-fold skill below the no-skill baseline (ml diagnostics) after a real search of the lineage.
+        no_skill = _ev(ev, "finding.no_skill.oos_skill")
+        searched = bool(trials and trials["value"] >= NO_SKILL_MIN_TRIALS and dsr and dsr["value"] < 0.5)
+        if searched and no_skill:
+            no_edge = True
         if no_edge:
-            cited = [e for e in (dsr, pbo, trials) if e]
+            cited = [e for e in (dsr, pbo, trials, no_skill if searched else None) if e]
             finding(
                 "no_edge",
                 "high",
@@ -271,14 +279,12 @@ class HeuristicAnalyst:
                 [share],
                 "Most of the edge comes from one regime; elsewhere the strategy does not earn its costs.",
             )
+            # Training configs have no trade-rule fields: a regime filter is a strategy change for the owner.
             act(
                 category="trade_rules",
-                description="Add a regime filter that trades only where the edge exists, as a separate challenger.",
-                target="training_config",
-                tool=launch,
-                config_diff={
-                    "trade_rules": {"regime_filter": (prompt.get("context") or {}).get("best_regime", "best")}
-                },
+                description="Consider a regime filter that trades only where the edge exists (strategy change).",
+                target="none",
+                tool="none",
                 hypothesis="The edge is regime-conditional.",
                 expected_effect="Fewer trades, similar deflated Sharpe, smaller drawdown.",
                 expected_gain=0.03,
@@ -332,7 +338,7 @@ class HeuristicAnalyst:
                 est_compute_hours=0.5,
                 trial_cost=1,
             )
-        if not actions and "launch_study" in tools and props:
+        if not any(a["tool"] != "none" for a in actions) and "launch_study" in tools and props:
             # Centaur default: nothing obviously wrong, so let the optimizer search a narrow space
             # around the current configuration instead of hand-tuning.
             space = []

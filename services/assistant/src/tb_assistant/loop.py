@@ -92,6 +92,7 @@ class LoopSettings:
     no_edge_max_dsr: float = 0.5
     no_edge_min_pbo: float = 0.5
     unreachable_dsr: float = 0.1
+    unreachable_min_trials: int = 10
     max_failed_rounds: int = 2
     max_active_loops: int = 3
     default_budget: analyst_pb2.Budget = field(default_factory=analyst_pb2.Budget)
@@ -419,7 +420,10 @@ class AnalystLoop:
             elif kind == "candidate" and val not in cand_ids:
                 cand_ids.append(val)
         base_cfg: training_pb2.TrainingConfig | None = None
-        for rid in run_ids[:6]:
+        base_run = False
+
+        async def read_run(rid: str) -> None:
+            nonlocal base_cfg, base_run
             r = await self._read(ctx, "get_training_diagnostics", {"run_id": rid})
             if r is not None and isinstance(r.message, training_pb2.DiagnosticsReport):
                 digest_diagnostics(table, r.message)
@@ -427,23 +431,38 @@ class AnalystLoop:
             if r is not None and isinstance(r.message, training_pb2.TrainingRun):
                 digest_run(table, r.message)
                 notes.extend(r.message.notes)
-                if base_cfg is None:
-                    base_cfg = r.message.config
+                if not base_run:
+                    base_cfg, base_run = r.message.config, True
                     if f"base_run:{rid}" not in rnd.trigger_ref_ids:
                         rnd.trigger_ref_ids.append(f"base_run:{rid}")
+
+        for rid in run_ids[:6]:
+            await read_run(rid)
         base_spec: optimizer_pb2.StudySpec | None = None
+        study_cands: list[str] = []
         for sid in study_ids[:4]:
             r = await self._read(ctx, "get_study", {"study_id": sid})
             if r is not None and isinstance(r.message, optimizer_pb2.Study):
                 digest_study(table, r.message)
                 base_spec = base_spec or r.message.spec
-                if r.message.candidate_id and r.message.candidate_id not in cand_ids:
-                    cand_ids.append(r.message.candidate_id)
+                if r.message.candidate_id:
+                    study_cands.append(r.message.candidate_id)
+                    if r.message.candidate_id not in cand_ids:
+                        cand_ids.append(r.message.candidate_id)
                 if base_cfg is None and r.message.spec.HasField("base_config"):
                     base_cfg = r.message.spec.base_config
             r = await self._read(ctx, "get_study_diagnostics", {"study_id": sid})
             if r is not None and isinstance(r.message, optimizer_pb2.StudyDiagnostics):
                 digest_study_diagnostics(table, r.message)
+        if not base_run:
+            # The study's refit candidate (or else the champion) is the base for training and ablation diffs.
+            wanted = study_cands or [lineage.champion_candidate_id]
+            r = await self._read(ctx, "list_candidates")
+            if r is not None and isinstance(r.message, optimizer_pb2.ListCandidatesResponse):
+                with_runs = [c for c in r.message.candidates if c.run_id]
+                pick = next((c for c in with_runs if c.candidate_id in wanted), with_runs[0] if with_runs else None)
+                if pick is not None:
+                    await read_run(pick.run_id)
         if trig.strategy_id:
             r = await self._read(ctx, "get_live_feedback", {"strategy_id": trig.strategy_id})
             if r is not None and r.message is not None:
@@ -565,9 +584,9 @@ class AnalystLoop:
         if self.budget.rounds_exhausted(rnd.lineage_id, budget) and loop.rounds > (budget.max_rounds or 10**9):
             return analyst_pb2.ROUND_DECISION_STOP_BUDGET
         cyc_b, cyc_u = table.get("cycle.budget") or 0.0, table.get("cycle.used") or 0.0
-        if table.get("deflated.significance_reachable") == 0.0 or (
-            best is not None and best < self.s.unreachable_dsr and cyc_b > 0 and cyc_u > cyc_b / 2
-        ):
+        # EX-023's flag needs a cross-trial variance: with a handful of trials it is degenerate.
+        unreachable = table.get("deflated.significance_reachable") == 0.0 and trials >= self.s.unreachable_min_trials
+        if unreachable or (best is not None and best < self.s.unreachable_dsr and cyc_b > 0 and cyc_u > cyc_b / 2):
             return analyst_pb2.ROUND_DECISION_STOP_UNREACHABLE
         if continuation:
             assert previous is not None
@@ -697,7 +716,7 @@ class AnalystLoop:
             schemas = {f.family: f.hyperparam_schema_json for f in getattr(fams.message, "families", [])}
             prereg = optimizer_pb2.PreRegistration(
                 hypothesis=rnd.preregistration.hypothesis or act.hypothesis or act.description,
-                metric=rnd.preregistration.metric or "sharpe",
+                metric=base_spec.objective.metric or "sharpe",
                 universe=rnd.preregistration.universe or base_spec.preregistration.universe or base_spec.universe.name,
                 stop_rule=rnd.preregistration.stop_rule or "plateau or budget",
             )

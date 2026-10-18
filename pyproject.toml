@@ -84,7 +84,7 @@ disable_error_code = ["type-arg", "no-any-return"]
 
 [[tool.mypy.overrides]]
 # grpcio's sync server and channel APIs are untyped (rpc helpers, ML and optimizer gRPC adapters, their tests).
-module = ["tbcore.rpc", "tb_ml.*", "tb_optimizer.*", "services.ml.tests.*", "services.optimizer.tests.*", "test_ml_service", "tests.research.*"]
+module = ["tbcore.rpc", "tb_ml.*", "tb_optimizer.*", "services.ml.tests.*", "services.optimizer.tests.*", "test_ml_service", "tests.research.*", "tests.python.test_analyst_gate4"]
 disallow_untyped_calls = false
 disable_error_code = ["type-arg", "no-any-return", "attr-defined"]
 

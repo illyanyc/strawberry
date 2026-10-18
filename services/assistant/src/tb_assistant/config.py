@@ -51,6 +51,7 @@ class Settings(ServiceSettings):
     no_edge_max_dsr: float = 0.5
     no_edge_min_pbo: float = 0.5
     unreachable_dsr: float = 0.1
+    unreachable_min_trials: int = 10
     max_failed_rounds: int = 2
     max_active_loops: int = 3
     tool_result_max_bytes: int = 16384

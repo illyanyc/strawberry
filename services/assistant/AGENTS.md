@@ -56,7 +56,7 @@ Secrets (files only, SE-010): `pg_svc_assistant_password`, `nats_assistant_passw
 | `TB_LLM_PROXY` | empty (`http://llm-egress:3128` in Compose) | All provider traffic goes through it |
 | `TB_LLM_EGRESS_ALLOW` | Anthropic, OpenAI, host Ollama/MLX | `host:port` list (also read by `llm-egress`) |
 | `TB_LLM_PRICES`, `TB_MAX_LLM_USD_PER_DAY` / `_MONTH` | defaults / `5` / `50` | Spend caps (AN-023) |
-| `TB_PLATEAU_K`, `TB_PLATEAU_EPSILON`, `TB_NO_EDGE_*`, `TB_UNREACHABLE_DSR`, `TB_MAX_FAILED_ROUNDS`, `TB_MAX_ACTIVE_LOOPS` | 3, 0.05, 20/0.5/0.5, 0.1, 2, 3 | Stop rules (AN-040..AN-042) |
+| `TB_PLATEAU_K`, `TB_PLATEAU_EPSILON`, `TB_NO_EDGE_*`, `TB_UNREACHABLE_DSR`, `TB_UNREACHABLE_MIN_TRIALS`, `TB_MAX_FAILED_ROUNDS`, `TB_MAX_ACTIVE_LOOPS` | 3, 0.05, 20/0.5/0.5, 0.1, 10, 2, 3 | Stop rules (AN-040..AN-042) |
 | `TB_BUDGET_*` | 5 trials/round, 8 CPU h/day, 2 jobs, 10 rounds, 24 h | Default loop budget (AN-020) |
 | `TB_ML_ADDR` / `TB_OPTIMIZER_ADDR` | `ml:9090` / `optimizer:9091` | Research services |
 | `TB_SANDBOX_JOBS_DIR` / `TB_SANDBOX_TIMEOUT_SECONDS` | `/jobs` / `120` | Coder jobs volume |
@@ -65,6 +65,7 @@ Secrets (files only, SE-010): `pg_svc_assistant_password`, `nats_assistant_passw
 ## Run and test
 - Run: `make up PROFILES=core,observability,ml,ml-workers` (assistant, `llm-egress`, `analyst-sandbox`, `candidate-checker`); locally `uv run python -m tb_assistant`.
 - Test: `uv run pytest services/assistant/tests tests/python/test_analyst_sandbox.py tests/python/test_evaluator_isolation.py`.
+- Gate 4 against the real ml and optimizer services: `uv run pytest tests/python/test_analyst_gate4.py` (about 2.5 minutes: noise ends in no edge, a level-1 loop runs pre-registered studies and stops, a gated challenger goes to shadow and no further, a live-feedback round trains a challenger, red-team probes).
 - Evaluation suite: `uv run python -m tb_assistant.eval [--json out.json]` (54 scenarios; fake planner by default; set `TB_LLM_PLANNER_PROVIDER` plus keys as mounted secrets and `TB_SECRETS_DIR` to score a real model; exits 1 below `TB_EVAL_THRESHOLD`, default 0.95).
 
 ## Operational notes
