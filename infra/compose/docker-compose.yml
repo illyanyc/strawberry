@@ -108,6 +108,8 @@ secrets:
   svc_ledger_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_ledger_ed25519.pub" }
   svc_marketdata_ed25519: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_marketdata_ed25519" }
   svc_marketdata_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_marketdata_ed25519.pub" }
+  svc_context_data_ed25519: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_context_data_ed25519" }
+  svc_context_data_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_context_data_ed25519.pub" }
   nats_broker_gateway_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_broker_gateway_password" }
   fmp_api_key: { file: "${TB_SECRETS_DIR:-../../.secrets}/fmp_api_key" }
   grafana_admin_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/grafana_admin_password" }
@@ -254,7 +256,7 @@ services:
       # RM-017: cancel working platform orders 30 s after the last execution heartbeat.
       TB_DEADMAN_TIMEOUT: ${TB_DEADMAN_TIMEOUT:-30s}
     secrets: [pg_svc_broker_gateway_password, broker_kek, nats_broker_gateway_password, svc_api_gateway_ed25519.pub,
-              svc_execution_ed25519.pub, svc_ledger_ed25519.pub, svc_marketdata_ed25519.pub]
+              svc_execution_ed25519.pub, svc_ledger_ed25519.pub, svc_marketdata_ed25519.pub, svc_context_data_ed25519.pub]
     networks: [backend, edge]
     healthcheck: *go-healthcheck
     depends_on: { db-init: { condition: service_completed_successfully }, bus-init: { condition: service_completed_successfully } }

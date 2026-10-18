@@ -186,7 +186,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `tests/python/` | Exists | Cross-package Python tests (placeholder services' ops surface, alert rules have runbooks) |
 | `tests/paper/` | Exists | Go module: Phase 2 paper harness (simulated Alpaca- and IBKR-shaped accounts behind the adapter engine, ledger, execution, embedded NATS, gRPC, shared virtual clock) and the Gate 2 tests, including the five-session ORB gate that runs the real Python strategy runtime (`make paper-gate`) |
 | `tests/e2e/` | Exists | Go end-to-end test against the running stack: passkey setup/login, step-up, credential storage with leak canary, SSE, audit (`make e2e`, used by the smoke test) |
-| `tests/fixtures/` | Exists | Fixtures (no account data): `alpaca/` (bars, corporate actions, data-stream messages; README explains provenance), `lake/` (Go-written sample lake with a revision and a staged file, read by Python tests), `dq/` (injected-defect bars + expected report shared by Go and Python), `fmp/` (`/stable` response shapes for the FMP client tests) |
+| `tests/fixtures/` | Exists | Fixtures (no account data): `alpaca/` (bars, corporate actions, data-stream messages, news; README explains provenance), `lake/` (Go-written sample lake with a revision and a staged file, read by Python tests), `dq/` (injected-defect bars + expected report shared by Go and Python), `fmp/` (`/stable` response shapes for the FMP client tests) |
 
 ## Infra: `infra/` (agent notes in `infra/AGENTS.md`)
 

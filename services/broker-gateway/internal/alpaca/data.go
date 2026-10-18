@@ -260,6 +260,73 @@ func (c *Client) CorporateActions(ctx context.Context, req *brokerv1.GetCorporat
 	return out, nil
 }
 
+type jsonNews struct {
+	ID        json.Number `json:"id"`
+	Headline  string      `json:"headline"`
+	Author    string      `json:"author"`
+	CreatedAt time.Time   `json:"created_at"`
+	UpdatedAt time.Time   `json:"updated_at"`
+	Summary   string      `json:"summary"`
+	Content   string      `json:"content"`
+	URL       string      `json:"url"`
+	Symbols   []string    `json:"symbols"`
+	Source    string      `json:"source"`
+}
+
+// News fetches one page of articles (GET /v1beta1/news, ascending by first publication). Text is
+// passed through unchanged: context-data treats it as untrusted and sanitizes it (CX-011).
+func (c *Client) News(ctx context.Context, req *brokerv1.GetNewsRequest) (*brokerv1.GetNewsResponse, error) {
+	if req.GetEnd() <= req.GetStart() {
+		return nil, fmt.Errorf("alpaca: news window end must be after start")
+	}
+	limit := req.GetLimit()
+	if limit == 0 || limit > 50 {
+		limit = 50
+	}
+	q := url.Values{
+		"start": {time.Unix(0, req.GetStart()).UTC().Format(time.RFC3339)}, "end": {time.Unix(0, req.GetEnd()).UTC().Format(time.RFC3339)},
+		"limit": {strconv.Itoa(int(limit))}, "sort": {"asc"}, "include_content": {strconv.FormatBool(req.GetIncludeContent())},
+		"exclude_contentless": {"false"},
+	}
+	if len(req.GetSymbols()) > 0 {
+		q.Set("symbols", strings.Join(req.GetSymbols(), ","))
+	}
+	if req.GetPageToken() != "" {
+		q.Set("page_token", req.GetPageToken())
+	}
+	var raw json.RawMessage
+	if err := c.retryable(ctx, func(ctx context.Context) error {
+		return c.do(ctx, "data", http.MethodGet, "/v1beta1/news", q, nil, resilience.PriorityBulk, &raw)
+	}); err != nil {
+		return nil, err
+	}
+	var resp struct {
+		News          []jsonNews `json:"news"`
+		NextPageToken *string    `json:"next_page_token"`
+	}
+	d := json.NewDecoder(bytes.NewReader(raw))
+	d.UseNumber()
+	if err := d.Decode(&resp); err != nil {
+		return nil, fmt.Errorf("alpaca: decode news: %w", err)
+	}
+	out := &brokerv1.GetNewsResponse{}
+	for _, n := range resp.News {
+		if n.ID.String() == "" || n.CreatedAt.IsZero() {
+			continue
+		}
+		a := &brokerv1.NewsArticle{Id: n.ID.String(), Headline: n.Headline, Summary: n.Summary, Author: n.Author, Source: n.Source,
+			Url: n.URL, Symbols: n.Symbols, CreatedAt: n.CreatedAt.UnixNano(), UpdatedAt: n.UpdatedAt.UnixNano()}
+		if req.GetIncludeContent() {
+			a.Content = n.Content
+		}
+		out.Articles = append(out.Articles, a)
+	}
+	if resp.NextPageToken != nil {
+		out.NextPageToken = *resp.NextPageToken
+	}
+	return out, nil
+}
+
 func firstNonEmpty(xs ...string) string {
 	for _, x := range xs {
 		if x != "" {

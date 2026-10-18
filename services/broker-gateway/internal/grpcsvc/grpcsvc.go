@@ -45,6 +45,7 @@ var AllowedCallers = map[string][]string{
 	mdsvc + "ListAssets":           {"marketdata"},
 	mdsvc + "GetCorporateActions":  {"marketdata"},
 	mdsvc + "GetFeedStatus":        {"marketdata", "api-gateway"},
+	mdsvc + "GetNews":              {"context-data"},
 }
 
 // Server implements BrokerGatewayService.
@@ -376,6 +377,7 @@ type MarketData interface {
 	HistoricalBars(ctx context.Context, req *brokerv1.GetHistoricalBarsRequest) (*brokerv1.GetHistoricalBarsResponse, error)
 	Assets(ctx context.Context, includeInactive bool) (*brokerv1.ListAssetsResponse, error)
 	CorporateActions(ctx context.Context, req *brokerv1.GetCorporateActionsRequest) (*brokerv1.GetCorporateActionsResponse, error)
+	News(ctx context.Context, req *brokerv1.GetNewsRequest) (*brokerv1.GetNewsResponse, error)
 }
 
 // MarketDataServer implements BrokerMarketDataService.
@@ -415,6 +417,18 @@ func (m *MarketDataServer) GetCorporateActions(ctx context.Context, r *brokerv1.
 		return nil, status.Error(codes.Unimplemented, "no market-data account configured")
 	}
 	resp, err := m.REST.CorporateActions(ctx, r)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return resp, nil
+}
+
+// GetNews implements the RPC.
+func (m *MarketDataServer) GetNews(ctx context.Context, r *brokerv1.GetNewsRequest) (*brokerv1.GetNewsResponse, error) {
+	if m.REST == nil {
+		return nil, status.Error(codes.Unimplemented, "no market-data account configured")
+	}
+	resp, err := m.REST.News(ctx, r)
 	if err != nil {
 		return nil, toStatus(err)
 	}
