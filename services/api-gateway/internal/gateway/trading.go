@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/oklog/ulid/v2"
@@ -100,6 +101,7 @@ func (s *Server) registerTradingRoutes(priv func(string, string, func(http.Respo
 	priv("POST", "/api/v1/kill-switches/{id}/release", s.handleKillRelease)
 	priv("GET", "/api/v1/instruments/resolve", s.handleResolveSymbols)
 	priv("GET", "/api/v1/bars", s.handleBars)
+	priv("GET", "/api/v1/instruments/{id}/freshness", s.handleFreshness)
 	priv("GET", "/api/v1/stream/market", s.handleMarketStream)
 }
 
@@ -1058,4 +1060,42 @@ func (s *Server) handleBars(w http.ResponseWriter, r *http.Request, rc *reqCtx) 
 		return
 	}
 	writeProto(w, http.StatusOK, resp)
+}
+
+// handleFreshness reports, per timeframe, whether marketdata considers an instrument's newest final
+// bar fresh (RM-004's two-interval rule) and when that bar closed: the data explorer's freshness
+// table (UI-051). Each timeframe is asked concurrently; a failed one reports its error, never "fresh".
+func (s *Server) handleFreshness(w http.ResponseWriter, r *http.Request, rc *reqCtx) {
+	id := r.PathValue("id")
+	if !idRe.MatchString(id) {
+		writeError(w, http.StatusBadRequest, "bad_request", "invalid instrument id")
+		return
+	}
+	if !s.readGuard(w, rc) || !s.needMD(w) {
+		return
+	}
+	type row struct {
+		Timeframe    string `json:"timeframe"`
+		Fresh        bool   `json:"fresh"`
+		LastBarClose string `json:"last_bar_close"`
+		Reason       string `json:"reason"`
+		Error        string `json:"error,omitempty"`
+	}
+	order := []string{"1m", "5m", "15m", "30m", "1h", "1d"}
+	rows := make([]row, len(order))
+	var wg sync.WaitGroup
+	for i, tf := range order {
+		wg.Go(func() {
+			ctx, cancel := callCtx(r)
+			defer cancel()
+			resp, err := s.trading.MD.IsFresh(ctx, &mdv1.IsFreshRequest{InstrumentId: id, Timeframe: uiTimeframes[tf]})
+			if err != nil {
+				rows[i] = row{Timeframe: tf, Error: "marketdata_unavailable"}
+				return
+			}
+			rows[i] = row{Timeframe: tf, Fresh: resp.GetFresh(), LastBarClose: strconv.FormatInt(resp.GetLastBarClose(), 10), Reason: logging.Redact(resp.GetReason())}
+		})
+	}
+	wg.Wait()
+	writeJSON(w, http.StatusOK, map[string]any{"instrument_id": id, "timeframes": rows})
 }

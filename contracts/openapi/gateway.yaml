@@ -312,6 +312,9 @@ paths:
         - { name: timeframe, in: query, required: true, schema: { enum: ['1m', '5m', '15m', '30m', '1h', '1d'] } }
       responses: { '200': { description: text/event-stream } }
   # ---- section 14 Phase 5: signals, Web Push, TradingView (ADR-0051..ADR-0053) ----
+  /api/v1/instruments/{id}/freshness:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9_-]{1,64}$' } }]
+    get: { description: 'Per timeframe (1m..1d): marketdata IsFresh (RM-004) for the data explorer (UI-051); a failed timeframe carries `error`, never `fresh: true`.', responses: { '200': { description: '{"instrument_id", "timeframes": [{timeframe, fresh, last_bar_close (UTC ns), reason, error?}]}' } } }
   /api/v1/signals:
     get:
       description: Recent model and webhook signals of one instrument for chart overlays (UI-049), from the JetStream SIGNALS stream (sig.<strategy_id>.<instrument_id>). Signals are never orders.

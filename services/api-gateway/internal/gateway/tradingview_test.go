@@ -348,3 +348,44 @@ func (uiAccess) Verify(_ context.Context, tok, aud string) error {
 	}
 	return errors.New("rejected")
 }
+
+type freshMD struct{ mdv1.MarketDataServiceClient }
+
+func (freshMD) IsFresh(_ context.Context, r *mdv1.IsFreshRequest, _ ...grpc.CallOption) (*mdv1.IsFreshResponse, error) {
+	if r.GetTimeframe() == mdv1.Timeframe_TIMEFRAME_1D {
+		return nil, errors.New("down")
+	}
+	return &mdv1.IsFreshResponse{Fresh: r.GetTimeframe() == mdv1.Timeframe_TIMEFRAME_15M, LastBarClose: 42, Reason: "ok"}, nil
+}
+
+// UI-051: freshness per timeframe; a failing timeframe reports its error, never "fresh".
+func TestUI051FreshnessPerTimeframe(t *testing.T) {
+	srv, err := New(testConfig("http://localhost:8080"), Deps{MasterKey: make([]byte, 32), Log: slog.New(slog.NewTextHandler(io.Discard, nil)), Trading: &TradingClients{MD: freshMD{}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	call := func(id string) *httptest.ResponseRecorder {
+		req := httptest.NewRequest("GET", "/", nil)
+		req.SetPathValue("id", id)
+		rec := httptest.NewRecorder()
+		srv.handleFreshness(rec, req, &reqCtx{session: &Session{OwnerID: "owner"}})
+		return rec
+	}
+	if rec := call("a.>"); rec.Code != 400 {
+		t.Fatalf("bad id: %d", rec.Code)
+	}
+	var out struct {
+		Timeframes []struct {
+			Timeframe string `json:"timeframe"`
+			Fresh     bool   `json:"fresh"`
+			Error     string `json:"error"`
+		} `json:"timeframes"`
+	}
+	rec := call("INST_AAPL")
+	if err := json.Unmarshal(rec.Body.Bytes(), &out); err != nil || len(out.Timeframes) != 6 {
+		t.Fatalf("%d %s", rec.Code, rec.Body)
+	}
+	if !out.Timeframes[2].Fresh || out.Timeframes[0].Fresh || out.Timeframes[5].Fresh || out.Timeframes[5].Error != "marketdata_unavailable" {
+		t.Fatalf("rows %+v", out.Timeframes)
+	}
+}

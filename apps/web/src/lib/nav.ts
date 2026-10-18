@@ -13,6 +13,7 @@ import {
   Bot,
   CandlestickChart,
   ClipboardList,
+  Database,
   FlaskConical,
   Gauge,
   KeyRound,
@@ -46,6 +47,7 @@ export type NavPath =
   | "/strategies"
   | "/orders"
   | "/charts"
+  | "/data"
   | "/training"
   | "/experiments"
   | "/backtests"
@@ -80,6 +82,7 @@ export const NAV: readonly NavItem[] = [
   { to: "/strategies", label: "Strategies", short: "Strategies", icon: Workflow, section: "trading", mobile: "primary", key: "s", keywords: "mode allocation limits" },
   { to: "/orders", label: "Orders", short: "Orders", icon: ClipboardList, section: "trading", key: "o", keywords: "blotter fills intents rejects trace" },
   { to: "/charts", label: "Charts", short: "Charts", icon: CandlestickChart, section: "trading", mobile: "primary", key: "c", keywords: "chart price bars signals" },
+  { to: "/data", label: "Data explorer", short: "Data", icon: Database, section: "trading", key: "x", keywords: "freshness feeds bars coverage stale" },
   { to: "/training", label: "Training", short: "Train", icon: Sigma, section: "research", key: "t", keywords: "model lightgbm ridge job" },
   { to: "/experiments", label: "Experiments", short: "Research", icon: FlaskConical, section: "research", key: "e", keywords: "studies lineage optuna registry holdout" },
   { to: "/backtests", label: "Backtests & tearsheets", short: "Tearsheets", icon: Activity, section: "research", key: "b", keywords: "tearsheet runs compare backtest" },

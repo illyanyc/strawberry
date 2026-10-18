@@ -3,7 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-10-18
 - **Decision register:** D68 (applies D11, D12, D14 to the full UI)
-- **Related:** UI-040..UI-047, UI-049, UI-005, UI-007, UI-013, UI-025, [ADR-0012](0012-web-ui-spa-sse-pwa.md), [ADR-0028](0028-ui-trading-slice-charts-and-bff.md), section 14 prompt (Phase 5), research 07 §1–§2
+- **Related:** UI-040..UI-047, UI-049, UI-051, UI-005, UI-007, UI-013, UI-025, [ADR-0012](0012-web-ui-spa-sse-pwa.md), [ADR-0028](0028-ui-trading-slice-charts-and-bff.md), section 14 prompt (Phase 5), research 07 §1–§2
 
 ## Context
 
@@ -18,7 +18,7 @@ Constraints: the CSP is `script-src 'self'; style-src 'self'` (UI-005); the UI c
 - **Status strip.** The header shows execution state, each account's session, reconciliation, margin flags, and day-trade count, halts, clock, strategy-runtime heartbeat age, open orders, and market-data feed freshness (the gateway adds marketdata's `GetFeedStatus` to the status snapshot). Unreachable services read "unknown".
 - **Keyboard first on desktop.** ⌘K/Ctrl+K opens the command palette (pages, ticker → chart, theme, log out, and "engage global kill switch…", which only opens the usual confirmation); `g <key>` navigates; `?` lists shortcuts; Shift+T toggles the theme. Plain keys are ignored while typing. No shortcut performs a trading action by itself.
 - **Route-level code splitting.** The entry chunk holds the login screens, the shell, and the dashboard; every other page is a lazily loaded chunk (`lazyRouteComponent`), prefetched on link hover or focus. The entry chunk drops from 222 kB to about 102 kB gzip; Lightweight Charts (64 kB) loads only with the Charts page. Chunks are same-origin files, so the CSP is unchanged. A failed chunk load (after a deploy) shows "Reload the app" instead of a blank page.
-- **New pages.** Portfolio overview with an end-of-day tab (manual next to each strategy, positions by owner, equity by owner, today's fills and rejected intents, all as services report them); Backtests & tearsheets (runs with stitched out-of-sample metrics, an in-app tearsheet viewer, side-by-side comparison of two runs); Notifications; TradingView. The dashboard is rebuilt around per-account tiles, strategy cards with equity sparklines, and the trading state.
+- **New pages.** Portfolio overview with an end-of-day tab (manual next to each strategy, positions by owner, equity by owner, today's fills and rejected intents, all as services report them); Backtests & tearsheets (runs with stitched out-of-sample metrics, an in-app tearsheet viewer, side-by-side comparison of two runs); a Data explorer (per-timeframe freshness, cached bars, feeds); Notifications; TradingView. The dashboard is rebuilt around per-account tiles, strategy cards with equity sparklines, and the trading state.
 - **In-app tearsheets.** The tearsheet stays its own sandboxed document (UI-025). For the viewer, `?embed=1` returns it with `frame-ancestors 'self'` and `X-Frame-Options: SAMEORIGIN`; the CSP `sandbox` directive stays, and the viewer's `<iframe sandbox="">` grants nothing (no scripts, opaque origin, no navigation). Without `embed=1` the document is still unframeable.
 
 ## Alternatives considered

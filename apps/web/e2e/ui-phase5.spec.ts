@@ -99,6 +99,12 @@ test("Phase 5 desktop: shell, palette, shortcuts, theme, overview, backtests, ch
   await expect(page.getByText(/SPY · 15m|Unknown symbol|unknown|not found|unavailable/i).first()).toBeVisible();
   await shot(page, "p5-desktop-06-charts");
 
+  // UI-051: the data explorer shows feeds and refuses to call unknown data fresh.
+  await main.getByRole("link", { name: "Data explorer" }).click();
+  await expect(page.getByRole("heading", { name: "Data explorer" })).toBeVisible();
+  await expect(page.getByRole("table", { name: "Feeds" }).or(page.getByText(/Feeds: unknown|No feeds configured/))).toBeVisible();
+  await shot(page, "p5-desktop-06b-data-explorer");
+
   // UI-047: backtests and tearsheets render their state (no ml profile in the default stack).
   await main.getByRole("link", { name: "Backtests & tearsheets" }).click();
   await expect(page.getByRole("heading", { name: "Backtests & tearsheets" })).toBeVisible();
