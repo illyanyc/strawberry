@@ -124,7 +124,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `contracts/AGENTS.md` | Exists | Agent notes: layout, conventions, regeneration, gotchas |
 | `contracts/buf.yaml` | Exists | buf module, lint (STANDARD) and breaking (FILE) config |
 | `contracts/buf.gen.yaml` | Exists | Local-plugin codegen to Go, Python, TypeScript |
-| `contracts/proto/` | Exists | Protobuf schemas `tb.<domain>.v1`: common, marketdata, context, features, signals, orders, ledger, ml, alerts, audit, broker (credentials RPC, `BrokerGatewayService`, `BrokerMarketDataService`) |
+| `contracts/proto/` | Exists | Protobuf schemas `tb.<domain>.v1`: common, marketdata (`MarketDataService`), context, features, signals, orders (`ExecutionService` in `orders/v1/execution.proto`), ledger (`LedgerService` in `ledger/v1/ledger_service.proto`), ml, alerts, audit, broker (credentials RPC, `BrokerGatewayService`, `BrokerMarketDataService`) |
 | `contracts/gen/go/` | Exists | Generated Go module (messages + gRPC) plus hand-written `go.mod` and `contracts_test.go` |
 | `contracts/gen/python/` | Exists | Generated Python package `tbcontracts` (`tb.*_pb2` + `.pyi`) plus hand-written `pyproject.toml` |
 | `contracts/gen/ts/` | Exists | Generated TypeScript package `@strawberry/contracts` plus hand-written `package.json`, `tsconfig.json`, `test/` |

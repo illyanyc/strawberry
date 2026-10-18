@@ -1011,6 +1011,136 @@ func (x *CorporateAction) GetSources() []string {
 	return nil
 }
 
+type GetBarsRequest struct {
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	InstrumentId string                 `protobuf:"bytes,1,opt,name=instrument_id,json=instrumentId,proto3" json:"instrument_id,omitempty"`
+	Timeframe    Timeframe              `protobuf:"varint,2,opt,name=timeframe,proto3,enum=tb.marketdata.v1.Timeframe" json:"timeframe,omitempty"`
+	// Optional window, UTC ns on ts_open; 0 = unbounded.
+	Start         int64 `protobuf:"varint,3,opt,name=start,proto3" json:"start,omitempty"`
+	End           int64 `protobuf:"varint,4,opt,name=end,proto3" json:"end,omitempty"`
+	Limit         int32 `protobuf:"varint,5,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetBarsRequest) Reset() {
+	*x = GetBarsRequest{}
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBarsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBarsRequest) ProtoMessage() {}
+
+func (x *GetBarsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBarsRequest.ProtoReflect.Descriptor instead.
+func (*GetBarsRequest) Descriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetBarsRequest) GetInstrumentId() string {
+	if x != nil {
+		return x.InstrumentId
+	}
+	return ""
+}
+
+func (x *GetBarsRequest) GetTimeframe() Timeframe {
+	if x != nil {
+		return x.Timeframe
+	}
+	return Timeframe_TIMEFRAME_UNSPECIFIED
+}
+
+func (x *GetBarsRequest) GetStart() int64 {
+	if x != nil {
+		return x.Start
+	}
+	return 0
+}
+
+func (x *GetBarsRequest) GetEnd() int64 {
+	if x != nil {
+		return x.End
+	}
+	return 0
+}
+
+func (x *GetBarsRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type GetBarsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Bars  []*Bar                 `protobuf:"bytes,1,rep,name=bars,proto3" json:"bars,omitempty"`
+	// "cache" in Phase 2.
+	Source        string `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetBarsResponse) Reset() {
+	*x = GetBarsResponse{}
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBarsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBarsResponse) ProtoMessage() {}
+
+func (x *GetBarsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBarsResponse.ProtoReflect.Descriptor instead.
+func (*GetBarsResponse) Descriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetBarsResponse) GetBars() []*Bar {
+	if x != nil {
+		return x.Bars
+	}
+	return nil
+}
+
+func (x *GetBarsResponse) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
 type BackfillRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Instrument IDs; empty means the named universe.
@@ -1028,7 +1158,7 @@ type BackfillRequest struct {
 
 func (x *BackfillRequest) Reset() {
 	*x = BackfillRequest{}
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[4]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1040,7 +1170,7 @@ func (x *BackfillRequest) String() string {
 func (*BackfillRequest) ProtoMessage() {}
 
 func (x *BackfillRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[4]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1053,7 +1183,7 @@ func (x *BackfillRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BackfillRequest.ProtoReflect.Descriptor instead.
 func (*BackfillRequest) Descriptor() ([]byte, []int) {
-	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{4}
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *BackfillRequest) GetInstrumentIds() []string {
@@ -1114,7 +1244,7 @@ type BackfillResponse struct {
 
 func (x *BackfillResponse) Reset() {
 	*x = BackfillResponse{}
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[5]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1126,7 +1256,7 @@ func (x *BackfillResponse) String() string {
 func (*BackfillResponse) ProtoMessage() {}
 
 func (x *BackfillResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[5]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1139,7 +1269,7 @@ func (x *BackfillResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BackfillResponse.ProtoReflect.Descriptor instead.
 func (*BackfillResponse) Descriptor() ([]byte, []int) {
-	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{5}
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *BackfillResponse) GetJobId() string {
@@ -1158,7 +1288,7 @@ type GetBackfillStatusRequest struct {
 
 func (x *GetBackfillStatusRequest) Reset() {
 	*x = GetBackfillStatusRequest{}
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[6]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1170,7 +1300,7 @@ func (x *GetBackfillStatusRequest) String() string {
 func (*GetBackfillStatusRequest) ProtoMessage() {}
 
 func (x *GetBackfillStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[6]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1183,7 +1313,7 @@ func (x *GetBackfillStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBackfillStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetBackfillStatusRequest) Descriptor() ([]byte, []int) {
-	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{6}
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetBackfillStatusRequest) GetJobId() string {
@@ -1212,7 +1342,7 @@ type BackfillReport struct {
 
 func (x *BackfillReport) Reset() {
 	*x = BackfillReport{}
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[7]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1224,7 +1354,7 @@ func (x *BackfillReport) String() string {
 func (*BackfillReport) ProtoMessage() {}
 
 func (x *BackfillReport) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[7]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1237,7 +1367,7 @@ func (x *BackfillReport) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BackfillReport.ProtoReflect.Descriptor instead.
 func (*BackfillReport) Descriptor() ([]byte, []int) {
-	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{7}
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *BackfillReport) GetChunksTotal() int64 {
@@ -1317,7 +1447,7 @@ type GetBackfillStatusResponse struct {
 
 func (x *GetBackfillStatusResponse) Reset() {
 	*x = GetBackfillStatusResponse{}
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[8]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1329,7 +1459,7 @@ func (x *GetBackfillStatusResponse) String() string {
 func (*GetBackfillStatusResponse) ProtoMessage() {}
 
 func (x *GetBackfillStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[8]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1342,7 +1472,7 @@ func (x *GetBackfillStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBackfillStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetBackfillStatusResponse) Descriptor() ([]byte, []int) {
-	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{8}
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetBackfillStatusResponse) GetJobId() string {
@@ -1397,7 +1527,7 @@ type SetUniverseRequest struct {
 
 func (x *SetUniverseRequest) Reset() {
 	*x = SetUniverseRequest{}
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[9]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1409,7 +1539,7 @@ func (x *SetUniverseRequest) String() string {
 func (*SetUniverseRequest) ProtoMessage() {}
 
 func (x *SetUniverseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[9]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1422,7 +1552,7 @@ func (x *SetUniverseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetUniverseRequest.ProtoReflect.Descriptor instead.
 func (*SetUniverseRequest) Descriptor() ([]byte, []int) {
-	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{9}
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *SetUniverseRequest) GetUniverse() string {
@@ -1448,7 +1578,7 @@ type SetUniverseResponse struct {
 
 func (x *SetUniverseResponse) Reset() {
 	*x = SetUniverseResponse{}
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[10]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1460,7 +1590,7 @@ func (x *SetUniverseResponse) String() string {
 func (*SetUniverseResponse) ProtoMessage() {}
 
 func (x *SetUniverseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[10]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1473,7 +1603,7 @@ func (x *SetUniverseResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetUniverseResponse.ProtoReflect.Descriptor instead.
 func (*SetUniverseResponse) Descriptor() ([]byte, []int) {
-	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{10}
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SetUniverseResponse) GetSubscribed() int32 {
@@ -1497,7 +1627,7 @@ type FeedStatus struct {
 
 func (x *FeedStatus) Reset() {
 	*x = FeedStatus{}
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[11]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1509,7 +1639,7 @@ func (x *FeedStatus) String() string {
 func (*FeedStatus) ProtoMessage() {}
 
 func (x *FeedStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[11]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1522,7 +1652,7 @@ func (x *FeedStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedStatus.ProtoReflect.Descriptor instead.
 func (*FeedStatus) Descriptor() ([]byte, []int) {
-	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{11}
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *FeedStatus) GetFeed() string {
@@ -1575,7 +1705,7 @@ type GetFeedStatusRequest struct {
 
 func (x *GetFeedStatusRequest) Reset() {
 	*x = GetFeedStatusRequest{}
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[12]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1587,7 +1717,7 @@ func (x *GetFeedStatusRequest) String() string {
 func (*GetFeedStatusRequest) ProtoMessage() {}
 
 func (x *GetFeedStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[12]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1600,7 +1730,7 @@ func (x *GetFeedStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFeedStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetFeedStatusRequest) Descriptor() ([]byte, []int) {
-	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{12}
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{14}
 }
 
 type GetFeedStatusResponse struct {
@@ -1612,7 +1742,7 @@ type GetFeedStatusResponse struct {
 
 func (x *GetFeedStatusResponse) Reset() {
 	*x = GetFeedStatusResponse{}
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[13]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1624,7 +1754,7 @@ func (x *GetFeedStatusResponse) String() string {
 func (*GetFeedStatusResponse) ProtoMessage() {}
 
 func (x *GetFeedStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[13]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1637,7 +1767,7 @@ func (x *GetFeedStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFeedStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetFeedStatusResponse) Descriptor() ([]byte, []int) {
-	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{13}
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetFeedStatusResponse) GetFeeds() []*FeedStatus {
@@ -1659,7 +1789,7 @@ type IsFreshRequest struct {
 
 func (x *IsFreshRequest) Reset() {
 	*x = IsFreshRequest{}
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[14]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1671,7 +1801,7 @@ func (x *IsFreshRequest) String() string {
 func (*IsFreshRequest) ProtoMessage() {}
 
 func (x *IsFreshRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[14]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1684,7 +1814,7 @@ func (x *IsFreshRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IsFreshRequest.ProtoReflect.Descriptor instead.
 func (*IsFreshRequest) Descriptor() ([]byte, []int) {
-	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{14}
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *IsFreshRequest) GetInstrumentId() string {
@@ -1719,7 +1849,7 @@ type IsFreshResponse struct {
 
 func (x *IsFreshResponse) Reset() {
 	*x = IsFreshResponse{}
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[15]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1731,7 +1861,7 @@ func (x *IsFreshResponse) String() string {
 func (*IsFreshResponse) ProtoMessage() {}
 
 func (x *IsFreshResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[15]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1744,7 +1874,7 @@ func (x *IsFreshResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IsFreshResponse.ProtoReflect.Descriptor instead.
 func (*IsFreshResponse) Descriptor() ([]byte, []int) {
-	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{15}
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *IsFreshResponse) GetFresh() bool {
@@ -1784,7 +1914,7 @@ type SourceHealth struct {
 
 func (x *SourceHealth) Reset() {
 	*x = SourceHealth{}
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[16]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1796,7 +1926,7 @@ func (x *SourceHealth) String() string {
 func (*SourceHealth) ProtoMessage() {}
 
 func (x *SourceHealth) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[16]
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1809,7 +1939,7 @@ func (x *SourceHealth) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SourceHealth.ProtoReflect.Descriptor instead.
 func (*SourceHealth) Descriptor() ([]byte, []int) {
-	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{16}
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *SourceHealth) GetSource() string {
@@ -1947,7 +2077,16 @@ const file_tb_marketdata_v1_marketdata_proto_rawDesc = "" +
 	"declaredAt\x12\x1b\n" +
 	"\tsource_id\x18\x0f \x01(\tR\bsourceId\x12?\n" +
 	"\tagreement\x18\x10 \x01(\x0e2!.tb.marketdata.v1.AgreementStatusR\tagreement\x12\x18\n" +
-	"\asources\x18\x11 \x03(\tR\asources\"\xf4\x01\n" +
+	"\asources\x18\x11 \x03(\tR\asources\"\xae\x01\n" +
+	"\x0eGetBarsRequest\x12#\n" +
+	"\rinstrument_id\x18\x01 \x01(\tR\finstrumentId\x129\n" +
+	"\ttimeframe\x18\x02 \x01(\x0e2\x1b.tb.marketdata.v1.TimeframeR\ttimeframe\x12\x14\n" +
+	"\x05start\x18\x03 \x01(\x03R\x05start\x12\x10\n" +
+	"\x03end\x18\x04 \x01(\x03R\x03end\x12\x14\n" +
+	"\x05limit\x18\x05 \x01(\x05R\x05limit\"T\n" +
+	"\x0fGetBarsResponse\x12)\n" +
+	"\x04bars\x18\x01 \x03(\v2\x15.tb.marketdata.v1.BarR\x04bars\x12\x16\n" +
+	"\x06source\x18\x02 \x01(\tR\x06source\"\xf4\x01\n" +
 	"\x0fBackfillRequest\x12%\n" +
 	"\x0einstrument_ids\x18\x01 \x03(\tR\rinstrumentIds\x12\x1a\n" +
 	"\buniverse\x18\x02 \x01(\tR\buniverse\x12;\n" +
@@ -2060,13 +2199,14 @@ const file_tb_marketdata_v1_marketdata_proto_rawDesc = "" +
 	"\x11JOB_STATE_RUNNING\x10\x02\x12\x17\n" +
 	"\x13JOB_STATE_SUCCEEDED\x10\x03\x12\x14\n" +
 	"\x10JOB_STATE_FAILED\x10\x04\x12!\n" +
-	"\x1dJOB_STATE_SUCCEEDED_WITH_GAPS\x10\x052\xe2\x03\n" +
+	"\x1dJOB_STATE_SUCCEEDED_WITH_GAPS\x10\x052\xb2\x04\n" +
 	"\x11MarketDataService\x12Q\n" +
 	"\bBackfill\x12!.tb.marketdata.v1.BackfillRequest\x1a\".tb.marketdata.v1.BackfillResponse\x12l\n" +
 	"\x11GetBackfillStatus\x12*.tb.marketdata.v1.GetBackfillStatusRequest\x1a+.tb.marketdata.v1.GetBackfillStatusResponse\x12Z\n" +
 	"\vSetUniverse\x12$.tb.marketdata.v1.SetUniverseRequest\x1a%.tb.marketdata.v1.SetUniverseResponse\x12`\n" +
 	"\rGetFeedStatus\x12&.tb.marketdata.v1.GetFeedStatusRequest\x1a'.tb.marketdata.v1.GetFeedStatusResponse\x12N\n" +
-	"\aIsFresh\x12 .tb.marketdata.v1.IsFreshRequest\x1a!.tb.marketdata.v1.IsFreshResponseB\xd8\x01\n" +
+	"\aIsFresh\x12 .tb.marketdata.v1.IsFreshRequest\x1a!.tb.marketdata.v1.IsFreshResponse\x12N\n" +
+	"\aGetBars\x12 .tb.marketdata.v1.GetBarsRequest\x1a!.tb.marketdata.v1.GetBarsResponseB\xd8\x01\n" +
 	"\x14com.tb.marketdata.v1B\x0fMarketdataProtoP\x01ZMgithub.com/illyanyc/strawberry/contracts/gen/go/tb/marketdata/v1;marketdatav1\xa2\x02\x03TMX\xaa\x02\x10Tb.Marketdata.V1\xca\x02\x10Tb\\Marketdata\\V1\xe2\x02\x1cTb\\Marketdata\\V1\\GPBMetadata\xea\x02\x12Tb::Marketdata::V1b\x06proto3"
 
 var (
@@ -2082,7 +2222,7 @@ func file_tb_marketdata_v1_marketdata_proto_rawDescGZIP() []byte {
 }
 
 var file_tb_marketdata_v1_marketdata_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_tb_marketdata_v1_marketdata_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_tb_marketdata_v1_marketdata_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_tb_marketdata_v1_marketdata_proto_goTypes = []any{
 	(Timeframe)(0),                    // 0: tb.marketdata.v1.Timeframe
 	(AdjustmentBasis)(0),              // 1: tb.marketdata.v1.AdjustmentBasis
@@ -2094,63 +2234,69 @@ var file_tb_marketdata_v1_marketdata_proto_goTypes = []any{
 	(*Quote)(nil),                     // 7: tb.marketdata.v1.Quote
 	(*Trade)(nil),                     // 8: tb.marketdata.v1.Trade
 	(*CorporateAction)(nil),           // 9: tb.marketdata.v1.CorporateAction
-	(*BackfillRequest)(nil),           // 10: tb.marketdata.v1.BackfillRequest
-	(*BackfillResponse)(nil),          // 11: tb.marketdata.v1.BackfillResponse
-	(*GetBackfillStatusRequest)(nil),  // 12: tb.marketdata.v1.GetBackfillStatusRequest
-	(*BackfillReport)(nil),            // 13: tb.marketdata.v1.BackfillReport
-	(*GetBackfillStatusResponse)(nil), // 14: tb.marketdata.v1.GetBackfillStatusResponse
-	(*SetUniverseRequest)(nil),        // 15: tb.marketdata.v1.SetUniverseRequest
-	(*SetUniverseResponse)(nil),       // 16: tb.marketdata.v1.SetUniverseResponse
-	(*FeedStatus)(nil),                // 17: tb.marketdata.v1.FeedStatus
-	(*GetFeedStatusRequest)(nil),      // 18: tb.marketdata.v1.GetFeedStatusRequest
-	(*GetFeedStatusResponse)(nil),     // 19: tb.marketdata.v1.GetFeedStatusResponse
-	(*IsFreshRequest)(nil),            // 20: tb.marketdata.v1.IsFreshRequest
-	(*IsFreshResponse)(nil),           // 21: tb.marketdata.v1.IsFreshResponse
-	(*SourceHealth)(nil),              // 22: tb.marketdata.v1.SourceHealth
-	nil,                               // 23: tb.marketdata.v1.BackfillReport.DqFindingsEntry
-	(*v1.Decimal)(nil),                // 24: tb.common.v1.Decimal
+	(*GetBarsRequest)(nil),            // 10: tb.marketdata.v1.GetBarsRequest
+	(*GetBarsResponse)(nil),           // 11: tb.marketdata.v1.GetBarsResponse
+	(*BackfillRequest)(nil),           // 12: tb.marketdata.v1.BackfillRequest
+	(*BackfillResponse)(nil),          // 13: tb.marketdata.v1.BackfillResponse
+	(*GetBackfillStatusRequest)(nil),  // 14: tb.marketdata.v1.GetBackfillStatusRequest
+	(*BackfillReport)(nil),            // 15: tb.marketdata.v1.BackfillReport
+	(*GetBackfillStatusResponse)(nil), // 16: tb.marketdata.v1.GetBackfillStatusResponse
+	(*SetUniverseRequest)(nil),        // 17: tb.marketdata.v1.SetUniverseRequest
+	(*SetUniverseResponse)(nil),       // 18: tb.marketdata.v1.SetUniverseResponse
+	(*FeedStatus)(nil),                // 19: tb.marketdata.v1.FeedStatus
+	(*GetFeedStatusRequest)(nil),      // 20: tb.marketdata.v1.GetFeedStatusRequest
+	(*GetFeedStatusResponse)(nil),     // 21: tb.marketdata.v1.GetFeedStatusResponse
+	(*IsFreshRequest)(nil),            // 22: tb.marketdata.v1.IsFreshRequest
+	(*IsFreshResponse)(nil),           // 23: tb.marketdata.v1.IsFreshResponse
+	(*SourceHealth)(nil),              // 24: tb.marketdata.v1.SourceHealth
+	nil,                               // 25: tb.marketdata.v1.BackfillReport.DqFindingsEntry
+	(*v1.Decimal)(nil),                // 26: tb.common.v1.Decimal
 }
 var file_tb_marketdata_v1_marketdata_proto_depIdxs = []int32{
 	0,  // 0: tb.marketdata.v1.Bar.timeframe:type_name -> tb.marketdata.v1.Timeframe
-	24, // 1: tb.marketdata.v1.Bar.open:type_name -> tb.common.v1.Decimal
-	24, // 2: tb.marketdata.v1.Bar.high:type_name -> tb.common.v1.Decimal
-	24, // 3: tb.marketdata.v1.Bar.low:type_name -> tb.common.v1.Decimal
-	24, // 4: tb.marketdata.v1.Bar.close:type_name -> tb.common.v1.Decimal
-	24, // 5: tb.marketdata.v1.Bar.volume:type_name -> tb.common.v1.Decimal
-	24, // 6: tb.marketdata.v1.Bar.vwap:type_name -> tb.common.v1.Decimal
+	26, // 1: tb.marketdata.v1.Bar.open:type_name -> tb.common.v1.Decimal
+	26, // 2: tb.marketdata.v1.Bar.high:type_name -> tb.common.v1.Decimal
+	26, // 3: tb.marketdata.v1.Bar.low:type_name -> tb.common.v1.Decimal
+	26, // 4: tb.marketdata.v1.Bar.close:type_name -> tb.common.v1.Decimal
+	26, // 5: tb.marketdata.v1.Bar.volume:type_name -> tb.common.v1.Decimal
+	26, // 6: tb.marketdata.v1.Bar.vwap:type_name -> tb.common.v1.Decimal
 	1,  // 7: tb.marketdata.v1.Bar.adjustment_basis:type_name -> tb.marketdata.v1.AdjustmentBasis
 	2,  // 8: tb.marketdata.v1.Bar.session:type_name -> tb.marketdata.v1.Session
-	24, // 9: tb.marketdata.v1.Quote.bid_price:type_name -> tb.common.v1.Decimal
-	24, // 10: tb.marketdata.v1.Quote.bid_size:type_name -> tb.common.v1.Decimal
-	24, // 11: tb.marketdata.v1.Quote.ask_price:type_name -> tb.common.v1.Decimal
-	24, // 12: tb.marketdata.v1.Quote.ask_size:type_name -> tb.common.v1.Decimal
-	24, // 13: tb.marketdata.v1.Trade.price:type_name -> tb.common.v1.Decimal
-	24, // 14: tb.marketdata.v1.Trade.size:type_name -> tb.common.v1.Decimal
+	26, // 9: tb.marketdata.v1.Quote.bid_price:type_name -> tb.common.v1.Decimal
+	26, // 10: tb.marketdata.v1.Quote.bid_size:type_name -> tb.common.v1.Decimal
+	26, // 11: tb.marketdata.v1.Quote.ask_price:type_name -> tb.common.v1.Decimal
+	26, // 12: tb.marketdata.v1.Quote.ask_size:type_name -> tb.common.v1.Decimal
+	26, // 13: tb.marketdata.v1.Trade.price:type_name -> tb.common.v1.Decimal
+	26, // 14: tb.marketdata.v1.Trade.size:type_name -> tb.common.v1.Decimal
 	4,  // 15: tb.marketdata.v1.CorporateAction.type:type_name -> tb.marketdata.v1.CorporateActionType
-	24, // 16: tb.marketdata.v1.CorporateAction.ratio:type_name -> tb.common.v1.Decimal
-	24, // 17: tb.marketdata.v1.CorporateAction.amount:type_name -> tb.common.v1.Decimal
+	26, // 16: tb.marketdata.v1.CorporateAction.ratio:type_name -> tb.common.v1.Decimal
+	26, // 17: tb.marketdata.v1.CorporateAction.amount:type_name -> tb.common.v1.Decimal
 	3,  // 18: tb.marketdata.v1.CorporateAction.agreement:type_name -> tb.marketdata.v1.AgreementStatus
-	0,  // 19: tb.marketdata.v1.BackfillRequest.timeframes:type_name -> tb.marketdata.v1.Timeframe
-	23, // 20: tb.marketdata.v1.BackfillReport.dq_findings:type_name -> tb.marketdata.v1.BackfillReport.DqFindingsEntry
-	5,  // 21: tb.marketdata.v1.GetBackfillStatusResponse.state:type_name -> tb.marketdata.v1.JobState
-	13, // 22: tb.marketdata.v1.GetBackfillStatusResponse.report:type_name -> tb.marketdata.v1.BackfillReport
-	17, // 23: tb.marketdata.v1.GetFeedStatusResponse.feeds:type_name -> tb.marketdata.v1.FeedStatus
-	0,  // 24: tb.marketdata.v1.IsFreshRequest.timeframe:type_name -> tb.marketdata.v1.Timeframe
-	10, // 25: tb.marketdata.v1.MarketDataService.Backfill:input_type -> tb.marketdata.v1.BackfillRequest
-	12, // 26: tb.marketdata.v1.MarketDataService.GetBackfillStatus:input_type -> tb.marketdata.v1.GetBackfillStatusRequest
-	15, // 27: tb.marketdata.v1.MarketDataService.SetUniverse:input_type -> tb.marketdata.v1.SetUniverseRequest
-	18, // 28: tb.marketdata.v1.MarketDataService.GetFeedStatus:input_type -> tb.marketdata.v1.GetFeedStatusRequest
-	20, // 29: tb.marketdata.v1.MarketDataService.IsFresh:input_type -> tb.marketdata.v1.IsFreshRequest
-	11, // 30: tb.marketdata.v1.MarketDataService.Backfill:output_type -> tb.marketdata.v1.BackfillResponse
-	14, // 31: tb.marketdata.v1.MarketDataService.GetBackfillStatus:output_type -> tb.marketdata.v1.GetBackfillStatusResponse
-	16, // 32: tb.marketdata.v1.MarketDataService.SetUniverse:output_type -> tb.marketdata.v1.SetUniverseResponse
-	19, // 33: tb.marketdata.v1.MarketDataService.GetFeedStatus:output_type -> tb.marketdata.v1.GetFeedStatusResponse
-	21, // 34: tb.marketdata.v1.MarketDataService.IsFresh:output_type -> tb.marketdata.v1.IsFreshResponse
-	30, // [30:35] is the sub-list for method output_type
-	25, // [25:30] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	0,  // 19: tb.marketdata.v1.GetBarsRequest.timeframe:type_name -> tb.marketdata.v1.Timeframe
+	6,  // 20: tb.marketdata.v1.GetBarsResponse.bars:type_name -> tb.marketdata.v1.Bar
+	0,  // 21: tb.marketdata.v1.BackfillRequest.timeframes:type_name -> tb.marketdata.v1.Timeframe
+	25, // 22: tb.marketdata.v1.BackfillReport.dq_findings:type_name -> tb.marketdata.v1.BackfillReport.DqFindingsEntry
+	5,  // 23: tb.marketdata.v1.GetBackfillStatusResponse.state:type_name -> tb.marketdata.v1.JobState
+	15, // 24: tb.marketdata.v1.GetBackfillStatusResponse.report:type_name -> tb.marketdata.v1.BackfillReport
+	19, // 25: tb.marketdata.v1.GetFeedStatusResponse.feeds:type_name -> tb.marketdata.v1.FeedStatus
+	0,  // 26: tb.marketdata.v1.IsFreshRequest.timeframe:type_name -> tb.marketdata.v1.Timeframe
+	12, // 27: tb.marketdata.v1.MarketDataService.Backfill:input_type -> tb.marketdata.v1.BackfillRequest
+	14, // 28: tb.marketdata.v1.MarketDataService.GetBackfillStatus:input_type -> tb.marketdata.v1.GetBackfillStatusRequest
+	17, // 29: tb.marketdata.v1.MarketDataService.SetUniverse:input_type -> tb.marketdata.v1.SetUniverseRequest
+	20, // 30: tb.marketdata.v1.MarketDataService.GetFeedStatus:input_type -> tb.marketdata.v1.GetFeedStatusRequest
+	22, // 31: tb.marketdata.v1.MarketDataService.IsFresh:input_type -> tb.marketdata.v1.IsFreshRequest
+	10, // 32: tb.marketdata.v1.MarketDataService.GetBars:input_type -> tb.marketdata.v1.GetBarsRequest
+	13, // 33: tb.marketdata.v1.MarketDataService.Backfill:output_type -> tb.marketdata.v1.BackfillResponse
+	16, // 34: tb.marketdata.v1.MarketDataService.GetBackfillStatus:output_type -> tb.marketdata.v1.GetBackfillStatusResponse
+	18, // 35: tb.marketdata.v1.MarketDataService.SetUniverse:output_type -> tb.marketdata.v1.SetUniverseResponse
+	21, // 36: tb.marketdata.v1.MarketDataService.GetFeedStatus:output_type -> tb.marketdata.v1.GetFeedStatusResponse
+	23, // 37: tb.marketdata.v1.MarketDataService.IsFresh:output_type -> tb.marketdata.v1.IsFreshResponse
+	11, // 38: tb.marketdata.v1.MarketDataService.GetBars:output_type -> tb.marketdata.v1.GetBarsResponse
+	33, // [33:39] is the sub-list for method output_type
+	27, // [27:33] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_tb_marketdata_v1_marketdata_proto_init() }
@@ -2164,7 +2310,7 @@ func file_tb_marketdata_v1_marketdata_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tb_marketdata_v1_marketdata_proto_rawDesc), len(file_tb_marketdata_v1_marketdata_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   18,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

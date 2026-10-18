@@ -14,10 +14,48 @@ class ReconciliationStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     RECONCILIATION_STATUS_OK: _ClassVar[ReconciliationStatus]
     RECONCILIATION_STATUS_BREAK: _ClassVar[ReconciliationStatus]
     RECONCILIATION_STATUS_STALE: _ClassVar[ReconciliationStatus]
+    RECONCILIATION_STATUS_PENDING: _ClassVar[ReconciliationStatus]
+
+class BreakType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    BREAK_TYPE_UNSPECIFIED: _ClassVar[BreakType]
+    BREAK_TYPE_TIMING: _ClassVar[BreakType]
+    BREAK_TYPE_ENCROACHMENT: _ClassVar[BreakType]
+    BREAK_TYPE_UNKNOWN_EXECUTION: _ClassVar[BreakType]
+    BREAK_TYPE_MISSING_EXECUTION: _ClassVar[BreakType]
+    BREAK_TYPE_CORPORATE_ACTION: _ClassVar[BreakType]
+    BREAK_TYPE_CASH_MISMATCH: _ClassVar[BreakType]
+    BREAK_TYPE_ORPHAN_ORDER: _ClassVar[BreakType]
+    BREAK_TYPE_GHOST_ORDER: _ClassVar[BreakType]
+    BREAK_TYPE_OVERSELL: _ClassVar[BreakType]
+    BREAK_TYPE_UNMAPPED_INSTRUMENT: _ClassVar[BreakType]
+
+class BreakStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    BREAK_STATUS_UNSPECIFIED: _ClassVar[BreakStatus]
+    BREAK_STATUS_OPEN: _ClassVar[BreakStatus]
+    BREAK_STATUS_AUTO_RESOLVED: _ClassVar[BreakStatus]
+    BREAK_STATUS_RESOLVED: _ClassVar[BreakStatus]
 RECONCILIATION_STATUS_UNSPECIFIED: ReconciliationStatus
 RECONCILIATION_STATUS_OK: ReconciliationStatus
 RECONCILIATION_STATUS_BREAK: ReconciliationStatus
 RECONCILIATION_STATUS_STALE: ReconciliationStatus
+RECONCILIATION_STATUS_PENDING: ReconciliationStatus
+BREAK_TYPE_UNSPECIFIED: BreakType
+BREAK_TYPE_TIMING: BreakType
+BREAK_TYPE_ENCROACHMENT: BreakType
+BREAK_TYPE_UNKNOWN_EXECUTION: BreakType
+BREAK_TYPE_MISSING_EXECUTION: BreakType
+BREAK_TYPE_CORPORATE_ACTION: BreakType
+BREAK_TYPE_CASH_MISMATCH: BreakType
+BREAK_TYPE_ORPHAN_ORDER: BreakType
+BREAK_TYPE_GHOST_ORDER: BreakType
+BREAK_TYPE_OVERSELL: BreakType
+BREAK_TYPE_UNMAPPED_INSTRUMENT: BreakType
+BREAK_STATUS_UNSPECIFIED: BreakStatus
+BREAK_STATUS_OPEN: BreakStatus
+BREAK_STATUS_AUTO_RESOLVED: BreakStatus
+BREAK_STATUS_RESOLVED: BreakStatus
 
 class Position(_message.Message):
     __slots__ = ("instrument_id", "qty", "avg_cost", "symbol", "market_value", "broker_instrument_id")
@@ -119,6 +157,46 @@ class LedgerEntry(_message.Message):
     recorded_at: int
     def __init__(self, entry_id: _Optional[str] = ..., broker_account_id: _Optional[str] = ..., owner: _Optional[str] = ..., instrument_id: _Optional[str] = ..., lot_id: _Optional[str] = ..., qty: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., cost: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., realized_pnl: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., source_exec_id: _Optional[str] = ..., recorded_at: _Optional[int] = ...) -> None: ...
 
+class Break(_message.Message):
+    __slots__ = ("break_id", "broker_account_id", "type", "status", "instrument_id", "symbol", "broker_qty", "ledger_qty", "owner_breakdown", "affected_owners", "detail", "detected_at", "resolved_at", "resolved_by", "resolution", "suggested_resolutions", "severity", "source_id")
+    BREAK_ID_FIELD_NUMBER: _ClassVar[int]
+    BROKER_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    TYPE_FIELD_NUMBER: _ClassVar[int]
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    INSTRUMENT_ID_FIELD_NUMBER: _ClassVar[int]
+    SYMBOL_FIELD_NUMBER: _ClassVar[int]
+    BROKER_QTY_FIELD_NUMBER: _ClassVar[int]
+    LEDGER_QTY_FIELD_NUMBER: _ClassVar[int]
+    OWNER_BREAKDOWN_FIELD_NUMBER: _ClassVar[int]
+    AFFECTED_OWNERS_FIELD_NUMBER: _ClassVar[int]
+    DETAIL_FIELD_NUMBER: _ClassVar[int]
+    DETECTED_AT_FIELD_NUMBER: _ClassVar[int]
+    RESOLVED_AT_FIELD_NUMBER: _ClassVar[int]
+    RESOLVED_BY_FIELD_NUMBER: _ClassVar[int]
+    RESOLUTION_FIELD_NUMBER: _ClassVar[int]
+    SUGGESTED_RESOLUTIONS_FIELD_NUMBER: _ClassVar[int]
+    SEVERITY_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_ID_FIELD_NUMBER: _ClassVar[int]
+    break_id: str
+    broker_account_id: str
+    type: BreakType
+    status: BreakStatus
+    instrument_id: str
+    symbol: str
+    broker_qty: _common_pb2.Decimal
+    ledger_qty: _common_pb2.Decimal
+    owner_breakdown: _containers.RepeatedCompositeFieldContainer[OwnerQty]
+    affected_owners: _containers.RepeatedScalarFieldContainer[str]
+    detail: str
+    detected_at: int
+    resolved_at: int
+    resolved_by: str
+    resolution: str
+    suggested_resolutions: _containers.RepeatedScalarFieldContainer[str]
+    severity: str
+    source_id: str
+    def __init__(self, break_id: _Optional[str] = ..., broker_account_id: _Optional[str] = ..., type: _Optional[_Union[BreakType, str]] = ..., status: _Optional[_Union[BreakStatus, str]] = ..., instrument_id: _Optional[str] = ..., symbol: _Optional[str] = ..., broker_qty: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., ledger_qty: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., owner_breakdown: _Optional[_Iterable[_Union[OwnerQty, _Mapping]]] = ..., affected_owners: _Optional[_Iterable[str]] = ..., detail: _Optional[str] = ..., detected_at: _Optional[int] = ..., resolved_at: _Optional[int] = ..., resolved_by: _Optional[str] = ..., resolution: _Optional[str] = ..., suggested_resolutions: _Optional[_Iterable[str]] = ..., severity: _Optional[str] = ..., source_id: _Optional[str] = ...) -> None: ...
+
 class OwnerQty(_message.Message):
     __slots__ = ("owner", "qty")
     OWNER_FIELD_NUMBER: _ClassVar[int]
@@ -152,13 +230,45 @@ class ReconciliationRequest(_message.Message):
     def __init__(self, broker_account_id: _Optional[str] = ..., reason: _Optional[str] = ..., requested_at: _Optional[int] = ..., correlation_id: _Optional[str] = ...) -> None: ...
 
 class ReconciliationResult(_message.Message):
-    __slots__ = ("broker_account_id", "as_of", "status", "diffs")
+    __slots__ = ("broker_account_id", "as_of", "status", "diffs", "breaks", "correlation_id", "broker_cash", "ledger_cash", "snapshot_as_of", "halted", "positions_compared", "trigger")
     BROKER_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     AS_OF_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
     DIFFS_FIELD_NUMBER: _ClassVar[int]
+    BREAKS_FIELD_NUMBER: _ClassVar[int]
+    CORRELATION_ID_FIELD_NUMBER: _ClassVar[int]
+    BROKER_CASH_FIELD_NUMBER: _ClassVar[int]
+    LEDGER_CASH_FIELD_NUMBER: _ClassVar[int]
+    SNAPSHOT_AS_OF_FIELD_NUMBER: _ClassVar[int]
+    HALTED_FIELD_NUMBER: _ClassVar[int]
+    POSITIONS_COMPARED_FIELD_NUMBER: _ClassVar[int]
+    TRIGGER_FIELD_NUMBER: _ClassVar[int]
     broker_account_id: str
     as_of: int
     status: ReconciliationStatus
     diffs: _containers.RepeatedCompositeFieldContainer[ReconciliationDiff]
-    def __init__(self, broker_account_id: _Optional[str] = ..., as_of: _Optional[int] = ..., status: _Optional[_Union[ReconciliationStatus, str]] = ..., diffs: _Optional[_Iterable[_Union[ReconciliationDiff, _Mapping]]] = ...) -> None: ...
+    breaks: _containers.RepeatedCompositeFieldContainer[Break]
+    correlation_id: str
+    broker_cash: _common_pb2.Decimal
+    ledger_cash: _common_pb2.Decimal
+    snapshot_as_of: int
+    halted: _containers.RepeatedScalarFieldContainer[str]
+    positions_compared: int
+    trigger: str
+    def __init__(self, broker_account_id: _Optional[str] = ..., as_of: _Optional[int] = ..., status: _Optional[_Union[ReconciliationStatus, str]] = ..., diffs: _Optional[_Iterable[_Union[ReconciliationDiff, _Mapping]]] = ..., breaks: _Optional[_Iterable[_Union[Break, _Mapping]]] = ..., correlation_id: _Optional[str] = ..., broker_cash: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., ledger_cash: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., snapshot_as_of: _Optional[int] = ..., halted: _Optional[_Iterable[str]] = ..., positions_compared: _Optional[int] = ..., trigger: _Optional[str] = ...) -> None: ...
+
+class LedgerUpdate(_message.Message):
+    __slots__ = ("broker_account_id", "event_id", "source_id", "positions", "as_of", "correlation_id")
+    BROKER_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    EVENT_ID_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_ID_FIELD_NUMBER: _ClassVar[int]
+    POSITIONS_FIELD_NUMBER: _ClassVar[int]
+    AS_OF_FIELD_NUMBER: _ClassVar[int]
+    CORRELATION_ID_FIELD_NUMBER: _ClassVar[int]
+    broker_account_id: str
+    event_id: str
+    source_id: str
+    positions: _containers.RepeatedCompositeFieldContainer[StrategyPosition]
+    as_of: int
+    correlation_id: str
+    def __init__(self, broker_account_id: _Optional[str] = ..., event_id: _Optional[str] = ..., source_id: _Optional[str] = ..., positions: _Optional[_Iterable[_Union[StrategyPosition, _Mapping]]] = ..., as_of: _Optional[int] = ..., correlation_id: _Optional[str] = ...) -> None: ...

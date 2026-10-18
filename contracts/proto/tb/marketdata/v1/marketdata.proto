@@ -156,6 +156,24 @@ service MarketDataService {
   // Whether the latest final bar is recent enough to trade on (MD-007). Fails closed: unknown
   // instruments and stalled feeds are not fresh.
   rpc IsFresh(IsFreshRequest) returns (IsFreshResponse);
+  // Recent final bars for charts (UI-020), newest last, served from the hot-cache ring (ST-009:
+  // at most 500 bars per timeframe); lake-backed history is Planned.
+  rpc GetBars(GetBarsRequest) returns (GetBarsResponse);
+}
+
+message GetBarsRequest {
+  string instrument_id = 1;
+  Timeframe timeframe = 2;
+  // Optional window, UTC ns on ts_open; 0 = unbounded.
+  int64 start = 3;
+  int64 end = 4;
+  int32 limit = 5;
+}
+
+message GetBarsResponse {
+  repeated Bar bars = 1;
+  // "cache" in Phase 2.
+  string source = 2;
 }
 
 enum JobState {

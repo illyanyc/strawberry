@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file tb/marketdata/v1/marketdata.proto.
  */
 export const file_tb_marketdata_v1_marketdata: GenFile = /*@__PURE__*/
-  fileDesc("CiF0Yi9tYXJrZXRkYXRhL3YxL21hcmtldGRhdGEucHJvdG8SEHRiLm1hcmtldGRhdGEudjEi3AQKA0JhchIVCg1pbnN0cnVtZW50X2lkGAEgASgJEi4KCXRpbWVmcmFtZRgCIAEoDjIbLnRiLm1hcmtldGRhdGEudjEuVGltZWZyYW1lEg8KB3RzX29wZW4YAyABKAMSEAoIdHNfY2xvc2UYBCABKAMSIwoEb3BlbhgFIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiMKBGhpZ2gYBiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIiCgNsb3cYByABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIkCgVjbG9zZRgIIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiUKBnZvbHVtZRgJIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiMKBHZ3YXAYCiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBITCgt0cmFkZV9jb3VudBgLIAEoAxIMCgRmZWVkGAwgASgJEhAKCGlzX2ZpbmFsGA0gASgIEhQKDGF2YWlsYWJsZV9hdBgOIAEoAxITCgtpbmdlc3RlZF9hdBgPIAEoAxIOCgZzb3VyY2UYECABKAkSEAoIcmV2aXNpb24YESABKAUSOwoQYWRqdXN0bWVudF9iYXNpcxgSIAEoDjIhLnRiLm1hcmtldGRhdGEudjEuQWRqdXN0bWVudEJhc2lzEioKB3Nlc3Npb24YEyABKA4yGS50Yi5tYXJrZXRkYXRhLnYxLlNlc3Npb24SEAoIcmVwYWlyZWQYFCABKAgSDgoGc3ltYm9sGBUgASgJIrUCCgVRdW90ZRIVCg1pbnN0cnVtZW50X2lkGAEgASgJEhIKCmV2ZW50X3RpbWUYAiABKAMSKAoJYmlkX3ByaWNlGAMgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJwoIYmlkX3NpemUYBCABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIoCglhc2tfcHJpY2UYBSABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBInCghhc2tfc2l6ZRgGIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEhIKCmNvbmRpdGlvbnMYByADKAkSDAoEZmVlZBgIIAEoCRIUCgxhdmFpbGFibGVfYXQYCSABKAMSEwoLaW5nZXN0ZWRfYXQYCiABKAMSDgoGc3ltYm9sGAsgASgJIv4BCgVUcmFkZRIVCg1pbnN0cnVtZW50X2lkGAEgASgJEhIKCmV2ZW50X3RpbWUYAiABKAMSJAoFcHJpY2UYAyABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIjCgRzaXplGAQgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSEgoKY29uZGl0aW9ucxgFIAMoCRIMCgRmZWVkGAYgASgJEhQKDGF2YWlsYWJsZV9hdBgHIAEoAxITCgtpbmdlc3RlZF9hdBgIIAEoAxIOCgZzeW1ib2wYCSABKAkSEAoIdHJhZGVfaWQYCiABKAkSEAoIZXhjaGFuZ2UYCyABKAki1QMKD0NvcnBvcmF0ZUFjdGlvbhIVCg1pbnN0cnVtZW50X2lkGAEgASgJEjMKBHR5cGUYAiABKA4yJS50Yi5tYXJrZXRkYXRhLnYxLkNvcnBvcmF0ZUFjdGlvblR5cGUSDwoHZXhfZGF0ZRgDIAEoAxIkCgVyYXRpbxgEIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiUKBmFtb3VudBgFIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEh8KF3N1Y2Nlc3Nvcl9pbnN0cnVtZW50X2lkGAYgASgJEg4KBnNvdXJjZRgHIAEoCRIUCgxhdmFpbGFibGVfYXQYCCABKAMSEwoLaW5nZXN0ZWRfYXQYCSABKAMSDgoGc3ltYm9sGAogASgJEhIKCm5ld19zeW1ib2wYCyABKAkSEwoLcmVjb3JkX2RhdGUYDCABKAMSFAoMcGF5YWJsZV9kYXRlGA0gASgDEhMKC2RlY2xhcmVkX2F0GA4gASgDEhEKCXNvdXJjZV9pZBgPIAEoCRI0CglhZ3JlZW1lbnQYECABKA4yIS50Yi5tYXJrZXRkYXRhLnYxLkFncmVlbWVudFN0YXR1cxIPCgdzb3VyY2VzGBEgAygJIq4BCg9CYWNrZmlsbFJlcXVlc3QSFgoOaW5zdHJ1bWVudF9pZHMYASADKAkSEAoIdW5pdmVyc2UYAiABKAkSLwoKdGltZWZyYW1lcxgDIAMoDjIbLnRiLm1hcmtldGRhdGEudjEuVGltZWZyYW1lEg0KBXN0YXJ0GAQgASgDEgsKA2VuZBgFIAEoAxIOCgZzb3VyY2UYBiABKAkSFAoMcmVxdWVzdGVkX2J5GAcgASgJIiIKEEJhY2tmaWxsUmVzcG9uc2USDgoGam9iX2lkGAEgASgJIioKGEdldEJhY2tmaWxsU3RhdHVzUmVxdWVzdBIOCgZqb2JfaWQYASABKAkiwAIKDkJhY2tmaWxsUmVwb3J0EhQKDGNodW5rc190b3RhbBgBIAEoAxITCgtjaHVua3NfZG9uZRgCIAEoAxIUCgxyb3dzX2ZldGNoZWQYAyABKAMSEgoKcm93c19hZGRlZBgEIAEoAxIUCgxyb3dzX3JldmlzZWQYBSABKAMSEgoKZ2Fwc19mb3VuZBgGIAEoAxIVCg1nYXBzX3JlcGFpcmVkGAcgASgDEh4KFmdhcHNfY29uZmlybWVkX21pc3NpbmcYCCABKAMSRQoLZHFfZmluZGluZ3MYCSADKAsyMC50Yi5tYXJrZXRkYXRhLnYxLkJhY2tmaWxsUmVwb3J0LkRxRmluZGluZ3NFbnRyeRoxCg9EcUZpbmRpbmdzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgDOgI4ASLAAQoZR2V0QmFja2ZpbGxTdGF0dXNSZXNwb25zZRIOCgZqb2JfaWQYASABKAkSKQoFc3RhdGUYAiABKA4yGi50Yi5tYXJrZXRkYXRhLnYxLkpvYlN0YXRlEjAKBnJlcG9ydBgDIAEoCzIgLnRiLm1hcmtldGRhdGEudjEuQmFja2ZpbGxSZXBvcnQSDQoFZXJyb3IYBCABKAkSEgoKc3RhcnRlZF9hdBgFIAEoAxITCgtmaW5pc2hlZF9hdBgGIAEoAyI+ChJTZXRVbml2ZXJzZVJlcXVlc3QSEAoIdW5pdmVyc2UYASABKAkSFgoOaW5zdHJ1bWVudF9pZHMYAiADKAkiKQoTU2V0VW5pdmVyc2VSZXNwb25zZRISCgpzdWJzY3JpYmVkGAEgASgFInwKCkZlZWRTdGF0dXMSDAoEZmVlZBgBIAEoCRIRCgljb25uZWN0ZWQYAiABKAgSFwoPbGFzdF9tZXNzYWdlX2F0GAMgASgDEg4KBmxhZ19tcxgEIAEoAxIVCg1zeW1ib2xzX3N0YWxlGAUgAygJEg0KBXN0YXRlGAYgASgJIhYKFEdldEZlZWRTdGF0dXNSZXF1ZXN0IkQKFUdldEZlZWRTdGF0dXNSZXNwb25zZRIrCgVmZWVkcxgBIAMoCzIcLnRiLm1hcmtldGRhdGEudjEuRmVlZFN0YXR1cyJoCg5Jc0ZyZXNoUmVxdWVzdBIVCg1pbnN0cnVtZW50X2lkGAEgASgJEi4KCXRpbWVmcmFtZRgCIAEoDjIbLnRiLm1hcmtldGRhdGEudjEuVGltZWZyYW1lEg8KB21heF9hZ2UYAyABKAMiSAoPSXNGcmVzaFJlc3BvbnNlEg0KBWZyZXNoGAEgASgIEhYKDmxhc3RfYmFyX2Nsb3NlGAIgASgDEg4KBnJlYXNvbhgDIAEoCSKnAQoMU291cmNlSGVhbHRoEg4KBnNvdXJjZRgBIAEoCRIbChNsYXN0X21lc3NhZ2VfYWdlX21zGAIgASgDEhEKCWdhcF9jb3VudBgDIAEoAxISCgplcnJvcl9yYXRlGAQgASgBEhUKDWJyZWFrZXJfc3RhdGUYBSABKAkSHQoVcmVjb25jaWxpYXRpb25fc3RhdHVzGAYgASgJEg0KBWFzX29mGAcgASgDKpQBCglUaW1lZnJhbWUSGQoVVElNRUZSQU1FX1VOU1BFQ0lGSUVEEAASEAoMVElNRUZSQU1FXzFNEAESEAoMVElNRUZSQU1FXzVNEAISEQoNVElNRUZSQU1FXzE1TRADEhAKDFRJTUVGUkFNRV8xSBAEEhAKDFRJTUVGUkFNRV8xRBAFEhEKDVRJTUVGUkFNRV8zME0QBiqJAQoPQWRqdXN0bWVudEJhc2lzEiAKHEFESlVTVE1FTlRfQkFTSVNfVU5TUEVDSUZJRUQQABIYChRBREpVU1RNRU5UX0JBU0lTX1JBVxABEhoKFkFESlVTVE1FTlRfQkFTSVNfU1BMSVQQAhIeChpBREpVU1RNRU5UX0JBU0lTX1NQTElUX0RJVhADKloKB1Nlc3Npb24SFwoTU0VTU0lPTl9VTlNQRUNJRklFRBAAEg8KC1NFU1NJT05fUFJFEAESEwoPU0VTU0lPTl9SRUdVTEFSEAISEAoMU0VTU0lPTl9QT1NUEAMqlAEKD0FncmVlbWVudFN0YXR1cxIgChxBR1JFRU1FTlRfU1RBVFVTX1VOU1BFQ0lGSUVEEAASIgoeQUdSRUVNRU5UX1NUQVRVU19TSU5HTEVfU09VUkNFEAESGwoXQUdSRUVNRU5UX1NUQVRVU19BR1JFRUQQAhIeChpBR1JFRU1FTlRfU1RBVFVTX0RJU0FHUkVFRBADKpUCChNDb3Jwb3JhdGVBY3Rpb25UeXBlEiUKIUNPUlBPUkFURV9BQ1RJT05fVFlQRV9VTlNQRUNJRklFRBAAEh8KG0NPUlBPUkFURV9BQ1RJT05fVFlQRV9TUExJVBABEiIKHkNPUlBPUkFURV9BQ1RJT05fVFlQRV9ESVZJREVORBACEicKI0NPUlBPUkFURV9BQ1RJT05fVFlQRV9TWU1CT0xfQ0hBTkdFEAMSIwofQ09SUE9SQVRFX0FDVElPTl9UWVBFX0RFTElTVElORxAEEiAKHENPUlBPUkFURV9BQ1RJT05fVFlQRV9NRVJHRVIQBRIiCh5DT1JQT1JBVEVfQUNUSU9OX1RZUEVfU1BJTl9PRkYQBiqkAQoISm9iU3RhdGUSGQoVSk9CX1NUQVRFX1VOU1BFQ0lGSUVEEAASFAoQSk9CX1NUQVRFX1FVRVVFRBABEhUKEUpPQl9TVEFURV9SVU5OSU5HEAISFwoTSk9CX1NUQVRFX1NVQ0NFRURFRBADEhQKEEpPQl9TVEFURV9GQUlMRUQQBBIhCh1KT0JfU1RBVEVfU1VDQ0VFREVEX1dJVEhfR0FQUxAFMuIDChFNYXJrZXREYXRhU2VydmljZRJRCghCYWNrZmlsbBIhLnRiLm1hcmtldGRhdGEudjEuQmFja2ZpbGxSZXF1ZXN0GiIudGIubWFya2V0ZGF0YS52MS5CYWNrZmlsbFJlc3BvbnNlEmwKEUdldEJhY2tmaWxsU3RhdHVzEioudGIubWFya2V0ZGF0YS52MS5HZXRCYWNrZmlsbFN0YXR1c1JlcXVlc3QaKy50Yi5tYXJrZXRkYXRhLnYxLkdldEJhY2tmaWxsU3RhdHVzUmVzcG9uc2USWgoLU2V0VW5pdmVyc2USJC50Yi5tYXJrZXRkYXRhLnYxLlNldFVuaXZlcnNlUmVxdWVzdBolLnRiLm1hcmtldGRhdGEudjEuU2V0VW5pdmVyc2VSZXNwb25zZRJgCg1HZXRGZWVkU3RhdHVzEiYudGIubWFya2V0ZGF0YS52MS5HZXRGZWVkU3RhdHVzUmVxdWVzdBonLnRiLm1hcmtldGRhdGEudjEuR2V0RmVlZFN0YXR1c1Jlc3BvbnNlEk4KB0lzRnJlc2gSIC50Yi5tYXJrZXRkYXRhLnYxLklzRnJlc2hSZXF1ZXN0GiEudGIubWFya2V0ZGF0YS52MS5Jc0ZyZXNoUmVzcG9uc2VC2AEKFGNvbS50Yi5tYXJrZXRkYXRhLnYxQg9NYXJrZXRkYXRhUHJvdG9QAVpNZ2l0aHViLmNvbS9pbGx5YW55Yy9zdHJhd2JlcnJ5L2NvbnRyYWN0cy9nZW4vZ28vdGIvbWFya2V0ZGF0YS92MTttYXJrZXRkYXRhdjGiAgNUTViqAhBUYi5NYXJrZXRkYXRhLlYxygIQVGJcTWFya2V0ZGF0YVxWMeICHFRiXE1hcmtldGRhdGFcVjFcR1BCTWV0YWRhdGHqAhJUYjo6TWFya2V0ZGF0YTo6VjFiBnByb3RvMw", [file_tb_common_v1_common]);
+  fileDesc("CiF0Yi9tYXJrZXRkYXRhL3YxL21hcmtldGRhdGEucHJvdG8SEHRiLm1hcmtldGRhdGEudjEi3AQKA0JhchIVCg1pbnN0cnVtZW50X2lkGAEgASgJEi4KCXRpbWVmcmFtZRgCIAEoDjIbLnRiLm1hcmtldGRhdGEudjEuVGltZWZyYW1lEg8KB3RzX29wZW4YAyABKAMSEAoIdHNfY2xvc2UYBCABKAMSIwoEb3BlbhgFIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiMKBGhpZ2gYBiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIiCgNsb3cYByABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIkCgVjbG9zZRgIIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiUKBnZvbHVtZRgJIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiMKBHZ3YXAYCiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBITCgt0cmFkZV9jb3VudBgLIAEoAxIMCgRmZWVkGAwgASgJEhAKCGlzX2ZpbmFsGA0gASgIEhQKDGF2YWlsYWJsZV9hdBgOIAEoAxITCgtpbmdlc3RlZF9hdBgPIAEoAxIOCgZzb3VyY2UYECABKAkSEAoIcmV2aXNpb24YESABKAUSOwoQYWRqdXN0bWVudF9iYXNpcxgSIAEoDjIhLnRiLm1hcmtldGRhdGEudjEuQWRqdXN0bWVudEJhc2lzEioKB3Nlc3Npb24YEyABKA4yGS50Yi5tYXJrZXRkYXRhLnYxLlNlc3Npb24SEAoIcmVwYWlyZWQYFCABKAgSDgoGc3ltYm9sGBUgASgJIrUCCgVRdW90ZRIVCg1pbnN0cnVtZW50X2lkGAEgASgJEhIKCmV2ZW50X3RpbWUYAiABKAMSKAoJYmlkX3ByaWNlGAMgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJwoIYmlkX3NpemUYBCABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIoCglhc2tfcHJpY2UYBSABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBInCghhc2tfc2l6ZRgGIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEhIKCmNvbmRpdGlvbnMYByADKAkSDAoEZmVlZBgIIAEoCRIUCgxhdmFpbGFibGVfYXQYCSABKAMSEwoLaW5nZXN0ZWRfYXQYCiABKAMSDgoGc3ltYm9sGAsgASgJIv4BCgVUcmFkZRIVCg1pbnN0cnVtZW50X2lkGAEgASgJEhIKCmV2ZW50X3RpbWUYAiABKAMSJAoFcHJpY2UYAyABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIjCgRzaXplGAQgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSEgoKY29uZGl0aW9ucxgFIAMoCRIMCgRmZWVkGAYgASgJEhQKDGF2YWlsYWJsZV9hdBgHIAEoAxITCgtpbmdlc3RlZF9hdBgIIAEoAxIOCgZzeW1ib2wYCSABKAkSEAoIdHJhZGVfaWQYCiABKAkSEAoIZXhjaGFuZ2UYCyABKAki1QMKD0NvcnBvcmF0ZUFjdGlvbhIVCg1pbnN0cnVtZW50X2lkGAEgASgJEjMKBHR5cGUYAiABKA4yJS50Yi5tYXJrZXRkYXRhLnYxLkNvcnBvcmF0ZUFjdGlvblR5cGUSDwoHZXhfZGF0ZRgDIAEoAxIkCgVyYXRpbxgEIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiUKBmFtb3VudBgFIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEh8KF3N1Y2Nlc3Nvcl9pbnN0cnVtZW50X2lkGAYgASgJEg4KBnNvdXJjZRgHIAEoCRIUCgxhdmFpbGFibGVfYXQYCCABKAMSEwoLaW5nZXN0ZWRfYXQYCSABKAMSDgoGc3ltYm9sGAogASgJEhIKCm5ld19zeW1ib2wYCyABKAkSEwoLcmVjb3JkX2RhdGUYDCABKAMSFAoMcGF5YWJsZV9kYXRlGA0gASgDEhMKC2RlY2xhcmVkX2F0GA4gASgDEhEKCXNvdXJjZV9pZBgPIAEoCRI0CglhZ3JlZW1lbnQYECABKA4yIS50Yi5tYXJrZXRkYXRhLnYxLkFncmVlbWVudFN0YXR1cxIPCgdzb3VyY2VzGBEgAygJIoIBCg5HZXRCYXJzUmVxdWVzdBIVCg1pbnN0cnVtZW50X2lkGAEgASgJEi4KCXRpbWVmcmFtZRgCIAEoDjIbLnRiLm1hcmtldGRhdGEudjEuVGltZWZyYW1lEg0KBXN0YXJ0GAMgASgDEgsKA2VuZBgEIAEoAxINCgVsaW1pdBgFIAEoBSJGCg9HZXRCYXJzUmVzcG9uc2USIwoEYmFycxgBIAMoCzIVLnRiLm1hcmtldGRhdGEudjEuQmFyEg4KBnNvdXJjZRgCIAEoCSKuAQoPQmFja2ZpbGxSZXF1ZXN0EhYKDmluc3RydW1lbnRfaWRzGAEgAygJEhAKCHVuaXZlcnNlGAIgASgJEi8KCnRpbWVmcmFtZXMYAyADKA4yGy50Yi5tYXJrZXRkYXRhLnYxLlRpbWVmcmFtZRINCgVzdGFydBgEIAEoAxILCgNlbmQYBSABKAMSDgoGc291cmNlGAYgASgJEhQKDHJlcXVlc3RlZF9ieRgHIAEoCSIiChBCYWNrZmlsbFJlc3BvbnNlEg4KBmpvYl9pZBgBIAEoCSIqChhHZXRCYWNrZmlsbFN0YXR1c1JlcXVlc3QSDgoGam9iX2lkGAEgASgJIsACCg5CYWNrZmlsbFJlcG9ydBIUCgxjaHVua3NfdG90YWwYASABKAMSEwoLY2h1bmtzX2RvbmUYAiABKAMSFAoMcm93c19mZXRjaGVkGAMgASgDEhIKCnJvd3NfYWRkZWQYBCABKAMSFAoMcm93c19yZXZpc2VkGAUgASgDEhIKCmdhcHNfZm91bmQYBiABKAMSFQoNZ2Fwc19yZXBhaXJlZBgHIAEoAxIeChZnYXBzX2NvbmZpcm1lZF9taXNzaW5nGAggASgDEkUKC2RxX2ZpbmRpbmdzGAkgAygLMjAudGIubWFya2V0ZGF0YS52MS5CYWNrZmlsbFJlcG9ydC5EcUZpbmRpbmdzRW50cnkaMQoPRHFGaW5kaW5nc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoAzoCOAEiwAEKGUdldEJhY2tmaWxsU3RhdHVzUmVzcG9uc2USDgoGam9iX2lkGAEgASgJEikKBXN0YXRlGAIgASgOMhoudGIubWFya2V0ZGF0YS52MS5Kb2JTdGF0ZRIwCgZyZXBvcnQYAyABKAsyIC50Yi5tYXJrZXRkYXRhLnYxLkJhY2tmaWxsUmVwb3J0Eg0KBWVycm9yGAQgASgJEhIKCnN0YXJ0ZWRfYXQYBSABKAMSEwoLZmluaXNoZWRfYXQYBiABKAMiPgoSU2V0VW5pdmVyc2VSZXF1ZXN0EhAKCHVuaXZlcnNlGAEgASgJEhYKDmluc3RydW1lbnRfaWRzGAIgAygJIikKE1NldFVuaXZlcnNlUmVzcG9uc2USEgoKc3Vic2NyaWJlZBgBIAEoBSJ8CgpGZWVkU3RhdHVzEgwKBGZlZWQYASABKAkSEQoJY29ubmVjdGVkGAIgASgIEhcKD2xhc3RfbWVzc2FnZV9hdBgDIAEoAxIOCgZsYWdfbXMYBCABKAMSFQoNc3ltYm9sc19zdGFsZRgFIAMoCRINCgVzdGF0ZRgGIAEoCSIWChRHZXRGZWVkU3RhdHVzUmVxdWVzdCJEChVHZXRGZWVkU3RhdHVzUmVzcG9uc2USKwoFZmVlZHMYASADKAsyHC50Yi5tYXJrZXRkYXRhLnYxLkZlZWRTdGF0dXMiaAoOSXNGcmVzaFJlcXVlc3QSFQoNaW5zdHJ1bWVudF9pZBgBIAEoCRIuCgl0aW1lZnJhbWUYAiABKA4yGy50Yi5tYXJrZXRkYXRhLnYxLlRpbWVmcmFtZRIPCgdtYXhfYWdlGAMgASgDIkgKD0lzRnJlc2hSZXNwb25zZRINCgVmcmVzaBgBIAEoCBIWCg5sYXN0X2Jhcl9jbG9zZRgCIAEoAxIOCgZyZWFzb24YAyABKAkipwEKDFNvdXJjZUhlYWx0aBIOCgZzb3VyY2UYASABKAkSGwoTbGFzdF9tZXNzYWdlX2FnZV9tcxgCIAEoAxIRCglnYXBfY291bnQYAyABKAMSEgoKZXJyb3JfcmF0ZRgEIAEoARIVCg1icmVha2VyX3N0YXRlGAUgASgJEh0KFXJlY29uY2lsaWF0aW9uX3N0YXR1cxgGIAEoCRINCgVhc19vZhgHIAEoAyqUAQoJVGltZWZyYW1lEhkKFVRJTUVGUkFNRV9VTlNQRUNJRklFRBAAEhAKDFRJTUVGUkFNRV8xTRABEhAKDFRJTUVGUkFNRV81TRACEhEKDVRJTUVGUkFNRV8xNU0QAxIQCgxUSU1FRlJBTUVfMUgQBBIQCgxUSU1FRlJBTUVfMUQQBRIRCg1USU1FRlJBTUVfMzBNEAYqiQEKD0FkanVzdG1lbnRCYXNpcxIgChxBREpVU1RNRU5UX0JBU0lTX1VOU1BFQ0lGSUVEEAASGAoUQURKVVNUTUVOVF9CQVNJU19SQVcQARIaChZBREpVU1RNRU5UX0JBU0lTX1NQTElUEAISHgoaQURKVVNUTUVOVF9CQVNJU19TUExJVF9ESVYQAypaCgdTZXNzaW9uEhcKE1NFU1NJT05fVU5TUEVDSUZJRUQQABIPCgtTRVNTSU9OX1BSRRABEhMKD1NFU1NJT05fUkVHVUxBUhACEhAKDFNFU1NJT05fUE9TVBADKpQBCg9BZ3JlZW1lbnRTdGF0dXMSIAocQUdSRUVNRU5UX1NUQVRVU19VTlNQRUNJRklFRBAAEiIKHkFHUkVFTUVOVF9TVEFUVVNfU0lOR0xFX1NPVVJDRRABEhsKF0FHUkVFTUVOVF9TVEFUVVNfQUdSRUVEEAISHgoaQUdSRUVNRU5UX1NUQVRVU19ESVNBR1JFRUQQAyqVAgoTQ29ycG9yYXRlQWN0aW9uVHlwZRIlCiFDT1JQT1JBVEVfQUNUSU9OX1RZUEVfVU5TUEVDSUZJRUQQABIfChtDT1JQT1JBVEVfQUNUSU9OX1RZUEVfU1BMSVQQARIiCh5DT1JQT1JBVEVfQUNUSU9OX1RZUEVfRElWSURFTkQQAhInCiNDT1JQT1JBVEVfQUNUSU9OX1RZUEVfU1lNQk9MX0NIQU5HRRADEiMKH0NPUlBPUkFURV9BQ1RJT05fVFlQRV9ERUxJU1RJTkcQBBIgChxDT1JQT1JBVEVfQUNUSU9OX1RZUEVfTUVSR0VSEAUSIgoeQ09SUE9SQVRFX0FDVElPTl9UWVBFX1NQSU5fT0ZGEAYqpAEKCEpvYlN0YXRlEhkKFUpPQl9TVEFURV9VTlNQRUNJRklFRBAAEhQKEEpPQl9TVEFURV9RVUVVRUQQARIVChFKT0JfU1RBVEVfUlVOTklORxACEhcKE0pPQl9TVEFURV9TVUNDRUVERUQQAxIUChBKT0JfU1RBVEVfRkFJTEVEEAQSIQodSk9CX1NUQVRFX1NVQ0NFRURFRF9XSVRIX0dBUFMQBTKyBAoRTWFya2V0RGF0YVNlcnZpY2USUQoIQmFja2ZpbGwSIS50Yi5tYXJrZXRkYXRhLnYxLkJhY2tmaWxsUmVxdWVzdBoiLnRiLm1hcmtldGRhdGEudjEuQmFja2ZpbGxSZXNwb25zZRJsChFHZXRCYWNrZmlsbFN0YXR1cxIqLnRiLm1hcmtldGRhdGEudjEuR2V0QmFja2ZpbGxTdGF0dXNSZXF1ZXN0GisudGIubWFya2V0ZGF0YS52MS5HZXRCYWNrZmlsbFN0YXR1c1Jlc3BvbnNlEloKC1NldFVuaXZlcnNlEiQudGIubWFya2V0ZGF0YS52MS5TZXRVbml2ZXJzZVJlcXVlc3QaJS50Yi5tYXJrZXRkYXRhLnYxLlNldFVuaXZlcnNlUmVzcG9uc2USYAoNR2V0RmVlZFN0YXR1cxImLnRiLm1hcmtldGRhdGEudjEuR2V0RmVlZFN0YXR1c1JlcXVlc3QaJy50Yi5tYXJrZXRkYXRhLnYxLkdldEZlZWRTdGF0dXNSZXNwb25zZRJOCgdJc0ZyZXNoEiAudGIubWFya2V0ZGF0YS52MS5Jc0ZyZXNoUmVxdWVzdBohLnRiLm1hcmtldGRhdGEudjEuSXNGcmVzaFJlc3BvbnNlEk4KB0dldEJhcnMSIC50Yi5tYXJrZXRkYXRhLnYxLkdldEJhcnNSZXF1ZXN0GiEudGIubWFya2V0ZGF0YS52MS5HZXRCYXJzUmVzcG9uc2VC2AEKFGNvbS50Yi5tYXJrZXRkYXRhLnYxQg9NYXJrZXRkYXRhUHJvdG9QAVpNZ2l0aHViLmNvbS9pbGx5YW55Yy9zdHJhd2JlcnJ5L2NvbnRyYWN0cy9nZW4vZ28vdGIvbWFya2V0ZGF0YS92MTttYXJrZXRkYXRhdjGiAgNUTViqAhBUYi5NYXJrZXRkYXRhLlYxygIQVGJcTWFya2V0ZGF0YVxWMeICHFRiXE1hcmtldGRhdGFcVjFcR1BCTWV0YWRhdGHqAhJUYjo6TWFya2V0ZGF0YTo6VjFiBnByb3RvMw", [file_tb_common_v1_common]);
 
 /**
  * Bar is raw (unadjusted) OHLCV (rule DF-005). Available at ts_close plus the feed's publication delay.
@@ -401,6 +401,69 @@ export const CorporateActionSchema: GenMessage<CorporateAction> = /*@__PURE__*/
   messageDesc(file_tb_marketdata_v1_marketdata, 3);
 
 /**
+ * @generated from message tb.marketdata.v1.GetBarsRequest
+ */
+export type GetBarsRequest = Message<"tb.marketdata.v1.GetBarsRequest"> & {
+  /**
+   * @generated from field: string instrument_id = 1;
+   */
+  instrumentId: string;
+
+  /**
+   * @generated from field: tb.marketdata.v1.Timeframe timeframe = 2;
+   */
+  timeframe: Timeframe;
+
+  /**
+   * Optional window, UTC ns on ts_open; 0 = unbounded.
+   *
+   * @generated from field: int64 start = 3;
+   */
+  start: bigint;
+
+  /**
+   * @generated from field: int64 end = 4;
+   */
+  end: bigint;
+
+  /**
+   * @generated from field: int32 limit = 5;
+   */
+  limit: number;
+};
+
+/**
+ * Describes the message tb.marketdata.v1.GetBarsRequest.
+ * Use `create(GetBarsRequestSchema)` to create a new message.
+ */
+export const GetBarsRequestSchema: GenMessage<GetBarsRequest> = /*@__PURE__*/
+  messageDesc(file_tb_marketdata_v1_marketdata, 4);
+
+/**
+ * @generated from message tb.marketdata.v1.GetBarsResponse
+ */
+export type GetBarsResponse = Message<"tb.marketdata.v1.GetBarsResponse"> & {
+  /**
+   * @generated from field: repeated tb.marketdata.v1.Bar bars = 1;
+   */
+  bars: Bar[];
+
+  /**
+   * "cache" in Phase 2.
+   *
+   * @generated from field: string source = 2;
+   */
+  source: string;
+};
+
+/**
+ * Describes the message tb.marketdata.v1.GetBarsResponse.
+ * Use `create(GetBarsResponseSchema)` to create a new message.
+ */
+export const GetBarsResponseSchema: GenMessage<GetBarsResponse> = /*@__PURE__*/
+  messageDesc(file_tb_marketdata_v1_marketdata, 5);
+
+/**
  * @generated from message tb.marketdata.v1.BackfillRequest
  */
 export type BackfillRequest = Message<"tb.marketdata.v1.BackfillRequest"> & {
@@ -449,7 +512,7 @@ export type BackfillRequest = Message<"tb.marketdata.v1.BackfillRequest"> & {
  * Use `create(BackfillRequestSchema)` to create a new message.
  */
 export const BackfillRequestSchema: GenMessage<BackfillRequest> = /*@__PURE__*/
-  messageDesc(file_tb_marketdata_v1_marketdata, 4);
+  messageDesc(file_tb_marketdata_v1_marketdata, 6);
 
 /**
  * @generated from message tb.marketdata.v1.BackfillResponse
@@ -466,7 +529,7 @@ export type BackfillResponse = Message<"tb.marketdata.v1.BackfillResponse"> & {
  * Use `create(BackfillResponseSchema)` to create a new message.
  */
 export const BackfillResponseSchema: GenMessage<BackfillResponse> = /*@__PURE__*/
-  messageDesc(file_tb_marketdata_v1_marketdata, 5);
+  messageDesc(file_tb_marketdata_v1_marketdata, 7);
 
 /**
  * @generated from message tb.marketdata.v1.GetBackfillStatusRequest
@@ -483,7 +546,7 @@ export type GetBackfillStatusRequest = Message<"tb.marketdata.v1.GetBackfillStat
  * Use `create(GetBackfillStatusRequestSchema)` to create a new message.
  */
 export const GetBackfillStatusRequestSchema: GenMessage<GetBackfillStatusRequest> = /*@__PURE__*/
-  messageDesc(file_tb_marketdata_v1_marketdata, 6);
+  messageDesc(file_tb_marketdata_v1_marketdata, 8);
 
 /**
  * @generated from message tb.marketdata.v1.BackfillReport
@@ -544,7 +607,7 @@ export type BackfillReport = Message<"tb.marketdata.v1.BackfillReport"> & {
  * Use `create(BackfillReportSchema)` to create a new message.
  */
 export const BackfillReportSchema: GenMessage<BackfillReport> = /*@__PURE__*/
-  messageDesc(file_tb_marketdata_v1_marketdata, 7);
+  messageDesc(file_tb_marketdata_v1_marketdata, 9);
 
 /**
  * @generated from message tb.marketdata.v1.GetBackfillStatusResponse
@@ -586,7 +649,7 @@ export type GetBackfillStatusResponse = Message<"tb.marketdata.v1.GetBackfillSta
  * Use `create(GetBackfillStatusResponseSchema)` to create a new message.
  */
 export const GetBackfillStatusResponseSchema: GenMessage<GetBackfillStatusResponse> = /*@__PURE__*/
-  messageDesc(file_tb_marketdata_v1_marketdata, 8);
+  messageDesc(file_tb_marketdata_v1_marketdata, 10);
 
 /**
  * @generated from message tb.marketdata.v1.SetUniverseRequest
@@ -608,7 +671,7 @@ export type SetUniverseRequest = Message<"tb.marketdata.v1.SetUniverseRequest"> 
  * Use `create(SetUniverseRequestSchema)` to create a new message.
  */
 export const SetUniverseRequestSchema: GenMessage<SetUniverseRequest> = /*@__PURE__*/
-  messageDesc(file_tb_marketdata_v1_marketdata, 9);
+  messageDesc(file_tb_marketdata_v1_marketdata, 11);
 
 /**
  * @generated from message tb.marketdata.v1.SetUniverseResponse
@@ -625,7 +688,7 @@ export type SetUniverseResponse = Message<"tb.marketdata.v1.SetUniverseResponse"
  * Use `create(SetUniverseResponseSchema)` to create a new message.
  */
 export const SetUniverseResponseSchema: GenMessage<SetUniverseResponse> = /*@__PURE__*/
-  messageDesc(file_tb_marketdata_v1_marketdata, 10);
+  messageDesc(file_tb_marketdata_v1_marketdata, 12);
 
 /**
  * @generated from message tb.marketdata.v1.FeedStatus
@@ -667,7 +730,7 @@ export type FeedStatus = Message<"tb.marketdata.v1.FeedStatus"> & {
  * Use `create(FeedStatusSchema)` to create a new message.
  */
 export const FeedStatusSchema: GenMessage<FeedStatus> = /*@__PURE__*/
-  messageDesc(file_tb_marketdata_v1_marketdata, 11);
+  messageDesc(file_tb_marketdata_v1_marketdata, 13);
 
 /**
  * @generated from message tb.marketdata.v1.GetFeedStatusRequest
@@ -680,7 +743,7 @@ export type GetFeedStatusRequest = Message<"tb.marketdata.v1.GetFeedStatusReques
  * Use `create(GetFeedStatusRequestSchema)` to create a new message.
  */
 export const GetFeedStatusRequestSchema: GenMessage<GetFeedStatusRequest> = /*@__PURE__*/
-  messageDesc(file_tb_marketdata_v1_marketdata, 12);
+  messageDesc(file_tb_marketdata_v1_marketdata, 14);
 
 /**
  * @generated from message tb.marketdata.v1.GetFeedStatusResponse
@@ -697,7 +760,7 @@ export type GetFeedStatusResponse = Message<"tb.marketdata.v1.GetFeedStatusRespo
  * Use `create(GetFeedStatusResponseSchema)` to create a new message.
  */
 export const GetFeedStatusResponseSchema: GenMessage<GetFeedStatusResponse> = /*@__PURE__*/
-  messageDesc(file_tb_marketdata_v1_marketdata, 13);
+  messageDesc(file_tb_marketdata_v1_marketdata, 15);
 
 /**
  * @generated from message tb.marketdata.v1.IsFreshRequest
@@ -726,7 +789,7 @@ export type IsFreshRequest = Message<"tb.marketdata.v1.IsFreshRequest"> & {
  * Use `create(IsFreshRequestSchema)` to create a new message.
  */
 export const IsFreshRequestSchema: GenMessage<IsFreshRequest> = /*@__PURE__*/
-  messageDesc(file_tb_marketdata_v1_marketdata, 14);
+  messageDesc(file_tb_marketdata_v1_marketdata, 16);
 
 /**
  * @generated from message tb.marketdata.v1.IsFreshResponse
@@ -753,7 +816,7 @@ export type IsFreshResponse = Message<"tb.marketdata.v1.IsFreshResponse"> & {
  * Use `create(IsFreshResponseSchema)` to create a new message.
  */
 export const IsFreshResponseSchema: GenMessage<IsFreshResponse> = /*@__PURE__*/
-  messageDesc(file_tb_marketdata_v1_marketdata, 15);
+  messageDesc(file_tb_marketdata_v1_marketdata, 17);
 
 /**
  * SourceHealth is published on sys.health.<source> by marketdata (and context-data) (MD-008).
@@ -802,7 +865,7 @@ export type SourceHealth = Message<"tb.marketdata.v1.SourceHealth"> & {
  * Use `create(SourceHealthSchema)` to create a new message.
  */
 export const SourceHealthSchema: GenMessage<SourceHealth> = /*@__PURE__*/
-  messageDesc(file_tb_marketdata_v1_marketdata, 16);
+  messageDesc(file_tb_marketdata_v1_marketdata, 18);
 
 /**
  * @generated from enum tb.marketdata.v1.Timeframe
@@ -1096,6 +1159,17 @@ export const MarketDataService: GenService<{
     methodKind: "unary";
     input: typeof IsFreshRequestSchema;
     output: typeof IsFreshResponseSchema;
+  },
+  /**
+   * Recent final bars for charts (UI-020), newest last, served from the hot-cache ring (ST-009:
+   * at most 500 bars per timeframe); lake-backed history is Planned.
+   *
+   * @generated from rpc tb.marketdata.v1.MarketDataService.GetBars
+   */
+  getBars: {
+    methodKind: "unary";
+    input: typeof GetBarsRequestSchema;
+    output: typeof GetBarsResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_tb_marketdata_v1_marketdata, 0);

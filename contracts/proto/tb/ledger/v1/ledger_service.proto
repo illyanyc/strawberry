@@ -1,0 +1,332 @@
+syntax = "proto3";
+
+// LedgerService is served by `ledger` (section 06, ADR-0024): the full real account per broker,
+// split into per-strategy virtual portfolios and the `manual` bucket, the broker-lot shadow ledger,
+// capital allocation and reservations, reconciliation and breaks. Rules VP-* in
+// docs/business-logic/virtual-portfolios-and-attribution.md.
+//
+// Callers (SE-040 allowlist): execution (ownership constraints and reservations on the order path),
+// api-gateway (UI views, owner actions with step-up enforced by policy.Authorize).
+package tb.ledger.v1;
+
+import "tb/common/v1/common.proto";
+import "tb/ledger/v1/ledger.proto";
+
+service LedgerService {
+  rpc ListAccounts(ListAccountsRequest) returns (ListAccountsResponse);
+  // The full real account split by owner, plus unallocated cash, reserve, and recon status.
+  rpc GetAccountView(GetAccountViewRequest) returns (GetAccountViewResponse);
+  rpc GetStrategyPortfolio(GetStrategyPortfolioRequest) returns (GetStrategyPortfolioResponse);
+  // Order-path query (p99 < 5 ms): what a strategy may sell or short (VP-003..VP-005).
+  rpc GetOwnershipConstraints(GetOwnershipConstraintsRequest) returns (GetOwnershipConstraintsResponse);
+  rpc GetCapitalAvailability(GetCapitalAvailabilityRequest) returns (GetCapitalAvailabilityResponse);
+  // Atomically reserves cash (buys) or own quantity (sells) for an intent (VP-009, VP-020).
+  // Idempotent on intent_id.
+  rpc ReserveForOrder(ReserveForOrderRequest) returns (ReserveForOrderResponse);
+  rpc ReleaseReservation(ReleaseReservationRequest) returns (ReleaseReservationResponse);
+  // Registers a strategy owner (short ID used in attribution IDs) in an account (VP-012).
+  rpc RegisterOwner(RegisterOwnerRequest) returns (RegisterOwnerResponse);
+  // Increases need step-up (enforced by api-gateway); over-allocation is rejected (VP-009).
+  rpc SetAllocation(SetAllocationRequest) returns (SetAllocationResponse);
+  rpc Reconcile(ReconcileRequest) returns (ReconcileResponse);
+  rpc ListBreaks(ListBreaksRequest) returns (ListBreaksResponse);
+  // Audited owner resolution (VP-019).
+  rpc ResolveBreak(ResolveBreakRequest) returns (ResolveBreakResponse);
+  rpc GetEquityCurve(GetEquityCurveRequest) returns (GetEquityCurveResponse);
+  // Owner lots, or the broker-lot shadow ledger when owner = "broker" (VP-021).
+  rpc ListLots(ListLotsRequest) returns (ListLotsResponse);
+  rpc ListWashSaleFlags(ListWashSaleFlagsRequest) returns (ListWashSaleFlagsResponse);
+  // Stored reconciliation reports (daily close report and every run that changed status).
+  rpc ListReconciliationReports(ListReconciliationReportsRequest) returns (ListReconciliationReportsResponse);
+}
+
+message Lot {
+  string lot_id = 1;
+  string broker_account_id = 2;
+  // strategy ID, "manual", or "broker" (shadow ledger).
+  string owner = 3;
+  string instrument_id = 4;
+  // Signed open quantity (negative = short lot).
+  tb.common.v1.Decimal qty = 5;
+  // Total cost basis of the open quantity including fees.
+  tb.common.v1.Decimal cost = 6;
+  int64 opened_at = 7;
+  string source_id = 8;
+}
+
+message OwnerPosition {
+  string instrument_id = 1;
+  string symbol = 2;
+  tb.common.v1.Decimal qty = 3;
+  tb.common.v1.Decimal cost_basis = 4;
+  tb.common.v1.Decimal avg_cost = 5;
+  tb.common.v1.Decimal mark_price = 6;
+  tb.common.v1.Decimal market_value = 7;
+  tb.common.v1.Decimal unrealized_pnl = 8;
+  tb.common.v1.Decimal realized_pnl = 9;
+  repeated Lot lots = 10;
+  // Halted for this instrument by an open break (VP-008).
+  bool halted = 11;
+}
+
+message OwnerView {
+  string owner = 1;
+  string short_id = 2;
+  tb.common.v1.Decimal allocation = 3;
+  tb.common.v1.Decimal cash_available = 4;
+  tb.common.v1.Decimal reserved = 5;
+  repeated OwnerPosition positions = 6;
+  tb.common.v1.Decimal equity = 7;
+  tb.common.v1.Decimal realized_pnl = 8;
+  tb.common.v1.Decimal unrealized_pnl = 9;
+  tb.common.v1.Decimal fees = 10;
+  tb.common.v1.Decimal dividends = 11;
+  tb.common.v1.Decimal gross_exposure = 12;
+  tb.common.v1.Decimal net_exposure = 13;
+  // Session P&L (realized + unrealized change since the session open, minus fees) for RM-005.
+  tb.common.v1.Decimal day_pnl = 14;
+  tb.common.v1.Decimal high_water_mark = 15;
+  bool allow_short = 16;
+  bool dedicated_account = 17;
+}
+
+message InstrumentBreakdown {
+  string instrument_id = 1;
+  string symbol = 2;
+  tb.common.v1.Decimal broker_qty = 3;
+  tb.common.v1.Decimal ledger_qty = 4;
+  repeated OwnerQty owners = 5;
+  // Broker-side tax lots (FIFO across all owners) for the shadow ledger view (VP-021).
+  repeated Lot broker_lots = 6;
+}
+
+message AccountView {
+  string broker_account_id = 1;
+  AccountSnapshot broker_snapshot = 2;
+  repeated OwnerView owners = 3;
+  OwnerView manual = 4;
+  tb.common.v1.Decimal unallocated_cash = 5;
+  tb.common.v1.Decimal reserve = 6;
+  tb.common.v1.Decimal allocatable_capital = 7;
+  ReconciliationStatus recon_status = 8;
+  int64 recon_as_of = 9;
+  repeated InstrumentBreakdown instruments = 10;
+  repeated Break open_breaks = 11;
+  tb.common.v1.Decimal ledger_cash = 12;
+}
+
+message OwnershipConstraints {
+  tb.common.v1.Decimal strategy_qty = 1;
+  tb.common.v1.Decimal other_owners_qty = 2;
+  tb.common.v1.Decimal account_qty = 3;
+  // strategy_qty minus open sell reservations, never below zero (VP-004).
+  tb.common.v1.Decimal max_sellable_by_strategy = 4;
+  bool short_allowed = 5;
+  string reason = 6;
+  tb.common.v1.Decimal manual_qty = 7;
+  // Strategy and instrument halted by an open break (VP-008).
+  bool halted = 8;
+}
+
+message CapitalAvailability {
+  tb.common.v1.Decimal allocation = 1;
+  tb.common.v1.Decimal cash_available = 2;
+  tb.common.v1.Decimal buying_power_available = 3;
+  tb.common.v1.Decimal reserved_for_open_orders = 4;
+}
+
+message EquityPoint {
+  int64 ts = 1;
+  tb.common.v1.Decimal equity = 2;
+  tb.common.v1.Decimal cash = 3;
+  tb.common.v1.Decimal market_value = 4;
+  tb.common.v1.Decimal realized_pnl = 5;
+  tb.common.v1.Decimal unrealized_pnl = 6;
+  tb.common.v1.Decimal gross_exposure = 7;
+}
+
+message WashSaleFlag {
+  string flag_id = 1;
+  string instrument_id = 2;
+  string sell_owner = 3;
+  string sell_account = 4;
+  string sell_source_id = 5;
+  tb.common.v1.Decimal loss = 6;
+  string buy_owner = 7;
+  string buy_account = 8;
+  string buy_source_id = 9;
+  int64 sell_time = 10;
+  int64 buy_time = 11;
+}
+
+message ListAccountsRequest {}
+
+message ListAccountsResponse {
+  repeated AccountView accounts = 1;
+}
+
+message GetAccountViewRequest {
+  string broker_account_id = 1;
+}
+
+message GetAccountViewResponse {
+  AccountView view = 1;
+}
+
+message GetStrategyPortfolioRequest {
+  string strategy_id = 1;
+}
+
+message GetStrategyPortfolioResponse {
+  string broker_account_id = 1;
+  OwnerView portfolio = 2;
+}
+
+message GetOwnershipConstraintsRequest {
+  string broker_account_id = 1;
+  string instrument_id = 2;
+  // Strategy ID or "manual".
+  string owner = 3;
+}
+
+message GetOwnershipConstraintsResponse {
+  OwnershipConstraints constraints = 1;
+}
+
+message GetCapitalAvailabilityRequest {
+  string owner = 1;
+  string broker_account_id = 2;
+}
+
+message GetCapitalAvailabilityResponse {
+  CapitalAvailability capital = 1;
+}
+
+message ReserveForOrderRequest {
+  string intent_id = 1;
+  string owner = 2;
+  string broker_account_id = 3;
+  string instrument_id = 4;
+  tb.common.v1.Side side = 5;
+  tb.common.v1.Decimal qty = 6;
+  tb.common.v1.Decimal est_price = 7;
+  string correlation_id = 8;
+}
+
+message ReserveForOrderResponse {
+  bool reserved = 1;
+  string reservation_id = 2;
+  // Set when rejected, e.g. "insufficient strategy cash", "exceeds own quantity".
+  string reject_reason = 3;
+  CapitalAvailability capital = 4;
+}
+
+message ReleaseReservationRequest {
+  // reservation_id or intent_id.
+  string reservation_id = 1;
+  string intent_id = 2;
+}
+
+message ReleaseReservationResponse {
+  bool released = 1;
+}
+
+message RegisterOwnerRequest {
+  string owner = 1;
+  string short_id = 2;
+  string broker_account_id = 3;
+  bool allow_short = 4;
+  // The strategy is mapped to a dedicated account with no other owners (VP-005).
+  bool dedicated_account = 5;
+}
+
+message RegisterOwnerResponse {
+  OwnerView owner = 1;
+}
+
+message SetAllocationRequest {
+  string owner = 1;
+  string broker_account_id = 2;
+  tb.common.v1.Decimal amount = 3;
+  string actor = 4;
+  string correlation_id = 5;
+}
+
+message SetAllocationResponse {
+  tb.common.v1.Decimal allocation = 1;
+  tb.common.v1.Decimal previous = 2;
+  tb.common.v1.Decimal unallocated = 3;
+}
+
+message ReconcileRequest {
+  string broker_account_id = 1;
+  string trigger = 2;
+}
+
+message ReconcileResponse {
+  ReconciliationResult result = 1;
+}
+
+message ListBreaksRequest {
+  string broker_account_id = 1;
+  bool open_only = 2;
+}
+
+message ListBreaksResponse {
+  repeated Break breaks = 1;
+}
+
+message ResolveBreakRequest {
+  string break_id = 1;
+  // accept | transfer_to_manual | rebaseline_cash
+  string resolution = 2;
+  // For transfer_to_manual: the strategy giving up quantity, and how much.
+  string from_owner = 3;
+  tb.common.v1.Decimal qty = 4;
+  string actor = 5;
+  string note = 6;
+  string correlation_id = 7;
+}
+
+message ResolveBreakResponse {
+  Break resolved = 1;
+}
+
+message GetEquityCurveRequest {
+  string owner = 1;
+  string broker_account_id = 2;
+  int64 start = 3;
+  int64 end = 4;
+}
+
+message GetEquityCurveResponse {
+  repeated EquityPoint points = 1;
+}
+
+message ListLotsRequest {
+  string broker_account_id = 1;
+  string owner = 2;
+  string instrument_id = 3;
+}
+
+message ListLotsResponse {
+  repeated Lot lots = 1;
+}
+
+message ListWashSaleFlagsRequest {
+  int64 since = 1;
+}
+
+message ListWashSaleFlagsResponse {
+  repeated WashSaleFlag flags = 1;
+}
+
+message ListReconciliationReportsRequest {
+  string broker_account_id = 1;
+  int64 since = 2;
+  int32 limit = 3;
+}
+
+message ListReconciliationReportsResponse {
+  repeated ReconciliationResult reports = 1;
+}

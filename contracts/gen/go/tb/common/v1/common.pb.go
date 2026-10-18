@@ -191,6 +191,58 @@ func (Side) EnumDescriptor() ([]byte, []int) {
 	return file_tb_common_v1_common_proto_rawDescGZIP(), []int{2}
 }
 
+// Horizon is a strategy's holding horizon; it drives account routing (D30, rule RM-011).
+type Horizon int32
+
+const (
+	Horizon_HORIZON_UNSPECIFIED Horizon = 0
+	// Flat by the close; routed to Alpaca by default.
+	Horizon_HORIZON_INTRADAY Horizon = 1
+	// Holds overnight (1–10 days); routed to the IBKR bot account by default.
+	Horizon_HORIZON_SWING Horizon = 2
+)
+
+// Enum value maps for Horizon.
+var (
+	Horizon_name = map[int32]string{
+		0: "HORIZON_UNSPECIFIED",
+		1: "HORIZON_INTRADAY",
+		2: "HORIZON_SWING",
+	}
+	Horizon_value = map[string]int32{
+		"HORIZON_UNSPECIFIED": 0,
+		"HORIZON_INTRADAY":    1,
+		"HORIZON_SWING":       2,
+	}
+)
+
+func (x Horizon) Enum() *Horizon {
+	p := new(Horizon)
+	*p = x
+	return p
+}
+
+func (x Horizon) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Horizon) Descriptor() protoreflect.EnumDescriptor {
+	return file_tb_common_v1_common_proto_enumTypes[3].Descriptor()
+}
+
+func (Horizon) Type() protoreflect.EnumType {
+	return &file_tb_common_v1_common_proto_enumTypes[3]
+}
+
+func (x Horizon) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Horizon.Descriptor instead.
+func (Horizon) EnumDescriptor() ([]byte, []int) {
+	return file_tb_common_v1_common_proto_rawDescGZIP(), []int{3}
+}
+
 type Broker int32
 
 const (
@@ -227,11 +279,11 @@ func (x Broker) String() string {
 }
 
 func (Broker) Descriptor() protoreflect.EnumDescriptor {
-	return file_tb_common_v1_common_proto_enumTypes[3].Descriptor()
+	return file_tb_common_v1_common_proto_enumTypes[4].Descriptor()
 }
 
 func (Broker) Type() protoreflect.EnumType {
-	return &file_tb_common_v1_common_proto_enumTypes[3]
+	return &file_tb_common_v1_common_proto_enumTypes[4]
 }
 
 func (x Broker) Number() protoreflect.EnumNumber {
@@ -240,7 +292,7 @@ func (x Broker) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Broker.Descriptor instead.
 func (Broker) EnumDescriptor() ([]byte, []int) {
-	return file_tb_common_v1_common_proto_rawDescGZIP(), []int{3}
+	return file_tb_common_v1_common_proto_rawDescGZIP(), []int{4}
 }
 
 // Decimal is an exact base-10 number encoded as a string, e.g. "123.45", "-0.0001".
@@ -498,7 +550,11 @@ const file_tb_common_v1_common_proto_rawDesc = "" +
 	"\x10SIDE_UNSPECIFIED\x10\x00\x12\f\n" +
 	"\bSIDE_BUY\x10\x01\x12\r\n" +
 	"\tSIDE_SELL\x10\x02\x12\x13\n" +
-	"\x0fSIDE_SELL_SHORT\x10\x03*Z\n" +
+	"\x0fSIDE_SELL_SHORT\x10\x03*K\n" +
+	"\aHorizon\x12\x17\n" +
+	"\x13HORIZON_UNSPECIFIED\x10\x00\x12\x14\n" +
+	"\x10HORIZON_INTRADAY\x10\x01\x12\x11\n" +
+	"\rHORIZON_SWING\x10\x02*Z\n" +
 	"\x06Broker\x12\x16\n" +
 	"\x12BROKER_UNSPECIFIED\x10\x00\x12\x11\n" +
 	"\rBROKER_ALPACA\x10\x01\x12\x0f\n" +
@@ -518,16 +574,17 @@ func file_tb_common_v1_common_proto_rawDescGZIP() []byte {
 	return file_tb_common_v1_common_proto_rawDescData
 }
 
-var file_tb_common_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_tb_common_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
 var file_tb_common_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_tb_common_v1_common_proto_goTypes = []any{
 	(Mode)(0),          // 0: tb.common.v1.Mode
 	(AssetClass)(0),    // 1: tb.common.v1.AssetClass
 	(Side)(0),          // 2: tb.common.v1.Side
-	(Broker)(0),        // 3: tb.common.v1.Broker
-	(*Decimal)(nil),    // 4: tb.common.v1.Decimal
-	(*Instrument)(nil), // 5: tb.common.v1.Instrument
-	(*Provenance)(nil), // 6: tb.common.v1.Provenance
+	(Horizon)(0),       // 3: tb.common.v1.Horizon
+	(Broker)(0),        // 4: tb.common.v1.Broker
+	(*Decimal)(nil),    // 5: tb.common.v1.Decimal
+	(*Instrument)(nil), // 6: tb.common.v1.Instrument
+	(*Provenance)(nil), // 7: tb.common.v1.Provenance
 }
 var file_tb_common_v1_common_proto_depIdxs = []int32{
 	1, // 0: tb.common.v1.Instrument.asset_class:type_name -> tb.common.v1.AssetClass
@@ -548,7 +605,7 @@ func file_tb_common_v1_common_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tb_common_v1_common_proto_rawDesc), len(file_tb_common_v1_common_proto_rawDesc)),
-			NumEnums:      4,
+			NumEnums:      5,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,

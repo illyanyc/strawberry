@@ -27,6 +27,20 @@ class TimeInForce(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     TIME_IN_FORCE_OPG: _ClassVar[TimeInForce]
     TIME_IN_FORCE_CLS: _ClassVar[TimeInForce]
 
+class IntentKind(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    INTENT_KIND_UNSPECIFIED: _ClassVar[IntentKind]
+    INTENT_KIND_OPEN: _ClassVar[IntentKind]
+    INTENT_KIND_CLOSE: _ClassVar[IntentKind]
+
+class IntentSource(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    INTENT_SOURCE_UNSPECIFIED: _ClassVar[IntentSource]
+    INTENT_SOURCE_STRATEGY: _ClassVar[IntentSource]
+    INTENT_SOURCE_UI: _ClassVar[IntentSource]
+    INTENT_SOURCE_KILL_SWITCH: _ClassVar[IntentSource]
+    INTENT_SOURCE_LIFECYCLE: _ClassVar[IntentSource]
+
 class OrderState(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     ORDER_STATE_UNSPECIFIED: _ClassVar[OrderState]
@@ -43,6 +57,14 @@ class OrderState(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     ORDER_STATE_REPLACED: _ClassVar[OrderState]
     ORDER_STATE_PENDING_REPLACE: _ClassVar[OrderState]
 
+class OrderRole(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    ORDER_ROLE_UNSPECIFIED: _ClassVar[OrderRole]
+    ORDER_ROLE_ENTRY: _ClassVar[OrderRole]
+    ORDER_ROLE_EXIT: _ClassVar[OrderRole]
+    ORDER_ROLE_PROTECTIVE_STOP: _ClassVar[OrderRole]
+    ORDER_ROLE_TAKE_PROFIT: _ClassVar[OrderRole]
+
 class KillSwitchScope(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     KILL_SWITCH_SCOPE_UNSPECIFIED: _ClassVar[KillSwitchScope]
@@ -58,6 +80,7 @@ class KillSwitchAction(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     KILL_SWITCH_ACTION_CANCEL_OPEN: _ClassVar[KillSwitchAction]
     KILL_SWITCH_ACTION_FLATTEN_STRATEGY_OWNED: _ClassVar[KillSwitchAction]
     KILL_SWITCH_ACTION_RELEASE: _ClassVar[KillSwitchAction]
+    KILL_SWITCH_ACTION_DEMOTE_TO_PAPER: _ClassVar[KillSwitchAction]
 ORDER_TYPE_UNSPECIFIED: OrderType
 ORDER_TYPE_MARKET: OrderType
 ORDER_TYPE_LIMIT: OrderType
@@ -71,6 +94,14 @@ TIME_IN_FORCE_IOC: TimeInForce
 TIME_IN_FORCE_FOK: TimeInForce
 TIME_IN_FORCE_OPG: TimeInForce
 TIME_IN_FORCE_CLS: TimeInForce
+INTENT_KIND_UNSPECIFIED: IntentKind
+INTENT_KIND_OPEN: IntentKind
+INTENT_KIND_CLOSE: IntentKind
+INTENT_SOURCE_UNSPECIFIED: IntentSource
+INTENT_SOURCE_STRATEGY: IntentSource
+INTENT_SOURCE_UI: IntentSource
+INTENT_SOURCE_KILL_SWITCH: IntentSource
+INTENT_SOURCE_LIFECYCLE: IntentSource
 ORDER_STATE_UNSPECIFIED: OrderState
 ORDER_STATE_PENDING_SUBMIT: OrderState
 ORDER_STATE_SUBMITTED: OrderState
@@ -84,6 +115,11 @@ ORDER_STATE_EXPIRED: OrderState
 ORDER_STATE_UNKNOWN: OrderState
 ORDER_STATE_REPLACED: OrderState
 ORDER_STATE_PENDING_REPLACE: OrderState
+ORDER_ROLE_UNSPECIFIED: OrderRole
+ORDER_ROLE_ENTRY: OrderRole
+ORDER_ROLE_EXIT: OrderRole
+ORDER_ROLE_PROTECTIVE_STOP: OrderRole
+ORDER_ROLE_TAKE_PROFIT: OrderRole
 KILL_SWITCH_SCOPE_UNSPECIFIED: KillSwitchScope
 KILL_SWITCH_SCOPE_GLOBAL: KillSwitchScope
 KILL_SWITCH_SCOPE_BROKER_ACCOUNT: KillSwitchScope
@@ -94,9 +130,20 @@ KILL_SWITCH_ACTION_FREEZE: KillSwitchAction
 KILL_SWITCH_ACTION_CANCEL_OPEN: KillSwitchAction
 KILL_SWITCH_ACTION_FLATTEN_STRATEGY_OWNED: KillSwitchAction
 KILL_SWITCH_ACTION_RELEASE: KillSwitchAction
+KILL_SWITCH_ACTION_DEMOTE_TO_PAPER: KillSwitchAction
+
+class ProtectiveSpec(_message.Message):
+    __slots__ = ("stop_loss_price", "take_profit_price", "tif")
+    STOP_LOSS_PRICE_FIELD_NUMBER: _ClassVar[int]
+    TAKE_PROFIT_PRICE_FIELD_NUMBER: _ClassVar[int]
+    TIF_FIELD_NUMBER: _ClassVar[int]
+    stop_loss_price: _common_pb2.Decimal
+    take_profit_price: _common_pb2.Decimal
+    tif: TimeInForce
+    def __init__(self, stop_loss_price: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., take_profit_price: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., tif: _Optional[_Union[TimeInForce, str]] = ...) -> None: ...
 
 class OrderIntent(_message.Message):
-    __slots__ = ("intent_id", "strategy_id", "broker_account_id", "instrument_id", "side", "quantity", "target_position", "order_type", "limit_price", "stop_price", "tif", "reason", "mode", "correlation_id", "created_at")
+    __slots__ = ("intent_id", "strategy_id", "broker_account_id", "instrument_id", "side", "quantity", "target_position", "order_type", "limit_price", "stop_price", "tif", "reason", "mode", "correlation_id", "created_at", "horizon", "kind", "protective", "extended_hours", "source", "decision_time", "reference_price")
     INTENT_ID_FIELD_NUMBER: _ClassVar[int]
     STRATEGY_ID_FIELD_NUMBER: _ClassVar[int]
     BROKER_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
@@ -112,6 +159,13 @@ class OrderIntent(_message.Message):
     MODE_FIELD_NUMBER: _ClassVar[int]
     CORRELATION_ID_FIELD_NUMBER: _ClassVar[int]
     CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+    HORIZON_FIELD_NUMBER: _ClassVar[int]
+    KIND_FIELD_NUMBER: _ClassVar[int]
+    PROTECTIVE_FIELD_NUMBER: _ClassVar[int]
+    EXTENDED_HOURS_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_FIELD_NUMBER: _ClassVar[int]
+    DECISION_TIME_FIELD_NUMBER: _ClassVar[int]
+    REFERENCE_PRICE_FIELD_NUMBER: _ClassVar[int]
     intent_id: str
     strategy_id: str
     broker_account_id: str
@@ -127,7 +181,14 @@ class OrderIntent(_message.Message):
     mode: _common_pb2.Mode
     correlation_id: str
     created_at: int
-    def __init__(self, intent_id: _Optional[str] = ..., strategy_id: _Optional[str] = ..., broker_account_id: _Optional[str] = ..., instrument_id: _Optional[str] = ..., side: _Optional[_Union[_common_pb2.Side, str]] = ..., quantity: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., target_position: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., order_type: _Optional[_Union[OrderType, str]] = ..., limit_price: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., stop_price: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., tif: _Optional[_Union[TimeInForce, str]] = ..., reason: _Optional[str] = ..., mode: _Optional[_Union[_common_pb2.Mode, str]] = ..., correlation_id: _Optional[str] = ..., created_at: _Optional[int] = ...) -> None: ...
+    horizon: _common_pb2.Horizon
+    kind: IntentKind
+    protective: ProtectiveSpec
+    extended_hours: bool
+    source: IntentSource
+    decision_time: int
+    reference_price: _common_pb2.Decimal
+    def __init__(self, intent_id: _Optional[str] = ..., strategy_id: _Optional[str] = ..., broker_account_id: _Optional[str] = ..., instrument_id: _Optional[str] = ..., side: _Optional[_Union[_common_pb2.Side, str]] = ..., quantity: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., target_position: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., order_type: _Optional[_Union[OrderType, str]] = ..., limit_price: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., stop_price: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., tif: _Optional[_Union[TimeInForce, str]] = ..., reason: _Optional[str] = ..., mode: _Optional[_Union[_common_pb2.Mode, str]] = ..., correlation_id: _Optional[str] = ..., created_at: _Optional[int] = ..., horizon: _Optional[_Union[_common_pb2.Horizon, str]] = ..., kind: _Optional[_Union[IntentKind, str]] = ..., protective: _Optional[_Union[ProtectiveSpec, _Mapping]] = ..., extended_hours: _Optional[bool] = ..., source: _Optional[_Union[IntentSource, str]] = ..., decision_time: _Optional[int] = ..., reference_price: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ...) -> None: ...
 
 class RiskCheck(_message.Message):
     __slots__ = ("name", "passed", "value", "limit", "detail")
@@ -144,21 +205,31 @@ class RiskCheck(_message.Message):
     def __init__(self, name: _Optional[str] = ..., passed: _Optional[bool] = ..., value: _Optional[str] = ..., limit: _Optional[str] = ..., detail: _Optional[str] = ...) -> None: ...
 
 class RiskDecision(_message.Message):
-    __slots__ = ("intent_id", "approved", "checks", "decided_at", "correlation_id")
+    __slots__ = ("intent_id", "approved", "checks", "decided_at", "correlation_id", "strategy_id", "broker_account_id", "shadow", "first_failure", "dry_run")
     INTENT_ID_FIELD_NUMBER: _ClassVar[int]
     APPROVED_FIELD_NUMBER: _ClassVar[int]
     CHECKS_FIELD_NUMBER: _ClassVar[int]
     DECIDED_AT_FIELD_NUMBER: _ClassVar[int]
     CORRELATION_ID_FIELD_NUMBER: _ClassVar[int]
+    STRATEGY_ID_FIELD_NUMBER: _ClassVar[int]
+    BROKER_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    SHADOW_FIELD_NUMBER: _ClassVar[int]
+    FIRST_FAILURE_FIELD_NUMBER: _ClassVar[int]
+    DRY_RUN_FIELD_NUMBER: _ClassVar[int]
     intent_id: str
     approved: bool
     checks: _containers.RepeatedCompositeFieldContainer[RiskCheck]
     decided_at: int
     correlation_id: str
-    def __init__(self, intent_id: _Optional[str] = ..., approved: _Optional[bool] = ..., checks: _Optional[_Iterable[_Union[RiskCheck, _Mapping]]] = ..., decided_at: _Optional[int] = ..., correlation_id: _Optional[str] = ...) -> None: ...
+    strategy_id: str
+    broker_account_id: str
+    shadow: bool
+    first_failure: str
+    dry_run: bool
+    def __init__(self, intent_id: _Optional[str] = ..., approved: _Optional[bool] = ..., checks: _Optional[_Iterable[_Union[RiskCheck, _Mapping]]] = ..., decided_at: _Optional[int] = ..., correlation_id: _Optional[str] = ..., strategy_id: _Optional[str] = ..., broker_account_id: _Optional[str] = ..., shadow: _Optional[bool] = ..., first_failure: _Optional[str] = ..., dry_run: _Optional[bool] = ...) -> None: ...
 
 class Order(_message.Message):
-    __slots__ = ("order_id", "intent_id", "client_order_id", "broker_order_id", "broker_account_id", "strategy_id", "instrument_id", "side", "quantity", "state", "filled_qty", "avg_price", "mode", "created_at", "submitted_at", "updated_at", "correlation_id", "perm_id")
+    __slots__ = ("order_id", "intent_id", "client_order_id", "broker_order_id", "broker_account_id", "strategy_id", "instrument_id", "side", "quantity", "state", "filled_qty", "avg_price", "mode", "created_at", "submitted_at", "updated_at", "correlation_id", "perm_id", "attempt", "role", "parent_order_id", "order_type", "limit_price", "stop_price", "tif", "reject_reason", "broker_status")
     ORDER_ID_FIELD_NUMBER: _ClassVar[int]
     INTENT_ID_FIELD_NUMBER: _ClassVar[int]
     CLIENT_ORDER_ID_FIELD_NUMBER: _ClassVar[int]
@@ -177,6 +248,15 @@ class Order(_message.Message):
     UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
     CORRELATION_ID_FIELD_NUMBER: _ClassVar[int]
     PERM_ID_FIELD_NUMBER: _ClassVar[int]
+    ATTEMPT_FIELD_NUMBER: _ClassVar[int]
+    ROLE_FIELD_NUMBER: _ClassVar[int]
+    PARENT_ORDER_ID_FIELD_NUMBER: _ClassVar[int]
+    ORDER_TYPE_FIELD_NUMBER: _ClassVar[int]
+    LIMIT_PRICE_FIELD_NUMBER: _ClassVar[int]
+    STOP_PRICE_FIELD_NUMBER: _ClassVar[int]
+    TIF_FIELD_NUMBER: _ClassVar[int]
+    REJECT_REASON_FIELD_NUMBER: _ClassVar[int]
+    BROKER_STATUS_FIELD_NUMBER: _ClassVar[int]
     order_id: str
     intent_id: str
     client_order_id: str
@@ -195,7 +275,16 @@ class Order(_message.Message):
     updated_at: int
     correlation_id: str
     perm_id: str
-    def __init__(self, order_id: _Optional[str] = ..., intent_id: _Optional[str] = ..., client_order_id: _Optional[str] = ..., broker_order_id: _Optional[str] = ..., broker_account_id: _Optional[str] = ..., strategy_id: _Optional[str] = ..., instrument_id: _Optional[str] = ..., side: _Optional[_Union[_common_pb2.Side, str]] = ..., quantity: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., state: _Optional[_Union[OrderState, str]] = ..., filled_qty: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., avg_price: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., mode: _Optional[_Union[_common_pb2.Mode, str]] = ..., created_at: _Optional[int] = ..., submitted_at: _Optional[int] = ..., updated_at: _Optional[int] = ..., correlation_id: _Optional[str] = ..., perm_id: _Optional[str] = ...) -> None: ...
+    attempt: int
+    role: OrderRole
+    parent_order_id: str
+    order_type: OrderType
+    limit_price: _common_pb2.Decimal
+    stop_price: _common_pb2.Decimal
+    tif: TimeInForce
+    reject_reason: str
+    broker_status: str
+    def __init__(self, order_id: _Optional[str] = ..., intent_id: _Optional[str] = ..., client_order_id: _Optional[str] = ..., broker_order_id: _Optional[str] = ..., broker_account_id: _Optional[str] = ..., strategy_id: _Optional[str] = ..., instrument_id: _Optional[str] = ..., side: _Optional[_Union[_common_pb2.Side, str]] = ..., quantity: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., state: _Optional[_Union[OrderState, str]] = ..., filled_qty: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., avg_price: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., mode: _Optional[_Union[_common_pb2.Mode, str]] = ..., created_at: _Optional[int] = ..., submitted_at: _Optional[int] = ..., updated_at: _Optional[int] = ..., correlation_id: _Optional[str] = ..., perm_id: _Optional[str] = ..., attempt: _Optional[int] = ..., role: _Optional[_Union[OrderRole, str]] = ..., parent_order_id: _Optional[str] = ..., order_type: _Optional[_Union[OrderType, str]] = ..., limit_price: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., stop_price: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., tif: _Optional[_Union[TimeInForce, str]] = ..., reject_reason: _Optional[str] = ..., broker_status: _Optional[str] = ...) -> None: ...
 
 class ExecutionReport(_message.Message):
     __slots__ = ("broker_account_id", "broker_exec_id", "client_order_id", "broker_order_id", "instrument_id", "side", "qty", "price", "fees", "event_time", "mode", "ingested_at", "perm_id", "symbol", "broker", "sequence", "fee_currency", "correlation_id")
@@ -238,7 +327,7 @@ class ExecutionReport(_message.Message):
     def __init__(self, broker_account_id: _Optional[str] = ..., broker_exec_id: _Optional[str] = ..., client_order_id: _Optional[str] = ..., broker_order_id: _Optional[str] = ..., instrument_id: _Optional[str] = ..., side: _Optional[_Union[_common_pb2.Side, str]] = ..., qty: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., price: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., fees: _Optional[_Union[_common_pb2.Decimal, _Mapping]] = ..., event_time: _Optional[int] = ..., mode: _Optional[_Union[_common_pb2.Mode, str]] = ..., ingested_at: _Optional[int] = ..., perm_id: _Optional[str] = ..., symbol: _Optional[str] = ..., broker: _Optional[_Union[_common_pb2.Broker, str]] = ..., sequence: _Optional[int] = ..., fee_currency: _Optional[str] = ..., correlation_id: _Optional[str] = ...) -> None: ...
 
 class KillSwitchEvent(_message.Message):
-    __slots__ = ("event_id", "scope", "target", "action", "actor", "reason", "occurred_at", "correlation_id")
+    __slots__ = ("event_id", "scope", "target", "action", "actor", "reason", "occurred_at", "correlation_id", "latched", "releases_event_id")
     EVENT_ID_FIELD_NUMBER: _ClassVar[int]
     SCOPE_FIELD_NUMBER: _ClassVar[int]
     TARGET_FIELD_NUMBER: _ClassVar[int]
@@ -247,6 +336,8 @@ class KillSwitchEvent(_message.Message):
     REASON_FIELD_NUMBER: _ClassVar[int]
     OCCURRED_AT_FIELD_NUMBER: _ClassVar[int]
     CORRELATION_ID_FIELD_NUMBER: _ClassVar[int]
+    LATCHED_FIELD_NUMBER: _ClassVar[int]
+    RELEASES_EVENT_ID_FIELD_NUMBER: _ClassVar[int]
     event_id: str
     scope: KillSwitchScope
     target: str
@@ -255,4 +346,6 @@ class KillSwitchEvent(_message.Message):
     reason: str
     occurred_at: int
     correlation_id: str
-    def __init__(self, event_id: _Optional[str] = ..., scope: _Optional[_Union[KillSwitchScope, str]] = ..., target: _Optional[str] = ..., action: _Optional[_Union[KillSwitchAction, str]] = ..., actor: _Optional[str] = ..., reason: _Optional[str] = ..., occurred_at: _Optional[int] = ..., correlation_id: _Optional[str] = ...) -> None: ...
+    latched: bool
+    releases_event_id: str
+    def __init__(self, event_id: _Optional[str] = ..., scope: _Optional[_Union[KillSwitchScope, str]] = ..., target: _Optional[str] = ..., action: _Optional[_Union[KillSwitchAction, str]] = ..., actor: _Optional[str] = ..., reason: _Optional[str] = ..., occurred_at: _Optional[int] = ..., correlation_id: _Optional[str] = ..., latched: _Optional[bool] = ..., releases_event_id: _Optional[str] = ...) -> None: ...

@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file tb/ledger/v1/ledger.proto.
  */
 export const file_tb_ledger_v1_ledger: GenFile = /*@__PURE__*/
-  fileDesc("Chl0Yi9sZWRnZXIvdjEvbGVkZ2VyLnByb3RvEgx0Yi5sZWRnZXIudjEiyQEKCFBvc2l0aW9uEhUKDWluc3RydW1lbnRfaWQYASABKAkSIgoDcXR5GAIgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJwoIYXZnX2Nvc3QYAyABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIOCgZzeW1ib2wYBCABKAkSKwoMbWFya2V0X3ZhbHVlGAUgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSHAoUYnJva2VyX2luc3RydW1lbnRfaWQYBiABKAkikQUKD0FjY291bnRTbmFwc2hvdBIZChFicm9rZXJfYWNjb3VudF9pZBgBIAEoCRIkCgZicm9rZXIYAiABKA4yFC50Yi5jb21tb24udjEuQnJva2VyEiAKBG1vZGUYAyABKA4yEi50Yi5jb21tb24udjEuTW9kZRIjCgRjYXNoGAQgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSKwoMYnV5aW5nX3Bvd2VyGAUgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJQoGZXF1aXR5GAYgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSKQoJcG9zaXRpb25zGAcgAygLMhYudGIubGVkZ2VyLnYxLlBvc2l0aW9uEg0KBWFzX29mGAggASgDEh8KF2ludHJhZGF5X21hcmdpbl9kZWZpY2l0GAkgASgIEhMKC21hcmdpbl9jYWxsGAogASgIEi0KDmluaXRpYWxfbWFyZ2luGAsgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSMQoSbWFpbnRlbmFuY2VfbWFyZ2luGAwgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSMAoRbG9uZ19tYXJrZXRfdmFsdWUYDSABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIxChJzaG9ydF9tYXJrZXRfdmFsdWUYDiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIQCghjdXJyZW5jeRgPIAEoCRIXCg9kYXlfdHJhZGVfY291bnQYECABKAUSFwoPdHJhZGluZ19ibG9ja2VkGBEgASgIEhcKD2FjY291bnRfYmxvY2tlZBgSIAEoCBIOCgZzdGF0dXMYEyABKAki3gEKEFN0cmF0ZWd5UG9zaXRpb24SGQoRYnJva2VyX2FjY291bnRfaWQYASABKAkSDQoFb3duZXIYAiABKAkSFQoNaW5zdHJ1bWVudF9pZBgDIAEoCRIiCgNxdHkYBCABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIpCgpjb3N0X2Jhc2lzGAUgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSKwoMcmVhbGl6ZWRfcG5sGAYgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSDQoFYXNfb2YYByABKAMikwIKC0xlZGdlckVudHJ5EhAKCGVudHJ5X2lkGAEgASgJEhkKEWJyb2tlcl9hY2NvdW50X2lkGAIgASgJEg0KBW93bmVyGAMgASgJEhUKDWluc3RydW1lbnRfaWQYBCABKAkSDgoGbG90X2lkGAUgASgJEiIKA3F0eRgGIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiMKBGNvc3QYByABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIrCgxyZWFsaXplZF9wbmwYCCABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIWCg5zb3VyY2VfZXhlY19pZBgJIAEoCRITCgtyZWNvcmRlZF9hdBgKIAEoAyI9CghPd25lclF0eRINCgVvd25lchgBIAEoCRIiCgNxdHkYAiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbCKyAQoSUmVjb25jaWxpYXRpb25EaWZmEhUKDWluc3RydW1lbnRfaWQYASABKAkSKQoKYnJva2VyX3F0eRgCIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEikKCmxlZGdlcl9xdHkYAyABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIvCg9vd25lcl9icmVha2Rvd24YBCADKAsyFi50Yi5sZWRnZXIudjEuT3duZXJRdHkicAoVUmVjb25jaWxpYXRpb25SZXF1ZXN0EhkKEWJyb2tlcl9hY2NvdW50X2lkGAEgASgJEg4KBnJlYXNvbhgCIAEoCRIUCgxyZXF1ZXN0ZWRfYXQYAyABKAMSFgoOY29ycmVsYXRpb25faWQYBCABKAkipQEKFFJlY29uY2lsaWF0aW9uUmVzdWx0EhkKEWJyb2tlcl9hY2NvdW50X2lkGAEgASgJEg0KBWFzX29mGAIgASgDEjIKBnN0YXR1cxgDIAEoDjIiLnRiLmxlZGdlci52MS5SZWNvbmNpbGlhdGlvblN0YXR1cxIvCgVkaWZmcxgEIAMoCzIgLnRiLmxlZGdlci52MS5SZWNvbmNpbGlhdGlvbkRpZmYqnQEKFFJlY29uY2lsaWF0aW9uU3RhdHVzEiUKIVJFQ09OQ0lMSUFUSU9OX1NUQVRVU19VTlNQRUNJRklFRBAAEhwKGFJFQ09OQ0lMSUFUSU9OX1NUQVRVU19PSxABEh8KG1JFQ09OQ0lMSUFUSU9OX1NUQVRVU19CUkVBSxACEh8KG1JFQ09OQ0lMSUFUSU9OX1NUQVRVU19TVEFMRRADQrgBChBjb20udGIubGVkZ2VyLnYxQgtMZWRnZXJQcm90b1ABWkVnaXRodWIuY29tL2lsbHlhbnljL3N0cmF3YmVycnkvY29udHJhY3RzL2dlbi9nby90Yi9sZWRnZXIvdjE7bGVkZ2VydjGiAgNUTFiqAgxUYi5MZWRnZXIuVjHKAgxUYlxMZWRnZXJcVjHiAhhUYlxMZWRnZXJcVjFcR1BCTWV0YWRhdGHqAg5UYjo6TGVkZ2VyOjpWMWIGcHJvdG8z", [file_tb_common_v1_common]);
+  fileDesc("Chl0Yi9sZWRnZXIvdjEvbGVkZ2VyLnByb3RvEgx0Yi5sZWRnZXIudjEiyQEKCFBvc2l0aW9uEhUKDWluc3RydW1lbnRfaWQYASABKAkSIgoDcXR5GAIgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJwoIYXZnX2Nvc3QYAyABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIOCgZzeW1ib2wYBCABKAkSKwoMbWFya2V0X3ZhbHVlGAUgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSHAoUYnJva2VyX2luc3RydW1lbnRfaWQYBiABKAkikQUKD0FjY291bnRTbmFwc2hvdBIZChFicm9rZXJfYWNjb3VudF9pZBgBIAEoCRIkCgZicm9rZXIYAiABKA4yFC50Yi5jb21tb24udjEuQnJva2VyEiAKBG1vZGUYAyABKA4yEi50Yi5jb21tb24udjEuTW9kZRIjCgRjYXNoGAQgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSKwoMYnV5aW5nX3Bvd2VyGAUgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJQoGZXF1aXR5GAYgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSKQoJcG9zaXRpb25zGAcgAygLMhYudGIubGVkZ2VyLnYxLlBvc2l0aW9uEg0KBWFzX29mGAggASgDEh8KF2ludHJhZGF5X21hcmdpbl9kZWZpY2l0GAkgASgIEhMKC21hcmdpbl9jYWxsGAogASgIEi0KDmluaXRpYWxfbWFyZ2luGAsgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSMQoSbWFpbnRlbmFuY2VfbWFyZ2luGAwgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSMAoRbG9uZ19tYXJrZXRfdmFsdWUYDSABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIxChJzaG9ydF9tYXJrZXRfdmFsdWUYDiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIQCghjdXJyZW5jeRgPIAEoCRIXCg9kYXlfdHJhZGVfY291bnQYECABKAUSFwoPdHJhZGluZ19ibG9ja2VkGBEgASgIEhcKD2FjY291bnRfYmxvY2tlZBgSIAEoCBIOCgZzdGF0dXMYEyABKAki3gEKEFN0cmF0ZWd5UG9zaXRpb24SGQoRYnJva2VyX2FjY291bnRfaWQYASABKAkSDQoFb3duZXIYAiABKAkSFQoNaW5zdHJ1bWVudF9pZBgDIAEoCRIiCgNxdHkYBCABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIpCgpjb3N0X2Jhc2lzGAUgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSKwoMcmVhbGl6ZWRfcG5sGAYgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSDQoFYXNfb2YYByABKAMikwIKC0xlZGdlckVudHJ5EhAKCGVudHJ5X2lkGAEgASgJEhkKEWJyb2tlcl9hY2NvdW50X2lkGAIgASgJEg0KBW93bmVyGAMgASgJEhUKDWluc3RydW1lbnRfaWQYBCABKAkSDgoGbG90X2lkGAUgASgJEiIKA3F0eRgGIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiMKBGNvc3QYByABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIrCgxyZWFsaXplZF9wbmwYCCABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIWCg5zb3VyY2VfZXhlY19pZBgJIAEoCRITCgtyZWNvcmRlZF9hdBgKIAEoAyL0AwoFQnJlYWsSEAoIYnJlYWtfaWQYASABKAkSGQoRYnJva2VyX2FjY291bnRfaWQYAiABKAkSJQoEdHlwZRgDIAEoDjIXLnRiLmxlZGdlci52MS5CcmVha1R5cGUSKQoGc3RhdHVzGAQgASgOMhkudGIubGVkZ2VyLnYxLkJyZWFrU3RhdHVzEhUKDWluc3RydW1lbnRfaWQYBSABKAkSDgoGc3ltYm9sGAYgASgJEikKCmJyb2tlcl9xdHkYByABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIpCgpsZWRnZXJfcXR5GAggASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSLwoPb3duZXJfYnJlYWtkb3duGAkgAygLMhYudGIubGVkZ2VyLnYxLk93bmVyUXR5EhcKD2FmZmVjdGVkX293bmVycxgKIAMoCRIOCgZkZXRhaWwYCyABKAkSEwoLZGV0ZWN0ZWRfYXQYDCABKAMSEwoLcmVzb2x2ZWRfYXQYDSABKAMSEwoLcmVzb2x2ZWRfYnkYDiABKAkSEgoKcmVzb2x1dGlvbhgPIAEoCRIdChVzdWdnZXN0ZWRfcmVzb2x1dGlvbnMYECADKAkSEAoIc2V2ZXJpdHkYESABKAkSEQoJc291cmNlX2lkGBIgASgJIj0KCE93bmVyUXR5Eg0KBW93bmVyGAEgASgJEiIKA3F0eRgCIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsIrIBChJSZWNvbmNpbGlhdGlvbkRpZmYSFQoNaW5zdHJ1bWVudF9pZBgBIAEoCRIpCgpicm9rZXJfcXR5GAIgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSKQoKbGVkZ2VyX3F0eRgDIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEi8KD293bmVyX2JyZWFrZG93bhgEIAMoCzIWLnRiLmxlZGdlci52MS5Pd25lclF0eSJwChVSZWNvbmNpbGlhdGlvblJlcXVlc3QSGQoRYnJva2VyX2FjY291bnRfaWQYASABKAkSDgoGcmVhc29uGAIgASgJEhQKDHJlcXVlc3RlZF9hdBgDIAEoAxIWCg5jb3JyZWxhdGlvbl9pZBgEIAEoCSKPAwoUUmVjb25jaWxpYXRpb25SZXN1bHQSGQoRYnJva2VyX2FjY291bnRfaWQYASABKAkSDQoFYXNfb2YYAiABKAMSMgoGc3RhdHVzGAMgASgOMiIudGIubGVkZ2VyLnYxLlJlY29uY2lsaWF0aW9uU3RhdHVzEi8KBWRpZmZzGAQgAygLMiAudGIubGVkZ2VyLnYxLlJlY29uY2lsaWF0aW9uRGlmZhIjCgZicmVha3MYBSADKAsyEy50Yi5sZWRnZXIudjEuQnJlYWsSFgoOY29ycmVsYXRpb25faWQYBiABKAkSKgoLYnJva2VyX2Nhc2gYByABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIqCgtsZWRnZXJfY2FzaBgIIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEhYKDnNuYXBzaG90X2FzX29mGAkgASgDEg4KBmhhbHRlZBgKIAMoCRIaChJwb3NpdGlvbnNfY29tcGFyZWQYCyABKAUSDwoHdHJpZ2dlchgMIAEoCSKoAQoMTGVkZ2VyVXBkYXRlEhkKEWJyb2tlcl9hY2NvdW50X2lkGAEgASgJEhAKCGV2ZW50X2lkGAIgASgJEhEKCXNvdXJjZV9pZBgDIAEoCRIxCglwb3NpdGlvbnMYBCADKAsyHi50Yi5sZWRnZXIudjEuU3RyYXRlZ3lQb3NpdGlvbhINCgVhc19vZhgFIAEoAxIWCg5jb3JyZWxhdGlvbl9pZBgGIAEoCSrAAQoUUmVjb25jaWxpYXRpb25TdGF0dXMSJQohUkVDT05DSUxJQVRJT05fU1RBVFVTX1VOU1BFQ0lGSUVEEAASHAoYUkVDT05DSUxJQVRJT05fU1RBVFVTX09LEAESHwobUkVDT05DSUxJQVRJT05fU1RBVFVTX0JSRUFLEAISHwobUkVDT05DSUxJQVRJT05fU1RBVFVTX1NUQUxFEAMSIQodUkVDT05DSUxJQVRJT05fU1RBVFVTX1BFTkRJTkcQBCrUAgoJQnJlYWtUeXBlEhoKFkJSRUFLX1RZUEVfVU5TUEVDSUZJRUQQABIVChFCUkVBS19UWVBFX1RJTUlORxABEhsKF0JSRUFLX1RZUEVfRU5DUk9BQ0hNRU5UEAISIAocQlJFQUtfVFlQRV9VTktOT1dOX0VYRUNVVElPThADEiAKHEJSRUFLX1RZUEVfTUlTU0lOR19FWEVDVVRJT04QBBIfChtCUkVBS19UWVBFX0NPUlBPUkFURV9BQ1RJT04QBRIcChhCUkVBS19UWVBFX0NBU0hfTUlTTUFUQ0gQBhIbChdCUkVBS19UWVBFX09SUEhBTl9PUkRFUhAHEhoKFkJSRUFLX1RZUEVfR0hPU1RfT1JERVIQCBIXChNCUkVBS19UWVBFX09WRVJTRUxMEAkSIgoeQlJFQUtfVFlQRV9VTk1BUFBFRF9JTlNUUlVNRU5UEAoqfQoLQnJlYWtTdGF0dXMSHAoYQlJFQUtfU1RBVFVTX1VOU1BFQ0lGSUVEEAASFQoRQlJFQUtfU1RBVFVTX09QRU4QARIeChpCUkVBS19TVEFUVVNfQVVUT19SRVNPTFZFRBACEhkKFUJSRUFLX1NUQVRVU19SRVNPTFZFRBADQrgBChBjb20udGIubGVkZ2VyLnYxQgtMZWRnZXJQcm90b1ABWkVnaXRodWIuY29tL2lsbHlhbnljL3N0cmF3YmVycnkvY29udHJhY3RzL2dlbi9nby90Yi9sZWRnZXIvdjE7bGVkZ2VydjGiAgNUTFiqAgxUYi5MZWRnZXIuVjHKAgxUYlxMZWRnZXJcVjHiAhhUYlxMZWRnZXJcVjFcR1BCTWV0YWRhdGHqAg5UYjo6TGVkZ2VyOjpWMWIGcHJvdG8z", [file_tb_common_v1_common]);
 
 /**
  * @generated from message tb.ledger.v1.Position
@@ -289,6 +289,114 @@ export const LedgerEntrySchema: GenMessage<LedgerEntry> = /*@__PURE__*/
   messageDesc(file_tb_ledger_v1_ledger, 3);
 
 /**
+ * @generated from message tb.ledger.v1.Break
+ */
+export type Break = Message<"tb.ledger.v1.Break"> & {
+  /**
+   * @generated from field: string break_id = 1;
+   */
+  breakId: string;
+
+  /**
+   * @generated from field: string broker_account_id = 2;
+   */
+  brokerAccountId: string;
+
+  /**
+   * @generated from field: tb.ledger.v1.BreakType type = 3;
+   */
+  type: BreakType;
+
+  /**
+   * @generated from field: tb.ledger.v1.BreakStatus status = 4;
+   */
+  status: BreakStatus;
+
+  /**
+   * @generated from field: string instrument_id = 5;
+   */
+  instrumentId: string;
+
+  /**
+   * @generated from field: string symbol = 6;
+   */
+  symbol: string;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal broker_qty = 7;
+   */
+  brokerQty?: Decimal | undefined;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal ledger_qty = 8;
+   */
+  ledgerQty?: Decimal | undefined;
+
+  /**
+   * @generated from field: repeated tb.ledger.v1.OwnerQty owner_breakdown = 9;
+   */
+  ownerBreakdown: OwnerQty[];
+
+  /**
+   * Strategies halted for the instrument while the break is open (VP-008).
+   *
+   * @generated from field: repeated string affected_owners = 10;
+   */
+  affectedOwners: string[];
+
+  /**
+   * @generated from field: string detail = 11;
+   */
+  detail: string;
+
+  /**
+   * @generated from field: int64 detected_at = 12;
+   */
+  detectedAt: bigint;
+
+  /**
+   * @generated from field: int64 resolved_at = 13;
+   */
+  resolvedAt: bigint;
+
+  /**
+   * @generated from field: string resolved_by = 14;
+   */
+  resolvedBy: string;
+
+  /**
+   * @generated from field: string resolution = 15;
+   */
+  resolution: string;
+
+  /**
+   * Resolution kinds the owner may choose (VP-019): accept | transfer_to_manual | rebaseline_cash.
+   *
+   * @generated from field: repeated string suggested_resolutions = 16;
+   */
+  suggestedResolutions: string[];
+
+  /**
+   * critical breaks halt; warning breaks alert only.
+   *
+   * @generated from field: string severity = 17;
+   */
+  severity: string;
+
+  /**
+   * @generated from field: string source_id = 18;
+   */
+  sourceId: string;
+};
+
+/**
+ * Describes the message tb.ledger.v1.Break.
+ * Use `create(BreakSchema)` to create a new message.
+ */
+export const BreakSchema: GenMessage<Break> = /*@__PURE__*/
+  messageDesc(file_tb_ledger_v1_ledger, 4);
+
+/**
  * @generated from message tb.ledger.v1.OwnerQty
  */
 export type OwnerQty = Message<"tb.ledger.v1.OwnerQty"> & {
@@ -308,7 +416,7 @@ export type OwnerQty = Message<"tb.ledger.v1.OwnerQty"> & {
  * Use `create(OwnerQtySchema)` to create a new message.
  */
 export const OwnerQtySchema: GenMessage<OwnerQty> = /*@__PURE__*/
-  messageDesc(file_tb_ledger_v1_ledger, 4);
+  messageDesc(file_tb_ledger_v1_ledger, 5);
 
 /**
  * @generated from message tb.ledger.v1.ReconciliationDiff
@@ -340,7 +448,7 @@ export type ReconciliationDiff = Message<"tb.ledger.v1.ReconciliationDiff"> & {
  * Use `create(ReconciliationDiffSchema)` to create a new message.
  */
 export const ReconciliationDiffSchema: GenMessage<ReconciliationDiff> = /*@__PURE__*/
-  messageDesc(file_tb_ledger_v1_ledger, 5);
+  messageDesc(file_tb_ledger_v1_ledger, 6);
 
 /**
  * ReconciliationRequest asks the ledger to reconcile an account now (subject
@@ -376,7 +484,7 @@ export type ReconciliationRequest = Message<"tb.ledger.v1.ReconciliationRequest"
  * Use `create(ReconciliationRequestSchema)` to create a new message.
  */
 export const ReconciliationRequestSchema: GenMessage<ReconciliationRequest> = /*@__PURE__*/
-  messageDesc(file_tb_ledger_v1_ledger, 6);
+  messageDesc(file_tb_ledger_v1_ledger, 7);
 
 /**
  * @generated from message tb.ledger.v1.ReconciliationResult
@@ -401,6 +509,54 @@ export type ReconciliationResult = Message<"tb.ledger.v1.ReconciliationResult"> 
    * @generated from field: repeated tb.ledger.v1.ReconciliationDiff diffs = 4;
    */
   diffs: ReconciliationDiff[];
+
+  /**
+   * Open breaks after this run (VP-014).
+   *
+   * @generated from field: repeated tb.ledger.v1.Break breaks = 5;
+   */
+  breaks: Break[];
+
+  /**
+   * @generated from field: string correlation_id = 6;
+   */
+  correlationId: string;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal broker_cash = 7;
+   */
+  brokerCash?: Decimal | undefined;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal ledger_cash = 8;
+   */
+  ledgerCash?: Decimal | undefined;
+
+  /**
+   * as_of of the broker snapshot this run compared against.
+   *
+   * @generated from field: int64 snapshot_as_of = 9;
+   */
+  snapshotAsOf: bigint;
+
+  /**
+   * Strategy×instrument pairs blocked by open breaks, "strategy_id|instrument_id" (VP-008).
+   *
+   * @generated from field: repeated string halted = 10;
+   */
+  halted: string[];
+
+  /**
+   * @generated from field: int32 positions_compared = 11;
+   */
+  positionsCompared: number;
+
+  /**
+   * Trigger: snapshot | reconnect | session_open | session_close | on_demand.
+   *
+   * @generated from field: string trigger = 12;
+   */
+  trigger: string;
 };
 
 /**
@@ -408,7 +564,54 @@ export type ReconciliationResult = Message<"tb.ledger.v1.ReconciliationResult"> 
  * Use `create(ReconciliationResultSchema)` to create a new message.
  */
 export const ReconciliationResultSchema: GenMessage<ReconciliationResult> = /*@__PURE__*/
-  messageDesc(file_tb_ledger_v1_ledger, 7);
+  messageDesc(file_tb_ledger_v1_ledger, 8);
+
+/**
+ * LedgerUpdate is published on ledger.update.<broker_account_id> after every applied event with the
+ * owner positions it changed. Strategy runtimes filter it to their own owner (SM-012).
+ *
+ * @generated from message tb.ledger.v1.LedgerUpdate
+ */
+export type LedgerUpdate = Message<"tb.ledger.v1.LedgerUpdate"> & {
+  /**
+   * @generated from field: string broker_account_id = 1;
+   */
+  brokerAccountId: string;
+
+  /**
+   * @generated from field: string event_id = 2;
+   */
+  eventId: string;
+
+  /**
+   * Source of the change: broker_exec_id, corporate action ID, or adjustment ID (VP-I3).
+   *
+   * @generated from field: string source_id = 3;
+   */
+  sourceId: string;
+
+  /**
+   * @generated from field: repeated tb.ledger.v1.StrategyPosition positions = 4;
+   */
+  positions: StrategyPosition[];
+
+  /**
+   * @generated from field: int64 as_of = 5;
+   */
+  asOf: bigint;
+
+  /**
+   * @generated from field: string correlation_id = 6;
+   */
+  correlationId: string;
+};
+
+/**
+ * Describes the message tb.ledger.v1.LedgerUpdate.
+ * Use `create(LedgerUpdateSchema)` to create a new message.
+ */
+export const LedgerUpdateSchema: GenMessage<LedgerUpdate> = /*@__PURE__*/
+  messageDesc(file_tb_ledger_v1_ledger, 9);
 
 /**
  * @generated from enum tb.ledger.v1.ReconciliationStatus
@@ -433,6 +636,14 @@ export enum ReconciliationStatus {
    * @generated from enum value: RECONCILIATION_STATUS_STALE = 3;
    */
   STALE = 3,
+
+  /**
+   * Differences inside the timing grace window (VP-013); diff instruments are blocked, nothing
+   * else is.
+   *
+   * @generated from enum value: RECONCILIATION_STATUS_PENDING = 4;
+   */
+  PENDING = 4,
 }
 
 /**
@@ -440,4 +651,119 @@ export enum ReconciliationStatus {
  */
 export const ReconciliationStatusSchema: GenEnum<ReconciliationStatus> = /*@__PURE__*/
   enumDesc(file_tb_ledger_v1_ledger, 0);
+
+/**
+ * BreakType classifies reconciliation breaks (VP-014).
+ *
+ * @generated from enum tb.ledger.v1.BreakType
+ */
+export enum BreakType {
+  /**
+   * @generated from enum value: BREAK_TYPE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Broker and ledger differ while an execution is plausibly in flight; auto-resolves in grace.
+   *
+   * @generated from enum value: BREAK_TYPE_TIMING = 1;
+   */
+  TIMING = 1,
+
+  /**
+   * A manual sell exceeded the manual quantity and ate strategy-attributed shares (VP-016).
+   *
+   * @generated from enum value: BREAK_TYPE_ENCROACHMENT = 2;
+   */
+  ENCROACHMENT = 2,
+
+  /**
+   * A tb1- execution whose strategy short ID is unknown (VP-017).
+   *
+   * @generated from enum value: BREAK_TYPE_UNKNOWN_EXECUTION = 3;
+   */
+  UNKNOWN_EXECUTION = 3,
+
+  /**
+   * Broker quantity changed with no execution to explain it (VP-018).
+   *
+   * @generated from enum value: BREAK_TYPE_MISSING_EXECUTION = 4;
+   */
+  MISSING_EXECUTION = 4,
+
+  /**
+   * @generated from enum value: BREAK_TYPE_CORPORATE_ACTION = 5;
+   */
+  CORPORATE_ACTION = 5,
+
+  /**
+   * @generated from enum value: BREAK_TYPE_CASH_MISMATCH = 6;
+   */
+  CASH_MISMATCH = 6,
+
+  /**
+   * Open at the broker with a tb1- ID, unknown to the OMS (OE-019).
+   *
+   * @generated from enum value: BREAK_TYPE_ORPHAN_ORDER = 7;
+   */
+  ORPHAN_ORDER = 7,
+
+  /**
+   * Open in the OMS, unknown to the broker (OE-019).
+   *
+   * @generated from enum value: BREAK_TYPE_GHOST_ORDER = 8;
+   */
+  GHOST_ORDER = 8,
+
+  /**
+   * A strategy sold more than it owned (should be impossible after the gate; VP-004).
+   *
+   * @generated from enum value: BREAK_TYPE_OVERSELL = 9;
+   */
+  OVERSELL = 9,
+
+  /**
+   * A broker position or execution that cannot be mapped to an instrument_id (VP-010).
+   *
+   * @generated from enum value: BREAK_TYPE_UNMAPPED_INSTRUMENT = 10;
+   */
+  UNMAPPED_INSTRUMENT = 10,
+}
+
+/**
+ * Describes the enum tb.ledger.v1.BreakType.
+ */
+export const BreakTypeSchema: GenEnum<BreakType> = /*@__PURE__*/
+  enumDesc(file_tb_ledger_v1_ledger, 1);
+
+/**
+ * @generated from enum tb.ledger.v1.BreakStatus
+ */
+export enum BreakStatus {
+  /**
+   * @generated from enum value: BREAK_STATUS_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: BREAK_STATUS_OPEN = 1;
+   */
+  OPEN = 1,
+
+  /**
+   * @generated from enum value: BREAK_STATUS_AUTO_RESOLVED = 2;
+   */
+  AUTO_RESOLVED = 2,
+
+  /**
+   * @generated from enum value: BREAK_STATUS_RESOLVED = 3;
+   */
+  RESOLVED = 3,
+}
+
+/**
+ * Describes the enum tb.ledger.v1.BreakStatus.
+ */
+export const BreakStatusSchema: GenEnum<BreakStatus> = /*@__PURE__*/
+  enumDesc(file_tb_ledger_v1_ledger, 2);
 

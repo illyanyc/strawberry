@@ -7,7 +7,7 @@
 
 import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
-import type { Broker, Decimal, Mode, Side } from "../../common/v1/common_pb";
+import type { Broker, Decimal, Horizon, Mode, Side } from "../../common/v1/common_pb";
 import { file_tb_common_v1_common } from "../../common/v1/common_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -15,7 +15,41 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file tb/orders/v1/orders.proto.
  */
 export const file_tb_orders_v1_orders: GenFile = /*@__PURE__*/
-  fileDesc("Chl0Yi9vcmRlcnMvdjEvb3JkZXJzLnByb3RvEgx0Yi5vcmRlcnMudjEi+gMKC09yZGVySW50ZW50EhEKCWludGVudF9pZBgBIAEoCRITCgtzdHJhdGVneV9pZBgCIAEoCRIZChFicm9rZXJfYWNjb3VudF9pZBgDIAEoCRIVCg1pbnN0cnVtZW50X2lkGAQgASgJEiAKBHNpZGUYBSABKA4yEi50Yi5jb21tb24udjEuU2lkZRIpCghxdWFudGl0eRgGIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsSAASMAoPdGFyZ2V0X3Bvc2l0aW9uGAcgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWxIABIrCgpvcmRlcl90eXBlGAggASgOMhcudGIub3JkZXJzLnYxLk9yZGVyVHlwZRIqCgtsaW1pdF9wcmljZRgJIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEikKCnN0b3BfcHJpY2UYCiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBImCgN0aWYYCyABKA4yGS50Yi5vcmRlcnMudjEuVGltZUluRm9yY2USDgoGcmVhc29uGAwgASgJEiAKBG1vZGUYDSABKA4yEi50Yi5jb21tb24udjEuTW9kZRIWCg5jb3JyZWxhdGlvbl9pZBgOIAEoCRISCgpjcmVhdGVkX2F0GA8gASgDQggKBnNpemluZyJXCglSaXNrQ2hlY2sSDAoEbmFtZRgBIAEoCRIOCgZwYXNzZWQYAiABKAgSDQoFdmFsdWUYAyABKAkSDQoFbGltaXQYBCABKAkSDgoGZGV0YWlsGAUgASgJIogBCgxSaXNrRGVjaXNpb24SEQoJaW50ZW50X2lkGAEgASgJEhAKCGFwcHJvdmVkGAIgASgIEicKBmNoZWNrcxgDIAMoCzIXLnRiLm9yZGVycy52MS5SaXNrQ2hlY2sSEgoKZGVjaWRlZF9hdBgEIAEoAxIWCg5jb3JyZWxhdGlvbl9pZBgFIAEoCSL3AwoFT3JkZXISEAoIb3JkZXJfaWQYASABKAkSEQoJaW50ZW50X2lkGAIgASgJEhcKD2NsaWVudF9vcmRlcl9pZBgDIAEoCRIXCg9icm9rZXJfb3JkZXJfaWQYBCABKAkSGQoRYnJva2VyX2FjY291bnRfaWQYBSABKAkSEwoLc3RyYXRlZ3lfaWQYBiABKAkSFQoNaW5zdHJ1bWVudF9pZBgHIAEoCRIgCgRzaWRlGAggASgOMhIudGIuY29tbW9uLnYxLlNpZGUSJwoIcXVhbnRpdHkYCSABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBInCgVzdGF0ZRgKIAEoDjIYLnRiLm9yZGVycy52MS5PcmRlclN0YXRlEikKCmZpbGxlZF9xdHkYCyABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIoCglhdmdfcHJpY2UYDCABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIgCgRtb2RlGA0gASgOMhIudGIuY29tbW9uLnYxLk1vZGUSEgoKY3JlYXRlZF9hdBgOIAEoAxIUCgxzdWJtaXR0ZWRfYXQYDyABKAMSEgoKdXBkYXRlZF9hdBgQIAEoAxIWCg5jb3JyZWxhdGlvbl9pZBgRIAEoCRIPCgdwZXJtX2lkGBIgASgJIvADCg9FeGVjdXRpb25SZXBvcnQSGQoRYnJva2VyX2FjY291bnRfaWQYASABKAkSFgoOYnJva2VyX2V4ZWNfaWQYAiABKAkSFwoPY2xpZW50X29yZGVyX2lkGAMgASgJEhcKD2Jyb2tlcl9vcmRlcl9pZBgEIAEoCRIVCg1pbnN0cnVtZW50X2lkGAUgASgJEiAKBHNpZGUYBiABKA4yEi50Yi5jb21tb24udjEuU2lkZRIiCgNxdHkYByABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIkCgVwcmljZRgIIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiMKBGZlZXMYCSABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBISCgpldmVudF90aW1lGAogASgDEiAKBG1vZGUYCyABKA4yEi50Yi5jb21tb24udjEuTW9kZRITCgtpbmdlc3RlZF9hdBgMIAEoAxIPCgdwZXJtX2lkGA0gASgJEg4KBnN5bWJvbBgOIAEoCRIkCgZicm9rZXIYDyABKA4yFC50Yi5jb21tb24udjEuQnJva2VyEhAKCHNlcXVlbmNlGBAgASgDEhQKDGZlZV9jdXJyZW5jeRgRIAEoCRIWCg5jb3JyZWxhdGlvbl9pZBgSIAEoCSLdAQoPS2lsbFN3aXRjaEV2ZW50EhAKCGV2ZW50X2lkGAEgASgJEiwKBXNjb3BlGAIgASgOMh0udGIub3JkZXJzLnYxLktpbGxTd2l0Y2hTY29wZRIOCgZ0YXJnZXQYAyABKAkSLgoGYWN0aW9uGAQgASgOMh4udGIub3JkZXJzLnYxLktpbGxTd2l0Y2hBY3Rpb24SDQoFYWN0b3IYBSABKAkSDgoGcmVhc29uGAYgASgJEhMKC29jY3VycmVkX2F0GAcgASgDEhYKDmNvcnJlbGF0aW9uX2lkGAggASgJKqIBCglPcmRlclR5cGUSGgoWT1JERVJfVFlQRV9VTlNQRUNJRklFRBAAEhUKEU9SREVSX1RZUEVfTUFSS0VUEAESFAoQT1JERVJfVFlQRV9MSU1JVBACEhMKD09SREVSX1RZUEVfU1RPUBADEhkKFU9SREVSX1RZUEVfU1RPUF9MSU1JVBAEEhwKGE9SREVSX1RZUEVfVFJBSUxJTkdfU1RPUBAFKrYBCgtUaW1lSW5Gb3JjZRIdChlUSU1FX0lOX0ZPUkNFX1VOU1BFQ0lGSUVEEAASFQoRVElNRV9JTl9GT1JDRV9EQVkQARIVChFUSU1FX0lOX0ZPUkNFX0dUQxACEhUKEVRJTUVfSU5fRk9SQ0VfSU9DEAMSFQoRVElNRV9JTl9GT1JDRV9GT0sQBBIVChFUSU1FX0lOX0ZPUkNFX09QRxAFEhUKEVRJTUVfSU5fRk9SQ0VfQ0xTEAYq+QIKCk9yZGVyU3RhdGUSGwoXT1JERVJfU1RBVEVfVU5TUEVDSUZJRUQQABIeChpPUkRFUl9TVEFURV9QRU5ESU5HX1NVQk1JVBABEhkKFU9SREVSX1NUQVRFX1NVQk1JVFRFRBACEhgKFE9SREVSX1NUQVRFX0FDQ0VQVEVEEAMSIAocT1JERVJfU1RBVEVfUEFSVElBTExZX0ZJTExFRBAEEhYKEk9SREVSX1NUQVRFX0ZJTExFRBAFEh4KGk9SREVSX1NUQVRFX1BFTkRJTkdfQ0FOQ0VMEAYSGAoUT1JERVJfU1RBVEVfQ0FOQ0VMRUQQBxIYChRPUkRFUl9TVEFURV9SRUpFQ1RFRBAIEhcKE09SREVSX1NUQVRFX0VYUElSRUQQCRIXChNPUkRFUl9TVEFURV9VTktOT1dOEAoSGAoUT1JERVJfU1RBVEVfUkVQTEFDRUQQCxIfChtPUkRFUl9TVEFURV9QRU5ESU5HX1JFUExBQ0UQDCq6AQoPS2lsbFN3aXRjaFNjb3BlEiEKHUtJTExfU1dJVENIX1NDT1BFX1VOU1BFQ0lGSUVEEAASHAoYS0lMTF9TV0lUQ0hfU0NPUEVfR0xPQkFMEAESJAogS0lMTF9TV0lUQ0hfU0NPUEVfQlJPS0VSX0FDQ09VTlQQAhIeChpLSUxMX1NXSVRDSF9TQ09QRV9TVFJBVEVHWRADEiAKHEtJTExfU1dJVENIX1NDT1BFX0lOU1RSVU1FTlQQBCrIAQoQS2lsbFN3aXRjaEFjdGlvbhIiCh5LSUxMX1NXSVRDSF9BQ1RJT05fVU5TUEVDSUZJRUQQABIdChlLSUxMX1NXSVRDSF9BQ1RJT05fRlJFRVpFEAESIgoeS0lMTF9TV0lUQ0hfQUNUSU9OX0NBTkNFTF9PUEVOEAISLQopS0lMTF9TV0lUQ0hfQUNUSU9OX0ZMQVRURU5fU1RSQVRFR1lfT1dORUQQAxIeChpLSUxMX1NXSVRDSF9BQ1RJT05fUkVMRUFTRRAEQrgBChBjb20udGIub3JkZXJzLnYxQgtPcmRlcnNQcm90b1ABWkVnaXRodWIuY29tL2lsbHlhbnljL3N0cmF3YmVycnkvY29udHJhY3RzL2dlbi9nby90Yi9vcmRlcnMvdjE7b3JkZXJzdjGiAgNUT1iqAgxUYi5PcmRlcnMuVjHKAgxUYlxPcmRlcnNcVjHiAhhUYlxPcmRlcnNcVjFcR1BCTWV0YWRhdGHqAg5UYjo6T3JkZXJzOjpWMWIGcHJvdG8z", [file_tb_common_v1_common]);
+  fileDesc("Chl0Yi9vcmRlcnMvdjEvb3JkZXJzLnByb3RvEgx0Yi5vcmRlcnMudjEimgEKDlByb3RlY3RpdmVTcGVjEi4KD3N0b3BfbG9zc19wcmljZRgBIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEjAKEXRha2VfcHJvZml0X3ByaWNlGAIgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJgoDdGlmGAMgASgOMhkudGIub3JkZXJzLnYxLlRpbWVJbkZvcmNlIocGCgtPcmRlckludGVudBIRCglpbnRlbnRfaWQYASABKAkSEwoLc3RyYXRlZ3lfaWQYAiABKAkSGQoRYnJva2VyX2FjY291bnRfaWQYAyABKAkSFQoNaW5zdHJ1bWVudF9pZBgEIAEoCRIgCgRzaWRlGAUgASgOMhIudGIuY29tbW9uLnYxLlNpZGUSKQoIcXVhbnRpdHkYBiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbEgAEjAKD3RhcmdldF9wb3NpdGlvbhgHIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsSAASKwoKb3JkZXJfdHlwZRgIIAEoDjIXLnRiLm9yZGVycy52MS5PcmRlclR5cGUSKgoLbGltaXRfcHJpY2UYCSABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIpCgpzdG9wX3ByaWNlGAogASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJgoDdGlmGAsgASgOMhkudGIub3JkZXJzLnYxLlRpbWVJbkZvcmNlEg4KBnJlYXNvbhgMIAEoCRIgCgRtb2RlGA0gASgOMhIudGIuY29tbW9uLnYxLk1vZGUSFgoOY29ycmVsYXRpb25faWQYDiABKAkSEgoKY3JlYXRlZF9hdBgPIAEoAxImCgdob3Jpem9uGBAgASgOMhUudGIuY29tbW9uLnYxLkhvcml6b24SJgoEa2luZBgRIAEoDjIYLnRiLm9yZGVycy52MS5JbnRlbnRLaW5kEjAKCnByb3RlY3RpdmUYEiABKAsyHC50Yi5vcmRlcnMudjEuUHJvdGVjdGl2ZVNwZWMSFgoOZXh0ZW5kZWRfaG91cnMYEyABKAgSKgoGc291cmNlGBQgASgOMhoudGIub3JkZXJzLnYxLkludGVudFNvdXJjZRIVCg1kZWNpc2lvbl90aW1lGBUgASgDEi4KD3JlZmVyZW5jZV9wcmljZRgWIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsQggKBnNpemluZyJXCglSaXNrQ2hlY2sSDAoEbmFtZRgBIAEoCRIOCgZwYXNzZWQYAiABKAgSDQoFdmFsdWUYAyABKAkSDQoFbGltaXQYBCABKAkSDgoGZGV0YWlsGAUgASgJIvABCgxSaXNrRGVjaXNpb24SEQoJaW50ZW50X2lkGAEgASgJEhAKCGFwcHJvdmVkGAIgASgIEicKBmNoZWNrcxgDIAMoCzIXLnRiLm9yZGVycy52MS5SaXNrQ2hlY2sSEgoKZGVjaWRlZF9hdBgEIAEoAxIWCg5jb3JyZWxhdGlvbl9pZBgFIAEoCRITCgtzdHJhdGVneV9pZBgGIAEoCRIZChFicm9rZXJfYWNjb3VudF9pZBgHIAEoCRIOCgZzaGFkb3cYCCABKAgSFQoNZmlyc3RfZmFpbHVyZRgJIAEoCRIPCgdkcnlfcnVuGAogASgIIqIGCgVPcmRlchIQCghvcmRlcl9pZBgBIAEoCRIRCglpbnRlbnRfaWQYAiABKAkSFwoPY2xpZW50X29yZGVyX2lkGAMgASgJEhcKD2Jyb2tlcl9vcmRlcl9pZBgEIAEoCRIZChFicm9rZXJfYWNjb3VudF9pZBgFIAEoCRITCgtzdHJhdGVneV9pZBgGIAEoCRIVCg1pbnN0cnVtZW50X2lkGAcgASgJEiAKBHNpZGUYCCABKA4yEi50Yi5jb21tb24udjEuU2lkZRInCghxdWFudGl0eRgJIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEicKBXN0YXRlGAogASgOMhgudGIub3JkZXJzLnYxLk9yZGVyU3RhdGUSKQoKZmlsbGVkX3F0eRgLIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEigKCWF2Z19wcmljZRgMIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiAKBG1vZGUYDSABKA4yEi50Yi5jb21tb24udjEuTW9kZRISCgpjcmVhdGVkX2F0GA4gASgDEhQKDHN1Ym1pdHRlZF9hdBgPIAEoAxISCgp1cGRhdGVkX2F0GBAgASgDEhYKDmNvcnJlbGF0aW9uX2lkGBEgASgJEg8KB3Blcm1faWQYEiABKAkSDwoHYXR0ZW1wdBgTIAEoBRIlCgRyb2xlGBQgASgOMhcudGIub3JkZXJzLnYxLk9yZGVyUm9sZRIXCg9wYXJlbnRfb3JkZXJfaWQYFSABKAkSKwoKb3JkZXJfdHlwZRgWIAEoDjIXLnRiLm9yZGVycy52MS5PcmRlclR5cGUSKgoLbGltaXRfcHJpY2UYFyABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIpCgpzdG9wX3ByaWNlGBggASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJgoDdGlmGBkgASgOMhkudGIub3JkZXJzLnYxLlRpbWVJbkZvcmNlEhUKDXJlamVjdF9yZWFzb24YGiABKAkSFQoNYnJva2VyX3N0YXR1cxgbIAEoCSLwAwoPRXhlY3V0aW9uUmVwb3J0EhkKEWJyb2tlcl9hY2NvdW50X2lkGAEgASgJEhYKDmJyb2tlcl9leGVjX2lkGAIgASgJEhcKD2NsaWVudF9vcmRlcl9pZBgDIAEoCRIXCg9icm9rZXJfb3JkZXJfaWQYBCABKAkSFQoNaW5zdHJ1bWVudF9pZBgFIAEoCRIgCgRzaWRlGAYgASgOMhIudGIuY29tbW9uLnYxLlNpZGUSIgoDcXR5GAcgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJAoFcHJpY2UYCCABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIjCgRmZWVzGAkgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSEgoKZXZlbnRfdGltZRgKIAEoAxIgCgRtb2RlGAsgASgOMhIudGIuY29tbW9uLnYxLk1vZGUSEwoLaW5nZXN0ZWRfYXQYDCABKAMSDwoHcGVybV9pZBgNIAEoCRIOCgZzeW1ib2wYDiABKAkSJAoGYnJva2VyGA8gASgOMhQudGIuY29tbW9uLnYxLkJyb2tlchIQCghzZXF1ZW5jZRgQIAEoAxIUCgxmZWVfY3VycmVuY3kYESABKAkSFgoOY29ycmVsYXRpb25faWQYEiABKAkiiQIKD0tpbGxTd2l0Y2hFdmVudBIQCghldmVudF9pZBgBIAEoCRIsCgVzY29wZRgCIAEoDjIdLnRiLm9yZGVycy52MS5LaWxsU3dpdGNoU2NvcGUSDgoGdGFyZ2V0GAMgASgJEi4KBmFjdGlvbhgEIAEoDjIeLnRiLm9yZGVycy52MS5LaWxsU3dpdGNoQWN0aW9uEg0KBWFjdG9yGAUgASgJEg4KBnJlYXNvbhgGIAEoCRITCgtvY2N1cnJlZF9hdBgHIAEoAxIWCg5jb3JyZWxhdGlvbl9pZBgIIAEoCRIPCgdsYXRjaGVkGAkgASgIEhkKEXJlbGVhc2VzX2V2ZW50X2lkGAogASgJKqIBCglPcmRlclR5cGUSGgoWT1JERVJfVFlQRV9VTlNQRUNJRklFRBAAEhUKEU9SREVSX1RZUEVfTUFSS0VUEAESFAoQT1JERVJfVFlQRV9MSU1JVBACEhMKD09SREVSX1RZUEVfU1RPUBADEhkKFU9SREVSX1RZUEVfU1RPUF9MSU1JVBAEEhwKGE9SREVSX1RZUEVfVFJBSUxJTkdfU1RPUBAFKrYBCgtUaW1lSW5Gb3JjZRIdChlUSU1FX0lOX0ZPUkNFX1VOU1BFQ0lGSUVEEAASFQoRVElNRV9JTl9GT1JDRV9EQVkQARIVChFUSU1FX0lOX0ZPUkNFX0dUQxACEhUKEVRJTUVfSU5fRk9SQ0VfSU9DEAMSFQoRVElNRV9JTl9GT1JDRV9GT0sQBBIVChFUSU1FX0lOX0ZPUkNFX09QRxAFEhUKEVRJTUVfSU5fRk9SQ0VfQ0xTEAYqVgoKSW50ZW50S2luZBIbChdJTlRFTlRfS0lORF9VTlNQRUNJRklFRBAAEhQKEElOVEVOVF9LSU5EX09QRU4QARIVChFJTlRFTlRfS0lORF9DTE9TRRACKpsBCgxJbnRlbnRTb3VyY2USHQoZSU5URU5UX1NPVVJDRV9VTlNQRUNJRklFRBAAEhoKFklOVEVOVF9TT1VSQ0VfU1RSQVRFR1kQARIUChBJTlRFTlRfU09VUkNFX1VJEAISHQoZSU5URU5UX1NPVVJDRV9LSUxMX1NXSVRDSBADEhsKF0lOVEVOVF9TT1VSQ0VfTElGRUNZQ0xFEAQq+QIKCk9yZGVyU3RhdGUSGwoXT1JERVJfU1RBVEVfVU5TUEVDSUZJRUQQABIeChpPUkRFUl9TVEFURV9QRU5ESU5HX1NVQk1JVBABEhkKFU9SREVSX1NUQVRFX1NVQk1JVFRFRBACEhgKFE9SREVSX1NUQVRFX0FDQ0VQVEVEEAMSIAocT1JERVJfU1RBVEVfUEFSVElBTExZX0ZJTExFRBAEEhYKEk9SREVSX1NUQVRFX0ZJTExFRBAFEh4KGk9SREVSX1NUQVRFX1BFTkRJTkdfQ0FOQ0VMEAYSGAoUT1JERVJfU1RBVEVfQ0FOQ0VMRUQQBxIYChRPUkRFUl9TVEFURV9SRUpFQ1RFRBAIEhcKE09SREVSX1NUQVRFX0VYUElSRUQQCRIXChNPUkRFUl9TVEFURV9VTktOT1dOEAoSGAoUT1JERVJfU1RBVEVfUkVQTEFDRUQQCxIfChtPUkRFUl9TVEFURV9QRU5ESU5HX1JFUExBQ0UQDCqOAQoJT3JkZXJSb2xlEhoKFk9SREVSX1JPTEVfVU5TUEVDSUZJRUQQABIUChBPUkRFUl9ST0xFX0VOVFJZEAESEwoPT1JERVJfUk9MRV9FWElUEAISHgoaT1JERVJfUk9MRV9QUk9URUNUSVZFX1NUT1AQAxIaChZPUkRFUl9ST0xFX1RBS0VfUFJPRklUEAQqugEKD0tpbGxTd2l0Y2hTY29wZRIhCh1LSUxMX1NXSVRDSF9TQ09QRV9VTlNQRUNJRklFRBAAEhwKGEtJTExfU1dJVENIX1NDT1BFX0dMT0JBTBABEiQKIEtJTExfU1dJVENIX1NDT1BFX0JST0tFUl9BQ0NPVU5UEAISHgoaS0lMTF9TV0lUQ0hfU0NPUEVfU1RSQVRFR1kQAxIgChxLSUxMX1NXSVRDSF9TQ09QRV9JTlNUUlVNRU5UEAQq8AEKEEtpbGxTd2l0Y2hBY3Rpb24SIgoeS0lMTF9TV0lUQ0hfQUNUSU9OX1VOU1BFQ0lGSUVEEAASHQoZS0lMTF9TV0lUQ0hfQUNUSU9OX0ZSRUVaRRABEiIKHktJTExfU1dJVENIX0FDVElPTl9DQU5DRUxfT1BFThACEi0KKUtJTExfU1dJVENIX0FDVElPTl9GTEFUVEVOX1NUUkFURUdZX09XTkVEEAMSHgoaS0lMTF9TV0lUQ0hfQUNUSU9OX1JFTEVBU0UQBBImCiJLSUxMX1NXSVRDSF9BQ1RJT05fREVNT1RFX1RPX1BBUEVSEAVCuAEKEGNvbS50Yi5vcmRlcnMudjFCC09yZGVyc1Byb3RvUAFaRWdpdGh1Yi5jb20vaWxseWFueWMvc3RyYXdiZXJyeS9jb250cmFjdHMvZ2VuL2dvL3RiL29yZGVycy92MTtvcmRlcnN2MaICA1RPWKoCDFRiLk9yZGVycy5WMcoCDFRiXE9yZGVyc1xWMeICGFRiXE9yZGVyc1xWMVxHUEJNZXRhZGF0YeoCDlRiOjpPcmRlcnM6OlYxYgZwcm90bzM", [file_tb_common_v1_common]);
+
+/**
+ * ProtectiveSpec is the broker-side protective order attached to an entry (N5, OE-014): an Alpaca
+ * bracket (take-profit optional) or an IBKR parent with a GTC stop child.
+ *
+ * @generated from message tb.orders.v1.ProtectiveSpec
+ */
+export type ProtectiveSpec = Message<"tb.orders.v1.ProtectiveSpec"> & {
+  /**
+   * @generated from field: tb.common.v1.Decimal stop_loss_price = 1;
+   */
+  stopLossPrice?: Decimal | undefined;
+
+  /**
+   * Optional; unset means stop-only protection (OTO).
+   *
+   * @generated from field: tb.common.v1.Decimal take_profit_price = 2;
+   */
+  takeProfitPrice?: Decimal | undefined;
+
+  /**
+   * TIF of the protective legs; swing positions MUST use GTC (RM-011).
+   *
+   * @generated from field: tb.orders.v1.TimeInForce tif = 3;
+   */
+  tif: TimeInForce;
+};
+
+/**
+ * Describes the message tb.orders.v1.ProtectiveSpec.
+ * Use `create(ProtectiveSpecSchema)` to create a new message.
+ */
+export const ProtectiveSpecSchema: GenMessage<ProtectiveSpec> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_orders, 0);
 
 /**
  * OrderIntent is what a strategy or the owner wants; it becomes an order only after a RiskDecision.
@@ -108,6 +142,49 @@ export type OrderIntent = Message<"tb.orders.v1.OrderIntent"> & {
    * @generated from field: int64 created_at = 15;
    */
   createdAt: bigint;
+
+  /**
+   * The strategy's declared horizon; MUST match the registry (RM-011).
+   *
+   * @generated from field: tb.common.v1.Horizon horizon = 16;
+   */
+  horizon: Horizon;
+
+  /**
+   * @generated from field: tb.orders.v1.IntentKind kind = 17;
+   */
+  kind: IntentKind;
+
+  /**
+   * Required on algorithmic OPEN intents (N5, OE-014).
+   *
+   * @generated from field: tb.orders.v1.ProtectiveSpec protective = 18;
+   */
+  protective?: ProtectiveSpec | undefined;
+
+  /**
+   * @generated from field: bool extended_hours = 19;
+   */
+  extendedHours: boolean;
+
+  /**
+   * @generated from field: tb.orders.v1.IntentSource source = 20;
+   */
+  source: IntentSource;
+
+  /**
+   * Decision time of the strategy (bar available_at or signal time), UTC ns (DF-001).
+   *
+   * @generated from field: int64 decision_time = 21;
+   */
+  decisionTime: bigint;
+
+  /**
+   * Last price the strategy saw; used for sizing display only (the gate uses its own price).
+   *
+   * @generated from field: tb.common.v1.Decimal reference_price = 22;
+   */
+  referencePrice?: Decimal | undefined;
 };
 
 /**
@@ -115,7 +192,7 @@ export type OrderIntent = Message<"tb.orders.v1.OrderIntent"> & {
  * Use `create(OrderIntentSchema)` to create a new message.
  */
 export const OrderIntentSchema: GenMessage<OrderIntent> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_orders, 0);
+  messageDesc(file_tb_orders_v1_orders, 1);
 
 /**
  * @generated from message tb.orders.v1.RiskCheck
@@ -152,7 +229,7 @@ export type RiskCheck = Message<"tb.orders.v1.RiskCheck"> & {
  * Use `create(RiskCheckSchema)` to create a new message.
  */
 export const RiskCheckSchema: GenMessage<RiskCheck> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_orders, 1);
+  messageDesc(file_tb_orders_v1_orders, 2);
 
 /**
  * @generated from message tb.orders.v1.RiskDecision
@@ -182,6 +259,37 @@ export type RiskDecision = Message<"tb.orders.v1.RiskDecision"> & {
    * @generated from field: string correlation_id = 5;
    */
   correlationId: string;
+
+  /**
+   * @generated from field: string strategy_id = 6;
+   */
+  strategyId: string;
+
+  /**
+   * @generated from field: string broker_account_id = 7;
+   */
+  brokerAccountId: string;
+
+  /**
+   * True for shadow-mode strategies: evaluated and recorded, never submitted (SM-002).
+   *
+   * @generated from field: bool shadow = 8;
+   */
+  shadow: boolean;
+
+  /**
+   * Name of the first failed check, empty when approved.
+   *
+   * @generated from field: string first_failure = 9;
+   */
+  firstFailure: string;
+
+  /**
+   * True for PreviewIntent dry runs; dry runs reserve nothing and are not audited as decisions.
+   *
+   * @generated from field: bool dry_run = 10;
+   */
+  dryRun: boolean;
 };
 
 /**
@@ -189,7 +297,7 @@ export type RiskDecision = Message<"tb.orders.v1.RiskDecision"> & {
  * Use `create(RiskDecisionSchema)` to create a new message.
  */
 export const RiskDecisionSchema: GenMessage<RiskDecision> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_orders, 2);
+  messageDesc(file_tb_orders_v1_orders, 3);
 
 /**
  * @generated from message tb.orders.v1.Order
@@ -288,6 +396,59 @@ export type Order = Message<"tb.orders.v1.Order"> & {
    * @generated from field: string perm_id = 18;
    */
   permId: string;
+
+  /**
+   * Attempt counter in the attribution ID (cancel/replace increments it, VP-002).
+   *
+   * @generated from field: int32 attempt = 19;
+   */
+  attempt: number;
+
+  /**
+   * @generated from field: tb.orders.v1.OrderRole role = 20;
+   */
+  role: OrderRole;
+
+  /**
+   * Parent platform order for protective legs (OE-009).
+   *
+   * @generated from field: string parent_order_id = 21;
+   */
+  parentOrderId: string;
+
+  /**
+   * @generated from field: tb.orders.v1.OrderType order_type = 22;
+   */
+  orderType: OrderType;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal limit_price = 23;
+   */
+  limitPrice?: Decimal | undefined;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal stop_price = 24;
+   */
+  stopPrice?: Decimal | undefined;
+
+  /**
+   * @generated from field: tb.orders.v1.TimeInForce tif = 25;
+   */
+  tif: TimeInForce;
+
+  /**
+   * Normalized broker or OMS reject reason (safe text).
+   *
+   * @generated from field: string reject_reason = 26;
+   */
+  rejectReason: string;
+
+  /**
+   * Raw broker status of the last update.
+   *
+   * @generated from field: string broker_status = 27;
+   */
+  brokerStatus: string;
 };
 
 /**
@@ -295,7 +456,7 @@ export type Order = Message<"tb.orders.v1.Order"> & {
  * Use `create(OrderSchema)` to create a new message.
  */
 export const OrderSchema: GenMessage<Order> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_orders, 3);
+  messageDesc(file_tb_orders_v1_orders, 4);
 
 /**
  * @generated from message tb.orders.v1.ExecutionReport
@@ -403,7 +564,7 @@ export type ExecutionReport = Message<"tb.orders.v1.ExecutionReport"> & {
  * Use `create(ExecutionReportSchema)` to create a new message.
  */
 export const ExecutionReportSchema: GenMessage<ExecutionReport> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_orders, 4);
+  messageDesc(file_tb_orders_v1_orders, 5);
 
 /**
  * @generated from message tb.orders.v1.KillSwitchEvent
@@ -450,6 +611,20 @@ export type KillSwitchEvent = Message<"tb.orders.v1.KillSwitchEvent"> & {
    * @generated from field: string correlation_id = 8;
    */
   correlationId: string;
+
+  /**
+   * Engagements latch until an owner releases them with step-up (RM-006, RM-007).
+   *
+   * @generated from field: bool latched = 9;
+   */
+  latched: boolean;
+
+  /**
+   * Engagement this release refers to (RELEASE only).
+   *
+   * @generated from field: string releases_event_id = 10;
+   */
+  releasesEventId: string;
 };
 
 /**
@@ -457,7 +632,7 @@ export type KillSwitchEvent = Message<"tb.orders.v1.KillSwitchEvent"> & {
  * Use `create(KillSwitchEventSchema)` to create a new message.
  */
 export const KillSwitchEventSchema: GenMessage<KillSwitchEvent> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_orders, 5);
+  messageDesc(file_tb_orders_v1_orders, 6);
 
 /**
  * @generated from enum tb.orders.v1.OrderType
@@ -547,6 +722,80 @@ export const TimeInForceSchema: GenEnum<TimeInForce> = /*@__PURE__*/
   enumDesc(file_tb_orders_v1_orders, 1);
 
 /**
+ * IntentKind says whether an intent opens/increases risk or closes/reduces the owner's own position.
+ * Risk-reducing intents stay allowed while a daily-loss limit is breached (RM-005); a CLOSE never
+ * sells more than the owner's own quantity (VP-004).
+ *
+ * @generated from enum tb.orders.v1.IntentKind
+ */
+export enum IntentKind {
+  /**
+   * @generated from enum value: INTENT_KIND_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: INTENT_KIND_OPEN = 1;
+   */
+  OPEN = 1,
+
+  /**
+   * @generated from enum value: INTENT_KIND_CLOSE = 2;
+   */
+  CLOSE = 2,
+}
+
+/**
+ * Describes the enum tb.orders.v1.IntentKind.
+ */
+export const IntentKindSchema: GenEnum<IntentKind> = /*@__PURE__*/
+  enumDesc(file_tb_orders_v1_orders, 2);
+
+/**
+ * IntentSource is who produced the intent.
+ *
+ * @generated from enum tb.orders.v1.IntentSource
+ */
+export enum IntentSource {
+  /**
+   * @generated from enum value: INTENT_SOURCE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: INTENT_SOURCE_STRATEGY = 1;
+   */
+  STRATEGY = 1,
+
+  /**
+   * Owner-entered order from the UI (owner "manual", short ID "manual", VP-001).
+   *
+   * @generated from enum value: INTENT_SOURCE_UI = 2;
+   */
+  UI = 2,
+
+  /**
+   * Exit generated by a kill switch flatten (strategy-owned quantity only, VP-006).
+   *
+   * @generated from enum value: INTENT_SOURCE_KILL_SWITCH = 3;
+   */
+  KILL_SWITCH = 3,
+
+  /**
+   * Exit generated by the trading-day lifecycle (intraday flatten before the close, OE-016).
+   *
+   * @generated from enum value: INTENT_SOURCE_LIFECYCLE = 4;
+   */
+  LIFECYCLE = 4,
+}
+
+/**
+ * Describes the enum tb.orders.v1.IntentSource.
+ */
+export const IntentSourceSchema: GenEnum<IntentSource> = /*@__PURE__*/
+  enumDesc(file_tb_orders_v1_orders, 3);
+
+/**
  * @generated from enum tb.orders.v1.OrderState
  */
 export enum OrderState {
@@ -624,7 +873,45 @@ export enum OrderState {
  * Describes the enum tb.orders.v1.OrderState.
  */
 export const OrderStateSchema: GenEnum<OrderState> = /*@__PURE__*/
-  enumDesc(file_tb_orders_v1_orders, 2);
+  enumDesc(file_tb_orders_v1_orders, 4);
+
+/**
+ * OrderRole distinguishes entries, exits, and broker-side protective legs (OE-009, OE-014).
+ *
+ * @generated from enum tb.orders.v1.OrderRole
+ */
+export enum OrderRole {
+  /**
+   * @generated from enum value: ORDER_ROLE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: ORDER_ROLE_ENTRY = 1;
+   */
+  ENTRY = 1,
+
+  /**
+   * @generated from enum value: ORDER_ROLE_EXIT = 2;
+   */
+  EXIT = 2,
+
+  /**
+   * @generated from enum value: ORDER_ROLE_PROTECTIVE_STOP = 3;
+   */
+  PROTECTIVE_STOP = 3,
+
+  /**
+   * @generated from enum value: ORDER_ROLE_TAKE_PROFIT = 4;
+   */
+  TAKE_PROFIT = 4,
+}
+
+/**
+ * Describes the enum tb.orders.v1.OrderRole.
+ */
+export const OrderRoleSchema: GenEnum<OrderRole> = /*@__PURE__*/
+  enumDesc(file_tb_orders_v1_orders, 5);
 
 /**
  * @generated from enum tb.orders.v1.KillSwitchScope
@@ -660,7 +947,7 @@ export enum KillSwitchScope {
  * Describes the enum tb.orders.v1.KillSwitchScope.
  */
 export const KillSwitchScopeSchema: GenEnum<KillSwitchScope> = /*@__PURE__*/
-  enumDesc(file_tb_orders_v1_orders, 3);
+  enumDesc(file_tb_orders_v1_orders, 6);
 
 /**
  * @generated from enum tb.orders.v1.KillSwitchAction
@@ -692,11 +979,18 @@ export enum KillSwitchAction {
    * @generated from enum value: KILL_SWITCH_ACTION_RELEASE = 4;
    */
   RELEASE = 4,
+
+  /**
+   * Freeze plus moving every strategy in scope to `paper` (never upwards, RM-015).
+   *
+   * @generated from enum value: KILL_SWITCH_ACTION_DEMOTE_TO_PAPER = 5;
+   */
+  DEMOTE_TO_PAPER = 5,
 }
 
 /**
  * Describes the enum tb.orders.v1.KillSwitchAction.
  */
 export const KillSwitchActionSchema: GenEnum<KillSwitchAction> = /*@__PURE__*/
-  enumDesc(file_tb_orders_v1_orders, 4);
+  enumDesc(file_tb_orders_v1_orders, 7);
 
