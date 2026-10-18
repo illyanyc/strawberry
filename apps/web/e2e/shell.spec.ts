@@ -32,6 +32,8 @@ function totp(base32: string, offsetSteps = 0): string {
 test("owner setup, passkey and TOTP login, step-up, credentials, audit", async ({ page }) => {
   const token = process.env.TB_E2E_SETUP_TOKEN;
   test.skip(!token, "TB_E2E_SETUP_TOKEN not set");
+  // One long journey (setup, both login methods, the trading slice, settings, mobile) on a fresh stack.
+  test.setTimeout(300_000);
   const cspErrors: string[] = [];
   page.on("console", (m) => {
     if (m.type() === "error" && /Content Security Policy/i.test(m.text())) cspErrors.push(m.text());
@@ -88,6 +90,7 @@ test("owner setup, passkey and TOTP login, step-up, credentials, audit", async (
     await expect(page.getByRole("heading", { name: link, exact: true })).toBeVisible();
     await page.screenshot({ path: `${shots}/${shot}.png`, fullPage: true });
   }
+  await main.getByRole("link", { name: "Orders", exact: true }).click();
   await page.getByRole("link", { name: "New manual order" }).click();
   await expect(page.getByRole("heading", { name: "Manual order" })).toBeVisible();
   await expect(page.getByText("Manual orders are owned by you (owner: manual)")).toBeVisible();
