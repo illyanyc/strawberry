@@ -85,7 +85,7 @@ export function ExperimentsPage() {
         <CardBody className="overflow-x-auto">
           <QueryState q={lineages} empty="No lineages yet. Create one to run studies." isEmpty={(d) => d.lineages.length === 0}>
             {(d) => (
-              <table className="w-full text-left text-sm">
+              <table className="data-table">
                 <thead className="text-xs text-muted">
                   <tr>
                     <th className="py-2 pr-3 font-medium">Lineage</th>
@@ -268,7 +268,7 @@ export function LineagePage() {
         <CardBody className="overflow-x-auto">
           <QueryState q={studies} empty="No studies yet." isEmpty={(d) => d.studies.length === 0}>
             {(d) => (
-              <table className="w-full text-left text-sm">
+              <table className="data-table">
                 <thead className="text-xs text-muted">
                   <tr>
                     <th className="py-2 pr-3 font-medium">Study</th>
@@ -327,7 +327,7 @@ function Counts({ label, m }: { label: string; m: Record<string, number> }) {
 
 function CandidateTable({ candidates, champion }: { candidates: Candidate[]; champion: string }) {
   return (
-    <table className="w-full text-left text-sm">
+    <table className="data-table">
       <thead className="text-xs text-muted">
         <tr>
           <th className="py-2 pr-3 font-medium">Candidate</th>
@@ -869,7 +869,7 @@ export function StudyPage() {
                       .sort((a, b) => b.value - a.value)}
                   />
                   {g.paramStability.length > 0 && (
-                    <table className="w-full text-left text-xs">
+                    <table className="data-table text-xs">
                       <thead className="text-muted">
                         <tr>
                           <th className="py-1 pr-3 font-medium">Parameter</th>
@@ -911,7 +911,7 @@ export function StudyPage() {
 function ParetoTable({ points }: { points: NonNullable<StudyDiagnosticsResponse["diagnostics"]>["paretoFront"] }) {
   const keys = [...new Set(points.flatMap((p) => Object.keys(kv(p.values))))].sort();
   return (
-    <table className="w-full text-left text-xs">
+    <table className="data-table text-xs">
       <thead className="text-muted">
         <tr>
           <th className="py-1 pr-3 font-medium">Trial</th>
@@ -959,7 +959,7 @@ function TrialsView({ trials }: { trials: Trial[] }) {
     <>
       <ParallelCoordinates rows={rows} axes={axes} metric="inner" label="Parallel coordinates of trial parameters and the inner metric" />
       <div className="max-h-96 overflow-auto">
-        <table className="w-full text-left text-xs">
+        <table className="data-table text-xs">
           <thead className="sticky top-0 bg-panel text-muted">
             <tr>
               <th className="py-1 pr-3 font-medium">#</th>
@@ -1114,7 +1114,7 @@ function MiniTable({ title, head, rows }: { title: string; head: string[]; rows:
       {rows.length === 0 ? (
         <p className="text-xs text-muted">—</p>
       ) : (
-        <table className="w-full text-left text-xs">
+        <table className="data-table text-xs">
           <thead className="text-muted">
             <tr>
               {head.map((h) => (
@@ -1306,7 +1306,7 @@ function ChampionChallenger({ candidate }: { candidate: Candidate }) {
     <Card>
       <CardHeader title="Champion vs challenger" description="Backtest estimates from the gate reports and results so far from each one's paper or shadow strategy (ledger values)." />
       <CardBody className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
+        <table className="data-table">
           <thead className="text-xs text-muted">
             <tr>
               <th className="py-2 pr-3 font-medium" />

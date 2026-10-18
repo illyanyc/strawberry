@@ -204,7 +204,7 @@ export function LedgerCard({ lineage }: { lineage: string }) {
                 </dd>
               </dl>
               <div className="max-h-72 overflow-auto">
-                <table className="w-full text-left text-xs" aria-label="Trials">
+                <table className="data-table text-xs" aria-label="Trials">
                   <thead className="text-muted">
                     <tr>
                       <th className="py-1">Trial</th>

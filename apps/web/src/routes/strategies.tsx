@@ -9,12 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Alert, Badge, Field } from "@/components/ui/form";
 import { api, ApiError, type TradingStatus } from "@/lib/api";
-import { dec, enumLabel, type EquityCurve, type FillsResponse, type StrategiesResponse, type StrategyPortfolio } from "@/lib/trading";
+import { useStrategies } from "@/lib/queries";
+import { dec, enumLabel, type EquityCurve, type FillsResponse, type StrategyPortfolio } from "@/lib/trading";
 import { formatNs } from "@/lib/utils";
-
-export function useStrategies() {
-  return useQuery({ queryKey: ["strategies"], queryFn: () => api<StrategiesResponse>("/api/v1/strategies"), refetchInterval: 15_000 });
-}
 
 /** Strategy registry (UI-014): mode, horizon, account, health from execution's trading status. */
 export function StrategiesPage() {
@@ -28,7 +25,7 @@ export function StrategiesPage() {
         <CardBody className="overflow-x-auto">
           <QueryState q={strategies} empty="No strategies are registered." isEmpty={(d) => d.strategies.length === 0}>
             {(d) => (
-              <table className="w-full text-left text-sm">
+              <table className="data-table">
                 <thead className="text-xs text-muted">
                   <tr>
                     <th className="py-2 pr-4 font-medium">Strategy</th>
@@ -193,7 +190,7 @@ export function StrategyDetailPage() {
                 {pf.positions.length === 0 ? (
                   <p className="text-sm text-muted">Flat.</p>
                 ) : (
-                  <table className="w-full text-left text-sm">
+                  <table className="data-table">
                     <thead className="text-xs text-muted">
                       <tr>
                         <th className="py-2 pr-4 font-medium">Symbol</th>

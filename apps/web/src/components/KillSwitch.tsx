@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { OctagonX, Snowflake } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,11 @@ import { api, ApiError } from "@/lib/api";
 import type { KillSwitch, TradingCore } from "@/lib/trading";
 
 export type KillAction = "cancel_open" | "freeze" | "flatten";
+
+/** Display hint only; the gateway decides from the request (RM-020). */
+function isPhone(): boolean {
+  return typeof navigator !== "undefined" && /Mobi|Android|iPhone|iPad/.test(navigator.userAgent);
+}
 
 const actionText: Record<KillAction, string> = {
   cancel_open: "Freeze new orders and cancel open orders (protective stops stay)",
@@ -44,7 +50,10 @@ export function EngageKillDialog({ open, onClose, target }: { open: boolean; onC
   return (
     <Dialog open={open} onClose={onClose} title={`Engage kill switch: ${target.label}`}>
       <div className="space-y-4">
-        <p className="text-sm text-muted">The switch latches until you release it with a passkey from a desktop.</p>
+        <p className="text-sm text-muted">
+          The switch latches until you release it with a passkey from a desktop.
+          {isPhone() && " From a phone, your passkey confirms the halt (RM-020)."}
+        </p>
         <fieldset className="space-y-2">
           <legend className="text-xs font-medium text-muted">Action</legend>
           {(Object.keys(actionText) as KillAction[]).map((a) => (
@@ -82,17 +91,20 @@ export function GlobalKillSwitch({ trading }: { trading: TradingCore | null | un
     return (
       <Link
         to="/risk"
-        className="inline-flex h-8 items-center gap-1 rounded-lg bg-live px-3 text-xs font-semibold uppercase tracking-wide text-white"
+        className="live-pulse inline-flex h-8 items-center gap-1.5 rounded-lg bg-live px-3 text-xs font-semibold uppercase tracking-wide text-white"
         aria-label={`Trading frozen by ${global.length} global kill switch${global.length > 1 ? "es" : ""}; open Risk to review or release`}
       >
+        <Snowflake className="size-3.5" aria-hidden />
         Frozen
       </Link>
     );
   }
   return (
     <>
-      <Button variant="danger" size="sm" onClick={() => setOpen(true)} aria-label="Global kill switch" title={trading ? undefined : "Execution unreachable"}>
-        Kill switch
+      <Button variant="danger" size="sm" onClick={() => setOpen(true)} aria-label="Global kill switch" title={trading ? "Engage the global kill switch" : "Execution unreachable"}>
+        <OctagonX />
+        <span className="sm:hidden">Halt</span>
+        <span className="hidden sm:inline">Kill switch</span>
       </Button>
       <EngageKillDialog open={open} onClose={() => setOpen(false)} target={{ scope: "global", label: "all trading" }} />
     </>

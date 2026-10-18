@@ -101,7 +101,7 @@ export function TrainingPage() {
           <CardBody className="overflow-x-auto">
             <QueryState q={jobs} empty="No jobs yet." isEmpty={(d) => d.jobs.length === 0}>
               {(d) => (
-                <table className="w-full text-left text-sm">
+                <table className="data-table">
                   <thead className="text-xs text-muted">
                     <tr>
                       <th className="py-2 pr-3 font-medium">Job</th>
@@ -138,7 +138,7 @@ export function TrainingPage() {
           <CardBody className="overflow-x-auto">
             <QueryState q={runs} empty="No runs yet." isEmpty={(d) => d.runs.length === 0}>
               {(d) => (
-                <table className="w-full text-left text-sm">
+                <table className="data-table">
                   <thead className="text-xs text-muted">
                     <tr>
                       <th className="py-2 pr-3 font-medium">Run</th>
@@ -629,7 +629,7 @@ function FoldTable({ folds }: { folds: NonNullable<RunResponse["run"]>["folds"] 
   const mk = [...new Set(folds.flatMap((f) => Object.keys(kv(f.metrics))).filter((k) => k.startsWith("val_")))].sort();
   const bk = [...new Set(folds.flatMap((f) => Object.keys(kv(f.backtest))))].sort();
   return (
-    <table className="w-full text-left text-xs">
+    <table className="data-table text-xs">
       <thead className="text-muted">
         <tr>
           <th className="py-1 pr-3 font-medium">Fold</th>
@@ -714,7 +714,7 @@ export function DiagnosticsView({ report }: { report: NonNullable<DiagnosticsRes
       {report.errorSlices.length > 0 && (
         <div className="overflow-x-auto">
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Error slices</h3>
-          <table className="w-full text-left text-xs">
+          <table className="data-table text-xs">
             <thead className="text-muted">
               <tr>
                 <th className="py-1 pr-3 font-medium">By</th>

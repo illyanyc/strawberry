@@ -58,7 +58,7 @@ export function RiskChecks({ checks }: { checks: RiskCheck[] }) {
   const sorted = [...checks].sort((a, b) => Number(a.passed) - Number(b.passed));
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left text-xs">
+      <table className="data-table text-xs">
         <thead className="text-muted">
           <tr>
             <th className="py-1 pr-3 font-medium">Check</th>
@@ -95,7 +95,7 @@ export function OwnershipTable({ instruments, strategies }: { instruments: Instr
   const qty = (row: InstrumentBreakdown, owner: string) => row.owners.find((o) => o.owner === owner)?.qty;
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm" aria-label="Positions by owner">
+      <table className="data-table" aria-label="Positions by owner">
         <thead className="text-xs text-muted">
           <tr>
             <th className="py-2 pr-4 font-medium">Symbol</th>
