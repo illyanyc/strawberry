@@ -75,3 +75,44 @@ func TestOE006StateMachineConvergesUnderReordering(t *testing.T) {
 		}
 	}
 }
+
+// BT-003: Compact drops only finished history older than the cut-off; working orders, their intent,
+// recent fills, and recent order times stay.
+func TestCompactKeepsWorkingAndRecentState(t *testing.T) {
+	e, err := New(context.Background(), DefaultConfig(), NewMemory(), nil, nopLedger{}, StaticInstruments{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	mk := func(id, intent, parent string, st ordersv1.OrderState, at int64) *ordersv1.Order {
+		o := &ordersv1.Order{OrderId: id, IntentId: intent, ParentOrderId: parent, ClientOrderId: "tb1-orbaaaa-" + intent + "-1", BrokerAccountId: "a",
+			BrokerOrderId: "b" + id, State: st, UpdatedAt: at}
+		e.index(o)
+		return o
+	}
+	filled, canceled, open := ordersv1.OrderState_ORDER_STATE_FILLED, ordersv1.OrderState_ORDER_STATE_CANCELED, ordersv1.OrderState_ORDER_STATE_ACCEPTED
+	mk("old", "i1", "", filled, 10)         // finished, old: dropped
+	mk("oldleg", "i1", "old", canceled, 10) // finished leg, old: dropped
+	mk("entry", "i2", "", filled, 10)       // old but its stop still works: kept
+	mk("stop", "i2", "entry", open, 10)     // working: kept
+	mk("recent", "i3", "", filled, 1000)    // recent: kept
+	e.intents["i1"] = &ordersv1.IntentRecord{State: IntentDone, ReceivedAt: 10}
+	e.intents["i2"] = &ordersv1.IntentRecord{State: IntentDone, ReceivedAt: 10}
+	e.intents["i4"] = &ordersv1.IntentRecord{State: IntentSubmitted, ReceivedAt: 10}
+	e.fills["a|x1"] = &ordersv1.Fill{EventTime: 10}
+	e.fills["a|x2"] = &ordersv1.Fill{EventTime: 1000}
+	e.orderTimes["orb"] = []int64{10, 1000}
+	if n := e.Compact(500); n != 4 {
+		t.Fatalf("compacted %d entries, want 4 (two orders, one intent, one fill)", n)
+	}
+	for _, id := range []string{"entry", "stop", "recent"} {
+		if e.orders[id] == nil {
+			t.Fatalf("order %s dropped", id)
+		}
+	}
+	if e.orders["old"] != nil || e.byBroker["a|bold"] != "" || len(e.byClient["a|tb1-orbaaaa-i1-1"]) != 0 {
+		t.Fatal("old finished order still indexed")
+	}
+	if e.intents["i1"] != nil || e.intents["i2"] == nil || e.intents["i4"] == nil || e.fills["a|x2"] == nil || len(e.orderTimes["orb"]) != 1 {
+		t.Fatal("wrong intents, fills, or order times kept")
+	}
+}

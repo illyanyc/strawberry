@@ -152,6 +152,14 @@ func TestBT003LiveGateApprovesAndBuildsTheBracket(t *testing.T) {
 	}
 }
 
+func TestBT003AllocationIsNotDayPnL(t *testing.T) {
+	c := setup(t, true, acct)
+	q := do(t, c, &backtestv1.SimRequest{Body: &backtestv1.SimRequest_Query{Query: &backtestv1.SimQuery{Owner: "orb-15m", BrokerAccountId: acct}}})
+	if q.GetPortfolio().GetDayPnl().GetValue() != "0" || q.GetPortfolio().GetEquity().GetValue() != "30000" || q.GetPortfolio().GetHighWaterMark().GetValue() != "30000" {
+		t.Fatalf("RM-005: the initial allocation must not count as day P&L: %v", q.GetPortfolio())
+	}
+}
+
 func TestBT007SellBeyondOwnQuantityRejectedManualUntouched(t *testing.T) {
 	c := setup(t, true, acct)
 	now := open.Add(16 * time.Minute)
@@ -164,6 +172,27 @@ func TestBT007SellBeyondOwnQuantityRejectedManualUntouched(t *testing.T) {
 	}
 	if len(r.GetOrders()) != 0 {
 		t.Fatal("no order may reach the broker")
+	}
+}
+
+func TestBT003PartialGlobalLimitsMergeOverDefaults(t *testing.T) {
+	reg, _ := json.Marshal(map[string]any{"strategies": []map[string]any{{"strategy_id": "orb-15m", "short_id": "orb15aa", "horizon": "intraday",
+		"broker_account_id": acct, "mode": "paper", "allocation": "30000"}}})
+	c := New(nil)
+	r := c.Handle(context.Background(), &backtestv1.SimRequest{Body: &backtestv1.SimRequest_Setup{Setup: &backtestv1.SimSetup{
+		Start: open.Add(-10 * time.Minute).UnixNano(), RegistryJson: reg, GlobalLimits: &ordersv1.RiskLimits{MaxPositions: 50},
+		Accounts:    []*backtestv1.SimAccount{{BrokerAccountId: acct, Cash: d("60000"), SupportsBracket: true}},
+		Routing:     []*backtestv1.SimRoute{{Horizon: commonv1.Horizon_HORIZON_INTRADAY, BrokerAccountIds: []string{acct}}},
+		Instruments: []*backtestv1.SimInstrument{{InstrumentId: aapl, Symbol: "AAPL", Tradable: true}},
+	}}})
+	if r.GetError() != "" {
+		t.Fatal(r.GetError())
+	}
+	now := open.Add(16 * time.Minute)
+	r = do(t, c, &backtestv1.SimRequest{Body: &backtestv1.SimRequest_Submit{Submit: &backtestv1.SimSubmit{Now: now.UnixNano(),
+		Intent: entry(acct, commonv1.Horizon_HORIZON_INTRADAY, ordersv1.TimeInForce_TIME_IN_FORCE_DAY), Bars: bar("101.3", open.Add(15*time.Minute))}}})
+	if !r.GetDecision().GetApproved() {
+		t.Fatalf("an override of one limit must keep the other defaults (price collar): %s", r.GetDecision().GetFirstFailure())
 	}
 }
 

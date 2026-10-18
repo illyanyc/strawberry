@@ -24,13 +24,14 @@ type Broker struct {
 	instr    map[string]*brokerv1.InstrumentInfo
 	orders   map[string]*brokerv1.BrokerOrder // by broker order ID (legs included)
 	byClient map[string]string                // acct|client order ID → top-level broker order ID
+	open     map[string]bool                  // top-level orders with any working part
 	seq      int
 	changed  []string
 }
 
 func newBroker(now func() int64) *Broker {
 	return &Broker{now: now, accounts: map[string]*brokerv1.BrokerAccount{}, instr: map[string]*brokerv1.InstrumentInfo{},
-		orders: map[string]*brokerv1.BrokerOrder{}, byClient: map[string]string{}}
+		orders: map[string]*brokerv1.BrokerOrder{}, byClient: map[string]string{}, open: map[string]bool{}}
 }
 
 func (b *Broker) touch(id string) { b.changed = append(b.changed, id) }
@@ -120,6 +121,7 @@ func (b *Broker) Submit(_ context.Context, r *brokerv1.BrokerOrderRequest) (*bro
 		CreatedAt: now, SubmittedAt: now, UpdatedAt: now, OrderClass: brokerv1.OrderClass_ORDER_CLASS_SIMPLE}
 	b.orders[o.GetBrokerOrderId()] = o
 	b.byClient[acct+"|"+o.GetClientOrderId()] = o.GetBrokerOrderId()
+	b.open[o.GetBrokerOrderId()] = true
 	if br := r.GetBracket(); br != nil {
 		o.OrderClass = br.GetOrderClass()
 		exit := commonv1.Side_SIDE_SELL
@@ -196,15 +198,17 @@ func (b *Broker) GetOrder(_ context.Context, acct, clientOrderID, brokerOrderID 
 // ListOpenOrders implements oms.Brokers (top-level orders with their legs).
 func (b *Broker) ListOpenOrders(_ context.Context, acct string) ([]*brokerv1.BrokerOrder, error) {
 	var out []*brokerv1.BrokerOrder
-	for _, o := range b.orders {
-		if o.GetBrokerAccountId() != acct || o.GetParentBrokerOrderId() != "" {
-			continue
-		}
+	for id := range b.open {
+		o := b.orders[id]
 		open := !oms.IsFinal(o.GetState())
 		for _, l := range o.GetLegs() {
 			open = open || !oms.IsFinal(b.orders[l.GetBrokerOrderId()].GetState())
 		}
-		if open {
+		if !open {
+			delete(b.open, id)
+			continue
+		}
+		if o.GetBrokerAccountId() == acct {
 			out = append(out, b.view(o))
 		}
 	}

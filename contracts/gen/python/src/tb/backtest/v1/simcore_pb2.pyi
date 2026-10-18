@@ -203,20 +203,18 @@ class SimRequest(_message.Message):
     def __init__(self, setup: _Optional[_Union[SimSetup, _Mapping]] = ..., advance: _Optional[_Union[SimAdvance, _Mapping]] = ..., submit: _Optional[_Union[SimSubmit, _Mapping]] = ..., fill: _Optional[_Union[SimFill, _Mapping]] = ..., order_end: _Optional[_Union[SimOrderEnd, _Mapping]] = ..., manual_fill: _Optional[_Union[SimManualFill, _Mapping]] = ..., corporate_action: _Optional[_Union[SimCorporateAction, _Mapping]] = ..., query: _Optional[_Union[SimQuery, _Mapping]] = ...) -> None: ...
 
 class SimResponse(_message.Message):
-    __slots__ = ("error", "orders", "decision", "ledger_updates", "portfolio", "intents")
+    __slots__ = ("error", "orders", "decision", "ledger_updates", "portfolio")
     ERROR_FIELD_NUMBER: _ClassVar[int]
     ORDERS_FIELD_NUMBER: _ClassVar[int]
     DECISION_FIELD_NUMBER: _ClassVar[int]
     LEDGER_UPDATES_FIELD_NUMBER: _ClassVar[int]
     PORTFOLIO_FIELD_NUMBER: _ClassVar[int]
-    INTENTS_FIELD_NUMBER: _ClassVar[int]
     error: str
     orders: _containers.RepeatedCompositeFieldContainer[_gateway_pb2.BrokerOrder]
     decision: _orders_pb2.RiskDecision
     ledger_updates: _containers.RepeatedCompositeFieldContainer[_ledger_pb2.LedgerUpdate]
     portfolio: _ledger_service_pb2.OwnerView
-    intents: _containers.RepeatedCompositeFieldContainer[_execution_pb2.IntentRecord]
-    def __init__(self, error: _Optional[str] = ..., orders: _Optional[_Iterable[_Union[_gateway_pb2.BrokerOrder, _Mapping]]] = ..., decision: _Optional[_Union[_orders_pb2.RiskDecision, _Mapping]] = ..., ledger_updates: _Optional[_Iterable[_Union[_ledger_pb2.LedgerUpdate, _Mapping]]] = ..., portfolio: _Optional[_Union[_ledger_service_pb2.OwnerView, _Mapping]] = ..., intents: _Optional[_Iterable[_Union[_execution_pb2.IntentRecord, _Mapping]]] = ...) -> None: ...
+    def __init__(self, error: _Optional[str] = ..., orders: _Optional[_Iterable[_Union[_gateway_pb2.BrokerOrder, _Mapping]]] = ..., decision: _Optional[_Union[_orders_pb2.RiskDecision, _Mapping]] = ..., ledger_updates: _Optional[_Iterable[_Union[_ledger_pb2.LedgerUpdate, _Mapping]]] = ..., portfolio: _Optional[_Union[_ledger_service_pb2.OwnerView, _Mapping]] = ...) -> None: ...
 
 class RecordedMessage(_message.Message):
     __slots__ = ("subject", "data", "msg_id", "recorded_at", "stream_sequence")

@@ -73,7 +73,8 @@ message SimBar {
   int64 interval_ns = 4;
 }
 
-// Moves the virtual clock, records bars and marks, and runs the OMS time-driven work (Tick).
+// Moves the virtual clock, records bars and marks, and runs the OMS time-driven work (Tick) when it
+// matters: inside the intraday flatten window before the close and outside the regular session.
 message SimAdvance {
   int64 now = 1;
   repeated SimBar bars = 2;
@@ -158,8 +159,6 @@ message SimResponse {
   repeated tb.ledger.v1.LedgerUpdate ledger_updates = 4;
   // Query only.
   tb.ledger.v1.OwnerView portfolio = 5;
-  // Intent records whose state changed (rejections included).
-  repeated tb.orders.v1.IntentRecord intents = 6;
 }
 
 // One message captured from the bus (JetStream) for replay: the input format of event-driven

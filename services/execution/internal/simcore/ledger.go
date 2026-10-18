@@ -234,10 +234,12 @@ func (l *Ledger) Portfolio(_ context.Context, owner string) (*ledgerv1.OwnerView
 	if acct == "" {
 		return nil, fmt.Errorf("simcore: owner %q not registered", owner)
 	}
-	return l.ownerView(acct, owner), nil
+	return l.ownerView(acct, owner, true), nil
 }
 
-func (l *Ledger) ownerView(acct, owner string) *ledgerv1.OwnerView {
+// ownerView mirrors the ledger engine's owner view. openOnly omits closed positions (realized P&L
+// only), which the OMS skips anyway; queries for reports ask for the full view.
+func (l *Ledger) ownerView(acct, owner string, openOnly bool) *ledgerv1.OwnerView {
 	a := l.b.Accounts[acct]
 	o := a.Owner(owner)
 	if o == nil {
@@ -254,7 +256,7 @@ func (l *Ledger) ownerView(acct, owner string) *ledgerv1.OwnerView {
 	}
 	ids := make([]string, 0, len(o.Positions))
 	for id, p := range o.Positions {
-		if !p.Qty().IsZero() || !p.Realized.IsZero() {
+		if !p.Qty().IsZero() || (!openOnly && !p.Realized.IsZero()) {
 			ids = append(ids, id)
 		}
 	}
@@ -292,6 +294,15 @@ func (l *Ledger) SetAllocation(_ context.Context, r *ledgerv1.SetAllocationReque
 	amt := pd(r.GetAmount())
 	if err := l.b.CheckAllocation(acct, r.GetOwner(), amt, l.snaps[acct], l.cfg, l.res); err != nil {
 		return err
+	}
+	prev := book.Zero
+	if o := l.b.Accounts[acct].Owner(r.GetOwner()); o != nil {
+		prev = o.Allocation
+	}
+	// RM-005, VP-024 (ledger engine shiftDayStart): a capital flow is never day P&L or drawdown.
+	if st := l.eq[acct+"|"+r.GetOwner()]; st != nil {
+		delta := amt.Sub(prev)
+		st.dayStart, st.hwm = st.dayStart.Add(delta), st.hwm.Add(delta)
 	}
 	l.seq++
 	_, err := l.apply(book.Event{Kind: book.KindAllocation, Account: acct, Source: fmt.Sprintf("alloc:%s:%d", r.GetOwner(), l.seq), Time: l.now(),

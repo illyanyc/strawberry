@@ -11,9 +11,11 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/shopspring/decimal"
+	"google.golang.org/protobuf/proto"
 
 	backtestv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/backtest/v1"
 	brokerv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/broker/v1"
@@ -26,6 +28,10 @@ import (
 	"github.com/illyanyc/strawberry/services/ledger/book"
 )
 
+// compactAfter is how much finished OMS history the simcore keeps (the gate looks back at most five
+// sessions, for day trades).
+const compactAfter = 10 * 24 * time.Hour
+
 // Core is one simulated trading stack (one or more simulated accounts).
 type Core struct {
 	clock    int64
@@ -35,7 +41,10 @@ type Core struct {
 	cal      *calendar.Calendar
 	log      *slog.Logger
 	accounts []string
-	seenAt   int64
+	flatten  time.Duration
+	// wall clock state (see wall); the OMS may read it from a goroutine (reject-storm freeze).
+	wallMu              sync.Mutex
+	wallBase, wallReads int64
 }
 
 // New returns an empty core; the first request must be a setup.
@@ -50,6 +59,19 @@ func New(log *slog.Logger) *Core {
 }
 
 func (c *Core) now() time.Time { return time.Unix(0, c.clock).UTC() }
+
+// wall is the OMS's wall clock in simulation: the virtual clock plus one microsecond per read since the
+// clock last moved. Periodic work keyed on wall time (order reconciliation, dead-man ages) then
+// depends only on the event sequence, never on host speed (BT-001), and wait loops still progress.
+func (c *Core) wall() time.Time {
+	c.wallMu.Lock()
+	defer c.wallMu.Unlock()
+	if c.wallBase != c.clock {
+		c.wallBase, c.wallReads = c.clock, 0
+	}
+	c.wallReads++
+	return time.Unix(0, c.clock+c.wallReads*int64(time.Microsecond)).UTC()
+}
 
 // Handle answers one request. Errors are returned in the response (the backtest stops).
 func (c *Core) Handle(ctx context.Context, req *backtestv1.SimRequest) *backtestv1.SimResponse {
@@ -82,7 +104,13 @@ func (c *Core) handle(ctx context.Context, req *backtestv1.SimRequest) (*backtes
 		}
 		c.bars(b.Advance.GetBars())
 		c.refresh()
-		c.eng.Tick(ctx)
+		if c.tickDue() {
+			c.eng.Tick(ctx)
+		}
+		// Keep long simulations linear: drop finished OMS history beyond the gate's look-back.
+		if _, part, ok := c.cal.SessionAt(c.now()); !ok || part != calendar.PartRegular {
+			c.eng.Compact(c.clock - int64(compactAfter))
+		}
 	case *backtestv1.SimRequest_Submit:
 		if err := c.advanceClock(b.Submit.GetNow()); err != nil {
 			return nil, err
@@ -162,7 +190,7 @@ func (c *Core) handle(ctx context.Context, req *backtestv1.SimRequest) (*backtes
 		if c.ledger.b.Accounts[acct] == nil {
 			return nil, fmt.Errorf("simcore: unknown account for owner %q", q.GetOwner())
 		}
-		out.Portfolio = c.ledger.ownerView(acct, q.GetOwner())
+		out.Portfolio = c.ledger.ownerView(acct, q.GetOwner(), false)
 		return out, nil
 	default:
 		return nil, errors.New("simcore: empty request")
@@ -171,8 +199,18 @@ func (c *Core) handle(ctx context.Context, req *backtestv1.SimRequest) (*backtes
 		return nil, err
 	}
 	c.refresh()
-	out.Intents = c.newIntents()
 	return out, nil
+}
+
+// tickDue reports whether the OMS's time-driven work matters now: inside the intraday flatten window
+// before the close (OE-016) or outside the regular session. Elsewhere a tick only polls the always-
+// ready simulated sessions and reconciles orders that cannot diverge, so it is skipped.
+func (c *Core) tickDue() bool {
+	s, part, ok := c.cal.SessionAt(c.now())
+	if !ok || part != calendar.PartRegular {
+		return true
+	}
+	return c.now().After(s.Close.Add(-c.flatten - time.Minute))
 }
 
 // booked books an execution in the ledger core and the OMS (exec.* consumers in production).
@@ -244,17 +282,6 @@ func (c *Core) refresh() {
 	c.ledger.observe()
 }
 
-func (c *Core) newIntents() []*ordersv1.IntentRecord {
-	var out []*ordersv1.IntentRecord
-	for _, r := range c.eng.Intents("", false, c.seenAt, 0) {
-		if r.GetReceivedAt() > c.seenAt || (c.seenAt == 0 && r.GetReceivedAt() == 0) {
-			out = append(out, r)
-		}
-	}
-	c.seenAt = c.clock
-	return out
-}
-
 func (c *Core) setup(ctx context.Context, s *backtestv1.SimSetup) error {
 	if c.eng != nil {
 		return errors.New("simcore: already set up")
@@ -296,7 +323,10 @@ func (c *Core) setup(ctx context.Context, s *backtestv1.SimSetup) error {
 			EasyToBorrow: in.GetShortable(), Fractionable: false, Marginable: true, MinTick: dec(decimal.RequireFromString("0.01")), LotSize: dec(decimal.NewFromInt(1)), Status: "active"}
 	}
 	if s.GetGlobalLimits() != nil {
-		cfg.GlobalLimits = s.GetGlobalLimits()
+		// Set fields override the OMS defaults one by one (RM-003); unset fields keep the default.
+		merged := proto.Clone(cfg.GlobalLimits).(*ordersv1.RiskLimits)
+		proto.Merge(merged, s.GetGlobalLimits())
+		cfg.GlobalLimits = merged
 	}
 	if v := s.GetEntryCollarBps(); v > 0 {
 		cfg.EntryCollarBps = v
@@ -307,7 +337,7 @@ func (c *Core) setup(ctx context.Context, s *backtestv1.SimSetup) error {
 	if v := s.GetFlattenBeforeCloseNs(); v > 0 {
 		cfg.FlattenBeforeClose = time.Duration(v)
 	}
-	cfg.Now, cfg.Wall = c.now, time.Now
+	cfg.Now, cfg.Wall = c.now, c.wall
 	cfg.Calendar = c.cal
 	cfg.CancelWait = time.Second
 	// The runtime heartbeat is sent with every request; wall-clock dead-man ages are meaningless here.
@@ -328,7 +358,7 @@ func (c *Core) setup(ctx context.Context, s *backtestv1.SimSetup) error {
 	}
 	for _, x := range reg.Strategies {
 		want, _ := decimal.NewFromString(orStr(x.Allocation, "0"))
-		if v := c.ledger.ownerView(x.Account, x.StrategyID); !pd(v.GetAllocation()).Equal(want) {
+		if v := c.ledger.ownerView(x.Account, x.StrategyID, false); !pd(v.GetAllocation()).Equal(want) {
 			return fmt.Errorf("simcore: allocation %s for %s was not accepted by the ledger (VP-009)", want, x.StrategyID)
 		}
 	}
@@ -339,7 +369,7 @@ func (c *Core) setup(ctx context.Context, s *backtestv1.SimSetup) error {
 		return errors.New("simcore: OMS did not finish startup recovery")
 	}
 	c.broker.drain()
-	c.seenAt = c.clock
+	c.flatten = cfg.FlattenBeforeClose
 	return nil
 }
 

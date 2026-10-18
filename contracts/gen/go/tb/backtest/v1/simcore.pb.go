@@ -465,7 +465,8 @@ func (x *SimBar) GetIntervalNs() int64 {
 	return 0
 }
 
-// Moves the virtual clock, records bars and marks, and runs the OMS time-driven work (Tick).
+// Moves the virtual clock, records bars and marks, and runs the OMS time-driven work (Tick) when it
+// matters: inside the intraday flatten window before the close and outside the regular session.
 type SimAdvance struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Now           int64                  `protobuf:"varint,1,opt,name=now,proto3" json:"now,omitempty"`
@@ -1163,9 +1164,7 @@ type SimResponse struct {
 	// backtester's job, exactly as in the strategy runtime).
 	LedgerUpdates []*v11.LedgerUpdate `protobuf:"bytes,4,rep,name=ledger_updates,json=ledgerUpdates,proto3" json:"ledger_updates,omitempty"`
 	// Query only.
-	Portfolio *v11.OwnerView `protobuf:"bytes,5,opt,name=portfolio,proto3" json:"portfolio,omitempty"`
-	// Intent records whose state changed (rejections included).
-	Intents       []*v12.IntentRecord `protobuf:"bytes,6,rep,name=intents,proto3" json:"intents,omitempty"`
+	Portfolio     *v11.OwnerView `protobuf:"bytes,5,opt,name=portfolio,proto3" json:"portfolio,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1231,13 +1230,6 @@ func (x *SimResponse) GetLedgerUpdates() []*v11.LedgerUpdate {
 func (x *SimResponse) GetPortfolio() *v11.OwnerView {
 	if x != nil {
 		return x.Portfolio
-	}
-	return nil
-}
-
-func (x *SimResponse) GetIntents() []*v12.IntentRecord {
-	if x != nil {
-		return x.Intents
 	}
 	return nil
 }
@@ -1415,14 +1407,13 @@ const file_tb_backtest_v1_simcore_proto_rawDesc = "" +
 	"manualFill\x12O\n" +
 	"\x10corporate_action\x18\a \x01(\v2\".tb.backtest.v1.SimCorporateActionH\x00R\x0fcorporateAction\x120\n" +
 	"\x05query\x18\b \x01(\v2\x18.tb.backtest.v1.SimQueryH\x00R\x05queryB\x06\n" +
-	"\x04body\"\xbe\x02\n" +
+	"\x04body\"\x88\x02\n" +
 	"\vSimResponse\x12\x14\n" +
 	"\x05error\x18\x01 \x01(\tR\x05error\x121\n" +
 	"\x06orders\x18\x02 \x03(\v2\x19.tb.broker.v1.BrokerOrderR\x06orders\x126\n" +
 	"\bdecision\x18\x03 \x01(\v2\x1a.tb.orders.v1.RiskDecisionR\bdecision\x12A\n" +
 	"\x0eledger_updates\x18\x04 \x03(\v2\x1a.tb.ledger.v1.LedgerUpdateR\rledgerUpdates\x125\n" +
-	"\tportfolio\x18\x05 \x01(\v2\x17.tb.ledger.v1.OwnerViewR\tportfolio\x124\n" +
-	"\aintents\x18\x06 \x03(\v2\x1a.tb.orders.v1.IntentRecordR\aintents\"\xa0\x01\n" +
+	"\tportfolio\x18\x05 \x01(\v2\x17.tb.ledger.v1.OwnerViewR\tportfolio\"\xa0\x01\n" +
 	"\x0fRecordedMessage\x12\x18\n" +
 	"\asubject\x18\x01 \x01(\tR\asubject\x12\x12\n" +
 	"\x04data\x18\x02 \x01(\fR\x04data\x12\x15\n" +
@@ -1473,7 +1464,6 @@ var file_tb_backtest_v1_simcore_proto_goTypes = []any{
 	(*v12.RiskDecision)(nil),   // 24: tb.orders.v1.RiskDecision
 	(*v11.LedgerUpdate)(nil),   // 25: tb.ledger.v1.LedgerUpdate
 	(*v11.OwnerView)(nil),      // 26: tb.ledger.v1.OwnerView
-	(*v12.IntentRecord)(nil),   // 27: tb.orders.v1.IntentRecord
 }
 var file_tb_backtest_v1_simcore_proto_depIdxs = []int32{
 	15, // 0: tb.backtest.v1.SimAccount.broker:type_name -> tb.common.v1.Broker
@@ -1511,12 +1501,11 @@ var file_tb_backtest_v1_simcore_proto_depIdxs = []int32{
 	24, // 32: tb.backtest.v1.SimResponse.decision:type_name -> tb.orders.v1.RiskDecision
 	25, // 33: tb.backtest.v1.SimResponse.ledger_updates:type_name -> tb.ledger.v1.LedgerUpdate
 	26, // 34: tb.backtest.v1.SimResponse.portfolio:type_name -> tb.ledger.v1.OwnerView
-	27, // 35: tb.backtest.v1.SimResponse.intents:type_name -> tb.orders.v1.IntentRecord
-	36, // [36:36] is the sub-list for method output_type
-	36, // [36:36] is the sub-list for method input_type
-	36, // [36:36] is the sub-list for extension type_name
-	36, // [36:36] is the sub-list for extension extendee
-	0,  // [0:36] is the sub-list for field type_name
+	35, // [35:35] is the sub-list for method output_type
+	35, // [35:35] is the sub-list for method input_type
+	35, // [35:35] is the sub-list for extension type_name
+	35, // [35:35] is the sub-list for extension extendee
+	0,  // [0:35] is the sub-list for field type_name
 }
 
 func init() { file_tb_backtest_v1_simcore_proto_init() }

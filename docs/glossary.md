@@ -48,6 +48,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Fail closed** | On uncertainty (stale data, disconnect, unknown order state), stop opening risk instead of guessing. |
 | **Feature lookback** | Number of bars (current included) a feature's value depends on; finite by rule DF-013, it sizes the online ring buffer and offline warm-up. |
 | **Feature set** | Versioned collection of feature definitions in `libs/py/tbcore`; identical in train, backtest, and live. |
+| **Fill bar** | A bar of the series the event-driven backtester uses to simulate executions (`fill_model.fill_timeframe`, default the decision timeframe); an order fills in the fill bar containing or following its arrival (BT-020). |
 | **Flatten (strategy-owned)** | Closing all positions of a strategy (or all strategies). Never includes `manual` quantity. |
 | **Dataset snapshot** | Immutable, content-addressed feature extract (`snapshots/<id>/`) whose ID hashes the feature set, universe, range, as-of, and exact input files (DF-009). |
 | **Gap (market data)** | Regular-session minutes the calendar says should have bars but the lake does not; runs of ≥ 5 are recorded in `marketdata.gaps` and re-fetched (MD-006). |

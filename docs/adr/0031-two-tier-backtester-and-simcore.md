@@ -21,6 +21,13 @@ D7 accepted a custom two-tier engine on `tbcore`: a vectorized screening tier an
 3. **Vectorized tier (`tbcore.backtest.vectorized`)**: NumPy over a time × instrument signal matrix with next-bar execution, the same cost model, and bar high/low stops; screening only (BT-006).
 4. **Runs are identified by the hash of a serializable `BacktestConfig`** (strategies as registry entries, universe with survivorship status, data snapshot, cost and fill models, account, seed); results are written to the filesystem artifact store (D8) with the `BacktestRun` contract summary.
 
+### Determinism and performance (measured)
+
+- The OMS's wall clock in the simcore is the virtual clock plus one microsecond per read, so periodic work keyed on wall time (order reconciliation every 30 s, dead-man ages) depends only on the event sequence, never on host speed; wait loops still progress.
+- The OMS tick runs only where its time-driven work can act (the intraday flatten window and outside the session); every submit carries the clock and current marks for held and working instruments.
+- The live OMS keeps every order, intent, and fill in memory and scans them per intent (harmless at live volumes). `oms.Engine.Compact` drops finished history older than ten days at simulated session closes; two scans now check finality and time before string comparisons (behavior unchanged).
+- Result: 1 year × 100 symbols × 5-minute bars (1,954,800 bars, ORB, ~40,000 simcore requests) in 32.9 s on the 4-vCPU CI-class VM (target 60 s); three runs of the same config give the same result fingerprint.
+
 ## Alternatives considered
 
 | Option | Why not |

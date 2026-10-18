@@ -36,4 +36,11 @@ message BacktestRun {
   string trades_artifact_uri = 6;
   string code_commit = 7;
   int64 seed = 8;
+  // complete | incomplete | unknown (U5, O3); anything but complete is warned (BT-005).
+  string survivorship_status = 9;
+  // Run warnings (coarse fills, low trade count, impact fallback, ...; BT-005).
+  repeated string warnings = 10;
+  // event | vectorized (vectorized runs are screening only, BT-006).
+  string engine = 11;
+  string fill_model = 12;
 }

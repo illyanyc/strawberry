@@ -105,6 +105,7 @@ class StrategyContext:
     allocation: Decimal
     positions: dict[str, OwnPosition] = field(default_factory=dict)
     params: dict[str, object] = field(default_factory=dict)
+    _session: tuple[int, int, Session | None] = (0, 0, None)
 
     def position(self, instrument_id: str) -> Decimal:
         p = self.positions.get(instrument_id)
@@ -124,7 +125,17 @@ class StrategyContext:
         return self.equity_basis() - self.invested()
 
     def session(self) -> Session | None:
+        """The session containing ``now`` (extended hours included), cached while ``now`` stays in it."""
+        lo, hi, cached = self._session
+        if cached is not None and lo <= self.now < hi:
+            return cached
         s, _ = self.calendar.session_at(datetime.fromtimestamp(self.now / 1e9, tz=UTC))
+        if s is not None:
+            self._session = (
+                int(s.pre_open.timestamp()) * 1_000_000_000,
+                int(s.post_close.timestamp()) * 1_000_000_000,
+                s,
+            )
         return s
 
 
