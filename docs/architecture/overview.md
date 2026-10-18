@@ -80,7 +80,8 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 |---|---|---|
 | Contracts | All cross-service messages in `contracts/proto/tb/<domain>/v1/`; generated (committed) for Go, Python, TypeScript; `make gen-check` fails CI on stale code; internal RPC is gRPC, UI is REST + WebSocket ([contracts](#contracts)) | D3 ([ADR-0003](../adr/0003-contracts-protobuf-buf.md)) |
 | Messaging | Durable streams for order path (`ord.*`, `exec.*`, `risk.kill`), at-least-once, idempotent consumers | D2 |
-| Storage split | Market/context data in the lake (single writer, many readers); transactional state (orders, ledgers, users, audit) in Postgres; hot bars and online features in cache | D4–D6 |
+| Storage split | Market/context data in the Parquet lake: marketdata is the single writer (staging + compaction, revisions retained, temp + rename, Postgres manifest), Python reads with Polars point-in-time (`tbcore.data`); reference data in Postgres `refdata` mirrored to `ref/`; transactional state (orders, ledgers, users, audit) in Postgres; hot bars and online features in Valkey (`contracts/cache/README.md`) | D4–D6 ([ADR-0020](../adr/0020-lake-layout-write-path-and-query-layer.md)) |
+| Features | One feature library (`tbcore.features`) used offline (snapshots) and online (ring buffers) through the same `compute`; finite lookback, scale-invariant, parity-tested | D39 ([ADR-0021](../adr/0021-feature-store.md)) |
 | Time | UTC int64 ns; `event_time` / `available_at` / `ingested_at` on every market and context record | — |
 | Identity | ULIDs; `instrument_id` independent of ticker; `correlation_id` from signal to fill | — |
 | Modes | `mode ∈ {backtest, paper, live}` and `broker_account_id` on every strategy, order, and fill | — |
@@ -93,7 +94,8 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 | Package | Messages / services | Producer → consumers |
 |---|---|---|
 | `tb.common.v1` | `Decimal`, `Mode`, `AssetClass`, `Side`, `Broker`, `Instrument`, `Provenance` | shared |
-| `tb.marketdata.v1` | `Bar`, `Quote`, `Trade`, `CorporateAction` | marketdata → bus, lake, cache |
+| `tb.marketdata.v1` | `Bar`, `Quote`, `Trade`, `CorporateAction`, `SourceHealth` | marketdata → bus, lake, cache |
+| `tb.marketdata.v1` | `MarketDataService` (backfill jobs and status, universe, feed status, `IsFresh`) ([ADR-0022](../adr/0022-market-data-ingestion.md), [MD-](../business-logic/market-data.md)) | marketdata → api-gateway, execution |
 | `tb.context.v1` | `ContextEvent` | context-data → lake, bus |
 | `tb.features.v1` | `FeatureVector` | feature service → ml-infer |
 | `tb.signals.v1` | `Signal` | ml-infer / strategy → execution |
@@ -103,6 +105,8 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 | `tb.alerts.v1` | `Alert` | any → monitor → channels |
 | `tb.audit.v1` | `AuditEvent` | all → audit store |
 | `tb.broker.v1` | `CredentialService` (gRPC: put, delete, list status; no plaintext read) | api-gateway → broker-gateway |
+| `tb.broker.v1` | `BrokerGatewayService` (accounts, sessions, snapshots, submit/cancel/replace/lookup, order and execution lists and streams, instrument info) — one contract for every adapter ([ADR-0018](../adr/0018-broker-gateway-interface.md), [BR-](../business-logic/brokers.md)) | broker-gateway (Alpaca, simulator), broker-gateway-ibkr (IBKR) → execution, ledger, marketdata |
+| `tb.broker.v1` | `BrokerMarketDataService` (historical bars, bidirectional market-data stream over the single upstream socket, assets, corporate actions, feed status) | broker-gateway → marketdata |
 
 The UI ↔ gateway API (REST commands + SSE streams, D3/D14) is specified in [`contracts/openapi/gateway.yaml`](../../contracts/openapi/gateway.yaml). Only `/healthz` and the auth bootstrap endpoints are public (SE-004).
 
@@ -149,15 +153,20 @@ flowchart TB
 - Only the gateway and Grafana publish ports, on `127.0.0.1` (SE-051, OP-041). `make up NATIVE_ML=1` additionally exposes Postgres and NATS on loopback for native workers (D29).
 - The same Compose file runs on a Linux droplet later (D21); the `ml-workers` profile replaces native launchd workers there.
 
-## Bus subjects (planned)
+## Bus subjects
 
 ```
 md.bar.<timeframe>.<instrument_id>   md.quote.<instrument_id>   md.trade.<instrument_id>
+md.bar.partial.<tf>.<instrument_id>  md.bar.correction.<tf>.<instrument_id>   ref.corporate_action.<instrument_id>
 ctx.<kind>                            feat.<feature_set>.<instrument_id>
 sig.<strategy_id>                     ord.intent   ord.decision   ord.update.<broker_account>
 exec.<broker_account>                 acct.snapshot.<broker_account>
-ledger.update.<broker_account>        recon.result.<broker_account>
+ledger.update.<broker_account>        recon.result.<broker_account>   recon.request.<broker_account>
 risk.kill                             alert.<severity>           sys.health.<service>
 ```
+
+`ord.update.<acct>` carries the broker's view (`tb.broker.v1.BrokerOrderUpdate`) from the adapters; the OMS's own `Order` state will use a separate subject (section 07). Broker adapters publish `ord.update.*`, `exec.*`, `acct.snapshot.*`, and `recon.request.*` through a Postgres transactional outbox (schema `broker`), so a crash never loses or double-publishes an execution (ADR-0018). `recon.request.<acct>` follows every reconnect resync (OE-008).
+
+Final bars (`md.bar.*`) are published 60 s after the bar closes, deduplicated by `Nats-Msg-Id`; partial bars are UI-only and never stored; corrections of final bars carry a higher `revision` (MD-002, DF-007). `ref.corporate_action.*` lives in the durable `REF` stream for the ledger; `sys.health.<source>` carries `SourceHealth` for each data source (ADR-0022).
 
 Update this doc when a data flow, subject, store, or trust boundary changes.

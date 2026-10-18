@@ -12,6 +12,7 @@ enum OrderType {
   ORDER_TYPE_LIMIT = 2;
   ORDER_TYPE_STOP = 3;
   ORDER_TYPE_STOP_LIMIT = 4;
+  ORDER_TYPE_TRAILING_STOP = 5;
 }
 
 enum TimeInForce {
@@ -76,6 +77,9 @@ enum OrderState {
   ORDER_STATE_EXPIRED = 9;
   // Broker state cannot be confirmed; fail closed until reconciled (N5).
   ORDER_STATE_UNKNOWN = 10;
+  // Superseded by a replacement order (cancel/replace); the replacement carries the new state.
+  ORDER_STATE_REPLACED = 11;
+  ORDER_STATE_PENDING_REPLACE = 12;
 }
 
 message Order {
@@ -97,6 +101,8 @@ message Order {
   int64 submitted_at = 15;
   int64 updated_at = 16;
   string correlation_id = 17;
+  // IBKR permId, the durable broker key (V1); empty for other brokers.
+  string perm_id = 18;
 }
 
 message ExecutionReport {
@@ -112,6 +118,15 @@ message ExecutionReport {
   int64 event_time = 10;
   tb.common.v1.Mode mode = 11;
   int64 ingested_at = 12;
+  // IBKR permId of the order (durable join key, V1).
+  string perm_id = 13;
+  // Ticker at execution time (display; instrument_id is the key, may be empty if unmapped).
+  string symbol = 14;
+  tb.common.v1.Broker broker = 15;
+  // Broker-provided ordering hint for executions with equal event_time (OE-006).
+  int64 sequence = 16;
+  string fee_currency = 17;
+  string correlation_id = 18;
 }
 
 enum KillSwitchScope {

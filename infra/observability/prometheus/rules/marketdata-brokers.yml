@@ -1,0 +1,49 @@
+# Section 04/05 alert rules (MD-007, MD-008, BR-010, ADR-0018). Critical → Pushover (D13).
+groups:
+  - name: marketdata-brokers
+    rules:
+      - alert: BarPublicationSlow
+        expr: histogram_quantile(0.99, sum by (le) (rate(tb_md_bar_final_to_bus_seconds_bucket[10m]))) > 0.5
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "Bar finality-to-bus p99 above the 500 ms U8 target"
+          runbook_url: docs/runbooks/market-data.md
+
+      - alert: MarketDataStaleSymbols
+        expr: tb_md_stale_symbols > 0
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "{{ $value }} subscribed symbols have no recent final bar during the session (new risk is blocked by IsFresh)"
+          runbook_url: docs/runbooks/market-data.md
+
+      - alert: BrokerSessionNotReady
+        expr: tb_broker_session_state != 5 and tb_broker_session_state != 7
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "Broker account {{ $labels.account }} is not READY (orders refused)"
+          runbook_url: docs/runbooks/broker-outage.md
+
+      - alert: OutboxBacklog
+        expr: tb_outbox_pending > 100
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $labels.table }} has {{ $value }} unpublished events (NATS down?)"
+          runbook_url: docs/runbooks/broker-outage.md
+
+      - alert: ReconciliationBreaches
+        expr: increase(tb_md_recon_breaches_total[1d]) > 0
+        labels: { severity: warning }
+        annotations:
+          summary: "Cross-source reconciliation breaches today; symbol-days quarantined"
+          runbook_url: docs/runbooks/market-data.md
+
+      - alert: FMPBreakerOpen
+        expr: increase(tb_fmp_requests_total{outcome="error"}[15m]) > 20
+        labels: { severity: warning }
+        annotations:
+          summary: "FMP requests failing repeatedly (breaker likely open)"
+          runbook_url: docs/runbooks/market-data.md

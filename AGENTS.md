@@ -12,7 +12,7 @@ A self-hosted platform for researching, training, backtesting, deploying, and mo
 - Runs each strategy in its own **virtual sub-portfolio** inside the real broker account. Strategies trade only their own positions and **never touch manual holdings**.
 - Desktop and mobile UI; local first (Docker Compose), later a remote server reachable only over a private network.
 
-**Status:** Phase 0 (foundation) in progress. Stack choices are accepted from the research report; see [`docs/decisions.md`](docs/decisions.md). Build prompts live in [`docs/prompts/`](docs/prompts/00-master-prompt.md) and the owner's inputs in [`docs/project-context.md`](docs/project-context.md).
+**Status:** Phase 1 (data and brokers) in progress; Phase 0 merged. Stack choices are accepted from the research report; see [`docs/decisions.md`](docs/decisions.md). Build prompts live in [`docs/prompts/`](docs/prompts/00-master-prompt.md) and the owner's inputs in [`docs/project-context.md`](docs/project-context.md).
 
 ## System map
 
@@ -79,6 +79,9 @@ Prerequisites: Docker (Colima on the Mac Mini, ADR-0013), `make`, `git`. Develop
 | `make secrets-encrypt` / `make secrets-decrypt` | SOPS + age bundle of `.secrets/` |
 | `make port-check` / `make check-arm64` | Loopback-only ports / arm64 availability of every image |
 | `make docs-check` | File-map coverage and same-commit documentation rules |
+| `make gen-calendar` | Regenerate the shared XNYS session table (Go + Python) from `exchange_calendars` |
+| `make perf` | Storage performance targets (lake load, as-of join) on this machine |
+| `make spike-v4` | Verify-early V4: atomic rename across the lake bind mount (Mac Mini) |
 
 ## Non-negotiables (summary)
 

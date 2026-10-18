@@ -20,10 +20,14 @@ import (
 // natsUsers lists bus users and their subject permissions (least privilege; widened per phase).
 var natsUsers = map[string]struct{ pub, sub []string }{
 	"api_gateway": {pub: []string{"alert.>", "sys.health.api-gateway"}, sub: []string{"_INBOX.>"}},
-	"marketdata":  {pub: []string{"md.>", "alert.>", "sys.health.marketdata"}, sub: []string{"_INBOX.>"}},
+	"marketdata":  {pub: []string{"md.>", "ref.>", "alert.>", "sys.health.marketdata", "sys.health.alpaca.>", "sys.health.fmp"}, sub: []string{"_INBOX.>"}},
 	"execution":   {pub: []string{"ord.>", "risk.kill", "alert.>", "sys.health.execution"}, sub: []string{"_INBOX.>", "sig.>", "ord.>", "exec.>", "risk.kill", "recon.result.>"}},
-	"ledger":      {pub: []string{"ledger.update.>", "recon.result.>", "alert.>", "sys.health.ledger"}, sub: []string{"_INBOX.>", "exec.>", "acct.snapshot.>"}},
-	"ops":         {pub: []string{">"}, sub: []string{">"}},
+	"ledger":      {pub: []string{"ledger.update.>", "recon.result.>", "alert.>", "sys.health.ledger"}, sub: []string{"_INBOX.>", "exec.>", "acct.snapshot.>", "recon.request.>", "ref.>"}},
+	// Broker adapters publish their accounts' order updates, executions, snapshots, and
+	// reconciliation requests through their outbox relay (ADR-0018).
+	"broker_gateway":      {pub: []string{"ord.update.>", "exec.>", "acct.snapshot.>", "recon.request.>", "alert.>", "sys.health.broker-gateway"}, sub: []string{"_INBOX.>"}},
+	"broker_gateway_ibkr": {pub: []string{"ord.update.>", "exec.>", "acct.snapshot.>", "recon.request.>", "alert.>", "sys.health.broker-gateway-ibkr"}, sub: []string{"_INBOX.>"}},
+	"ops":                 {pub: []string{">"}, sub: []string{">"}},
 }
 
 // signingServices get Ed25519 service-token keys (SE-040).
@@ -140,7 +144,7 @@ func initSecrets(dir string) error {
 		created = append(created, "backup_age_identity", "backup_age_recipient")
 	}
 	// Optional integrations: placeholders keep Compose happy until the owner fills them in.
-	for _, name := range []string{"pushover_user_key", "pushover_app_token", "cloudflared_tunnel_token"} {
+	for _, name := range []string{"pushover_user_key", "pushover_app_token", "cloudflared_tunnel_token", "fmp_api_key"} {
 		if err := put(name, func() (string, error) { return "unset", nil }); err != nil {
 			return err
 		}

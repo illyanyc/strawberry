@@ -22,7 +22,7 @@ Pre-trade checks, position and loss limits, kill switches, account routing, marg
 | RM-001 | Every intent (strategy, UI, webhook) MUST pass the pre-trade gate; there is no bypass path. | Specified | — |
 | RM-002 | Every risk decision MUST be persisted and audited with all check values, including approvals. | Specified | — |
 | RM-003 | The gate MUST include at least: mode/account enabled, session `ready`, data freshness, ownership (VP-003–VP-005), max order notional, max position per instrument, max gross/net exposure per strategy, daily loss limit, max open orders, price-band sanity vs last trade, account routing (RM-011), intraday-margin guard (RM-012), and the PDT guard when enabled (RM-008). Limits are config with documented defaults. | Specified | — |
-| RM-004 | If any input to a check is missing or stale, the check MUST fail (fail closed). | Specified | — |
+| RM-004 | If any input to a check is missing or stale, the check MUST fail (fail closed). | Specified | Freshness source: `MarketDataService.IsFresh` (MD-007, fails closed); consumption in execution lands in Phase 2 |
 | RM-005 | Breaching a strategy's daily loss limit MUST block new risk-increasing orders for that strategy for the rest of the session and alert. | Specified | — |
 | RM-006 | Kill switches MUST freeze new orders within their scope immediately and cancel open orders within the configured target time; `flatten` closes strategy-owned quantity only (VP-006). | Specified | — |
 | RM-007 | Disabling a kill switch or raising any limit MUST require step-up auth and an audit record. | Specified | — |

@@ -114,10 +114,15 @@ func TestSE032SchemaIsolation(t *testing.T) {
 	_, connect := setup(t)
 	ctx := context.Background()
 	deny := map[string][]string{
-		"svc_api_gateway":    {`SELECT * FROM secrets.broker_credentials`},
-		"svc_ops":            {`SELECT * FROM secrets.broker_credentials`, `SELECT * FROM auth.sessions`},
-		"svc_marketdata":     {`SELECT * FROM secrets.broker_credentials`, `SELECT * FROM auth.sessions`, `SELECT * FROM audit.events`},
-		"svc_broker_gateway": {`SELECT * FROM auth.sessions`, `SELECT * FROM config.settings`},
+		"svc_api_gateway": {`SELECT * FROM secrets.broker_credentials`},
+		"svc_ops":         {`SELECT * FROM secrets.broker_credentials`, `SELECT * FROM auth.sessions`},
+		"svc_marketdata":  {`SELECT * FROM secrets.broker_credentials`, `SELECT * FROM auth.sessions`, `SELECT * FROM audit.events`},
+		"svc_broker_gateway": {`SELECT * FROM auth.sessions`, `SELECT * FROM config.settings`,
+			// BR-013: live enablement is written only by the audited owner action (section 15).
+			`INSERT INTO broker.live_enablement (broker_account_id, enabled, enabled_by, audit_seq) VALUES ('a', true, 'x', 1)`},
+		"svc_execution": {`SELECT * FROM broker.executions`, `SELECT * FROM broker.outbox`,
+			`INSERT INTO refdata.instruments (instrument_id, asset_class) VALUES ('x', 'us_equity')`},
+		"svc_ledger": {`SELECT * FROM marketdata.lake_files`, `DELETE FROM refdata.corporate_actions`},
 	}
 	for role, queries := range deny {
 		pool := connect(role)
@@ -130,6 +135,21 @@ func TestSE032SchemaIsolation(t *testing.T) {
 	allow := map[string]string{
 		"svc_broker_gateway": `SELECT count(*) FROM secrets.broker_credentials`,
 		"svc_api_gateway":    `SELECT count(*) FROM auth.sessions`,
+	}
+	for role, q := range map[string]string{
+		"svc_marketdata":     `INSERT INTO refdata.instruments (instrument_id, asset_class) VALUES ('01TEST', 'us_equity')`,
+		"svc_ledger":         `SELECT count(*) FROM refdata.corporate_actions`,
+		"svc_broker_gateway": `SELECT count(*) FROM refdata.broker_ids`,
+		"svc_ops":            `SELECT count(*) FROM marketdata.lake_files`,
+	} {
+		if _, err := connect(role).Exec(ctx, q); err != nil {
+			t.Errorf("%s: %q should be allowed: %v", role, q, err)
+		}
+	}
+	for _, q := range []string{`SELECT count(*) FROM broker.executions`, `SELECT count(*) FROM broker.live_enablement`, `SELECT count(*) FROM broker.outbox`} {
+		if _, err := connect("svc_broker_gateway").Exec(ctx, q); err != nil {
+			t.Errorf("svc_broker_gateway: %q should be allowed: %v", q, err)
+		}
 	}
 	for role, q := range allow {
 		if _, err := connect(role).Exec(ctx, q); err != nil {

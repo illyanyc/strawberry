@@ -77,12 +77,17 @@ func (ReconciliationStatus) EnumDescriptor() ([]byte, []int) {
 }
 
 type Position struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	InstrumentId  string                 `protobuf:"bytes,1,opt,name=instrument_id,json=instrumentId,proto3" json:"instrument_id,omitempty"`
-	Qty           *v1.Decimal            `protobuf:"bytes,2,opt,name=qty,proto3" json:"qty,omitempty"`
-	AvgCost       *v1.Decimal            `protobuf:"bytes,3,opt,name=avg_cost,json=avgCost,proto3" json:"avg_cost,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	InstrumentId string                 `protobuf:"bytes,1,opt,name=instrument_id,json=instrumentId,proto3" json:"instrument_id,omitempty"`
+	// Signed: negative for short positions.
+	Qty         *v1.Decimal `protobuf:"bytes,2,opt,name=qty,proto3" json:"qty,omitempty"`
+	AvgCost     *v1.Decimal `protobuf:"bytes,3,opt,name=avg_cost,json=avgCost,proto3" json:"avg_cost,omitempty"`
+	Symbol      string      `protobuf:"bytes,4,opt,name=symbol,proto3" json:"symbol,omitempty"`
+	MarketValue *v1.Decimal `protobuf:"bytes,5,opt,name=market_value,json=marketValue,proto3" json:"market_value,omitempty"`
+	// Broker identifier (Alpaca asset ID, IBKR conId) for mapping when instrument_id is empty.
+	BrokerInstrumentId string `protobuf:"bytes,6,opt,name=broker_instrument_id,json=brokerInstrumentId,proto3" json:"broker_instrument_id,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *Position) Reset() {
@@ -136,6 +141,27 @@ func (x *Position) GetAvgCost() *v1.Decimal {
 	return nil
 }
 
+func (x *Position) GetSymbol() string {
+	if x != nil {
+		return x.Symbol
+	}
+	return ""
+}
+
+func (x *Position) GetMarketValue() *v1.Decimal {
+	if x != nil {
+		return x.MarketValue
+	}
+	return nil
+}
+
+func (x *Position) GetBrokerInstrumentId() string {
+	if x != nil {
+		return x.BrokerInstrumentId
+	}
+	return ""
+}
+
 type AccountSnapshot struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	BrokerAccountId string                 `protobuf:"bytes,1,opt,name=broker_account_id,json=brokerAccountId,proto3" json:"broker_account_id,omitempty"`
@@ -146,8 +172,23 @@ type AccountSnapshot struct {
 	Equity          *v1.Decimal            `protobuf:"bytes,6,opt,name=equity,proto3" json:"equity,omitempty"`
 	Positions       []*Position            `protobuf:"bytes,7,rep,name=positions,proto3" json:"positions,omitempty"`
 	AsOf            int64                  `protobuf:"varint,8,opt,name=as_of,json=asOf,proto3" json:"as_of,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// Broker-reported intraday margin deficit; any true value halts the account (RM-013, D30).
+	IntradayMarginDeficit bool `protobuf:"varint,9,opt,name=intraday_margin_deficit,json=intradayMarginDeficit,proto3" json:"intraday_margin_deficit,omitempty"`
+	// Broker-reported margin call; halts the account (RM-013).
+	MarginCall        bool        `protobuf:"varint,10,opt,name=margin_call,json=marginCall,proto3" json:"margin_call,omitempty"`
+	InitialMargin     *v1.Decimal `protobuf:"bytes,11,opt,name=initial_margin,json=initialMargin,proto3" json:"initial_margin,omitempty"`
+	MaintenanceMargin *v1.Decimal `protobuf:"bytes,12,opt,name=maintenance_margin,json=maintenanceMargin,proto3" json:"maintenance_margin,omitempty"`
+	LongMarketValue   *v1.Decimal `protobuf:"bytes,13,opt,name=long_market_value,json=longMarketValue,proto3" json:"long_market_value,omitempty"`
+	ShortMarketValue  *v1.Decimal `protobuf:"bytes,14,opt,name=short_market_value,json=shortMarketValue,proto3" json:"short_market_value,omitempty"`
+	Currency          string      `protobuf:"bytes,15,opt,name=currency,proto3" json:"currency,omitempty"`
+	// Metric only (D30: PDT guard off by default); -1 when the broker no longer reports it.
+	DayTradeCount  int32 `protobuf:"varint,16,opt,name=day_trade_count,json=dayTradeCount,proto3" json:"day_trade_count,omitempty"`
+	TradingBlocked bool  `protobuf:"varint,17,opt,name=trading_blocked,json=tradingBlocked,proto3" json:"trading_blocked,omitempty"`
+	AccountBlocked bool  `protobuf:"varint,18,opt,name=account_blocked,json=accountBlocked,proto3" json:"account_blocked,omitempty"`
+	// Raw broker account status.
+	Status        string `protobuf:"bytes,19,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AccountSnapshot) Reset() {
@@ -234,6 +275,83 @@ func (x *AccountSnapshot) GetAsOf() int64 {
 		return x.AsOf
 	}
 	return 0
+}
+
+func (x *AccountSnapshot) GetIntradayMarginDeficit() bool {
+	if x != nil {
+		return x.IntradayMarginDeficit
+	}
+	return false
+}
+
+func (x *AccountSnapshot) GetMarginCall() bool {
+	if x != nil {
+		return x.MarginCall
+	}
+	return false
+}
+
+func (x *AccountSnapshot) GetInitialMargin() *v1.Decimal {
+	if x != nil {
+		return x.InitialMargin
+	}
+	return nil
+}
+
+func (x *AccountSnapshot) GetMaintenanceMargin() *v1.Decimal {
+	if x != nil {
+		return x.MaintenanceMargin
+	}
+	return nil
+}
+
+func (x *AccountSnapshot) GetLongMarketValue() *v1.Decimal {
+	if x != nil {
+		return x.LongMarketValue
+	}
+	return nil
+}
+
+func (x *AccountSnapshot) GetShortMarketValue() *v1.Decimal {
+	if x != nil {
+		return x.ShortMarketValue
+	}
+	return nil
+}
+
+func (x *AccountSnapshot) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *AccountSnapshot) GetDayTradeCount() int32 {
+	if x != nil {
+		return x.DayTradeCount
+	}
+	return 0
+}
+
+func (x *AccountSnapshot) GetTradingBlocked() bool {
+	if x != nil {
+		return x.TradingBlocked
+	}
+	return false
+}
+
+func (x *AccountSnapshot) GetAccountBlocked() bool {
+	if x != nil {
+		return x.AccountBlocked
+	}
+	return false
+}
+
+func (x *AccountSnapshot) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
 }
 
 // Owner of a position slice: a strategy ID or "manual".
@@ -565,6 +683,77 @@ func (x *ReconciliationDiff) GetOwnerBreakdown() []*OwnerQty {
 	return nil
 }
 
+// ReconciliationRequest asks the ledger to reconcile an account now (subject
+// recon.request.<broker_account_id>). Broker adapters send it after every reconnect resync
+// (OE-008) before returning the session to READY.
+type ReconciliationRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	BrokerAccountId string                 `protobuf:"bytes,1,opt,name=broker_account_id,json=brokerAccountId,proto3" json:"broker_account_id,omitempty"`
+	Reason          string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	RequestedAt     int64                  `protobuf:"varint,3,opt,name=requested_at,json=requestedAt,proto3" json:"requested_at,omitempty"`
+	CorrelationId   string                 `protobuf:"bytes,4,opt,name=correlation_id,json=correlationId,proto3" json:"correlation_id,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ReconciliationRequest) Reset() {
+	*x = ReconciliationRequest{}
+	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReconciliationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReconciliationRequest) ProtoMessage() {}
+
+func (x *ReconciliationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReconciliationRequest.ProtoReflect.Descriptor instead.
+func (*ReconciliationRequest) Descriptor() ([]byte, []int) {
+	return file_tb_ledger_v1_ledger_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ReconciliationRequest) GetBrokerAccountId() string {
+	if x != nil {
+		return x.BrokerAccountId
+	}
+	return ""
+}
+
+func (x *ReconciliationRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *ReconciliationRequest) GetRequestedAt() int64 {
+	if x != nil {
+		return x.RequestedAt
+	}
+	return 0
+}
+
+func (x *ReconciliationRequest) GetCorrelationId() string {
+	if x != nil {
+		return x.CorrelationId
+	}
+	return ""
+}
+
 type ReconciliationResult struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	BrokerAccountId string                 `protobuf:"bytes,1,opt,name=broker_account_id,json=brokerAccountId,proto3" json:"broker_account_id,omitempty"`
@@ -577,7 +766,7 @@ type ReconciliationResult struct {
 
 func (x *ReconciliationResult) Reset() {
 	*x = ReconciliationResult{}
-	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[6]
+	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -589,7 +778,7 @@ func (x *ReconciliationResult) String() string {
 func (*ReconciliationResult) ProtoMessage() {}
 
 func (x *ReconciliationResult) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[6]
+	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -602,7 +791,7 @@ func (x *ReconciliationResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReconciliationResult.ProtoReflect.Descriptor instead.
 func (*ReconciliationResult) Descriptor() ([]byte, []int) {
-	return file_tb_ledger_v1_ledger_proto_rawDescGZIP(), []int{6}
+	return file_tb_ledger_v1_ledger_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ReconciliationResult) GetBrokerAccountId() string {
@@ -637,11 +826,14 @@ var File_tb_ledger_v1_ledger_proto protoreflect.FileDescriptor
 
 const file_tb_ledger_v1_ledger_proto_rawDesc = "" +
 	"\n" +
-	"\x19tb/ledger/v1/ledger.proto\x12\ftb.ledger.v1\x1a\x19tb/common/v1/common.proto\"\x8a\x01\n" +
+	"\x19tb/ledger/v1/ledger.proto\x12\ftb.ledger.v1\x1a\x19tb/common/v1/common.proto\"\x8e\x02\n" +
 	"\bPosition\x12#\n" +
 	"\rinstrument_id\x18\x01 \x01(\tR\finstrumentId\x12'\n" +
 	"\x03qty\x18\x02 \x01(\v2\x15.tb.common.v1.DecimalR\x03qty\x120\n" +
-	"\bavg_cost\x18\x03 \x01(\v2\x15.tb.common.v1.DecimalR\aavgCost\"\xf2\x02\n" +
+	"\bavg_cost\x18\x03 \x01(\v2\x15.tb.common.v1.DecimalR\aavgCost\x12\x16\n" +
+	"\x06symbol\x18\x04 \x01(\tR\x06symbol\x128\n" +
+	"\fmarket_value\x18\x05 \x01(\v2\x15.tb.common.v1.DecimalR\vmarketValue\x120\n" +
+	"\x14broker_instrument_id\x18\x06 \x01(\tR\x12brokerInstrumentId\"\x85\a\n" +
 	"\x0fAccountSnapshot\x12*\n" +
 	"\x11broker_account_id\x18\x01 \x01(\tR\x0fbrokerAccountId\x12,\n" +
 	"\x06broker\x18\x02 \x01(\x0e2\x14.tb.common.v1.BrokerR\x06broker\x12&\n" +
@@ -650,7 +842,20 @@ const file_tb_ledger_v1_ledger_proto_rawDesc = "" +
 	"\fbuying_power\x18\x05 \x01(\v2\x15.tb.common.v1.DecimalR\vbuyingPower\x12-\n" +
 	"\x06equity\x18\x06 \x01(\v2\x15.tb.common.v1.DecimalR\x06equity\x124\n" +
 	"\tpositions\x18\a \x03(\v2\x16.tb.ledger.v1.PositionR\tpositions\x12\x13\n" +
-	"\x05as_of\x18\b \x01(\x03R\x04asOf\"\xa7\x02\n" +
+	"\x05as_of\x18\b \x01(\x03R\x04asOf\x126\n" +
+	"\x17intraday_margin_deficit\x18\t \x01(\bR\x15intradayMarginDeficit\x12\x1f\n" +
+	"\vmargin_call\x18\n" +
+	" \x01(\bR\n" +
+	"marginCall\x12<\n" +
+	"\x0einitial_margin\x18\v \x01(\v2\x15.tb.common.v1.DecimalR\rinitialMargin\x12D\n" +
+	"\x12maintenance_margin\x18\f \x01(\v2\x15.tb.common.v1.DecimalR\x11maintenanceMargin\x12A\n" +
+	"\x11long_market_value\x18\r \x01(\v2\x15.tb.common.v1.DecimalR\x0flongMarketValue\x12C\n" +
+	"\x12short_market_value\x18\x0e \x01(\v2\x15.tb.common.v1.DecimalR\x10shortMarketValue\x12\x1a\n" +
+	"\bcurrency\x18\x0f \x01(\tR\bcurrency\x12&\n" +
+	"\x0fday_trade_count\x18\x10 \x01(\x05R\rdayTradeCount\x12'\n" +
+	"\x0ftrading_blocked\x18\x11 \x01(\bR\x0etradingBlocked\x12'\n" +
+	"\x0faccount_blocked\x18\x12 \x01(\bR\x0eaccountBlocked\x12\x16\n" +
+	"\x06status\x18\x13 \x01(\tR\x06status\"\xa7\x02\n" +
 	"\x10StrategyPosition\x12*\n" +
 	"\x11broker_account_id\x18\x01 \x01(\tR\x0fbrokerAccountId\x12\x14\n" +
 	"\x05owner\x18\x02 \x01(\tR\x05owner\x12#\n" +
@@ -682,7 +887,12 @@ const file_tb_ledger_v1_ledger_proto_rawDesc = "" +
 	"broker_qty\x18\x02 \x01(\v2\x15.tb.common.v1.DecimalR\tbrokerQty\x124\n" +
 	"\n" +
 	"ledger_qty\x18\x03 \x01(\v2\x15.tb.common.v1.DecimalR\tledgerQty\x12?\n" +
-	"\x0fowner_breakdown\x18\x04 \x03(\v2\x16.tb.ledger.v1.OwnerQtyR\x0eownerBreakdown\"\xcb\x01\n" +
+	"\x0fowner_breakdown\x18\x04 \x03(\v2\x16.tb.ledger.v1.OwnerQtyR\x0eownerBreakdown\"\xa5\x01\n" +
+	"\x15ReconciliationRequest\x12*\n" +
+	"\x11broker_account_id\x18\x01 \x01(\tR\x0fbrokerAccountId\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\x12!\n" +
+	"\frequested_at\x18\x03 \x01(\x03R\vrequestedAt\x12%\n" +
+	"\x0ecorrelation_id\x18\x04 \x01(\tR\rcorrelationId\"\xcb\x01\n" +
 	"\x14ReconciliationResult\x12*\n" +
 	"\x11broker_account_id\x18\x01 \x01(\tR\x0fbrokerAccountId\x12\x13\n" +
 	"\x05as_of\x18\x02 \x01(\x03R\x04asOf\x12:\n" +
@@ -708,46 +918,52 @@ func file_tb_ledger_v1_ledger_proto_rawDescGZIP() []byte {
 }
 
 var file_tb_ledger_v1_ledger_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_tb_ledger_v1_ledger_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_tb_ledger_v1_ledger_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_tb_ledger_v1_ledger_proto_goTypes = []any{
-	(ReconciliationStatus)(0),    // 0: tb.ledger.v1.ReconciliationStatus
-	(*Position)(nil),             // 1: tb.ledger.v1.Position
-	(*AccountSnapshot)(nil),      // 2: tb.ledger.v1.AccountSnapshot
-	(*StrategyPosition)(nil),     // 3: tb.ledger.v1.StrategyPosition
-	(*LedgerEntry)(nil),          // 4: tb.ledger.v1.LedgerEntry
-	(*OwnerQty)(nil),             // 5: tb.ledger.v1.OwnerQty
-	(*ReconciliationDiff)(nil),   // 6: tb.ledger.v1.ReconciliationDiff
-	(*ReconciliationResult)(nil), // 7: tb.ledger.v1.ReconciliationResult
-	(*v1.Decimal)(nil),           // 8: tb.common.v1.Decimal
-	(v1.Broker)(0),               // 9: tb.common.v1.Broker
-	(v1.Mode)(0),                 // 10: tb.common.v1.Mode
+	(ReconciliationStatus)(0),     // 0: tb.ledger.v1.ReconciliationStatus
+	(*Position)(nil),              // 1: tb.ledger.v1.Position
+	(*AccountSnapshot)(nil),       // 2: tb.ledger.v1.AccountSnapshot
+	(*StrategyPosition)(nil),      // 3: tb.ledger.v1.StrategyPosition
+	(*LedgerEntry)(nil),           // 4: tb.ledger.v1.LedgerEntry
+	(*OwnerQty)(nil),              // 5: tb.ledger.v1.OwnerQty
+	(*ReconciliationDiff)(nil),    // 6: tb.ledger.v1.ReconciliationDiff
+	(*ReconciliationRequest)(nil), // 7: tb.ledger.v1.ReconciliationRequest
+	(*ReconciliationResult)(nil),  // 8: tb.ledger.v1.ReconciliationResult
+	(*v1.Decimal)(nil),            // 9: tb.common.v1.Decimal
+	(v1.Broker)(0),                // 10: tb.common.v1.Broker
+	(v1.Mode)(0),                  // 11: tb.common.v1.Mode
 }
 var file_tb_ledger_v1_ledger_proto_depIdxs = []int32{
-	8,  // 0: tb.ledger.v1.Position.qty:type_name -> tb.common.v1.Decimal
-	8,  // 1: tb.ledger.v1.Position.avg_cost:type_name -> tb.common.v1.Decimal
-	9,  // 2: tb.ledger.v1.AccountSnapshot.broker:type_name -> tb.common.v1.Broker
-	10, // 3: tb.ledger.v1.AccountSnapshot.mode:type_name -> tb.common.v1.Mode
-	8,  // 4: tb.ledger.v1.AccountSnapshot.cash:type_name -> tb.common.v1.Decimal
-	8,  // 5: tb.ledger.v1.AccountSnapshot.buying_power:type_name -> tb.common.v1.Decimal
-	8,  // 6: tb.ledger.v1.AccountSnapshot.equity:type_name -> tb.common.v1.Decimal
-	1,  // 7: tb.ledger.v1.AccountSnapshot.positions:type_name -> tb.ledger.v1.Position
-	8,  // 8: tb.ledger.v1.StrategyPosition.qty:type_name -> tb.common.v1.Decimal
-	8,  // 9: tb.ledger.v1.StrategyPosition.cost_basis:type_name -> tb.common.v1.Decimal
-	8,  // 10: tb.ledger.v1.StrategyPosition.realized_pnl:type_name -> tb.common.v1.Decimal
-	8,  // 11: tb.ledger.v1.LedgerEntry.qty:type_name -> tb.common.v1.Decimal
-	8,  // 12: tb.ledger.v1.LedgerEntry.cost:type_name -> tb.common.v1.Decimal
-	8,  // 13: tb.ledger.v1.LedgerEntry.realized_pnl:type_name -> tb.common.v1.Decimal
-	8,  // 14: tb.ledger.v1.OwnerQty.qty:type_name -> tb.common.v1.Decimal
-	8,  // 15: tb.ledger.v1.ReconciliationDiff.broker_qty:type_name -> tb.common.v1.Decimal
-	8,  // 16: tb.ledger.v1.ReconciliationDiff.ledger_qty:type_name -> tb.common.v1.Decimal
-	5,  // 17: tb.ledger.v1.ReconciliationDiff.owner_breakdown:type_name -> tb.ledger.v1.OwnerQty
-	0,  // 18: tb.ledger.v1.ReconciliationResult.status:type_name -> tb.ledger.v1.ReconciliationStatus
-	6,  // 19: tb.ledger.v1.ReconciliationResult.diffs:type_name -> tb.ledger.v1.ReconciliationDiff
-	20, // [20:20] is the sub-list for method output_type
-	20, // [20:20] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	9,  // 0: tb.ledger.v1.Position.qty:type_name -> tb.common.v1.Decimal
+	9,  // 1: tb.ledger.v1.Position.avg_cost:type_name -> tb.common.v1.Decimal
+	9,  // 2: tb.ledger.v1.Position.market_value:type_name -> tb.common.v1.Decimal
+	10, // 3: tb.ledger.v1.AccountSnapshot.broker:type_name -> tb.common.v1.Broker
+	11, // 4: tb.ledger.v1.AccountSnapshot.mode:type_name -> tb.common.v1.Mode
+	9,  // 5: tb.ledger.v1.AccountSnapshot.cash:type_name -> tb.common.v1.Decimal
+	9,  // 6: tb.ledger.v1.AccountSnapshot.buying_power:type_name -> tb.common.v1.Decimal
+	9,  // 7: tb.ledger.v1.AccountSnapshot.equity:type_name -> tb.common.v1.Decimal
+	1,  // 8: tb.ledger.v1.AccountSnapshot.positions:type_name -> tb.ledger.v1.Position
+	9,  // 9: tb.ledger.v1.AccountSnapshot.initial_margin:type_name -> tb.common.v1.Decimal
+	9,  // 10: tb.ledger.v1.AccountSnapshot.maintenance_margin:type_name -> tb.common.v1.Decimal
+	9,  // 11: tb.ledger.v1.AccountSnapshot.long_market_value:type_name -> tb.common.v1.Decimal
+	9,  // 12: tb.ledger.v1.AccountSnapshot.short_market_value:type_name -> tb.common.v1.Decimal
+	9,  // 13: tb.ledger.v1.StrategyPosition.qty:type_name -> tb.common.v1.Decimal
+	9,  // 14: tb.ledger.v1.StrategyPosition.cost_basis:type_name -> tb.common.v1.Decimal
+	9,  // 15: tb.ledger.v1.StrategyPosition.realized_pnl:type_name -> tb.common.v1.Decimal
+	9,  // 16: tb.ledger.v1.LedgerEntry.qty:type_name -> tb.common.v1.Decimal
+	9,  // 17: tb.ledger.v1.LedgerEntry.cost:type_name -> tb.common.v1.Decimal
+	9,  // 18: tb.ledger.v1.LedgerEntry.realized_pnl:type_name -> tb.common.v1.Decimal
+	9,  // 19: tb.ledger.v1.OwnerQty.qty:type_name -> tb.common.v1.Decimal
+	9,  // 20: tb.ledger.v1.ReconciliationDiff.broker_qty:type_name -> tb.common.v1.Decimal
+	9,  // 21: tb.ledger.v1.ReconciliationDiff.ledger_qty:type_name -> tb.common.v1.Decimal
+	5,  // 22: tb.ledger.v1.ReconciliationDiff.owner_breakdown:type_name -> tb.ledger.v1.OwnerQty
+	0,  // 23: tb.ledger.v1.ReconciliationResult.status:type_name -> tb.ledger.v1.ReconciliationStatus
+	6,  // 24: tb.ledger.v1.ReconciliationResult.diffs:type_name -> tb.ledger.v1.ReconciliationDiff
+	25, // [25:25] is the sub-list for method output_type
+	25, // [25:25] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_tb_ledger_v1_ledger_proto_init() }
@@ -761,7 +977,7 @@ func file_tb_ledger_v1_ledger_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tb_ledger_v1_ledger_proto_rawDesc), len(file_tb_ledger_v1_ledger_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   7,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

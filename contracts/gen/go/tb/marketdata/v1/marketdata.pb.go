@@ -33,6 +33,7 @@ const (
 	Timeframe_TIMEFRAME_15M         Timeframe = 3
 	Timeframe_TIMEFRAME_1H          Timeframe = 4
 	Timeframe_TIMEFRAME_1D          Timeframe = 5
+	Timeframe_TIMEFRAME_30M         Timeframe = 6
 )
 
 // Enum value maps for Timeframe.
@@ -44,6 +45,7 @@ var (
 		3: "TIMEFRAME_15M",
 		4: "TIMEFRAME_1H",
 		5: "TIMEFRAME_1D",
+		6: "TIMEFRAME_30M",
 	}
 	Timeframe_value = map[string]int32{
 		"TIMEFRAME_UNSPECIFIED": 0,
@@ -52,6 +54,7 @@ var (
 		"TIMEFRAME_15M":         3,
 		"TIMEFRAME_1H":          4,
 		"TIMEFRAME_1D":          5,
+		"TIMEFRAME_30M":         6,
 	}
 )
 
@@ -82,6 +85,168 @@ func (Timeframe) EnumDescriptor() ([]byte, []int) {
 	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{0}
 }
 
+// AdjustmentBasis records what a price series is adjusted for (D27). The lake stores RAW only;
+// SPLIT and SPLIT_DIV appear on read-time adjusted outputs.
+type AdjustmentBasis int32
+
+const (
+	AdjustmentBasis_ADJUSTMENT_BASIS_UNSPECIFIED AdjustmentBasis = 0
+	AdjustmentBasis_ADJUSTMENT_BASIS_RAW         AdjustmentBasis = 1
+	AdjustmentBasis_ADJUSTMENT_BASIS_SPLIT       AdjustmentBasis = 2
+	AdjustmentBasis_ADJUSTMENT_BASIS_SPLIT_DIV   AdjustmentBasis = 3
+)
+
+// Enum value maps for AdjustmentBasis.
+var (
+	AdjustmentBasis_name = map[int32]string{
+		0: "ADJUSTMENT_BASIS_UNSPECIFIED",
+		1: "ADJUSTMENT_BASIS_RAW",
+		2: "ADJUSTMENT_BASIS_SPLIT",
+		3: "ADJUSTMENT_BASIS_SPLIT_DIV",
+	}
+	AdjustmentBasis_value = map[string]int32{
+		"ADJUSTMENT_BASIS_UNSPECIFIED": 0,
+		"ADJUSTMENT_BASIS_RAW":         1,
+		"ADJUSTMENT_BASIS_SPLIT":       2,
+		"ADJUSTMENT_BASIS_SPLIT_DIV":   3,
+	}
+)
+
+func (x AdjustmentBasis) Enum() *AdjustmentBasis {
+	p := new(AdjustmentBasis)
+	*p = x
+	return p
+}
+
+func (x AdjustmentBasis) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AdjustmentBasis) Descriptor() protoreflect.EnumDescriptor {
+	return file_tb_marketdata_v1_marketdata_proto_enumTypes[1].Descriptor()
+}
+
+func (AdjustmentBasis) Type() protoreflect.EnumType {
+	return &file_tb_marketdata_v1_marketdata_proto_enumTypes[1]
+}
+
+func (x AdjustmentBasis) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AdjustmentBasis.Descriptor instead.
+func (AdjustmentBasis) EnumDescriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{1}
+}
+
+// Session of a bar (MD-004): extended-hours bars are flagged, never merged with regular bars.
+type Session int32
+
+const (
+	Session_SESSION_UNSPECIFIED Session = 0
+	Session_SESSION_PRE         Session = 1
+	Session_SESSION_REGULAR     Session = 2
+	Session_SESSION_POST        Session = 3
+)
+
+// Enum value maps for Session.
+var (
+	Session_name = map[int32]string{
+		0: "SESSION_UNSPECIFIED",
+		1: "SESSION_PRE",
+		2: "SESSION_REGULAR",
+		3: "SESSION_POST",
+	}
+	Session_value = map[string]int32{
+		"SESSION_UNSPECIFIED": 0,
+		"SESSION_PRE":         1,
+		"SESSION_REGULAR":     2,
+		"SESSION_POST":        3,
+	}
+)
+
+func (x Session) Enum() *Session {
+	p := new(Session)
+	*p = x
+	return p
+}
+
+func (x Session) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Session) Descriptor() protoreflect.EnumDescriptor {
+	return file_tb_marketdata_v1_marketdata_proto_enumTypes[2].Descriptor()
+}
+
+func (Session) Type() protoreflect.EnumType {
+	return &file_tb_marketdata_v1_marketdata_proto_enumTypes[2]
+}
+
+func (x Session) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Session.Descriptor instead.
+func (Session) EnumDescriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{2}
+}
+
+// AgreementStatus of a corporate action across sources (MD-012).
+type AgreementStatus int32
+
+const (
+	AgreementStatus_AGREEMENT_STATUS_UNSPECIFIED AgreementStatus = 0
+	// Seen in one source only; usable but flagged.
+	AgreementStatus_AGREEMENT_STATUS_SINGLE_SOURCE AgreementStatus = 1
+	AgreementStatus_AGREEMENT_STATUS_AGREED        AgreementStatus = 2
+	// Sources disagree on type, date, or ratio; adjustment is blocked for the symbol (MD-012).
+	AgreementStatus_AGREEMENT_STATUS_DISAGREED AgreementStatus = 3
+)
+
+// Enum value maps for AgreementStatus.
+var (
+	AgreementStatus_name = map[int32]string{
+		0: "AGREEMENT_STATUS_UNSPECIFIED",
+		1: "AGREEMENT_STATUS_SINGLE_SOURCE",
+		2: "AGREEMENT_STATUS_AGREED",
+		3: "AGREEMENT_STATUS_DISAGREED",
+	}
+	AgreementStatus_value = map[string]int32{
+		"AGREEMENT_STATUS_UNSPECIFIED":   0,
+		"AGREEMENT_STATUS_SINGLE_SOURCE": 1,
+		"AGREEMENT_STATUS_AGREED":        2,
+		"AGREEMENT_STATUS_DISAGREED":     3,
+	}
+)
+
+func (x AgreementStatus) Enum() *AgreementStatus {
+	p := new(AgreementStatus)
+	*p = x
+	return p
+}
+
+func (x AgreementStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AgreementStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_tb_marketdata_v1_marketdata_proto_enumTypes[3].Descriptor()
+}
+
+func (AgreementStatus) Type() protoreflect.EnumType {
+	return &file_tb_marketdata_v1_marketdata_proto_enumTypes[3]
+}
+
+func (x AgreementStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AgreementStatus.Descriptor instead.
+func (AgreementStatus) EnumDescriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{3}
+}
+
 type CorporateActionType int32
 
 const (
@@ -91,6 +256,7 @@ const (
 	CorporateActionType_CORPORATE_ACTION_TYPE_SYMBOL_CHANGE CorporateActionType = 3
 	CorporateActionType_CORPORATE_ACTION_TYPE_DELISTING     CorporateActionType = 4
 	CorporateActionType_CORPORATE_ACTION_TYPE_MERGER        CorporateActionType = 5
+	CorporateActionType_CORPORATE_ACTION_TYPE_SPIN_OFF      CorporateActionType = 6
 )
 
 // Enum value maps for CorporateActionType.
@@ -102,6 +268,7 @@ var (
 		3: "CORPORATE_ACTION_TYPE_SYMBOL_CHANGE",
 		4: "CORPORATE_ACTION_TYPE_DELISTING",
 		5: "CORPORATE_ACTION_TYPE_MERGER",
+		6: "CORPORATE_ACTION_TYPE_SPIN_OFF",
 	}
 	CorporateActionType_value = map[string]int32{
 		"CORPORATE_ACTION_TYPE_UNSPECIFIED":   0,
@@ -110,6 +277,7 @@ var (
 		"CORPORATE_ACTION_TYPE_SYMBOL_CHANGE": 3,
 		"CORPORATE_ACTION_TYPE_DELISTING":     4,
 		"CORPORATE_ACTION_TYPE_MERGER":        5,
+		"CORPORATE_ACTION_TYPE_SPIN_OFF":      6,
 	}
 )
 
@@ -124,11 +292,11 @@ func (x CorporateActionType) String() string {
 }
 
 func (CorporateActionType) Descriptor() protoreflect.EnumDescriptor {
-	return file_tb_marketdata_v1_marketdata_proto_enumTypes[1].Descriptor()
+	return file_tb_marketdata_v1_marketdata_proto_enumTypes[4].Descriptor()
 }
 
 func (CorporateActionType) Type() protoreflect.EnumType {
-	return &file_tb_marketdata_v1_marketdata_proto_enumTypes[1]
+	return &file_tb_marketdata_v1_marketdata_proto_enumTypes[4]
 }
 
 func (x CorporateActionType) Number() protoreflect.EnumNumber {
@@ -137,7 +305,66 @@ func (x CorporateActionType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use CorporateActionType.Descriptor instead.
 func (CorporateActionType) EnumDescriptor() ([]byte, []int) {
-	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{1}
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{4}
+}
+
+type JobState int32
+
+const (
+	JobState_JOB_STATE_UNSPECIFIED JobState = 0
+	JobState_JOB_STATE_QUEUED      JobState = 1
+	JobState_JOB_STATE_RUNNING     JobState = 2
+	JobState_JOB_STATE_SUCCEEDED   JobState = 3
+	JobState_JOB_STATE_FAILED      JobState = 4
+	// Finished, but some chunks have unrepaired gaps or data-quality findings (see the report).
+	JobState_JOB_STATE_SUCCEEDED_WITH_GAPS JobState = 5
+)
+
+// Enum value maps for JobState.
+var (
+	JobState_name = map[int32]string{
+		0: "JOB_STATE_UNSPECIFIED",
+		1: "JOB_STATE_QUEUED",
+		2: "JOB_STATE_RUNNING",
+		3: "JOB_STATE_SUCCEEDED",
+		4: "JOB_STATE_FAILED",
+		5: "JOB_STATE_SUCCEEDED_WITH_GAPS",
+	}
+	JobState_value = map[string]int32{
+		"JOB_STATE_UNSPECIFIED":         0,
+		"JOB_STATE_QUEUED":              1,
+		"JOB_STATE_RUNNING":             2,
+		"JOB_STATE_SUCCEEDED":           3,
+		"JOB_STATE_FAILED":              4,
+		"JOB_STATE_SUCCEEDED_WITH_GAPS": 5,
+	}
+)
+
+func (x JobState) Enum() *JobState {
+	p := new(JobState)
+	*p = x
+	return p
+}
+
+func (x JobState) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (JobState) Descriptor() protoreflect.EnumDescriptor {
+	return file_tb_marketdata_v1_marketdata_proto_enumTypes[5].Descriptor()
+}
+
+func (JobState) Type() protoreflect.EnumType {
+	return &file_tb_marketdata_v1_marketdata_proto_enumTypes[5]
+}
+
+func (x JobState) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use JobState.Descriptor instead.
+func (JobState) EnumDescriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{5}
 }
 
 // Bar is raw (unadjusted) OHLCV (rule DF-005). Available at ts_close plus the feed's publication delay.
@@ -157,9 +384,21 @@ type Bar struct {
 	// Source feed, e.g. "alpaca.iex", "alpaca.sip", "ibkr", "fmp".
 	Feed string `protobuf:"bytes,12,opt,name=feed,proto3" json:"feed,omitempty"`
 	// False for live partial bars; partial bars are never written to the lake as final (DF-007).
-	IsFinal       bool  `protobuf:"varint,13,opt,name=is_final,json=isFinal,proto3" json:"is_final,omitempty"`
-	AvailableAt   int64 `protobuf:"varint,14,opt,name=available_at,json=availableAt,proto3" json:"available_at,omitempty"`
-	IngestedAt    int64 `protobuf:"varint,15,opt,name=ingested_at,json=ingestedAt,proto3" json:"ingested_at,omitempty"`
+	IsFinal     bool  `protobuf:"varint,13,opt,name=is_final,json=isFinal,proto3" json:"is_final,omitempty"`
+	AvailableAt int64 `protobuf:"varint,14,opt,name=available_at,json=availableAt,proto3" json:"available_at,omitempty"`
+	IngestedAt  int64 `protobuf:"varint,15,opt,name=ingested_at,json=ingestedAt,proto3" json:"ingested_at,omitempty"`
+	// Vendor, e.g. "alpaca", "fmp".
+	Source string `protobuf:"bytes,16,opt,name=source,proto3" json:"source,omitempty"`
+	// 0 for the first version of a natural key (instrument_id, timeframe, ts_open, feed); each
+	// content change increments it, and earlier revisions are retained (DF-007, ST-004).
+	Revision        int32           `protobuf:"varint,17,opt,name=revision,proto3" json:"revision,omitempty"`
+	AdjustmentBasis AdjustmentBasis `protobuf:"varint,18,opt,name=adjustment_basis,json=adjustmentBasis,proto3,enum=tb.marketdata.v1.AdjustmentBasis" json:"adjustment_basis,omitempty"`
+	Session         Session         `protobuf:"varint,19,opt,name=session,proto3,enum=tb.marketdata.v1.Session" json:"session,omitempty"`
+	// True when the bar was recovered from REST after a stream gap (MD-006).
+	Repaired bool `protobuf:"varint,20,opt,name=repaired,proto3" json:"repaired,omitempty"`
+	// Ticker as of ts_open (display only; instrument_id is the key). Vendor-shaped records from
+	// broker-gateway carry symbol with an empty instrument_id.
+	Symbol        string `protobuf:"bytes,21,opt,name=symbol,proto3" json:"symbol,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -299,6 +538,48 @@ func (x *Bar) GetIngestedAt() int64 {
 	return 0
 }
 
+func (x *Bar) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *Bar) GetRevision() int32 {
+	if x != nil {
+		return x.Revision
+	}
+	return 0
+}
+
+func (x *Bar) GetAdjustmentBasis() AdjustmentBasis {
+	if x != nil {
+		return x.AdjustmentBasis
+	}
+	return AdjustmentBasis_ADJUSTMENT_BASIS_UNSPECIFIED
+}
+
+func (x *Bar) GetSession() Session {
+	if x != nil {
+		return x.Session
+	}
+	return Session_SESSION_UNSPECIFIED
+}
+
+func (x *Bar) GetRepaired() bool {
+	if x != nil {
+		return x.Repaired
+	}
+	return false
+}
+
+func (x *Bar) GetSymbol() string {
+	if x != nil {
+		return x.Symbol
+	}
+	return ""
+}
+
 type Quote struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	InstrumentId  string                 `protobuf:"bytes,1,opt,name=instrument_id,json=instrumentId,proto3" json:"instrument_id,omitempty"`
@@ -311,6 +592,7 @@ type Quote struct {
 	Feed          string                 `protobuf:"bytes,8,opt,name=feed,proto3" json:"feed,omitempty"`
 	AvailableAt   int64                  `protobuf:"varint,9,opt,name=available_at,json=availableAt,proto3" json:"available_at,omitempty"`
 	IngestedAt    int64                  `protobuf:"varint,10,opt,name=ingested_at,json=ingestedAt,proto3" json:"ingested_at,omitempty"`
+	Symbol        string                 `protobuf:"bytes,11,opt,name=symbol,proto3" json:"symbol,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -415,6 +697,13 @@ func (x *Quote) GetIngestedAt() int64 {
 	return 0
 }
 
+func (x *Quote) GetSymbol() string {
+	if x != nil {
+		return x.Symbol
+	}
+	return ""
+}
+
 type Trade struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	InstrumentId  string                 `protobuf:"bytes,1,opt,name=instrument_id,json=instrumentId,proto3" json:"instrument_id,omitempty"`
@@ -425,6 +714,9 @@ type Trade struct {
 	Feed          string                 `protobuf:"bytes,6,opt,name=feed,proto3" json:"feed,omitempty"`
 	AvailableAt   int64                  `protobuf:"varint,7,opt,name=available_at,json=availableAt,proto3" json:"available_at,omitempty"`
 	IngestedAt    int64                  `protobuf:"varint,8,opt,name=ingested_at,json=ingestedAt,proto3" json:"ingested_at,omitempty"`
+	Symbol        string                 `protobuf:"bytes,9,opt,name=symbol,proto3" json:"symbol,omitempty"`
+	TradeId       string                 `protobuf:"bytes,10,opt,name=trade_id,json=tradeId,proto3" json:"trade_id,omitempty"`
+	Exchange      string                 `protobuf:"bytes,11,opt,name=exchange,proto3" json:"exchange,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -515,6 +807,27 @@ func (x *Trade) GetIngestedAt() int64 {
 	return 0
 }
 
+func (x *Trade) GetSymbol() string {
+	if x != nil {
+		return x.Symbol
+	}
+	return ""
+}
+
+func (x *Trade) GetTradeId() string {
+	if x != nil {
+		return x.TradeId
+	}
+	return ""
+}
+
+func (x *Trade) GetExchange() string {
+	if x != nil {
+		return x.Exchange
+	}
+	return ""
+}
+
 type CorporateAction struct {
 	state        protoimpl.MessageState `protogen:"open.v1"`
 	InstrumentId string                 `protobuf:"bytes,1,opt,name=instrument_id,json=instrumentId,proto3" json:"instrument_id,omitempty"`
@@ -528,10 +841,25 @@ type CorporateAction struct {
 	// New symbol or successor instrument for symbol changes and mergers.
 	SuccessorInstrumentId string `protobuf:"bytes,6,opt,name=successor_instrument_id,json=successorInstrumentId,proto3" json:"successor_instrument_id,omitempty"`
 	Source                string `protobuf:"bytes,7,opt,name=source,proto3" json:"source,omitempty"`
-	AvailableAt           int64  `protobuf:"varint,8,opt,name=available_at,json=availableAt,proto3" json:"available_at,omitempty"`
-	IngestedAt            int64  `protobuf:"varint,9,opt,name=ingested_at,json=ingestedAt,proto3" json:"ingested_at,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	// When the platform could first know the action: the vendor's declaration/announcement time when
+	// known, otherwise the first fetch time (DF-005: as-of adjustment uses only actions with
+	// available_at <= as_of).
+	AvailableAt int64  `protobuf:"varint,8,opt,name=available_at,json=availableAt,proto3" json:"available_at,omitempty"`
+	IngestedAt  int64  `protobuf:"varint,9,opt,name=ingested_at,json=ingestedAt,proto3" json:"ingested_at,omitempty"`
+	Symbol      string `protobuf:"bytes,10,opt,name=symbol,proto3" json:"symbol,omitempty"`
+	// New ticker for symbol changes.
+	NewSymbol   string `protobuf:"bytes,11,opt,name=new_symbol,json=newSymbol,proto3" json:"new_symbol,omitempty"`
+	RecordDate  int64  `protobuf:"varint,12,opt,name=record_date,json=recordDate,proto3" json:"record_date,omitempty"`
+	PayableDate int64  `protobuf:"varint,13,opt,name=payable_date,json=payableDate,proto3" json:"payable_date,omitempty"`
+	// Vendor declaration/announcement date, UTC ns (0 if unknown).
+	DeclaredAt int64 `protobuf:"varint,14,opt,name=declared_at,json=declaredAt,proto3" json:"declared_at,omitempty"`
+	// Vendor's own identifier, for idempotent upserts.
+	SourceId  string          `protobuf:"bytes,15,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
+	Agreement AgreementStatus `protobuf:"varint,16,opt,name=agreement,proto3,enum=tb.marketdata.v1.AgreementStatus" json:"agreement,omitempty"`
+	// Sources that reported this action after cross-checking (e.g. ["alpaca", "fmp"]).
+	Sources       []string `protobuf:"bytes,17,rep,name=sources,proto3" json:"sources,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CorporateAction) Reset() {
@@ -627,11 +955,917 @@ func (x *CorporateAction) GetIngestedAt() int64 {
 	return 0
 }
 
+func (x *CorporateAction) GetSymbol() string {
+	if x != nil {
+		return x.Symbol
+	}
+	return ""
+}
+
+func (x *CorporateAction) GetNewSymbol() string {
+	if x != nil {
+		return x.NewSymbol
+	}
+	return ""
+}
+
+func (x *CorporateAction) GetRecordDate() int64 {
+	if x != nil {
+		return x.RecordDate
+	}
+	return 0
+}
+
+func (x *CorporateAction) GetPayableDate() int64 {
+	if x != nil {
+		return x.PayableDate
+	}
+	return 0
+}
+
+func (x *CorporateAction) GetDeclaredAt() int64 {
+	if x != nil {
+		return x.DeclaredAt
+	}
+	return 0
+}
+
+func (x *CorporateAction) GetSourceId() string {
+	if x != nil {
+		return x.SourceId
+	}
+	return ""
+}
+
+func (x *CorporateAction) GetAgreement() AgreementStatus {
+	if x != nil {
+		return x.Agreement
+	}
+	return AgreementStatus_AGREEMENT_STATUS_UNSPECIFIED
+}
+
+func (x *CorporateAction) GetSources() []string {
+	if x != nil {
+		return x.Sources
+	}
+	return nil
+}
+
+type BackfillRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Instrument IDs; empty means the named universe.
+	InstrumentIds []string    `protobuf:"bytes,1,rep,name=instrument_ids,json=instrumentIds,proto3" json:"instrument_ids,omitempty"`
+	Universe      string      `protobuf:"bytes,2,opt,name=universe,proto3" json:"universe,omitempty"`
+	Timeframes    []Timeframe `protobuf:"varint,3,rep,packed,name=timeframes,proto3,enum=tb.marketdata.v1.Timeframe" json:"timeframes,omitempty"`
+	Start         int64       `protobuf:"varint,4,opt,name=start,proto3" json:"start,omitempty"`
+	End           int64       `protobuf:"varint,5,opt,name=end,proto3" json:"end,omitempty"`
+	// Source, e.g. "alpaca.sip", "alpaca.iex", "fmp".
+	Source        string `protobuf:"bytes,6,opt,name=source,proto3" json:"source,omitempty"`
+	RequestedBy   string `protobuf:"bytes,7,opt,name=requested_by,json=requestedBy,proto3" json:"requested_by,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BackfillRequest) Reset() {
+	*x = BackfillRequest{}
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BackfillRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BackfillRequest) ProtoMessage() {}
+
+func (x *BackfillRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BackfillRequest.ProtoReflect.Descriptor instead.
+func (*BackfillRequest) Descriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *BackfillRequest) GetInstrumentIds() []string {
+	if x != nil {
+		return x.InstrumentIds
+	}
+	return nil
+}
+
+func (x *BackfillRequest) GetUniverse() string {
+	if x != nil {
+		return x.Universe
+	}
+	return ""
+}
+
+func (x *BackfillRequest) GetTimeframes() []Timeframe {
+	if x != nil {
+		return x.Timeframes
+	}
+	return nil
+}
+
+func (x *BackfillRequest) GetStart() int64 {
+	if x != nil {
+		return x.Start
+	}
+	return 0
+}
+
+func (x *BackfillRequest) GetEnd() int64 {
+	if x != nil {
+		return x.End
+	}
+	return 0
+}
+
+func (x *BackfillRequest) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *BackfillRequest) GetRequestedBy() string {
+	if x != nil {
+		return x.RequestedBy
+	}
+	return ""
+}
+
+type BackfillResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JobId         string                 `protobuf:"bytes,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BackfillResponse) Reset() {
+	*x = BackfillResponse{}
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BackfillResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BackfillResponse) ProtoMessage() {}
+
+func (x *BackfillResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BackfillResponse.ProtoReflect.Descriptor instead.
+func (*BackfillResponse) Descriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *BackfillResponse) GetJobId() string {
+	if x != nil {
+		return x.JobId
+	}
+	return ""
+}
+
+type GetBackfillStatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JobId         string                 `protobuf:"bytes,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetBackfillStatusRequest) Reset() {
+	*x = GetBackfillStatusRequest{}
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBackfillStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBackfillStatusRequest) ProtoMessage() {}
+
+func (x *GetBackfillStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBackfillStatusRequest.ProtoReflect.Descriptor instead.
+func (*GetBackfillStatusRequest) Descriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetBackfillStatusRequest) GetJobId() string {
+	if x != nil {
+		return x.JobId
+	}
+	return ""
+}
+
+type BackfillReport struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	ChunksTotal int64                  `protobuf:"varint,1,opt,name=chunks_total,json=chunksTotal,proto3" json:"chunks_total,omitempty"`
+	ChunksDone  int64                  `protobuf:"varint,2,opt,name=chunks_done,json=chunksDone,proto3" json:"chunks_done,omitempty"`
+	RowsFetched int64                  `protobuf:"varint,3,opt,name=rows_fetched,json=rowsFetched,proto3" json:"rows_fetched,omitempty"`
+	// Rows that were new after compaction (a rerun reports 0, ST-004).
+	RowsAdded    int64 `protobuf:"varint,4,opt,name=rows_added,json=rowsAdded,proto3" json:"rows_added,omitempty"`
+	RowsRevised  int64 `protobuf:"varint,5,opt,name=rows_revised,json=rowsRevised,proto3" json:"rows_revised,omitempty"`
+	GapsFound    int64 `protobuf:"varint,6,opt,name=gaps_found,json=gapsFound,proto3" json:"gaps_found,omitempty"`
+	GapsRepaired int64 `protobuf:"varint,7,opt,name=gaps_repaired,json=gapsRepaired,proto3" json:"gaps_repaired,omitempty"`
+	// Missing bars the source confirmed it does not have (e.g. no trades), recorded as coverage gaps.
+	GapsConfirmedMissing int64            `protobuf:"varint,8,opt,name=gaps_confirmed_missing,json=gapsConfirmedMissing,proto3" json:"gaps_confirmed_missing,omitempty"`
+	DqFindings           map[string]int64 `protobuf:"bytes,9,rep,name=dq_findings,json=dqFindings,proto3" json:"dq_findings,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *BackfillReport) Reset() {
+	*x = BackfillReport{}
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BackfillReport) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BackfillReport) ProtoMessage() {}
+
+func (x *BackfillReport) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BackfillReport.ProtoReflect.Descriptor instead.
+func (*BackfillReport) Descriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *BackfillReport) GetChunksTotal() int64 {
+	if x != nil {
+		return x.ChunksTotal
+	}
+	return 0
+}
+
+func (x *BackfillReport) GetChunksDone() int64 {
+	if x != nil {
+		return x.ChunksDone
+	}
+	return 0
+}
+
+func (x *BackfillReport) GetRowsFetched() int64 {
+	if x != nil {
+		return x.RowsFetched
+	}
+	return 0
+}
+
+func (x *BackfillReport) GetRowsAdded() int64 {
+	if x != nil {
+		return x.RowsAdded
+	}
+	return 0
+}
+
+func (x *BackfillReport) GetRowsRevised() int64 {
+	if x != nil {
+		return x.RowsRevised
+	}
+	return 0
+}
+
+func (x *BackfillReport) GetGapsFound() int64 {
+	if x != nil {
+		return x.GapsFound
+	}
+	return 0
+}
+
+func (x *BackfillReport) GetGapsRepaired() int64 {
+	if x != nil {
+		return x.GapsRepaired
+	}
+	return 0
+}
+
+func (x *BackfillReport) GetGapsConfirmedMissing() int64 {
+	if x != nil {
+		return x.GapsConfirmedMissing
+	}
+	return 0
+}
+
+func (x *BackfillReport) GetDqFindings() map[string]int64 {
+	if x != nil {
+		return x.DqFindings
+	}
+	return nil
+}
+
+type GetBackfillStatusResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JobId         string                 `protobuf:"bytes,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
+	State         JobState               `protobuf:"varint,2,opt,name=state,proto3,enum=tb.marketdata.v1.JobState" json:"state,omitempty"`
+	Report        *BackfillReport        `protobuf:"bytes,3,opt,name=report,proto3" json:"report,omitempty"`
+	Error         string                 `protobuf:"bytes,4,opt,name=error,proto3" json:"error,omitempty"`
+	StartedAt     int64                  `protobuf:"varint,5,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	FinishedAt    int64                  `protobuf:"varint,6,opt,name=finished_at,json=finishedAt,proto3" json:"finished_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetBackfillStatusResponse) Reset() {
+	*x = GetBackfillStatusResponse{}
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBackfillStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBackfillStatusResponse) ProtoMessage() {}
+
+func (x *GetBackfillStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBackfillStatusResponse.ProtoReflect.Descriptor instead.
+func (*GetBackfillStatusResponse) Descriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetBackfillStatusResponse) GetJobId() string {
+	if x != nil {
+		return x.JobId
+	}
+	return ""
+}
+
+func (x *GetBackfillStatusResponse) GetState() JobState {
+	if x != nil {
+		return x.State
+	}
+	return JobState_JOB_STATE_UNSPECIFIED
+}
+
+func (x *GetBackfillStatusResponse) GetReport() *BackfillReport {
+	if x != nil {
+		return x.Report
+	}
+	return nil
+}
+
+func (x *GetBackfillStatusResponse) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *GetBackfillStatusResponse) GetStartedAt() int64 {
+	if x != nil {
+		return x.StartedAt
+	}
+	return 0
+}
+
+func (x *GetBackfillStatusResponse) GetFinishedAt() int64 {
+	if x != nil {
+		return x.FinishedAt
+	}
+	return 0
+}
+
+type SetUniverseRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Universe      string                 `protobuf:"bytes,1,opt,name=universe,proto3" json:"universe,omitempty"`
+	InstrumentIds []string               `protobuf:"bytes,2,rep,name=instrument_ids,json=instrumentIds,proto3" json:"instrument_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetUniverseRequest) Reset() {
+	*x = SetUniverseRequest{}
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetUniverseRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetUniverseRequest) ProtoMessage() {}
+
+func (x *SetUniverseRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetUniverseRequest.ProtoReflect.Descriptor instead.
+func (*SetUniverseRequest) Descriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *SetUniverseRequest) GetUniverse() string {
+	if x != nil {
+		return x.Universe
+	}
+	return ""
+}
+
+func (x *SetUniverseRequest) GetInstrumentIds() []string {
+	if x != nil {
+		return x.InstrumentIds
+	}
+	return nil
+}
+
+type SetUniverseResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Subscribed    int32                  `protobuf:"varint,1,opt,name=subscribed,proto3" json:"subscribed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetUniverseResponse) Reset() {
+	*x = SetUniverseResponse{}
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetUniverseResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetUniverseResponse) ProtoMessage() {}
+
+func (x *SetUniverseResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetUniverseResponse.ProtoReflect.Descriptor instead.
+func (*SetUniverseResponse) Descriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *SetUniverseResponse) GetSubscribed() int32 {
+	if x != nil {
+		return x.Subscribed
+	}
+	return 0
+}
+
+type FeedStatus struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Feed          string                 `protobuf:"bytes,1,opt,name=feed,proto3" json:"feed,omitempty"`
+	Connected     bool                   `protobuf:"varint,2,opt,name=connected,proto3" json:"connected,omitempty"`
+	LastMessageAt int64                  `protobuf:"varint,3,opt,name=last_message_at,json=lastMessageAt,proto3" json:"last_message_at,omitempty"`
+	LagMs         int64                  `protobuf:"varint,4,opt,name=lag_ms,json=lagMs,proto3" json:"lag_ms,omitempty"`
+	SymbolsStale  []string               `protobuf:"bytes,5,rep,name=symbols_stale,json=symbolsStale,proto3" json:"symbols_stale,omitempty"`
+	State         string                 `protobuf:"bytes,6,opt,name=state,proto3" json:"state,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FeedStatus) Reset() {
+	*x = FeedStatus{}
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FeedStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FeedStatus) ProtoMessage() {}
+
+func (x *FeedStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FeedStatus.ProtoReflect.Descriptor instead.
+func (*FeedStatus) Descriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *FeedStatus) GetFeed() string {
+	if x != nil {
+		return x.Feed
+	}
+	return ""
+}
+
+func (x *FeedStatus) GetConnected() bool {
+	if x != nil {
+		return x.Connected
+	}
+	return false
+}
+
+func (x *FeedStatus) GetLastMessageAt() int64 {
+	if x != nil {
+		return x.LastMessageAt
+	}
+	return 0
+}
+
+func (x *FeedStatus) GetLagMs() int64 {
+	if x != nil {
+		return x.LagMs
+	}
+	return 0
+}
+
+func (x *FeedStatus) GetSymbolsStale() []string {
+	if x != nil {
+		return x.SymbolsStale
+	}
+	return nil
+}
+
+func (x *FeedStatus) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+type GetFeedStatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFeedStatusRequest) Reset() {
+	*x = GetFeedStatusRequest{}
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFeedStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFeedStatusRequest) ProtoMessage() {}
+
+func (x *GetFeedStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFeedStatusRequest.ProtoReflect.Descriptor instead.
+func (*GetFeedStatusRequest) Descriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{12}
+}
+
+type GetFeedStatusResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Feeds         []*FeedStatus          `protobuf:"bytes,1,rep,name=feeds,proto3" json:"feeds,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFeedStatusResponse) Reset() {
+	*x = GetFeedStatusResponse{}
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFeedStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFeedStatusResponse) ProtoMessage() {}
+
+func (x *GetFeedStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFeedStatusResponse.ProtoReflect.Descriptor instead.
+func (*GetFeedStatusResponse) Descriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GetFeedStatusResponse) GetFeeds() []*FeedStatus {
+	if x != nil {
+		return x.Feeds
+	}
+	return nil
+}
+
+type IsFreshRequest struct {
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	InstrumentId string                 `protobuf:"bytes,1,opt,name=instrument_id,json=instrumentId,proto3" json:"instrument_id,omitempty"`
+	Timeframe    Timeframe              `protobuf:"varint,2,opt,name=timeframe,proto3,enum=tb.marketdata.v1.Timeframe" json:"timeframe,omitempty"`
+	// Maximum age of the latest final bar's close, ns; 0 = two bar intervals (RM-004 default).
+	MaxAge        int64 `protobuf:"varint,3,opt,name=max_age,json=maxAge,proto3" json:"max_age,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IsFreshRequest) Reset() {
+	*x = IsFreshRequest{}
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IsFreshRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IsFreshRequest) ProtoMessage() {}
+
+func (x *IsFreshRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IsFreshRequest.ProtoReflect.Descriptor instead.
+func (*IsFreshRequest) Descriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *IsFreshRequest) GetInstrumentId() string {
+	if x != nil {
+		return x.InstrumentId
+	}
+	return ""
+}
+
+func (x *IsFreshRequest) GetTimeframe() Timeframe {
+	if x != nil {
+		return x.Timeframe
+	}
+	return Timeframe_TIMEFRAME_UNSPECIFIED
+}
+
+func (x *IsFreshRequest) GetMaxAge() int64 {
+	if x != nil {
+		return x.MaxAge
+	}
+	return 0
+}
+
+type IsFreshResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Fresh         bool                   `protobuf:"varint,1,opt,name=fresh,proto3" json:"fresh,omitempty"`
+	LastBarClose  int64                  `protobuf:"varint,2,opt,name=last_bar_close,json=lastBarClose,proto3" json:"last_bar_close,omitempty"`
+	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IsFreshResponse) Reset() {
+	*x = IsFreshResponse{}
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IsFreshResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IsFreshResponse) ProtoMessage() {}
+
+func (x *IsFreshResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IsFreshResponse.ProtoReflect.Descriptor instead.
+func (*IsFreshResponse) Descriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *IsFreshResponse) GetFresh() bool {
+	if x != nil {
+		return x.Fresh
+	}
+	return false
+}
+
+func (x *IsFreshResponse) GetLastBarClose() int64 {
+	if x != nil {
+		return x.LastBarClose
+	}
+	return 0
+}
+
+func (x *IsFreshResponse) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+// SourceHealth is published on sys.health.<source> by marketdata (and context-data) (MD-008).
+type SourceHealth struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Source               string                 `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
+	LastMessageAgeMs     int64                  `protobuf:"varint,2,opt,name=last_message_age_ms,json=lastMessageAgeMs,proto3" json:"last_message_age_ms,omitempty"`
+	GapCount             int64                  `protobuf:"varint,3,opt,name=gap_count,json=gapCount,proto3" json:"gap_count,omitempty"`
+	ErrorRate            float64                `protobuf:"fixed64,4,opt,name=error_rate,json=errorRate,proto3" json:"error_rate,omitempty"`
+	BreakerState         string                 `protobuf:"bytes,5,opt,name=breaker_state,json=breakerState,proto3" json:"breaker_state,omitempty"`
+	ReconciliationStatus string                 `protobuf:"bytes,6,opt,name=reconciliation_status,json=reconciliationStatus,proto3" json:"reconciliation_status,omitempty"`
+	AsOf                 int64                  `protobuf:"varint,7,opt,name=as_of,json=asOf,proto3" json:"as_of,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *SourceHealth) Reset() {
+	*x = SourceHealth{}
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SourceHealth) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SourceHealth) ProtoMessage() {}
+
+func (x *SourceHealth) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_marketdata_v1_marketdata_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SourceHealth.ProtoReflect.Descriptor instead.
+func (*SourceHealth) Descriptor() ([]byte, []int) {
+	return file_tb_marketdata_v1_marketdata_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *SourceHealth) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *SourceHealth) GetLastMessageAgeMs() int64 {
+	if x != nil {
+		return x.LastMessageAgeMs
+	}
+	return 0
+}
+
+func (x *SourceHealth) GetGapCount() int64 {
+	if x != nil {
+		return x.GapCount
+	}
+	return 0
+}
+
+func (x *SourceHealth) GetErrorRate() float64 {
+	if x != nil {
+		return x.ErrorRate
+	}
+	return 0
+}
+
+func (x *SourceHealth) GetBreakerState() string {
+	if x != nil {
+		return x.BreakerState
+	}
+	return ""
+}
+
+func (x *SourceHealth) GetReconciliationStatus() string {
+	if x != nil {
+		return x.ReconciliationStatus
+	}
+	return ""
+}
+
+func (x *SourceHealth) GetAsOf() int64 {
+	if x != nil {
+		return x.AsOf
+	}
+	return 0
+}
+
 var File_tb_marketdata_v1_marketdata_proto protoreflect.FileDescriptor
 
 const file_tb_marketdata_v1_marketdata_proto_rawDesc = "" +
 	"\n" +
-	"!tb/marketdata/v1/marketdata.proto\x12\x10tb.marketdata.v1\x1a\x19tb/common/v1/common.proto\"\xb3\x04\n" +
+	"!tb/marketdata/v1/marketdata.proto\x12\x10tb.marketdata.v1\x1a\x19tb/common/v1/common.proto\"\x9e\x06\n" +
 	"\x03Bar\x12#\n" +
 	"\rinstrument_id\x18\x01 \x01(\tR\finstrumentId\x129\n" +
 	"\ttimeframe\x18\x02 \x01(\x0e2\x1b.tb.marketdata.v1.TimeframeR\ttimeframe\x12\x17\n" +
@@ -650,7 +1884,13 @@ const file_tb_marketdata_v1_marketdata_proto_rawDesc = "" +
 	"\bis_final\x18\r \x01(\bR\aisFinal\x12!\n" +
 	"\favailable_at\x18\x0e \x01(\x03R\vavailableAt\x12\x1f\n" +
 	"\vingested_at\x18\x0f \x01(\x03R\n" +
-	"ingestedAt\"\x8f\x03\n" +
+	"ingestedAt\x12\x16\n" +
+	"\x06source\x18\x10 \x01(\tR\x06source\x12\x1a\n" +
+	"\brevision\x18\x11 \x01(\x05R\brevision\x12L\n" +
+	"\x10adjustment_basis\x18\x12 \x01(\x0e2!.tb.marketdata.v1.AdjustmentBasisR\x0fadjustmentBasis\x123\n" +
+	"\asession\x18\x13 \x01(\x0e2\x19.tb.marketdata.v1.SessionR\asession\x12\x1a\n" +
+	"\brepaired\x18\x14 \x01(\bR\brepaired\x12\x16\n" +
+	"\x06symbol\x18\x15 \x01(\tR\x06symbol\"\xa7\x03\n" +
 	"\x05Quote\x12#\n" +
 	"\rinstrument_id\x18\x01 \x01(\tR\finstrumentId\x12\x1d\n" +
 	"\n" +
@@ -666,7 +1906,8 @@ const file_tb_marketdata_v1_marketdata_proto_rawDesc = "" +
 	"\favailable_at\x18\t \x01(\x03R\vavailableAt\x12\x1f\n" +
 	"\vingested_at\x18\n" +
 	" \x01(\x03R\n" +
-	"ingestedAt\"\x9b\x02\n" +
+	"ingestedAt\x12\x16\n" +
+	"\x06symbol\x18\v \x01(\tR\x06symbol\"\xea\x02\n" +
 	"\x05Trade\x12#\n" +
 	"\rinstrument_id\x18\x01 \x01(\tR\finstrumentId\x12\x1d\n" +
 	"\n" +
@@ -679,7 +1920,11 @@ const file_tb_marketdata_v1_marketdata_proto_rawDesc = "" +
 	"\x04feed\x18\x06 \x01(\tR\x04feed\x12!\n" +
 	"\favailable_at\x18\a \x01(\x03R\vavailableAt\x12\x1f\n" +
 	"\vingested_at\x18\b \x01(\x03R\n" +
-	"ingestedAt\"\xfa\x02\n" +
+	"ingestedAt\x12\x16\n" +
+	"\x06symbol\x18\t \x01(\tR\x06symbol\x12\x19\n" +
+	"\btrade_id\x18\n" +
+	" \x01(\tR\atradeId\x12\x1a\n" +
+	"\bexchange\x18\v \x01(\tR\bexchange\"\x8e\x05\n" +
 	"\x0fCorporateAction\x12#\n" +
 	"\rinstrument_id\x18\x01 \x01(\tR\finstrumentId\x129\n" +
 	"\x04type\x18\x02 \x01(\x0e2%.tb.marketdata.v1.CorporateActionTypeR\x04type\x12\x17\n" +
@@ -690,21 +1935,138 @@ const file_tb_marketdata_v1_marketdata_proto_rawDesc = "" +
 	"\x06source\x18\a \x01(\tR\x06source\x12!\n" +
 	"\favailable_at\x18\b \x01(\x03R\vavailableAt\x12\x1f\n" +
 	"\vingested_at\x18\t \x01(\x03R\n" +
-	"ingestedAt*\x81\x01\n" +
+	"ingestedAt\x12\x16\n" +
+	"\x06symbol\x18\n" +
+	" \x01(\tR\x06symbol\x12\x1d\n" +
+	"\n" +
+	"new_symbol\x18\v \x01(\tR\tnewSymbol\x12\x1f\n" +
+	"\vrecord_date\x18\f \x01(\x03R\n" +
+	"recordDate\x12!\n" +
+	"\fpayable_date\x18\r \x01(\x03R\vpayableDate\x12\x1f\n" +
+	"\vdeclared_at\x18\x0e \x01(\x03R\n" +
+	"declaredAt\x12\x1b\n" +
+	"\tsource_id\x18\x0f \x01(\tR\bsourceId\x12?\n" +
+	"\tagreement\x18\x10 \x01(\x0e2!.tb.marketdata.v1.AgreementStatusR\tagreement\x12\x18\n" +
+	"\asources\x18\x11 \x03(\tR\asources\"\xf4\x01\n" +
+	"\x0fBackfillRequest\x12%\n" +
+	"\x0einstrument_ids\x18\x01 \x03(\tR\rinstrumentIds\x12\x1a\n" +
+	"\buniverse\x18\x02 \x01(\tR\buniverse\x12;\n" +
+	"\n" +
+	"timeframes\x18\x03 \x03(\x0e2\x1b.tb.marketdata.v1.TimeframeR\n" +
+	"timeframes\x12\x14\n" +
+	"\x05start\x18\x04 \x01(\x03R\x05start\x12\x10\n" +
+	"\x03end\x18\x05 \x01(\x03R\x03end\x12\x16\n" +
+	"\x06source\x18\x06 \x01(\tR\x06source\x12!\n" +
+	"\frequested_by\x18\a \x01(\tR\vrequestedBy\")\n" +
+	"\x10BackfillResponse\x12\x15\n" +
+	"\x06job_id\x18\x01 \x01(\tR\x05jobId\"1\n" +
+	"\x18GetBackfillStatusRequest\x12\x15\n" +
+	"\x06job_id\x18\x01 \x01(\tR\x05jobId\"\xc5\x03\n" +
+	"\x0eBackfillReport\x12!\n" +
+	"\fchunks_total\x18\x01 \x01(\x03R\vchunksTotal\x12\x1f\n" +
+	"\vchunks_done\x18\x02 \x01(\x03R\n" +
+	"chunksDone\x12!\n" +
+	"\frows_fetched\x18\x03 \x01(\x03R\vrowsFetched\x12\x1d\n" +
+	"\n" +
+	"rows_added\x18\x04 \x01(\x03R\trowsAdded\x12!\n" +
+	"\frows_revised\x18\x05 \x01(\x03R\vrowsRevised\x12\x1d\n" +
+	"\n" +
+	"gaps_found\x18\x06 \x01(\x03R\tgapsFound\x12#\n" +
+	"\rgaps_repaired\x18\a \x01(\x03R\fgapsRepaired\x124\n" +
+	"\x16gaps_confirmed_missing\x18\b \x01(\x03R\x14gapsConfirmedMissing\x12Q\n" +
+	"\vdq_findings\x18\t \x03(\v20.tb.marketdata.v1.BackfillReport.DqFindingsEntryR\n" +
+	"dqFindings\x1a=\n" +
+	"\x0fDqFindingsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\x03R\x05value:\x028\x01\"\xf4\x01\n" +
+	"\x19GetBackfillStatusResponse\x12\x15\n" +
+	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x120\n" +
+	"\x05state\x18\x02 \x01(\x0e2\x1a.tb.marketdata.v1.JobStateR\x05state\x128\n" +
+	"\x06report\x18\x03 \x01(\v2 .tb.marketdata.v1.BackfillReportR\x06report\x12\x14\n" +
+	"\x05error\x18\x04 \x01(\tR\x05error\x12\x1d\n" +
+	"\n" +
+	"started_at\x18\x05 \x01(\x03R\tstartedAt\x12\x1f\n" +
+	"\vfinished_at\x18\x06 \x01(\x03R\n" +
+	"finishedAt\"W\n" +
+	"\x12SetUniverseRequest\x12\x1a\n" +
+	"\buniverse\x18\x01 \x01(\tR\buniverse\x12%\n" +
+	"\x0einstrument_ids\x18\x02 \x03(\tR\rinstrumentIds\"5\n" +
+	"\x13SetUniverseResponse\x12\x1e\n" +
+	"\n" +
+	"subscribed\x18\x01 \x01(\x05R\n" +
+	"subscribed\"\xb8\x01\n" +
+	"\n" +
+	"FeedStatus\x12\x12\n" +
+	"\x04feed\x18\x01 \x01(\tR\x04feed\x12\x1c\n" +
+	"\tconnected\x18\x02 \x01(\bR\tconnected\x12&\n" +
+	"\x0flast_message_at\x18\x03 \x01(\x03R\rlastMessageAt\x12\x15\n" +
+	"\x06lag_ms\x18\x04 \x01(\x03R\x05lagMs\x12#\n" +
+	"\rsymbols_stale\x18\x05 \x03(\tR\fsymbolsStale\x12\x14\n" +
+	"\x05state\x18\x06 \x01(\tR\x05state\"\x16\n" +
+	"\x14GetFeedStatusRequest\"K\n" +
+	"\x15GetFeedStatusResponse\x122\n" +
+	"\x05feeds\x18\x01 \x03(\v2\x1c.tb.marketdata.v1.FeedStatusR\x05feeds\"\x89\x01\n" +
+	"\x0eIsFreshRequest\x12#\n" +
+	"\rinstrument_id\x18\x01 \x01(\tR\finstrumentId\x129\n" +
+	"\ttimeframe\x18\x02 \x01(\x0e2\x1b.tb.marketdata.v1.TimeframeR\ttimeframe\x12\x17\n" +
+	"\amax_age\x18\x03 \x01(\x03R\x06maxAge\"e\n" +
+	"\x0fIsFreshResponse\x12\x14\n" +
+	"\x05fresh\x18\x01 \x01(\bR\x05fresh\x12$\n" +
+	"\x0elast_bar_close\x18\x02 \x01(\x03R\flastBarClose\x12\x16\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\"\x80\x02\n" +
+	"\fSourceHealth\x12\x16\n" +
+	"\x06source\x18\x01 \x01(\tR\x06source\x12-\n" +
+	"\x13last_message_age_ms\x18\x02 \x01(\x03R\x10lastMessageAgeMs\x12\x1b\n" +
+	"\tgap_count\x18\x03 \x01(\x03R\bgapCount\x12\x1d\n" +
+	"\n" +
+	"error_rate\x18\x04 \x01(\x01R\terrorRate\x12#\n" +
+	"\rbreaker_state\x18\x05 \x01(\tR\fbreakerState\x123\n" +
+	"\x15reconciliation_status\x18\x06 \x01(\tR\x14reconciliationStatus\x12\x13\n" +
+	"\x05as_of\x18\a \x01(\x03R\x04asOf*\x94\x01\n" +
 	"\tTimeframe\x12\x19\n" +
 	"\x15TIMEFRAME_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fTIMEFRAME_1M\x10\x01\x12\x10\n" +
 	"\fTIMEFRAME_5M\x10\x02\x12\x11\n" +
 	"\rTIMEFRAME_15M\x10\x03\x12\x10\n" +
 	"\fTIMEFRAME_1H\x10\x04\x12\x10\n" +
-	"\fTIMEFRAME_1D\x10\x05*\xf1\x01\n" +
+	"\fTIMEFRAME_1D\x10\x05\x12\x11\n" +
+	"\rTIMEFRAME_30M\x10\x06*\x89\x01\n" +
+	"\x0fAdjustmentBasis\x12 \n" +
+	"\x1cADJUSTMENT_BASIS_UNSPECIFIED\x10\x00\x12\x18\n" +
+	"\x14ADJUSTMENT_BASIS_RAW\x10\x01\x12\x1a\n" +
+	"\x16ADJUSTMENT_BASIS_SPLIT\x10\x02\x12\x1e\n" +
+	"\x1aADJUSTMENT_BASIS_SPLIT_DIV\x10\x03*Z\n" +
+	"\aSession\x12\x17\n" +
+	"\x13SESSION_UNSPECIFIED\x10\x00\x12\x0f\n" +
+	"\vSESSION_PRE\x10\x01\x12\x13\n" +
+	"\x0fSESSION_REGULAR\x10\x02\x12\x10\n" +
+	"\fSESSION_POST\x10\x03*\x94\x01\n" +
+	"\x0fAgreementStatus\x12 \n" +
+	"\x1cAGREEMENT_STATUS_UNSPECIFIED\x10\x00\x12\"\n" +
+	"\x1eAGREEMENT_STATUS_SINGLE_SOURCE\x10\x01\x12\x1b\n" +
+	"\x17AGREEMENT_STATUS_AGREED\x10\x02\x12\x1e\n" +
+	"\x1aAGREEMENT_STATUS_DISAGREED\x10\x03*\x95\x02\n" +
 	"\x13CorporateActionType\x12%\n" +
 	"!CORPORATE_ACTION_TYPE_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bCORPORATE_ACTION_TYPE_SPLIT\x10\x01\x12\"\n" +
 	"\x1eCORPORATE_ACTION_TYPE_DIVIDEND\x10\x02\x12'\n" +
 	"#CORPORATE_ACTION_TYPE_SYMBOL_CHANGE\x10\x03\x12#\n" +
 	"\x1fCORPORATE_ACTION_TYPE_DELISTING\x10\x04\x12 \n" +
-	"\x1cCORPORATE_ACTION_TYPE_MERGER\x10\x05B\xd8\x01\n" +
+	"\x1cCORPORATE_ACTION_TYPE_MERGER\x10\x05\x12\"\n" +
+	"\x1eCORPORATE_ACTION_TYPE_SPIN_OFF\x10\x06*\xa4\x01\n" +
+	"\bJobState\x12\x19\n" +
+	"\x15JOB_STATE_UNSPECIFIED\x10\x00\x12\x14\n" +
+	"\x10JOB_STATE_QUEUED\x10\x01\x12\x15\n" +
+	"\x11JOB_STATE_RUNNING\x10\x02\x12\x17\n" +
+	"\x13JOB_STATE_SUCCEEDED\x10\x03\x12\x14\n" +
+	"\x10JOB_STATE_FAILED\x10\x04\x12!\n" +
+	"\x1dJOB_STATE_SUCCEEDED_WITH_GAPS\x10\x052\xe2\x03\n" +
+	"\x11MarketDataService\x12Q\n" +
+	"\bBackfill\x12!.tb.marketdata.v1.BackfillRequest\x1a\".tb.marketdata.v1.BackfillResponse\x12l\n" +
+	"\x11GetBackfillStatus\x12*.tb.marketdata.v1.GetBackfillStatusRequest\x1a+.tb.marketdata.v1.GetBackfillStatusResponse\x12Z\n" +
+	"\vSetUniverse\x12$.tb.marketdata.v1.SetUniverseRequest\x1a%.tb.marketdata.v1.SetUniverseResponse\x12`\n" +
+	"\rGetFeedStatus\x12&.tb.marketdata.v1.GetFeedStatusRequest\x1a'.tb.marketdata.v1.GetFeedStatusResponse\x12N\n" +
+	"\aIsFresh\x12 .tb.marketdata.v1.IsFreshRequest\x1a!.tb.marketdata.v1.IsFreshResponseB\xd8\x01\n" +
 	"\x14com.tb.marketdata.v1B\x0fMarketdataProtoP\x01ZMgithub.com/illyanyc/strawberry/contracts/gen/go/tb/marketdata/v1;marketdatav1\xa2\x02\x03TMX\xaa\x02\x10Tb.Marketdata.V1\xca\x02\x10Tb\\Marketdata\\V1\xe2\x02\x1cTb\\Marketdata\\V1\\GPBMetadata\xea\x02\x12Tb::Marketdata::V1b\x06proto3"
 
 var (
@@ -719,39 +2081,76 @@ func file_tb_marketdata_v1_marketdata_proto_rawDescGZIP() []byte {
 	return file_tb_marketdata_v1_marketdata_proto_rawDescData
 }
 
-var file_tb_marketdata_v1_marketdata_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_tb_marketdata_v1_marketdata_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_tb_marketdata_v1_marketdata_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_tb_marketdata_v1_marketdata_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_tb_marketdata_v1_marketdata_proto_goTypes = []any{
-	(Timeframe)(0),           // 0: tb.marketdata.v1.Timeframe
-	(CorporateActionType)(0), // 1: tb.marketdata.v1.CorporateActionType
-	(*Bar)(nil),              // 2: tb.marketdata.v1.Bar
-	(*Quote)(nil),            // 3: tb.marketdata.v1.Quote
-	(*Trade)(nil),            // 4: tb.marketdata.v1.Trade
-	(*CorporateAction)(nil),  // 5: tb.marketdata.v1.CorporateAction
-	(*v1.Decimal)(nil),       // 6: tb.common.v1.Decimal
+	(Timeframe)(0),                    // 0: tb.marketdata.v1.Timeframe
+	(AdjustmentBasis)(0),              // 1: tb.marketdata.v1.AdjustmentBasis
+	(Session)(0),                      // 2: tb.marketdata.v1.Session
+	(AgreementStatus)(0),              // 3: tb.marketdata.v1.AgreementStatus
+	(CorporateActionType)(0),          // 4: tb.marketdata.v1.CorporateActionType
+	(JobState)(0),                     // 5: tb.marketdata.v1.JobState
+	(*Bar)(nil),                       // 6: tb.marketdata.v1.Bar
+	(*Quote)(nil),                     // 7: tb.marketdata.v1.Quote
+	(*Trade)(nil),                     // 8: tb.marketdata.v1.Trade
+	(*CorporateAction)(nil),           // 9: tb.marketdata.v1.CorporateAction
+	(*BackfillRequest)(nil),           // 10: tb.marketdata.v1.BackfillRequest
+	(*BackfillResponse)(nil),          // 11: tb.marketdata.v1.BackfillResponse
+	(*GetBackfillStatusRequest)(nil),  // 12: tb.marketdata.v1.GetBackfillStatusRequest
+	(*BackfillReport)(nil),            // 13: tb.marketdata.v1.BackfillReport
+	(*GetBackfillStatusResponse)(nil), // 14: tb.marketdata.v1.GetBackfillStatusResponse
+	(*SetUniverseRequest)(nil),        // 15: tb.marketdata.v1.SetUniverseRequest
+	(*SetUniverseResponse)(nil),       // 16: tb.marketdata.v1.SetUniverseResponse
+	(*FeedStatus)(nil),                // 17: tb.marketdata.v1.FeedStatus
+	(*GetFeedStatusRequest)(nil),      // 18: tb.marketdata.v1.GetFeedStatusRequest
+	(*GetFeedStatusResponse)(nil),     // 19: tb.marketdata.v1.GetFeedStatusResponse
+	(*IsFreshRequest)(nil),            // 20: tb.marketdata.v1.IsFreshRequest
+	(*IsFreshResponse)(nil),           // 21: tb.marketdata.v1.IsFreshResponse
+	(*SourceHealth)(nil),              // 22: tb.marketdata.v1.SourceHealth
+	nil,                               // 23: tb.marketdata.v1.BackfillReport.DqFindingsEntry
+	(*v1.Decimal)(nil),                // 24: tb.common.v1.Decimal
 }
 var file_tb_marketdata_v1_marketdata_proto_depIdxs = []int32{
 	0,  // 0: tb.marketdata.v1.Bar.timeframe:type_name -> tb.marketdata.v1.Timeframe
-	6,  // 1: tb.marketdata.v1.Bar.open:type_name -> tb.common.v1.Decimal
-	6,  // 2: tb.marketdata.v1.Bar.high:type_name -> tb.common.v1.Decimal
-	6,  // 3: tb.marketdata.v1.Bar.low:type_name -> tb.common.v1.Decimal
-	6,  // 4: tb.marketdata.v1.Bar.close:type_name -> tb.common.v1.Decimal
-	6,  // 5: tb.marketdata.v1.Bar.volume:type_name -> tb.common.v1.Decimal
-	6,  // 6: tb.marketdata.v1.Bar.vwap:type_name -> tb.common.v1.Decimal
-	6,  // 7: tb.marketdata.v1.Quote.bid_price:type_name -> tb.common.v1.Decimal
-	6,  // 8: tb.marketdata.v1.Quote.bid_size:type_name -> tb.common.v1.Decimal
-	6,  // 9: tb.marketdata.v1.Quote.ask_price:type_name -> tb.common.v1.Decimal
-	6,  // 10: tb.marketdata.v1.Quote.ask_size:type_name -> tb.common.v1.Decimal
-	6,  // 11: tb.marketdata.v1.Trade.price:type_name -> tb.common.v1.Decimal
-	6,  // 12: tb.marketdata.v1.Trade.size:type_name -> tb.common.v1.Decimal
-	1,  // 13: tb.marketdata.v1.CorporateAction.type:type_name -> tb.marketdata.v1.CorporateActionType
-	6,  // 14: tb.marketdata.v1.CorporateAction.ratio:type_name -> tb.common.v1.Decimal
-	6,  // 15: tb.marketdata.v1.CorporateAction.amount:type_name -> tb.common.v1.Decimal
-	16, // [16:16] is the sub-list for method output_type
-	16, // [16:16] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	24, // 1: tb.marketdata.v1.Bar.open:type_name -> tb.common.v1.Decimal
+	24, // 2: tb.marketdata.v1.Bar.high:type_name -> tb.common.v1.Decimal
+	24, // 3: tb.marketdata.v1.Bar.low:type_name -> tb.common.v1.Decimal
+	24, // 4: tb.marketdata.v1.Bar.close:type_name -> tb.common.v1.Decimal
+	24, // 5: tb.marketdata.v1.Bar.volume:type_name -> tb.common.v1.Decimal
+	24, // 6: tb.marketdata.v1.Bar.vwap:type_name -> tb.common.v1.Decimal
+	1,  // 7: tb.marketdata.v1.Bar.adjustment_basis:type_name -> tb.marketdata.v1.AdjustmentBasis
+	2,  // 8: tb.marketdata.v1.Bar.session:type_name -> tb.marketdata.v1.Session
+	24, // 9: tb.marketdata.v1.Quote.bid_price:type_name -> tb.common.v1.Decimal
+	24, // 10: tb.marketdata.v1.Quote.bid_size:type_name -> tb.common.v1.Decimal
+	24, // 11: tb.marketdata.v1.Quote.ask_price:type_name -> tb.common.v1.Decimal
+	24, // 12: tb.marketdata.v1.Quote.ask_size:type_name -> tb.common.v1.Decimal
+	24, // 13: tb.marketdata.v1.Trade.price:type_name -> tb.common.v1.Decimal
+	24, // 14: tb.marketdata.v1.Trade.size:type_name -> tb.common.v1.Decimal
+	4,  // 15: tb.marketdata.v1.CorporateAction.type:type_name -> tb.marketdata.v1.CorporateActionType
+	24, // 16: tb.marketdata.v1.CorporateAction.ratio:type_name -> tb.common.v1.Decimal
+	24, // 17: tb.marketdata.v1.CorporateAction.amount:type_name -> tb.common.v1.Decimal
+	3,  // 18: tb.marketdata.v1.CorporateAction.agreement:type_name -> tb.marketdata.v1.AgreementStatus
+	0,  // 19: tb.marketdata.v1.BackfillRequest.timeframes:type_name -> tb.marketdata.v1.Timeframe
+	23, // 20: tb.marketdata.v1.BackfillReport.dq_findings:type_name -> tb.marketdata.v1.BackfillReport.DqFindingsEntry
+	5,  // 21: tb.marketdata.v1.GetBackfillStatusResponse.state:type_name -> tb.marketdata.v1.JobState
+	13, // 22: tb.marketdata.v1.GetBackfillStatusResponse.report:type_name -> tb.marketdata.v1.BackfillReport
+	17, // 23: tb.marketdata.v1.GetFeedStatusResponse.feeds:type_name -> tb.marketdata.v1.FeedStatus
+	0,  // 24: tb.marketdata.v1.IsFreshRequest.timeframe:type_name -> tb.marketdata.v1.Timeframe
+	10, // 25: tb.marketdata.v1.MarketDataService.Backfill:input_type -> tb.marketdata.v1.BackfillRequest
+	12, // 26: tb.marketdata.v1.MarketDataService.GetBackfillStatus:input_type -> tb.marketdata.v1.GetBackfillStatusRequest
+	15, // 27: tb.marketdata.v1.MarketDataService.SetUniverse:input_type -> tb.marketdata.v1.SetUniverseRequest
+	18, // 28: tb.marketdata.v1.MarketDataService.GetFeedStatus:input_type -> tb.marketdata.v1.GetFeedStatusRequest
+	20, // 29: tb.marketdata.v1.MarketDataService.IsFresh:input_type -> tb.marketdata.v1.IsFreshRequest
+	11, // 30: tb.marketdata.v1.MarketDataService.Backfill:output_type -> tb.marketdata.v1.BackfillResponse
+	14, // 31: tb.marketdata.v1.MarketDataService.GetBackfillStatus:output_type -> tb.marketdata.v1.GetBackfillStatusResponse
+	16, // 32: tb.marketdata.v1.MarketDataService.SetUniverse:output_type -> tb.marketdata.v1.SetUniverseResponse
+	19, // 33: tb.marketdata.v1.MarketDataService.GetFeedStatus:output_type -> tb.marketdata.v1.GetFeedStatusResponse
+	21, // 34: tb.marketdata.v1.MarketDataService.IsFresh:output_type -> tb.marketdata.v1.IsFreshResponse
+	30, // [30:35] is the sub-list for method output_type
+	25, // [25:30] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_tb_marketdata_v1_marketdata_proto_init() }
@@ -764,10 +2163,10 @@ func file_tb_marketdata_v1_marketdata_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tb_marketdata_v1_marketdata_proto_rawDesc), len(file_tb_marketdata_v1_marketdata_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   4,
+			NumEnums:      6,
+			NumMessages:   18,
 			NumExtensions: 0,
-			NumServices:   0,
+			NumServices:   1,
 		},
 		GoTypes:           file_tb_marketdata_v1_marketdata_proto_goTypes,
 		DependencyIndexes: file_tb_marketdata_v1_marketdata_proto_depIdxs,

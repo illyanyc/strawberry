@@ -18,7 +18,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `.gitattributes` | Exists | LF line endings; marks generated code and lockfiles as generated |
 | `.editorconfig` | Exists | Editor whitespace conventions per language |
 | `.dockerignore` | Exists | Keeps `.secrets/`, `data/`, `backups/`, `.git`, caches, and `node_modules` out of every image build context |
-| `.gitleaks.toml` | Exists | gitleaks config: default rules; allowlists only test files with fake secret-shaped fixtures (SE-053) |
+| `.gitleaks.toml` | Exists | gitleaks config: default rules; allowlists only test files with fake secret-shaped values and JSON vendor fixtures under `tests/fixtures/` (SE-053) |
 | `.trivyignore` | Exists | Documented exceptions to the vulnerability gate (empty) |
 | `.golangci.yml` | Exists | golangci-lint v2 config shared by every Go module (standard + gosec, bodyclose, noctx, errorlint; gofmt/goimports) |
 | `go.work` | Exists | Go workspace listing every Go module (ADR-0002) |
@@ -41,6 +41,8 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `scripts/smoke.sh` | Exists | Smoke test of a running stack (OP-061): readiness, auth gate, headers, ports, e2e flow + leak canary, Prometheus targets, audit chain |
 | `scripts/port-check.sh` | Exists | Fails on any non-loopback published port (OP-041, SE-051) |
 | `scripts/check-arm64.sh` | Exists | Verifies every pinned image has a linux/arm64 variant (OP-043) |
+| `scripts/gen_calendar.py` | Exists | Generates the shared XNYS session table (Go + Python copies) from `exchange_calendars`; `--check` fails on drift (MD-005) |
+| `scripts/spike_v4_reader.py` | Exists | Spike V4 native macOS reader for `make spike-v4` |
 | `scripts/backup-drill.sh` | Exists | Backup → wipe → fresh stack → restore → verify drill (OP-051) |
 
 ## Agent rules: `.cursor/rules/`
@@ -78,6 +80,10 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/business-logic/data-and-features.md` | Exists | `DF-` rules: timestamps, point-in-time, adjustments, feature parity |
 | `docs/business-logic/operations.md` | Exists | `OP-` rules: build, run, deploy, backup/restore, host and toolchain behavior |
 | `docs/business-logic/ui.md` | Exists | `UI-` rules: page inventory, PAPER/LIVE banner, step-up UX, write-only credentials, staleness, CSP-safe frontend |
+| `docs/business-logic/storage.md` | Exists | `ST-` rules: lake layout, atomic writes, manifest, idempotent compaction, revisions, reader dedupe, refdata mirrors, retention, cache keys, data-quality checks |
+| `docs/business-logic/market-data.md` | Exists | `MD-` rules: bar alignment, calendar, corporate-action availability and cross-source agreement (more with section 05) |
+| `docs/verify-early.md` | Exists | Verify-early spike register V1–V9: method, result, evidence, default until resolved |
+| `docs/business-logic/brokers.md` | Exists | `BR-` rules: broker interface, capabilities, error model, order-state mapping per broker, attribution validation, session lifecycle, resync, rate limits, live gating, market-data fan-out |
 | `docs/business-logic/security.md` | Exists | `SE-` rules: policy, step-up, sessions, CSRF, secrets, credential encryption, redaction, audit, DB privileges |
 | `docs/adr/README.md` | Exists | ADR process and index |
 | `docs/adr/template.md` | Exists | ADR template |
@@ -97,8 +103,13 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0016-remote-access.md` | Exists | ADR (D17): host `tailscaled` + `tailscale serve`, optional Cloudflare Tunnel + Access |
 | `docs/adr/0017-ci-and-supply-chain.md` | Exists | ADR (D35): GitHub Actions gates, SHA pinning, gitleaks, Trivy, SBOM, multi-arch, Dependabot |
 | `docs/adr/0010-account-routing-and-day-trade-policy.md` | Exists | ADR (D30): horizon-based account routing, PDT guard off by default, intraday-margin guard, halt on margin events |
+| `docs/adr/0020-lake-layout-write-path-and-query-layer.md` | Exists | ADR (D38): lake layout, single-writer path, revisions, manifest, refdata mirrors, calendar, Polars query layer, read-time adjustment |
+| `docs/adr/0021-feature-store.md` | Exists | ADR (D39): thin feature store, single compute path, finite lookback, scale invariance, snapshots |
+| `docs/adr/0022-market-data-ingestion.md` | Exists | ADR (D40): Alpaca via broker-gateway, finality window, resumable backfill, FMP `/stable`, reconciliation and quarantine |
+| `docs/adr/0019-alpaca-adapter-and-simulator.md` | Exists | ADR (D37): hand-written Alpaca adapter, in-process simulator, single market-data socket, credential-free test fake |
+| `docs/adr/0018-broker-gateway-interface.md` | Exists | ADR (D36): one gRPC broker interface for every adapter, typed error model, canonical execution IDs, outbox-backed events |
 | `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2): NATS JetStream, `sync_interval: always`, stream layout, outbox |
-| `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents (later: kill switch, broker outage, reconciliation break) |
+| `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, broker outage, market data (stale, slow, gaps, reconciliation breaches, corporate-action disputes) (later: kill switch, ledger reconciliation break) |
 | `docs/threat-model.md` | Exists | Assets, actors, entry points, STRIDE table mapped to SE-/OP- rules, residual risks |
 
 ## Contracts: `contracts/`
@@ -110,28 +121,29 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `contracts/AGENTS.md` | Exists | Agent notes: layout, conventions, regeneration, gotchas |
 | `contracts/buf.yaml` | Exists | buf module, lint (STANDARD) and breaking (FILE) config |
 | `contracts/buf.gen.yaml` | Exists | Local-plugin codegen to Go, Python, TypeScript |
-| `contracts/proto/` | Exists | Protobuf schemas `tb.<domain>.v1`: common, marketdata, context, features, signals, orders, ledger, ml, alerts, audit, broker (credentials RPC) |
+| `contracts/proto/` | Exists | Protobuf schemas `tb.<domain>.v1`: common, marketdata, context, features, signals, orders, ledger, ml, alerts, audit, broker (credentials RPC, `BrokerGatewayService`, `BrokerMarketDataService`) |
 | `contracts/gen/go/` | Exists | Generated Go module (messages + gRPC) plus hand-written `go.mod` and `contracts_test.go` |
 | `contracts/gen/python/` | Exists | Generated Python package `tbcontracts` (`tb.*_pb2` + `.pyi`) plus hand-written `pyproject.toml` |
 | `contracts/gen/ts/` | Exists | Generated TypeScript package `@strawberry/contracts` plus hand-written `package.json`, `tsconfig.json`, `test/` |
 | `contracts/tests/` | Exists | Python contract round-trip tests |
 | `contracts/jsonschema/` | Planned | JSON Schemas generated from proto for gateway/UI validation (Phase 1) |
+| `contracts/cache/` | Exists | `README.md`: hot-cache key layout, value types, TTLs (ST-009) |
 | `contracts/openapi/` | Exists | `gateway.yaml`: gateway REST + SSE API (OpenAPI 3.1), including the public allowlist |
 
 ## Shared libraries: `libs/`
 
 | Path | Status | Purpose |
 |---|---|---|
-| `libs/go/` | Exists | Go module: config, logging/redaction, secrets, ops, telemetry, svc template, svcauth, policy, audit, db (+ embedded migrations), bus, clock, webauthntest (software passkey authenticator for tests). Internal layout in [`libs/go/AGENTS.md`](../libs/go/AGENTS.md) |
-| `libs/py/tbcore/` | Exists | Python package: service template, JSON logging with redaction, secrets (later: features, labels, strategy API). Layout in [`libs/py/tbcore/AGENTS.md`](../libs/py/tbcore/AGENTS.md) |
+| `libs/go/` | Exists | Go module: config, logging/redaction, secrets, ops, telemetry, svc template, svcauth, policy, audit, db (+ embedded migrations), bus, clock, resilience (backoff, priority rate limiter, circuit breaker), outbox (transactional outbox + relay), calendar (embedded XNYS sessions), cache (Valkey key layout), webauthntest (software passkey authenticator for tests). Internal layout in [`libs/go/AGENTS.md`](../libs/go/AGENTS.md) |
+| `libs/py/tbcore/` | Exists | Python package: service template, JSON logging with redaction, secrets, lake query layer (`tbcore.data`: point-in-time bars, adjustments, as-of joins, universes, calendar), data quality (`tbcore.dq`), feature store (`tbcore.features`) (later: labels, strategy API). Layout in [`libs/py/tbcore/AGENTS.md`](../libs/py/tbcore/AGENTS.md) |
 
 ## Services: `services/`
 
 | Path | Status | Purpose |
 |---|---|---|
 | `services/api-gateway/` | Exists | Go: owner auth (passkeys, TOTP, recovery), sessions, CSRF, step-up, settings, audit API, credential write-through, SSE status stream, static UI. Layout in [`services/api-gateway/AGENTS.md`](../services/api-gateway/AGENTS.md) |
-| `services/broker-gateway/` | Exists | Go: broker-credential custody (envelope encryption, KEK ring, write-only gRPC `CredentialService`); broker adapters from Phase 1. Layout in [`services/broker-gateway/AGENTS.md`](../services/broker-gateway/AGENTS.md) |
-| `services/marketdata/` | Exists (placeholder) | Go: ops surface + NATS; ingestion in Phase 1. [`AGENTS.md`](../services/marketdata/AGENTS.md) |
+| `services/broker-gateway/` | Exists | Go: broker-credential custody (envelope encryption, KEK ring, write-only gRPC `CredentialService`); `BrokerGatewayService` + `BrokerMarketDataService` with the Alpaca adapter, simulator, session engine, outbox-backed events, market-data hub, and the shared contract suite. Layout in [`services/broker-gateway/AGENTS.md`](../services/broker-gateway/AGENTS.md) |
+| `services/marketdata/` | Exists | Go: single lake writer (Parquet staging/compaction/revisions, manifest), reference data (`refdata`) and its daily sync, data-quality checks, resumable backfill, live bar pipeline (finality, resampling, gap repair, bus/cache/lake sinks), FMP client, cross-source reconciliation, scheduler, `MarketDataService`, spike harnesses (V2, V3, V4). [`AGENTS.md`](../services/marketdata/AGENTS.md) |
 | `services/execution/` | Exists (placeholder) | Go: ops surface + NATS + clock-skew check; `tb_trading_enabled=0` until Phase 2. [`AGENTS.md`](../services/execution/AGENTS.md) |
 | `services/ledger/` | Exists (placeholder) | Go: ops surface + NATS; ledgers in Phase 2. [`AGENTS.md`](../services/ledger/AGENTS.md) |
 | `services/context-data/` | Exists (placeholder) | Python on `tbcore`: ops surface; context data in Phase 3 |
@@ -160,7 +172,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 |---|---|---|
 | `tests/python/` | Exists | Cross-package Python tests (placeholder services' ops surface) |
 | `tests/e2e/` | Exists | Go end-to-end test against the running stack: passkey setup/login, step-up, credential storage with leak canary, SSE, audit (`make e2e`, used by the smoke test) |
-| `tests/fixtures/` | Planned | Recorded market data and broker messages (no real account data; Phase 1) |
+| `tests/fixtures/` | Exists | Fixtures (no account data): `alpaca/` (bars, corporate actions, data-stream messages; README explains provenance), `lake/` (Go-written sample lake with a revision and a staged file, read by Python tests), `dq/` (injected-defect bars + expected report shared by Go and Python), `fmp/` (`/stable` response shapes for the FMP client tests) |
 
 ## Infra: `infra/` (agent notes in `infra/AGENTS.md`)
 
@@ -170,7 +182,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `infra/compose/` | Exists | `docker-compose.yml` (profiles core, observability, ml, ml-workers, ops, remote-cloudflare), native-ML overlay, `nats/nats.conf`, `env.example` |
 | `infra/docker/` | Exists | Go (service/gateway targets), Python, ops, and MLflow images; MLflow entrypoint |
 | `infra/ops/` | Exists | `backup.sh`, `restore.sh`, `secrets-bundle.sh` (run in the ops image) |
-| `infra/observability/` | Exists | Prometheus scrape config and alert rules, Alertmanager routing, Alloy config, Grafana provisioning and "Stack overview" dashboard |
+| `infra/observability/` | Exists | Prometheus scrape config and alert rules, Alertmanager routing, Alloy config, Grafana provisioning and the "Stack overview" and "Market data and brokers" dashboards; market-data/broker alert rules (`prometheus/rules/marketdata-brokers.yml`) |
 | `infra/macos/` | Exists | LaunchDaemon templates (Colima at boot, stack auto-start, native ML worker), `install.sh`, `start-stack.sh` |
 | `infra/secrets/` | Exists | SOPS-encrypted bundles only (`.gitkeep` until the owner runs `make secrets-encrypt`) |
 | `infra/terraform/` | Planned | Remote server provisioning (Phase 6) |

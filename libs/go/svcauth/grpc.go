@@ -64,6 +64,36 @@ func (v *Verifier) UnaryServerInterceptor(allowed map[string][]string) grpc.Unar
 	}
 }
 
+// StreamServerInterceptor is UnaryServerInterceptor for streaming RPCs.
+func (v *Verifier) StreamServerInterceptor(allowed map[string][]string) grpc.StreamServerInterceptor {
+	return func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		md, _ := metadata.FromIncomingContext(ss.Context())
+		vals := md.Get(authHeader)
+		if len(vals) != 1 || !strings.HasPrefix(vals[0], scheme) {
+			return status.Error(codes.Unauthenticated, "service token required")
+		}
+		claims, err := v.Verify(strings.TrimPrefix(vals[0], scheme))
+		if err != nil {
+			return status.Error(codes.Unauthenticated, "invalid service token")
+		}
+		callers, ok := allowed[info.FullMethod]
+		if !ok {
+			callers = allowed["*"]
+		}
+		if !slices.Contains(callers, claims.Issuer) {
+			return status.Errorf(codes.PermissionDenied, "service %q may not call %s", claims.Issuer, info.FullMethod)
+		}
+		return handler(srv, &callerStream{ServerStream: ss, ctx: WithCaller(ss.Context(), claims.Issuer)})
+	}
+}
+
+type callerStream struct {
+	grpc.ServerStream
+	ctx context.Context
+}
+
+func (s *callerStream) Context() context.Context { return s.ctx }
+
 // LoadSigner reads the service's private seed from secret "svc_<service>_ed25519" (base64).
 func LoadSigner(store *secrets.Store, service string) (*Signer, error) {
 	raw, err := store.Get(KeySecretName(service))

@@ -68,8 +68,9 @@ build: ## Build every image (all profiles)
 	COMPOSE_PROFILES=core,observability,ml,ml-workers,ops $(COMPOSE) build
 
 .PHONY: up
-up: dirs ## Start the stack (PROFILES=$(PROFILES)) and wait until healthy
+up: dirs ## Start the stack (PROFILES=$(PROFILES)) and wait until healthy (adds secrets introduced since the last run)
 	@test -f $(TB_SECRETS_DIR)/pg_superuser_password || { echo "no secrets: run 'make bootstrap' (or 'make secrets') first"; exit 1; }
+	@$(MAKE) --no-print-directory secrets
 	$(COMPOSE) up -d --build --wait --wait-timeout 600
 
 .PHONY: down
@@ -195,6 +196,32 @@ test-py: ## pytest
 .PHONY: test-web
 test-web: ## Web unit tests
 	pnpm -r --if-present test
+
+.PHONY: gen-calendar
+gen-calendar: ## Regenerate the shared XNYS session table (Go + Python copies) from exchange_calendars
+	uv run python scripts/gen_calendar.py
+
+.PHONY: perf
+perf: ## Performance targets on this machine: lake load, as-of join (section 03), bar finality-to-bus U8 (section 05)
+	TB_PERF=1 uv run pytest libs/py/tbcore/tests/test_features.py -k perf -s -q
+	cd services/marketdata && go test -count=1 -run TestU8BarFinalToBusLatency -v ./internal/live | grep -E "U8:|^(ok|FAIL|---)"
+
+.PHONY: lake-verify
+lake-verify: ## Re-hash every lake file against the manifest (ST-003); non-zero exit on corruption
+	$(COMPOSE) exec marketdata /app/service lake verify
+
+.PHONY: spike-v2 spike-v3
+spike-v2: ## V2: probe Alpaca history for known delisted tickers (needs Alpaca keys in broker-gateway)
+	$(COMPOSE) run --rm --no-deps marketdata spike v2
+
+spike-v3: ## V3: probe the owner's FMP key (/stable vs /api/v3, limits, intraday); needs .secrets/fmp_api_key
+	$(COMPOSE) run --rm --no-deps marketdata spike v3
+
+.PHONY: spike-v4
+spike-v4: dirs ## V4: atomic-rename stress across the lake bind mount (writer in container, native reader), 120 s
+	@mkdir -p data/lake/spikes/v4
+	( $(COMPOSE) run --rm --no-deps marketdata spike v4 --role writer --dir /data/lake/spikes/v4 --duration 120s > data/lake/spikes/v4-writer.json ) & \
+	  sleep 5; uv run python scripts/spike_v4_reader.py data/lake/spikes/v4 110; status=$$?; wait; cat data/lake/spikes/v4-writer.json; exit $$status
 
 .PHONY: docs-check
 docs-check: ## Documentation protocol gate: file-map coverage + same-commit doc rules vs BASE_REF

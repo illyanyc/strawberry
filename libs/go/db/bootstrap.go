@@ -31,6 +31,9 @@ var Schemas = []Schema{
 	{Name: "auth", Owner: "auth_owner"},
 	{Name: "config", Owner: "config_owner"},
 	{Name: "secrets", Owner: "secrets_owner"},
+	{Name: "broker", Owner: "broker_owner"},
+	{Name: "refdata", Owner: "refdata_owner"},
+	{Name: "marketdata", Owner: "marketdata_owner"},
 }
 
 // LoginRoles are the service roles that may log in to the platform database. Their passwords are
@@ -43,6 +46,8 @@ var LoginRoles = []string{
 var GroupRoles = map[string][]string{
 	"audit_writer": {"svc_api_gateway", "svc_broker_gateway", "svc_marketdata", "svc_execution", "svc_ledger"},
 	"audit_reader": {"svc_api_gateway", "svc_ops"},
+	// Read-only reference data (instrument master, calendar, corporate actions, universes).
+	"refdata_reader": {"svc_ledger", "svc_execution", "svc_api_gateway", "svc_broker_gateway"},
 	// Built-in monitoring role for postgres-exporter (read-only statistics, no table data).
 	"pg_monitor": {"svc_metrics"},
 }

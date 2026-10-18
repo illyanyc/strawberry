@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file tb/ledger/v1/ledger.proto.
  */
 export const file_tb_ledger_v1_ledger: GenFile = /*@__PURE__*/
-  fileDesc("Chl0Yi9sZWRnZXIvdjEvbGVkZ2VyLnByb3RvEgx0Yi5sZWRnZXIudjEibgoIUG9zaXRpb24SFQoNaW5zdHJ1bWVudF9pZBgBIAEoCRIiCgNxdHkYAiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBInCghhdmdfY29zdBgDIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsIqcCCg9BY2NvdW50U25hcHNob3QSGQoRYnJva2VyX2FjY291bnRfaWQYASABKAkSJAoGYnJva2VyGAIgASgOMhQudGIuY29tbW9uLnYxLkJyb2tlchIgCgRtb2RlGAMgASgOMhIudGIuY29tbW9uLnYxLk1vZGUSIwoEY2FzaBgEIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEisKDGJ1eWluZ19wb3dlchgFIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiUKBmVxdWl0eRgGIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEikKCXBvc2l0aW9ucxgHIAMoCzIWLnRiLmxlZGdlci52MS5Qb3NpdGlvbhINCgVhc19vZhgIIAEoAyLeAQoQU3RyYXRlZ3lQb3NpdGlvbhIZChFicm9rZXJfYWNjb3VudF9pZBgBIAEoCRINCgVvd25lchgCIAEoCRIVCg1pbnN0cnVtZW50X2lkGAMgASgJEiIKA3F0eRgEIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEikKCmNvc3RfYmFzaXMYBSABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIrCgxyZWFsaXplZF9wbmwYBiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBINCgVhc19vZhgHIAEoAyKTAgoLTGVkZ2VyRW50cnkSEAoIZW50cnlfaWQYASABKAkSGQoRYnJva2VyX2FjY291bnRfaWQYAiABKAkSDQoFb3duZXIYAyABKAkSFQoNaW5zdHJ1bWVudF9pZBgEIAEoCRIOCgZsb3RfaWQYBSABKAkSIgoDcXR5GAYgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSIwoEY29zdBgHIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEisKDHJlYWxpemVkX3BubBgIIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEhYKDnNvdXJjZV9leGVjX2lkGAkgASgJEhMKC3JlY29yZGVkX2F0GAogASgDIj0KCE93bmVyUXR5Eg0KBW93bmVyGAEgASgJEiIKA3F0eRgCIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsIrIBChJSZWNvbmNpbGlhdGlvbkRpZmYSFQoNaW5zdHJ1bWVudF9pZBgBIAEoCRIpCgpicm9rZXJfcXR5GAIgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSKQoKbGVkZ2VyX3F0eRgDIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEi8KD293bmVyX2JyZWFrZG93bhgEIAMoCzIWLnRiLmxlZGdlci52MS5Pd25lclF0eSKlAQoUUmVjb25jaWxpYXRpb25SZXN1bHQSGQoRYnJva2VyX2FjY291bnRfaWQYASABKAkSDQoFYXNfb2YYAiABKAMSMgoGc3RhdHVzGAMgASgOMiIudGIubGVkZ2VyLnYxLlJlY29uY2lsaWF0aW9uU3RhdHVzEi8KBWRpZmZzGAQgAygLMiAudGIubGVkZ2VyLnYxLlJlY29uY2lsaWF0aW9uRGlmZiqdAQoUUmVjb25jaWxpYXRpb25TdGF0dXMSJQohUkVDT05DSUxJQVRJT05fU1RBVFVTX1VOU1BFQ0lGSUVEEAASHAoYUkVDT05DSUxJQVRJT05fU1RBVFVTX09LEAESHwobUkVDT05DSUxJQVRJT05fU1RBVFVTX0JSRUFLEAISHwobUkVDT05DSUxJQVRJT05fU1RBVFVTX1NUQUxFEANCuAEKEGNvbS50Yi5sZWRnZXIudjFCC0xlZGdlclByb3RvUAFaRWdpdGh1Yi5jb20vaWxseWFueWMvc3RyYXdiZXJyeS9jb250cmFjdHMvZ2VuL2dvL3RiL2xlZGdlci92MTtsZWRnZXJ2MaICA1RMWKoCDFRiLkxlZGdlci5WMcoCDFRiXExlZGdlclxWMeICGFRiXExlZGdlclxWMVxHUEJNZXRhZGF0YeoCDlRiOjpMZWRnZXI6OlYxYgZwcm90bzM", [file_tb_common_v1_common]);
+  fileDesc("Chl0Yi9sZWRnZXIvdjEvbGVkZ2VyLnByb3RvEgx0Yi5sZWRnZXIudjEiyQEKCFBvc2l0aW9uEhUKDWluc3RydW1lbnRfaWQYASABKAkSIgoDcXR5GAIgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJwoIYXZnX2Nvc3QYAyABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIOCgZzeW1ib2wYBCABKAkSKwoMbWFya2V0X3ZhbHVlGAUgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSHAoUYnJva2VyX2luc3RydW1lbnRfaWQYBiABKAkikQUKD0FjY291bnRTbmFwc2hvdBIZChFicm9rZXJfYWNjb3VudF9pZBgBIAEoCRIkCgZicm9rZXIYAiABKA4yFC50Yi5jb21tb24udjEuQnJva2VyEiAKBG1vZGUYAyABKA4yEi50Yi5jb21tb24udjEuTW9kZRIjCgRjYXNoGAQgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSKwoMYnV5aW5nX3Bvd2VyGAUgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJQoGZXF1aXR5GAYgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSKQoJcG9zaXRpb25zGAcgAygLMhYudGIubGVkZ2VyLnYxLlBvc2l0aW9uEg0KBWFzX29mGAggASgDEh8KF2ludHJhZGF5X21hcmdpbl9kZWZpY2l0GAkgASgIEhMKC21hcmdpbl9jYWxsGAogASgIEi0KDmluaXRpYWxfbWFyZ2luGAsgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSMQoSbWFpbnRlbmFuY2VfbWFyZ2luGAwgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSMAoRbG9uZ19tYXJrZXRfdmFsdWUYDSABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIxChJzaG9ydF9tYXJrZXRfdmFsdWUYDiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIQCghjdXJyZW5jeRgPIAEoCRIXCg9kYXlfdHJhZGVfY291bnQYECABKAUSFwoPdHJhZGluZ19ibG9ja2VkGBEgASgIEhcKD2FjY291bnRfYmxvY2tlZBgSIAEoCBIOCgZzdGF0dXMYEyABKAki3gEKEFN0cmF0ZWd5UG9zaXRpb24SGQoRYnJva2VyX2FjY291bnRfaWQYASABKAkSDQoFb3duZXIYAiABKAkSFQoNaW5zdHJ1bWVudF9pZBgDIAEoCRIiCgNxdHkYBCABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIpCgpjb3N0X2Jhc2lzGAUgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSKwoMcmVhbGl6ZWRfcG5sGAYgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSDQoFYXNfb2YYByABKAMikwIKC0xlZGdlckVudHJ5EhAKCGVudHJ5X2lkGAEgASgJEhkKEWJyb2tlcl9hY2NvdW50X2lkGAIgASgJEg0KBW93bmVyGAMgASgJEhUKDWluc3RydW1lbnRfaWQYBCABKAkSDgoGbG90X2lkGAUgASgJEiIKA3F0eRgGIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiMKBGNvc3QYByABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIrCgxyZWFsaXplZF9wbmwYCCABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIWCg5zb3VyY2VfZXhlY19pZBgJIAEoCRITCgtyZWNvcmRlZF9hdBgKIAEoAyI9CghPd25lclF0eRINCgVvd25lchgBIAEoCRIiCgNxdHkYAiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbCKyAQoSUmVjb25jaWxpYXRpb25EaWZmEhUKDWluc3RydW1lbnRfaWQYASABKAkSKQoKYnJva2VyX3F0eRgCIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEikKCmxlZGdlcl9xdHkYAyABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIvCg9vd25lcl9icmVha2Rvd24YBCADKAsyFi50Yi5sZWRnZXIudjEuT3duZXJRdHkicAoVUmVjb25jaWxpYXRpb25SZXF1ZXN0EhkKEWJyb2tlcl9hY2NvdW50X2lkGAEgASgJEg4KBnJlYXNvbhgCIAEoCRIUCgxyZXF1ZXN0ZWRfYXQYAyABKAMSFgoOY29ycmVsYXRpb25faWQYBCABKAkipQEKFFJlY29uY2lsaWF0aW9uUmVzdWx0EhkKEWJyb2tlcl9hY2NvdW50X2lkGAEgASgJEg0KBWFzX29mGAIgASgDEjIKBnN0YXR1cxgDIAEoDjIiLnRiLmxlZGdlci52MS5SZWNvbmNpbGlhdGlvblN0YXR1cxIvCgVkaWZmcxgEIAMoCzIgLnRiLmxlZGdlci52MS5SZWNvbmNpbGlhdGlvbkRpZmYqnQEKFFJlY29uY2lsaWF0aW9uU3RhdHVzEiUKIVJFQ09OQ0lMSUFUSU9OX1NUQVRVU19VTlNQRUNJRklFRBAAEhwKGFJFQ09OQ0lMSUFUSU9OX1NUQVRVU19PSxABEh8KG1JFQ09OQ0lMSUFUSU9OX1NUQVRVU19CUkVBSxACEh8KG1JFQ09OQ0lMSUFUSU9OX1NUQVRVU19TVEFMRRADQrgBChBjb20udGIubGVkZ2VyLnYxQgtMZWRnZXJQcm90b1ABWkVnaXRodWIuY29tL2lsbHlhbnljL3N0cmF3YmVycnkvY29udHJhY3RzL2dlbi9nby90Yi9sZWRnZXIvdjE7bGVkZ2VydjGiAgNUTFiqAgxUYi5MZWRnZXIuVjHKAgxUYlxMZWRnZXJcVjHiAhhUYlxMZWRnZXJcVjFcR1BCTWV0YWRhdGHqAg5UYjo6TGVkZ2VyOjpWMWIGcHJvdG8z", [file_tb_common_v1_common]);
 
 /**
  * @generated from message tb.ledger.v1.Position
@@ -26,6 +26,8 @@ export type Position = Message<"tb.ledger.v1.Position"> & {
   instrumentId: string;
 
   /**
+   * Signed: negative for short positions.
+   *
    * @generated from field: tb.common.v1.Decimal qty = 2;
    */
   qty?: Decimal | undefined;
@@ -34,6 +36,23 @@ export type Position = Message<"tb.ledger.v1.Position"> & {
    * @generated from field: tb.common.v1.Decimal avg_cost = 3;
    */
   avgCost?: Decimal | undefined;
+
+  /**
+   * @generated from field: string symbol = 4;
+   */
+  symbol: string;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal market_value = 5;
+   */
+  marketValue?: Decimal | undefined;
+
+  /**
+   * Broker identifier (Alpaca asset ID, IBKR conId) for mapping when instrument_id is empty.
+   *
+   * @generated from field: string broker_instrument_id = 6;
+   */
+  brokerInstrumentId: string;
 };
 
 /**
@@ -86,6 +105,69 @@ export type AccountSnapshot = Message<"tb.ledger.v1.AccountSnapshot"> & {
    * @generated from field: int64 as_of = 8;
    */
   asOf: bigint;
+
+  /**
+   * Broker-reported intraday margin deficit; any true value halts the account (RM-013, D30).
+   *
+   * @generated from field: bool intraday_margin_deficit = 9;
+   */
+  intradayMarginDeficit: boolean;
+
+  /**
+   * Broker-reported margin call; halts the account (RM-013).
+   *
+   * @generated from field: bool margin_call = 10;
+   */
+  marginCall: boolean;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal initial_margin = 11;
+   */
+  initialMargin?: Decimal | undefined;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal maintenance_margin = 12;
+   */
+  maintenanceMargin?: Decimal | undefined;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal long_market_value = 13;
+   */
+  longMarketValue?: Decimal | undefined;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal short_market_value = 14;
+   */
+  shortMarketValue?: Decimal | undefined;
+
+  /**
+   * @generated from field: string currency = 15;
+   */
+  currency: string;
+
+  /**
+   * Metric only (D30: PDT guard off by default); -1 when the broker no longer reports it.
+   *
+   * @generated from field: int32 day_trade_count = 16;
+   */
+  dayTradeCount: number;
+
+  /**
+   * @generated from field: bool trading_blocked = 17;
+   */
+  tradingBlocked: boolean;
+
+  /**
+   * @generated from field: bool account_blocked = 18;
+   */
+  accountBlocked: boolean;
+
+  /**
+   * Raw broker account status.
+   *
+   * @generated from field: string status = 19;
+   */
+  status: string;
 };
 
 /**
@@ -261,6 +343,42 @@ export const ReconciliationDiffSchema: GenMessage<ReconciliationDiff> = /*@__PUR
   messageDesc(file_tb_ledger_v1_ledger, 5);
 
 /**
+ * ReconciliationRequest asks the ledger to reconcile an account now (subject
+ * recon.request.<broker_account_id>). Broker adapters send it after every reconnect resync
+ * (OE-008) before returning the session to READY.
+ *
+ * @generated from message tb.ledger.v1.ReconciliationRequest
+ */
+export type ReconciliationRequest = Message<"tb.ledger.v1.ReconciliationRequest"> & {
+  /**
+   * @generated from field: string broker_account_id = 1;
+   */
+  brokerAccountId: string;
+
+  /**
+   * @generated from field: string reason = 2;
+   */
+  reason: string;
+
+  /**
+   * @generated from field: int64 requested_at = 3;
+   */
+  requestedAt: bigint;
+
+  /**
+   * @generated from field: string correlation_id = 4;
+   */
+  correlationId: string;
+};
+
+/**
+ * Describes the message tb.ledger.v1.ReconciliationRequest.
+ * Use `create(ReconciliationRequestSchema)` to create a new message.
+ */
+export const ReconciliationRequestSchema: GenMessage<ReconciliationRequest> = /*@__PURE__*/
+  messageDesc(file_tb_ledger_v1_ledger, 6);
+
+/**
  * @generated from message tb.ledger.v1.ReconciliationResult
  */
 export type ReconciliationResult = Message<"tb.ledger.v1.ReconciliationResult"> & {
@@ -290,7 +408,7 @@ export type ReconciliationResult = Message<"tb.ledger.v1.ReconciliationResult"> 
  * Use `create(ReconciliationResultSchema)` to create a new message.
  */
 export const ReconciliationResultSchema: GenMessage<ReconciliationResult> = /*@__PURE__*/
-  messageDesc(file_tb_ledger_v1_ledger, 6);
+  messageDesc(file_tb_ledger_v1_ledger, 7);
 
 /**
  * @generated from enum tb.ledger.v1.ReconciliationStatus

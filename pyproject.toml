@@ -11,6 +11,9 @@ dev = [
   "ruff==0.17.1",
   "mypy==2.4.0",
   "httpx==0.28.1",
+  "hypothesis==6.170.1",
+  # Calendar generation only (scripts/gen_calendar.py); runtime code reads the generated file.
+  "exchange-calendars==4.13.2",
 ]
 
 [tool.uv]
@@ -35,6 +38,7 @@ tbcore = { workspace = true }
 [tool.pytest.ini_options]
 testpaths = ["contracts/tests", "libs/py/tbcore/tests", "tests/python"]
 addopts = "-q"
+markers = ["perf: performance targets (opt-in with TB_PERF=1)"]
 
 [tool.ruff]
 line-length = 120
@@ -50,6 +54,8 @@ known-first-party = ["tbcore", "tb"]
 
 [tool.ruff.lint.per-file-ignores]
 "scripts/*.py" = ["S603", "S607"]
+# Seeded pseudo-random data in tests is deliberate (reproducible fixtures), never security-relevant.
+"**/tests/**" = ["S311"]
 
 [tool.mypy]
 python_version = "3.12"

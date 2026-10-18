@@ -88,6 +88,12 @@ secrets:
   broker_kek: { file: "${TB_SECRETS_DIR:-../../.secrets}/broker_kek" }
   svc_api_gateway_ed25519: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_api_gateway_ed25519" }
   svc_api_gateway_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_api_gateway_ed25519.pub" }
+  svc_execution_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_execution_ed25519.pub" }
+  svc_ledger_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_ledger_ed25519.pub" }
+  svc_marketdata_ed25519: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_marketdata_ed25519" }
+  svc_marketdata_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_marketdata_ed25519.pub" }
+  nats_broker_gateway_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_broker_gateway_password" }
+  fmp_api_key: { file: "${TB_SECRETS_DIR:-../../.secrets}/fmp_api_key" }
   grafana_admin_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/grafana_admin_password" }
   backup_age_recipient: { file: "${TB_SECRETS_DIR:-../../.secrets}/backup_age_recipient" }
   backup_age_identity: { file: "${TB_SECRETS_DIR:-../../.secrets}/backup_age_identity" }
@@ -211,10 +217,21 @@ services:
       <<: *common-env
       TB_SERVICE: broker-gateway
       TB_DB_USER: svc_broker_gateway
-    secrets: [pg_svc_broker_gateway_password, broker_kek, svc_api_gateway_ed25519.pub]
+      TB_NATS_USER: broker_gateway
+      # Section 04: Alpaca accounts (credentials entered in the UI, stored encrypted) and the
+      # development simulator account. Live accounts also need TB_TRADING_LIVE_ENABLED=true plus an
+      # audited per-account enablement (BR-013).
+      TB_ALPACA_ACCOUNTS: ${TB_ALPACA_ACCOUNTS:-alpaca-paper:paper}
+      TB_ALPACA_DATA_ACCOUNT: ${TB_ALPACA_DATA_ACCOUNT:-alpaca-paper}
+      TB_ALPACA_DATA_FEEDS: ${TB_ALPACA_DATA_FEEDS:-alpaca.sip,alpaca.iex}
+      TB_ALPACA_DATA_RATE_PER_MIN: ${TB_ALPACA_DATA_RATE_PER_MIN:-8000}
+      TB_SIM_ACCOUNTS: ${TB_SIM_ACCOUNTS:-sim-paper}
+      TB_TRADING_LIVE_ENABLED: ${TB_TRADING_LIVE_ENABLED:-false}
+    secrets: [pg_svc_broker_gateway_password, broker_kek, nats_broker_gateway_password, svc_api_gateway_ed25519.pub,
+              svc_execution_ed25519.pub, svc_ledger_ed25519.pub, svc_marketdata_ed25519.pub]
     networks: [backend, edge]
     healthcheck: *go-healthcheck
-    depends_on: { db-init: { condition: service_completed_successfully } }
+    depends_on: { db-init: { condition: service_completed_successfully }, bus-init: { condition: service_completed_successfully } }
     deploy: { resources: { limits: { memory: 256m } } }
 
   marketdata:
@@ -224,12 +241,30 @@ services:
     build: { <<: *go-build, args: { SERVICE: marketdata, VERSION: "${TB_VERSION:-dev}" } }
     # Runs as the host user so lake files on the host (APFS bind mount, D4) are owned by the owner.
     user: "${TB_HOST_UID:-65532}:${TB_HOST_GID:-65532}"
-    environment: { <<: *common-env, TB_SERVICE: marketdata, TB_NATS_USER: marketdata }
-    secrets: [nats_marketdata_password]
+    environment:
+      <<: *common-env
+      TB_SERVICE: marketdata
+      TB_NATS_USER: marketdata
+      TB_DB_USER: svc_marketdata
+      TB_BROKER_GATEWAY_ADDR: broker-gateway:9090
+      # Section 05: SIP for training and serving (D20); alpaca.iex without Algo Trader Plus (O2).
+      TB_MD_FEED: ${TB_MD_FEED:-alpaca.sip}
+      TB_MD_STREAM_ENABLED: ${TB_MD_STREAM_ENABLED:-true}
+      TB_UNIVERSE: ${TB_UNIVERSE:-dev}
+      TB_FMP_RATE_PER_MIN: ${TB_FMP_RATE_PER_MIN:-240}
+      TB_MD_HISTORY_START: ${TB_MD_HISTORY_START:-}
+      TB_MD_CATCHUP_DAYS: ${TB_MD_CATCHUP_DAYS:-10}
+    # fmp_api_key holds "unset" until the owner writes the key (FMP features stay disabled until then).
+    secrets: [nats_marketdata_password, pg_svc_marketdata_password, valkey_password, svc_marketdata_ed25519,
+              svc_api_gateway_ed25519.pub, svc_execution_ed25519.pub, fmp_api_key]
     volumes: ["${TB_LAKE_DIR:-../../data/lake}:/data/lake"]
     networks: [backend, edge]
     healthcheck: *go-healthcheck
-    depends_on: { bus-init: { condition: service_completed_successfully } }
+    depends_on:
+      db-init: { condition: service_completed_successfully }
+      bus-init: { condition: service_completed_successfully }
+      valkey: { condition: service_healthy }
+      broker-gateway: { condition: service_healthy }
     deploy: { resources: { limits: { memory: 512m } } }
 
   execution:

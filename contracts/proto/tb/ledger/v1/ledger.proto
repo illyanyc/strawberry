@@ -7,8 +7,13 @@ import "tb/common/v1/common.proto";
 
 message Position {
   string instrument_id = 1;
+  // Signed: negative for short positions.
   tb.common.v1.Decimal qty = 2;
   tb.common.v1.Decimal avg_cost = 3;
+  string symbol = 4;
+  tb.common.v1.Decimal market_value = 5;
+  // Broker identifier (Alpaca asset ID, IBKR conId) for mapping when instrument_id is empty.
+  string broker_instrument_id = 6;
 }
 
 message AccountSnapshot {
@@ -20,6 +25,21 @@ message AccountSnapshot {
   tb.common.v1.Decimal equity = 6;
   repeated Position positions = 7;
   int64 as_of = 8;
+  // Broker-reported intraday margin deficit; any true value halts the account (RM-013, D30).
+  bool intraday_margin_deficit = 9;
+  // Broker-reported margin call; halts the account (RM-013).
+  bool margin_call = 10;
+  tb.common.v1.Decimal initial_margin = 11;
+  tb.common.v1.Decimal maintenance_margin = 12;
+  tb.common.v1.Decimal long_market_value = 13;
+  tb.common.v1.Decimal short_market_value = 14;
+  string currency = 15;
+  // Metric only (D30: PDT guard off by default); -1 when the broker no longer reports it.
+  int32 day_trade_count = 16;
+  bool trading_blocked = 17;
+  bool account_blocked = 18;
+  // Raw broker account status.
+  string status = 19;
 }
 
 // Owner of a position slice: a strategy ID or "manual".
@@ -63,6 +83,16 @@ message ReconciliationDiff {
   tb.common.v1.Decimal broker_qty = 2;
   tb.common.v1.Decimal ledger_qty = 3;
   repeated OwnerQty owner_breakdown = 4;
+}
+
+// ReconciliationRequest asks the ledger to reconcile an account now (subject
+// recon.request.<broker_account_id>). Broker adapters send it after every reconnect resync
+// (OE-008) before returning the session to READY.
+message ReconciliationRequest {
+  string broker_account_id = 1;
+  string reason = 2;
+  int64 requested_at = 3;
+  string correlation_id = 4;
 }
 
 message ReconciliationResult {

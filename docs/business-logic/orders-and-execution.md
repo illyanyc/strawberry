@@ -17,16 +17,16 @@ The path from `OrderIntent` to broker and back: OMS states, submission, cancel/r
 | ID | Rule | Status | Code / tests |
 |---|---|---|---|
 | OE-001 | An intent MUST NOT become a broker order without an approved `RiskDecision` recorded for its `intent_id` (see RM-001). | Specified | — |
-| OE-002 | Every outbound order MUST carry a well-formed attribution ID; adapters MUST reject missing or malformed IDs (format in VP-002). | Specified | — |
-| OE-003 | On submit timeout, the adapter MUST query the broker by `client_order_id` before any retry and MUST NOT resubmit blindly. | Specified | — |
-| OE-004 | Only broker accounts in session state `ready` accept orders; others MUST return a typed `BrokerUnavailable` error. | Specified | — |
-| OE-005 | Every broker status MUST map explicitly to a normalized state; unmapped statuses map to `unknown`, which blocks new orders for that instrument and strategy until resolved. | Specified | — |
-| OE-006 | Consumers MUST be idempotent on `intent_id`, `client_order_id`, and `broker_exec_id`; duplicate executions MUST NOT change quantities. | Specified | — |
-| OE-007 | Quantities and prices MUST be decimals or fixed-point; rounding to broker tick/lot size uses an explicit, documented rounding mode. | Specified | — |
-| OE-008 | On reconnect, the adapter MUST fetch open orders and executions since the last acknowledged exec ID, publish missed updates exactly once, and request reconciliation before returning to `ready`. | Specified | — |
-| OE-009 | Bracket/OCO child orders MUST be known to the OMS and attributed to the parent's owner. | Specified | — |
-| OE-010 | Live adapters MUST NOT start unless the global live flag is set **and** the account is live-enabled by an audited owner action (see SM-004). | Specified | — |
-| OE-011 | Every submit, cancel, replace, and reject MUST be written to the audit log with its attribution ID. | Specified | — |
+| OE-002 | Every outbound order MUST carry a well-formed attribution ID; adapters MUST reject missing or malformed IDs (format in VP-002). | Implemented (adapter) | `services/broker-gateway/internal/attribution`; BR-003 |
+| OE-003 | On submit timeout, the adapter MUST query the broker by `client_order_id` before any retry and MUST NOT resubmit blindly. | Implemented (adapter) | `broker-gateway/internal/adapter/account.go`; BR-007 |
+| OE-004 | Only broker accounts in session state `ready` accept orders; others MUST return a typed `BrokerUnavailable` error. | Implemented (adapter) | `broker-gateway/internal/session`, `grpcsvc`; BR-004, BR-010 |
+| OE-005 | Every broker status MUST map explicitly to a normalized state; unmapped statuses map to `unknown`, which blocks new orders for that instrument and strategy until resolved. | Implemented (adapter: mapping + alert, BR-006); OMS blocking Specified (Phase 2) | `broker-gateway/internal/alpaca/mapping.go` |
+| OE-006 | Consumers MUST be idempotent on `intent_id`, `client_order_id`, and `broker_exec_id`; duplicate executions MUST NOT change quantities. | Implemented (adapter) | `broker-gateway/internal/execstore`; BR-008 |
+| OE-007 | Quantities and prices MUST be decimals or fixed-point; rounding to broker tick/lot size uses an explicit, documented rounding mode. | Implemented (adapter) | `broker-gateway/internal/adapter/rounding.go`; BR-017 |
+| OE-008 | On reconnect, the adapter MUST fetch open orders and executions since the last acknowledged exec ID, publish missed updates exactly once, and request reconciliation before returning to `ready`. | Implemented (adapter) | `broker-gateway/internal/adapter/account.go`; BR-011 |
+| OE-009 | Bracket/OCO child orders MUST be known to the OMS and attributed to the parent's owner. | Implemented (adapter: legs carry the parent ID, BR-018); OMS Specified (Phase 2) | `broker-gateway/internal/alpaca/broker.go` |
+| OE-010 | Live adapters MUST NOT start unless the global live flag is set **and** the account is live-enabled by an audited owner action (see SM-004). | Implemented (adapter) | `broker-gateway/internal/livegate`; BR-013 |
+| OE-011 | Every submit, cancel, replace, and reject MUST be written to the audit log with its attribution ID. | Implemented (adapter) | `broker-gateway/internal/adapter/account.go`; BR-014 |
 
 ## Invariants
 
@@ -49,5 +49,5 @@ The path from `OrderIntent` to broker and back: OMS states, submission, cancel/r
 
 ## Open questions
 
-- Exact attribution-ID length limits per broker (Alpaca `client_order_id`, IBKR `orderRef`): verify in research §6/§10.
+- Attribution-ID length: Alpaca `client_order_id` ≤ 128 (capabilities); IBKR `orderRef`: spike V1 (IBKR track).
 - Default order types and TIF per strategy family: DECISION PENDING (strategy specs).

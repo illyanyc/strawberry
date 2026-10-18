@@ -56,7 +56,7 @@ func Ready(nc *nats.Conn) func(context.Context) error {
 var Streams = []jetstream.StreamConfig{
 	{Name: "ORDERS", Subjects: []string{"ord.>", "exec.>", "risk.kill"}, Storage: jetstream.FileStorage,
 		Retention: jetstream.LimitsPolicy, MaxAge: 90 * 24 * time.Hour, Replicas: 1, Duplicates: 10 * time.Minute},
-	{Name: "LEDGER", Subjects: []string{"acct.snapshot.>", "ledger.update.>", "recon.result.>"}, Storage: jetstream.FileStorage,
+	{Name: "LEDGER", Subjects: []string{"acct.snapshot.>", "ledger.update.>", "recon.result.>", "recon.request.>"}, Storage: jetstream.FileStorage,
 		Retention: jetstream.LimitsPolicy, MaxAge: 90 * 24 * time.Hour, Replicas: 1, Duplicates: 10 * time.Minute},
 	{Name: "SIGNALS", Subjects: []string{"sig.>"}, Storage: jetstream.FileStorage,
 		Retention: jetstream.LimitsPolicy, MaxAge: 30 * 24 * time.Hour, Replicas: 1},
@@ -66,6 +66,9 @@ var Streams = []jetstream.StreamConfig{
 		Retention: jetstream.LimitsPolicy, MaxAge: 7 * 24 * time.Hour, Replicas: 1},
 	{Name: "MARKETDATA", Subjects: []string{"md.>", "feat.>"}, Storage: jetstream.MemoryStorage,
 		Retention: jetstream.LimitsPolicy, MaxAge: time.Hour, MaxBytes: 512 << 20, Discard: jetstream.DiscardOld, Replicas: 1},
+	// Reference-data events (corporate actions for the ledger): durable (section 05).
+	{Name: "REF", Subjects: []string{"ref.>"}, Storage: jetstream.FileStorage,
+		Retention: jetstream.LimitsPolicy, MaxAge: 90 * 24 * time.Hour, Replicas: 1, Duplicates: 10 * time.Minute},
 	{Name: "SYS", Subjects: []string{"sys.>"}, Storage: jetstream.MemoryStorage,
 		Retention: jetstream.LimitsPolicy, MaxAge: 10 * time.Minute, Replicas: 1},
 }
@@ -82,6 +85,20 @@ func EnsureStreams(ctx context.Context, nc *nats.Conn) error {
 		}
 	}
 	return nil
+}
+
+// NewMsg builds a NATS message for a proto payload with the context's correlation ID header.
+func NewMsg(ctx context.Context, subject string, msg proto.Message) (*nats.Msg, error) {
+	b, err := proto.Marshal(msg)
+	if err != nil {
+		return nil, err
+	}
+	m := nats.NewMsg(subject)
+	m.Data = b
+	if id := logging.CorrelationID(ctx); id != "" {
+		m.Header.Set("Tb-Correlation-Id", id)
+	}
+	return m, nil
 }
 
 // Publish sends msg on subject through JetStream with Nats-Msg-Id = dedupeID (when set) and the

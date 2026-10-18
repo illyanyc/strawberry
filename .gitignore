@@ -9,6 +9,13 @@ backups/
 *.test
 coverage.out
 /bin/
+# `go build` in a module directory drops the binary next to main.go's module
+/services/*/marketdata
+/services/*/broker-gateway
+/services/*/api-gateway
+/services/*/execution
+/services/*/ledger
+/tools/tbctl/tbctl
 
 # Python
 __pycache__/
