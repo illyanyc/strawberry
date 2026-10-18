@@ -51,6 +51,7 @@ stateDiagram-v2
 | EX-024 | Each candidate MUST get a gate report: outer estimate with bootstrap CI, DSR, PBO, SPA and Romano–Wolf against the champion (when one exists), walk-forward and regime breakdowns, net results at 1×, 1.5×, and 2× costs, parameter stability (neighbor trials), leakage-suite result, survivorship status, and the scorer verdict (BT-080). | Implemented | `tb_optimizer/gates.py` `build_gate_report` (`test_ex001_ex024_*`) |
 | EX-025 | A research cycle's effective-trial budget MUST be the largest N with MinBTL(N, `target_sharpe`) ≤ available years of study data; when the cycle's effective trials reach it the cycle is `spent` and new studies or analyst launches in the lineage are refused until the owner opens a new cycle. | Implemented | `tb_optimizer/core.py` `open_cycle`, `_cycle_spent`, `stats.cycle_budget` (`test_ex026_ex025_preregistration_and_cycle_budget`) |
 | EX-026 | A study MUST have a pre-registration (hypothesis, metric, universe, period, stop rule) before it starts; its hash is stamped on every trial, and a different metric needs a new study. | Implemented | `tb_optimizer/core.py` `start_study` (`test_ex026_ex025_*`) |
+| EX-027 | A study that ends without its final selection (no candidate) MUST end `stopped`, never `completed`, with the reason in its message: the research cycle budget spent (EX-025) or its own budget exhausted (EX-060). | Implemented | `tb_optimizer/core.py` `_run` (`test_ex027_cycle_spent_mid_study_stops_without_a_candidate`) |
 | EX-030 | The actor MUST be resolved from the calling service: `assistant` → `analyst` (whatever the request says), `api-gateway` → the claimed owner with its step-up attestation, `ml`/`optimizer` internal → `schedule` or `system`. | Implemented | `tbcore/ml/caller.py` `resolve` (`test_ex030_grpc_forces_actor_analyst_for_the_assistant`, `test_ex012_ex030_*`) |
 | EX-031 | Registry transitions MUST follow the permission table below, enforced in the optimizer for every caller (table-driven test). | Implemented | `tb_optimizer/registry.py` `decide` (`test_ex031_permission_table`) |
 | EX-032 | `CheckTransition` MUST return exactly the decision `PromoteCandidate` would make, without side effects. | Implemented | `tb_optimizer/core.py` `check` (same `decide`) |
@@ -101,6 +102,7 @@ stateDiagram-v2
 | Analyst asks to promote a challenger to paper in a lineage with no paper champion | Denied (new spec needs owner) | EX-052, EX-031 |
 | Demoted candidate, analyst level 2 | Re-promotion denied | EX-055 |
 | Cycle budget spent | New study refused with `cycle_spent`; owner may open a new cycle | EX-025 |
+| Cycle budget spent during a study | The running study stops searching, ends `stopped` with no candidate and the reason in its message | EX-025, EX-027 |
 
 ## Open questions
 

@@ -203,6 +203,34 @@ def test_ex026_ex025_preregistration_and_cycle_budget(world: dict[str, Any]) -> 
         core.start_study(st3.study_id, None, owner())
 
 
+def test_ex027_cycle_spent_mid_study_stops_without_a_candidate(tmp_path: Path) -> None:
+    core = OptimizerCore(MemoryDocStore(), tmp_path, holdout_store=MemoryDocStore(), audit=MemoryAudit())
+    lin = core.create_lineage(
+        op.Lineage(name="tiny cycle", family="lgbm_regression", timeframe="15m", universe="synthetic:intraday_edge"),
+        owner(),
+    )
+    # Half a year of data at a target annual Sharpe of 1 allows only a few effective trials (EX-025).
+    cyc = core.open_cycle(lin.lineage_id, 1.0, owner())
+    assert cyc.effective_trial_budget < 6
+    base = tp.TrainingConfig(family="lgbm_regression", timeframe="15m")
+    base.hyperparams.update({"n_estimators": 80})
+    s = op.StudySpec(
+        name="one family, default space",
+        lineage_id=lin.lineage_id,
+        families=["lgbm_regression"],
+        budget=op.Budget(max_trials=12),
+        seed=5,
+        base_config=base,
+        objective=op.Objective(metric="sharpe", direction="maximize"),
+        preregistration=op.PreRegistration(hypothesis="h", metric="sharpe", stop_rule="budget"),
+    )
+    done = core.start_study(core.create_study(s, owner()).study_id, None, owner(), wait=True)
+    st = core.study(done.study_id)
+    assert st.status == op.STUDY_STATUS_STOPPED and not st.candidate_id
+    assert "cycle budget spent" in st.message
+    assert len(core.trials(study_id=st.study_id)) < 12
+
+
 def test_ex020_ex041_owner_analyst_and_retrain_trials_share_one_ledger(world: dict[str, Any]) -> None:
     core: OptimizerCore = world["core"]
     lin_id = world["lin"].lineage_id

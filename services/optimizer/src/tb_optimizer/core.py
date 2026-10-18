@@ -616,6 +616,14 @@ class OptimizerCore:
                 st.deflated_sharpe = g.dsr if g else 0.0
             st.status = op.STUDY_STATUS_STOPPED if w.stop or nested.stopped else op.STUDY_STATUS_COMPLETED
             st.message = "stopped" if st.status == op.STUDY_STATUS_STOPPED else "completed"
+            if not st.candidate_id and not w.stop:
+                # EX-027: a study that never reached its final selection is not complete.
+                st.status = op.STUDY_STATUS_STOPPED
+                st.message = (
+                    "stopped before the final selection: research cycle budget spent (EX-025)"
+                    if self._cycle_spent(self._lineage(lin_id))
+                    else "stopped before the final selection: budget exhausted (EX-060)"
+                )
         except Exception as exc:
             log.exception("study %s failed", st.study_id)
             st.status = op.STUDY_STATUS_FAILED
