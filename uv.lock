@@ -230,11 +230,21 @@ name = "context-data"
 version = "0.0.0"
 source = { editable = "services/context-data" }
 dependencies = [
+    { name = "grpcio" },
+    { name = "httpx" },
+    { name = "nats-py" },
+    { name = "tbcontracts" },
     { name = "tbcore" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "tbcore", editable = "libs/py/tbcore" }]
+requires-dist = [
+    { name = "grpcio", specifier = "==1.84.0" },
+    { name = "httpx", specifier = "==0.28.1" },
+    { name = "nats-py", specifier = "==2.16.0" },
+    { name = "tbcontracts", editable = "contracts/gen/python" },
+    { name = "tbcore", editable = "libs/py/tbcore" },
+]
 
 [[package]]
 name = "cryptography"
@@ -1012,6 +1022,7 @@ name = "tbcore"
 version = "0.0.0"
 source = { editable = "libs/py/tbcore" }
 dependencies = [
+    { name = "cryptography" },
     { name = "duckdb" },
     { name = "fastapi" },
     { name = "numpy" },
@@ -1026,6 +1037,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "cryptography", specifier = "==50.0.2" },
     { name = "duckdb", specifier = "==1.5.6" },
     { name = "fastapi", specifier = "==0.143.3" },
     { name = "numpy", specifier = "==2.5.4" },

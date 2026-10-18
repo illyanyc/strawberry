@@ -1,0 +1,131 @@
+"""Payload schemas of the context kinds stored in the lake (``payload_json``, section 09).
+
+Payloads hold decimals and timestamps as strings (``google.protobuf.Struct`` numbers are doubles,
+which cannot carry nanosecond timestamps or exact money). Readers decode ``payload_json`` with these
+explicit schemas so missing keys become nulls instead of breaking type inference.
+"""
+
+from __future__ import annotations
+
+import polars as pl
+
+S, F, B = pl.Utf8, pl.Float64, pl.Boolean
+
+PAYLOADS: dict[str, dict[str, pl.DataType]] = {
+    "news": {
+        "news_id": S(),
+        "headline": S(),
+        "summary": S(),
+        "body": S(),
+        "author": S(),
+        "provider": S(),
+        "url": S(),
+        "created_at": S(),
+        "revised": B(),
+        "duplicate_of": S(),
+        "untrusted": B(),
+    },
+    "news_sentiment": {
+        "news_id": S(),
+        "model": S(),
+        "model_version": S(),
+        "scorer": S(),
+        "training_cutoff": S(),
+        "score": F(),
+        "label": S(),
+        "confidence": F(),
+        "contaminated": B(),
+        "duplicate": B(),
+        "input_sha256": S(),
+    },
+    "macro": {
+        "series_id": S(),
+        "period": S(),
+        "value": S(),
+        "realtime_start": S(),
+    },
+    "calendar": {
+        "event": S(),
+        "country": S(),
+        "currency": S(),
+        "category": S(),
+        "impact": S(),
+        "release_time": S(),
+        "previous": S(),
+        "estimate": S(),
+        "actual": S(),
+        "surprise": S(),
+        "unit": S(),
+        "phase": S(),
+        "basis": S(),
+    },
+    "earnings": {
+        "report_date": S(),
+        "timing": S(),
+        "eps_estimate": S(),
+        "eps_actual": S(),
+        "eps_surprise": S(),
+        "revenue_estimate": S(),
+        "revenue_actual": S(),
+        "phase": S(),
+        "basis": S(),
+        "last_updated": S(),
+    },
+    "fundamentals": {
+        "statement": S(),
+        "period": S(),
+        "fiscal_year": S(),
+        "period_end": S(),
+        "filing_date": S(),
+        "accepted_date": S(),
+        "revenue": S(),
+        "net_income": S(),
+        "eps": S(),
+        "eps_diluted": S(),
+        "total_assets": S(),
+        "total_liabilities": S(),
+        "total_equity": S(),
+        "operating_cash_flow": S(),
+        "free_cash_flow": S(),
+        "shares_diluted": S(),
+        "basis": S(),
+    },
+    "short_interest": {
+        "settlement_date": S(),
+        "publication_date": S(),
+        "short_interest": S(),
+        "previous_short_interest": S(),
+        "avg_daily_volume": S(),
+        "days_to_cover": S(),
+        "change_pct": S(),
+        "revision_flag": S(),
+        "basis": S(),
+    },
+    "filing": {
+        "cik": S(),
+        "accession": S(),
+        "form": S(),
+        "filing_date": S(),
+        "report_date": S(),
+        "acceptance_raw": S(),
+        "items": S(),
+        "primary_document": S(),
+        "url": S(),
+    },
+    "regime": {
+        "version": S(),
+        "vol_regime": S(),
+        "trend_regime": S(),
+        "stress": B(),
+        "label": S(),
+        "spy_rv20": F(),
+        "rv_pct_252": F(),
+        "trend_er20": F(),
+        "spy_vs_sma200": F(),
+        "vix": F(),
+        "vix_pct_252": F(),
+        "vix_term_ratio": F(),
+    },
+}
+
+KINDS = tuple(PAYLOADS)

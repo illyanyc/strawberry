@@ -273,8 +273,9 @@ class Lake:
     def context(
         self, kind: str, instruments: Sequence[str] | None = None, as_of: TimeLike | None = None
     ) -> pl.DataFrame:
-        """Context events (e.g. FMP fundamentals snapshots). With ``as_of``, the latest snapshot per
-        (instrument, event_time) with ``available_at <= as_of`` (DF-002, DF-010)."""
+        """Context events (raw rows; decoded reads are in ``tbcore.context.ContextStore``). With
+        ``as_of``, the latest version per (record_key, instrument) with ``available_at <= as_of``
+        (DF-002, DF-010, CX-002); rows without a record_key are keyed by event_time."""
         lf = self._scan(self.files("context"))
         if lf is None:
             return pl.DataFrame()
@@ -283,9 +284,17 @@ class Lake:
             lf = lf.filter(pl.col("instrument_id").is_in(list(instruments)))
         if as_of is not None:
             lf = lf.filter(pl.col("available_at") <= _lit_ts(to_ns(as_of)))
+        if "record_key" not in lf.collect_schema().names():
+            lf = lf.with_columns(pl.lit(None, dtype=pl.Utf8).alias("record_key"))
+        rk = pl.coalesce(
+            pl.when(pl.col("record_key") != "").then(pl.col("record_key")),
+            pl.col("event_time").dt.epoch("ns").cast(pl.Utf8),
+        ).alias("_rk")
         return (
-            lf.sort("available_at", descending=True)
-            .unique(subset=["instrument_id", "event_time"], keep="first")
+            lf.with_columns(rk)
+            .sort("available_at", descending=True)
+            .unique(subset=["instrument_id", "_rk"], keep="first")
+            .drop("_rk")
             .sort(["instrument_id", "event_time"])
             .collect()
         )

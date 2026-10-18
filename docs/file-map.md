@@ -88,6 +88,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/business-logic/brokers-ibkr.md` | Exists | `IB-` rules: IBKR adapter (gateway login and custody, session supervision across daily/weekly resets, orderRef attribution and echo check, status and error-code tables, executions, pacing, spike V1) |
 | `docs/business-logic/brokers.md` | Exists | `BR-` rules: broker interface, capabilities, error model, order-state mapping per broker, attribution validation, session lifecycle, resync, rate limits, live gating, market-data fan-out |
 | `docs/business-logic/monitoring.md` | Exists | `MN-` rules: alert rules and runbooks, bus alert forwarding, routing and quiet hours, daily reports, pipeline dead-man |
+| `docs/business-logic/context-data.md` | Exists | `CX-` rules: context sources, availability per source, record keys and snapshot stamping, untrusted text, quarantined sentiment and contamination, event blackouts, regimes, context features, freshness; source catalog (cost, latency, history, licence) |
 | `docs/business-logic/security.md` | Exists | `SE-` rules: policy, step-up, sessions, CSRF, secrets, credential encryption, redaction, audit, DB privileges |
 | `docs/adr/README.md` | Exists | ADR process and index |
 | `docs/adr/template.md` | Exists | ADR template |
@@ -146,7 +147,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | Path | Status | Purpose |
 |---|---|---|
 | `libs/go/` | Exists | Go module: config, logging/redaction, secrets, ops, telemetry, svc template, svcauth, policy, audit, db (+ embedded migrations), bus, clock, resilience (backoff, priority rate limiter, circuit breaker), outbox (transactional outbox + relay), calendar (embedded XNYS sessions), cache (Valkey key layout), attribution (attribution ID parser shared by broker-gateway, ledger, execution; VP-002), bus consumers (`bus.Consume`), webauthntest (software passkey authenticator for tests). Internal layout in [`libs/go/AGENTS.md`](../libs/go/AGENTS.md) |
-| `libs/py/tbcore/` | Exists | Python package: service template, JSON logging with redaction, secrets, lake query layer (`tbcore.data`: point-in-time bars, adjustments, as-of joins, universes, calendar), data quality (`tbcore.dq`), feature store (`tbcore.features`), strategy API with sizing and the ORB baseline (`tbcore.strategy`) (later: labels, splitters). Layout in [`libs/py/tbcore/AGENTS.md`](../libs/py/tbcore/AGENTS.md) |
+| `libs/py/tbcore/` | Exists | Python package: service template, JSON logging with redaction, secrets, lake query layer (`tbcore.data`: point-in-time bars, adjustments, as-of joins, universes, calendar), data quality (`tbcore.dq`), feature store (`tbcore.features`), strategy API with sizing and the ORB baseline (`tbcore.strategy`), point-in-time context data (`tbcore.context`: availability rules, `ContextStore`, regimes, `EventBlackout`, context features), service-token signer (`tbcore.svcauth`) (later: labels, splitters). Layout in [`libs/py/tbcore/AGENTS.md`](../libs/py/tbcore/AGENTS.md) |
 
 ## Services: `services/`
 

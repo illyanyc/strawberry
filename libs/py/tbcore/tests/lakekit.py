@@ -5,6 +5,8 @@ Only tests write lakes from Python; production writes go through marketdata (D4 
 
 from __future__ import annotations
 
+import hashlib
+import json
 import math
 import random
 from datetime import UTC, datetime, timedelta
@@ -229,3 +231,68 @@ def et(y: int, mo: int, d: int, h: int = 0, mi: int = 0) -> datetime:
     from zoneinfo import ZoneInfo
 
     return datetime(y, mo, d, h, mi, tzinfo=ZoneInfo("America/New_York")).astimezone(UTC)
+
+
+CONTEXT_SCHEMA: dict[str, Any] = {
+    "kind": pl.Utf8,
+    "instrument_id": pl.Utf8,
+    "symbol": pl.Utf8,
+    "event_time": DT,
+    "available_at": DT,
+    "ingested_at": DT,
+    "source": pl.Utf8,
+    "vintage": pl.Utf8,
+    "payload_json": pl.Utf8,
+    "payload_sha256": pl.Utf8,
+    "record_key": pl.Utf8,
+    "event_id": pl.Utf8,
+}
+
+
+def context_row(
+    kind: str,
+    record_key: str,
+    event_time: int,
+    available_at: int,
+    payload: dict[str, Any],
+    instrument_id: str = "",
+    source: str = "test",
+    vintage: str = "",
+    symbol: str = "",
+) -> dict[str, Any]:
+    """One context row as marketdata's sink writes it (canonical JSON payload, CX-002/CX-003)."""
+    raw = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return {
+        "kind": kind,
+        "instrument_id": instrument_id,
+        "symbol": symbol,
+        "event_time": event_time,
+        "available_at": available_at,
+        "ingested_at": available_at,
+        "source": source,
+        "vintage": vintage,
+        "payload_json": raw,
+        "payload_sha256": hashlib.sha256(raw.encode()).hexdigest(),
+        "record_key": record_key,
+        "event_id": f"{record_key}@{available_at}",
+    }
+
+
+def write_context(root: Path, rows: list[dict[str, Any]], name: str = "staging-0000000000000000000000CTX1") -> None:
+    """Write context rows partitioned like the Go writer (kind/year/month of event_time)."""
+    df = pl.DataFrame(
+        [
+            {**r, "event_time": r["event_time"], "available_at": r["available_at"], "ingested_at": r["ingested_at"]}
+            for r in rows
+        ],
+        schema={k: (pl.Int64 if v == DT else v) for k, v in CONTEXT_SCHEMA.items()},
+        orient="row",
+    ).with_columns([pl.col(c).cast(DT) for c in ("event_time", "available_at", "ingested_at")])
+    df = df.with_columns(pl.col("event_time").dt.year().alias("_y"), pl.col("event_time").dt.month().alias("_m"))
+    for (kind, y, m), part in df.group_by(["kind", "_y", "_m"]):
+        d = root / "context" / f"kind={kind}" / f"year={y:04d}" / f"month={m:02d}"
+        d.mkdir(parents=True, exist_ok=True)
+        i = 0
+        while (d / f"{name}{i}.parquet").exists():
+            i += 1
+        part.drop(["_y", "_m"]).write_parquet(d / f"{name}{i}.parquet")
