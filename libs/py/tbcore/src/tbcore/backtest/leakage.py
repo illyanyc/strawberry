@@ -109,10 +109,13 @@ def random_walk_test(
     seed: int = 7,
     t_max: float = 3.0,
     prepare: Prepare | None = None,
+    vol: float = 0.008,
+    min_trades: int = 30,
 ) -> LeakageCheck:
     """BT-061: run the strategy (gross of costs) on martingale prices; a mean trade P&L with a
-    t-statistic above ``t_max`` is impossible without look-ahead."""
-    bars = random_walk_bars(n_instruments, n_sessions, timeframe_min, seed=seed)
+    t-statistic above ``t_max`` is impossible without look-ahead. Fewer than ``min_trades``
+    trades is inconclusive and fails."""
+    bars = random_walk_bars(n_instruments, n_sessions, timeframe_min, seed=seed, vol=vol)
     if prepare is not None:
         prepare(bars)
     ids = sorted(bars["instrument_id"].unique().to_list())
@@ -129,11 +132,19 @@ def random_walk_test(
             "end": last,
             "cost_model": GROSS,
             "account": config.account.model_copy(update={"manual_positions": ()}),
+            # A martingale produces loss streaks; the live consecutive-loss halt would end the
+            # sample after a few trades, so this diagnostic (synthetic data, no broker) lifts it.
+            "risk_limits": {**config.risk_limits, "max_consecutive_losses": "1000000"},
         }
     )
     pnl = run_event_backtest(cfg, bars).trades["gross_pnl"].to_numpy()
-    if pnl.size < 5:
-        return LeakageCheck("random_walk", True, 0.0, f"only {pnl.size} trades on random-walk prices")
+    if pnl.size < min_trades:
+        return LeakageCheck(
+            "random_walk",
+            False,
+            float(pnl.size),
+            f"inconclusive: only {pnl.size} trades on random-walk prices (need {min_trades})",
+        )
     t = float(pnl.mean() / (pnl.std(ddof=1) / math.sqrt(pnl.size))) if pnl.std(ddof=1) > 0 else math.inf
     return LeakageCheck(
         "random_walk",

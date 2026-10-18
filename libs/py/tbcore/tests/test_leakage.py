@@ -9,7 +9,7 @@ import pytest
 
 from tbcore.backtest.config import BacktestConfig
 from tbcore.backtest.event import run_event_backtest
-from tbcore.backtest.leakage import random_entry_baseline, run_leakage_suite, shuffled_label_test
+from tbcore.backtest.leakage import random_entry_baseline, random_walk_test, run_leakage_suite, shuffled_label_test
 from tbcore.validation.splitters import PurgedKFold
 
 from . import leaky
@@ -42,7 +42,15 @@ def test_bt065_suite_fails_for_a_leaky_strategy() -> None:
     assert not rep.passed
     assert not checks["future_shift"].passed, checks["future_shift"].detail
     assert not checks["random_walk"].passed, checks["random_walk"].detail
+    assert checks["random_walk"].detail.startswith("t-stat"), checks["random_walk"].detail
     assert checks["timestamp_assertion"].passed
+
+
+def test_bt061_random_walk_with_too_few_trades_is_inconclusive_and_fails() -> None:
+    cfg = orb_config([iid(s) for s in SYMS], START, END)
+    check = random_walk_test(cfg, n_instruments=1, n_sessions=3)
+    assert not check.passed
+    assert check.detail.startswith("inconclusive"), check.detail
 
 
 def _ridge(lam: float, leak: bool):  # type: ignore[no-untyped-def]
