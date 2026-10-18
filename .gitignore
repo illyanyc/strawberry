@@ -51,6 +51,7 @@ playwright-report/
 v1-order-ref*.json
 paper-gate-evidence.json
 research-gate-evidence.json
+monitoring-gate-evidence.json
 paper-gate.tbrec
 parity-report-*.json
 # Spike V6 output (make spike-v6)
