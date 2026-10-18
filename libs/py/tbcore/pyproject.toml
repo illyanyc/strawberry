@@ -15,6 +15,8 @@ dependencies = [
   "polars==1.44.2",
   "pyarrow==26.0.0",
   "numpy==2.5.4",
+  # Service-token signing for Python gRPC clients (tbcore.svcauth, SE-040).
+  "cryptography==50.0.2",
 ]
 
 [build-system]

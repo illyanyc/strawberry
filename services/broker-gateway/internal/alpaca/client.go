@@ -106,6 +106,7 @@ var Routes = []route{
 	{http.MethodGet, "/v2/assets/{id}"},
 	{http.MethodGet, "/v2/stocks/bars"},
 	{http.MethodGet, "/v1/corporate-actions"},
+	{http.MethodGet, "/v1beta1/news"},
 }
 
 func allowed(method, path string) bool {

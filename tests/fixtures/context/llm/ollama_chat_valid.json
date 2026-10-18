@@ -1,0 +1,1 @@
+{"model": "qwen3:4b", "created_at": "2026-10-18T05:00:00Z", "message": {"role": "assistant", "content": "{\"score\": -0.6, \"label\": \"negative\", \"confidence\": 0.8}"}, "done": true, "done_reason": "stop"}

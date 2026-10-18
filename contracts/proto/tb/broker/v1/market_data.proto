@@ -23,6 +23,47 @@ service BrokerMarketDataService {
   // Corporate actions announced or effective in a date range.
   rpc GetCorporateActions(GetCorporateActionsRequest) returns (GetCorporateActionsResponse);
   rpc GetFeedStatus(GetFeedStatusRequest) returns (GetFeedStatusResponse);
+  // One page of vendor news (Alpaca: Benzinga) for context-data (section 09, ADR-0029). Only
+  // broker-gateway holds the Alpaca credential (SE-031), so news is fetched here. Text fields are
+  // untrusted and returned as the vendor sent them; context-data sanitizes them (CX-011).
+  rpc GetNews(GetNewsRequest) returns (GetNewsResponse);
+}
+
+message GetNewsRequest {
+  // Empty means all symbols.
+  repeated string symbols = 1;
+  // UTC ns, inclusive start and exclusive end on the article's first-publication time.
+  int64 start = 2;
+  int64 end = 3;
+  string page_token = 4;
+  // Maximum articles per page (server caps it at the vendor limit, 50 for Alpaca).
+  uint32 limit = 5;
+  // Return the article body (large; only when licensed and enabled, CX-010).
+  bool include_content = 6;
+}
+
+message NewsArticle {
+  // Vendor article ID (stable across updates).
+  string id = 1;
+  string headline = 2;
+  string summary = 3;
+  // HTML body when requested, else empty.
+  string content = 4;
+  string author = 5;
+  // Upstream provider, e.g. "benzinga".
+  string source = 6;
+  string url = 7;
+  repeated string symbols = 8;
+  // First publication time (UTC ns). Point-in-time availability derives from this (CX-010).
+  int64 created_at = 9;
+  // Last vendor update (UTC ns); never used for availability.
+  int64 updated_at = 10;
+}
+
+message GetNewsResponse {
+  repeated NewsArticle articles = 1;
+  // Empty when there are no more pages.
+  string next_page_token = 2;
 }
 
 message GetHistoricalBarsRequest {

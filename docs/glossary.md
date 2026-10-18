@@ -6,10 +6,12 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 |---|---|
 | **Account hold (IBKR)** | A per-account reason, such as `margin_deficit`, that keeps an otherwise `ready` IBKR session `degraded` for that account until cleared (IB-041, BR-021). |
 | **ADR** | Architecture Decision Record in `docs/adr/`; one decision per file, superseded rather than rewritten. |
+| **ALFRED** | Archival FRED: every vintage of every FRED series; `series/observations` with `output_type=1` returns each value with the real-time period it was current (CX-006, DF-010). |
 | **Allocatable capital** | Account equity minus the owner's reserve (`TB_LEDGER_RESERVE_PCT`, default 10 %, plus `TB_LEDGER_RESERVE_ABS`); the sum of strategy allocations may not exceed it (VP-009). |
 | **Attribution ID** | The ID placed in Alpaca `client_order_id` / IBKR `orderRef` that identifies the owning strategy and intent: `tb1-<strategyShortId>-<intentULID>-<attempt>`. |
 | **Audit chain** | The hash-linked sequence of audit events: each event's hash covers the previous hash and its own canonical fields; `make audit-verify` recomputes it. |
 | **`available_at`** | The earliest time the platform could have known a datum. All point-in-time filtering uses it, never `event_time`. |
+| **BMO / AMC / DMH** | Earnings timing: before market open, after market close, during market hours. Results are available at 09:30, 20:00, and 16:00 New York on the report date; unknown timing counts as AMC (CX-007). |
 | **Break (reconciliation break)** | A recorded difference or ownership violation in an account (`timing`, `encroachment`, `unknown_execution`, `missing_execution`, `corporate_action`, `cash_mismatch`, `orphan_order`, `ghost_order`, `oversell`, `unmapped_instrument`); critical breaks halt the affected strategy×instrument pairs until resolved (VP-008, VP-014). |
 | **Broker account (`broker_account_id`)** | One real account at one broker in one environment (paper or live). Paper and live are different accounts. |
 | **Broker simulator** | In-process deterministic broker (`broker-gateway/internal/sim`) implementing the adapter interface with a small matching engine and fault hooks; used by tests and the `sim-paper` development account (ADR-0019). |
@@ -24,6 +26,8 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Compaction (lake)** | Merging a partition's staging and part files into one sorted part file with one row per natural key (ST-004). |
 | **Cold restart (IBC)** | IBC's Sunday-only full gateway restart at `ColdRestartTime` (default 17:00 ET): a fresh login, with an IBKR Mobile 2FA push for live; the platform's weekly IBKR login (IB-014). |
 | **Compose profile** | Named group of services in `infra/compose/docker-compose.yml` (`core`, `observability`, `ml`, `ml-workers`, `ops`, `remote-cloudflare`); `make up` starts `core,observability`. |
+| **Contaminated score** | A model-scored feature (news sentiment) for data published before that model's training cutoff; stored but excluded from features and backtests by default (CX-014, D31 rule 10). |
+| **Context record / record key** | One logical context datum (a news item, a series period, a filing) identified by `record_key`; its versions differ in payload and `available_at` (CX-002). |
 | **Correction (bar)** | An update to a bar after it was final: stored as a new revision and published on `md.bar.correction.*` (MD-002, DF-007). |
 | **Correlation ID** | ID carried by every event from signal to fill, for tracing. |
 | **Correlation trace** | The UI view of everything recorded for one correlation ID: intent, risk decision with every check, orders, and fills (UI-017). |
@@ -32,6 +36,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Decimal (contract type)** | `tb.common.v1.Decimal`: an exact base-10 number carried as a string; the only representation for money and quantity in contracts. |
 | **Deflated Sharpe ratio (DSR)** | Sharpe ratio corrected for the number of trials and non-normal returns; used to rank strategies honestly. |
 | **Demotion** | Automatic or manual move of a strategy to `paper` or `halted`. Re-promotion is always manual. |
+| **Event blackout** | A window around a scheduled event (CPI, FOMC, an instrument's earnings) in which a strategy's opening intents are dropped; closes are never blocked (CX-016). |
 | **`event_time`** | When something happened in the world (trade, bar close, news publication). |
 | **Encroachment** | A manual sell (in the broker's app) that takes manual quantity below zero while a strategy holds the instrument, i.e. the owner sold strategy-attributed shares; raises a critical break (VP-016). |
 | **End-of-day summary** | Daily report 10 minutes after the close: fills, fees, reconciliation, breaks per account; realized P&L per owner; approved and rejected intents per strategy; alerts (MN-006). |
@@ -76,16 +81,20 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Point-in-time (PIT)** | Data as it was knowable at a given moment, including universe membership and corporate actions. |
 | **Pre-market checklist** | Daily report 15 minutes before the open: broker sessions, reconciliation, kill switches, halts, clock, active strategies; fails closed without execution's heartbeat (MN-005). |
 | **Protective order** | A broker-side stop (bracket/OTO leg, or a separate GTC stop at brokers without brackets) attached to every algorithmic entry so an outage never leaves naked risk (N5, OE-014). |
+| **Publication date (short interest)** | The date FINRA publishes short interest for a settlement date, about 7 sessions later; short interest is available from it, never from the settlement date (CX-005). |
 | **Publication delay** | Per-feed time between a bar's close and when it counts as available (`available_at` = `ts_close` + delay): Alpaca 60 s, FMP daily 6 h (MD-003). |
 | **Promotion** | Audited, human-approved move of a strategy from `paper` to `live`, with step-up auth and a capital cap. |
 | **Price-scale invariance** | Property of a feature that does not change when the price (or volume) series is multiplied by a constant; required so adjustments never change feature values (DF-013). |
 | **Purged / embargoed CV** | Time-series cross-validation that removes training samples overlapping test labels (purge) and a gap after the test set (embargo). |
+| **Quarantined model** | A local, tool-less scoring model that sees only sanitized untrusted text and returns schema-validated numbers; every call is logged (CX-014, ADR-0033). |
 | **Quarantine (symbol-day)** | An instrument's session that failed cross-source reconciliation; excluded from feature snapshots by default, never deleted, resolved by the owner (MD-010). |
 | **Quiet hours** | 22:00–07:00 New York: warning notifications are muted; critical alerts are never muted (MN-003). |
 | **Reconciliation** | Check that broker positions equal the sum of virtual ledgers plus the manual bucket; unexplained differences halt affected strategies. |
 | **Reconciliation (cross-source)** | The nightly comparison of Alpaca SIP daily bars with FMP EOD bars within fixed tolerances (MD-010). Distinct from ledger reconciliation. |
+| **Regime label** | Point-in-time market state (`vol_regime`, `trend_regime`, `stress`) computed only from past SPY bars and VIX data, versioned (`regime_v1`, CX-017). |
 | **Reservation** | Cash (buys) or own quantity (sells) the ledger holds for an intent's open orders, so concurrent intents cannot spend the same capital; shrinks with fills, released on terminal states (VP-020). |
 | **Risk decision** | The recorded outcome of pre-trade checks for an intent: approved or rejected, with each check's value and limit. |
+| **Rule time** | The vendor or official availability of a context version (publication, release, acceptance, vintage date) plus a configured delay; first-seen versions are stamped with it (CX-004). |
 | **Schema owner role** | NOLOGIN Postgres role (`<schema>_owner`) that owns a schema and runs its migrations; services never log in as it. |
 | **Repaired bar** | A final bar recovered over REST after a stream outage instead of from the stream; published once, counted in `tb_md_bars_repaired_total` (MD-006). |
 | **Routing table** | Config mapping strategy horizons (`intraday`, `swing`) to the broker accounts allowed to receive their orders (RM-011, D30). |
@@ -96,14 +105,17 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Service token** | Short-lived Ed25519-signed token identifying the calling service on an internal call (SE-040). |
 | **Setup token** | One-time, 30-minute token printed by `make setup-token` that authorizes registering the first owner (SE-007). |
 | **Session state (broker)** | Per-account adapter health: `disconnected`, `connecting`, `authenticated`, `syncing`, `ready`, `degraded`, `stopped`; only `ready` accepts orders (BR-010). |
+| **Snapshot stamping** | Setting a context version's `available_at`: rule time when first seen, fetch time when vendor-restated content changes, official time for authoritative histories (CX-004). |
 | **Staging file** | Lake file with newly written rows, visible to readers at once and merged by compaction (ST-004). |
 | **Shadow mode** | A model produces signals that are recorded but never sent as orders. |
 | **Startup recovery** | The state after an execution restart in which no intent is approved until every ready account's open orders were reconciled with the broker (OE-020). |
 | **Step-up auth** | Fresh re-authentication required for dangerous actions. |
 | **Strategy registry seed** | JSON file (`infra/compose/strategies.json`) shared by execution and the strategy runtime that registers strategies at startup; it never sets `live` and never changes an existing strategy's mode (SM-001). |
 | **Strategy runtime** | The Python service that runs `tbcore.strategy` strategies on final bars and publishes their intents on `ord.intent`; it sees only its strategies' own positions and never talks to brokers (ADR-0026, SM-014). |
+| **Syndicated duplicate** | A re-published copy of a news story (same or near-identical headline for the same instrument within 24 h); marked `duplicate_of` and counted once (CX-013). |
 | **Timing difference** | A broker vs ledger difference inside the reconciliation grace window (60 s, ≥ 2 snapshots); blocks only that instrument and becomes a break if it persists (VP-013). |
 | **Triple-barrier label** | Label set by which of a profit-take, stop-loss, or time barrier is hit first. |
+| **Vintage** | The version of a revised series as published on a given date (ALFRED `realtime_start`); macro reads return the vintage known at `as_of` (DF-010). |
 | **Virtual portfolio (sub-portfolio)** | A strategy's own capital allocation, positions, lots, P&L, and limits, carved out of a real broker account. |
 | **Walk-forward** | Validation that repeatedly trains on a past window and tests on the following window. |
 | **Wash-sale flag** | Informational marker on a loss-realizing sale within 30 days of a purchase of the same instrument by any owner in any account (VP-022). |

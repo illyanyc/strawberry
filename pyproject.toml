@@ -38,11 +38,12 @@ tbcontracts = { workspace = true }
 tbcore = { workspace = true }
 
 [tool.pytest.ini_options]
-testpaths = ["contracts/tests", "libs/py/tbcore/tests", "services/broker-gateway-ibkr/ibkr_tests", "tests/python"]
-addopts = "-q -m 'not ibkr_paper'"
+testpaths = ["contracts/tests", "libs/py/tbcore/tests", "services/broker-gateway-ibkr/ibkr_tests", "services/context-data/ctx_tests", "services/monitor/tests", "services/strategy-runtime/tests", "tests/python"]
+addopts = "-q -m 'not ibkr_paper and not ctx_live'"
 markers = [
   "perf: performance targets (opt-in with TB_PERF=1)",
   "ibkr_paper: needs a real IB Gateway paper session (opt-in: TB_IBKR_PAPER_TEST=1, run with -m ibkr_paper)",
+  "ctx_live: calls real context-data APIs (opt-in: TB_CTX_LIVE_TEST=1, run with -m ctx_live)",
 ]
 
 [tool.ruff]
@@ -65,9 +66,9 @@ known-first-party = ["tbcore", "tb"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-mypy_path = "contracts/gen/python/src:libs/py/tbcore/src:services/assistant/src:services/backtest/src:services/broker-gateway-ibkr/src:services/broker-gateway-ibkr:services/context-data/src:services/ml/src:services/monitor/src:services/optimizer/src:services/strategy-runtime/src"
+mypy_path = "contracts/gen/python/src:libs/py/tbcore/src:services/assistant/src:services/backtest/src:services/broker-gateway-ibkr/src:services/broker-gateway-ibkr:services/context-data:services/context-data/src:services/ml/src:services/monitor/src:services/optimizer/src:services/strategy-runtime/src"
 explicit_package_bases = true
-files = ["libs/py/tbcore/src", "libs/py/tbcore/tests", "contracts/tests", "services/*/src", "services/broker-gateway-ibkr/ibkr_tests", "tests/python"]
+files = ["libs/py/tbcore/src", "libs/py/tbcore/tests", "contracts/tests", "services/*/src", "services/broker-gateway-ibkr/ibkr_tests", "services/context-data/ctx_tests", "tests/python"]
 exclude = ["contracts/gen/"]
 
 [[tool.mypy.overrides]]
@@ -77,7 +78,7 @@ follow_untyped_imports = true
 
 [[tool.mypy.overrides]]
 # grpcio's Python API is untyped (no published stubs for grpc.aio generic handlers / grpc_status).
-module = ["tb_broker_ibkr.grpc_service", "ibkr_tests.test_grpc", "ibkr_tests.test_main", "ibkr_tests.test_journal_pg"]
+module = ["tb_broker_ibkr.grpc_service", "ibkr_tests.test_grpc", "ibkr_tests.test_main", "ibkr_tests.test_journal_pg", "ctx_tests.test_engine"]
 disallow_untyped_calls = false
 disable_error_code = ["type-arg", "no-any-return"]
 

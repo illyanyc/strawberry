@@ -62,8 +62,10 @@ var Streams = []jetstream.StreamConfig{
 		Retention: jetstream.LimitsPolicy, MaxAge: 30 * 24 * time.Hour, Replicas: 1},
 	{Name: "ALERTS", Subjects: []string{"alert.>"}, Storage: jetstream.FileStorage,
 		Retention: jetstream.LimitsPolicy, MaxAge: 30 * 24 * time.Hour, Replicas: 1},
+	// Context events are persisted to the lake by marketdata (ADR-0032); producers set Nats-Msg-Id
+	// so retries inside the window are dropped, and compaction drops later repeats (CX-003).
 	{Name: "CONTEXT", Subjects: []string{"ctx.>"}, Storage: jetstream.FileStorage,
-		Retention: jetstream.LimitsPolicy, MaxAge: 7 * 24 * time.Hour, Replicas: 1},
+		Retention: jetstream.LimitsPolicy, MaxAge: 7 * 24 * time.Hour, Replicas: 1, Duplicates: 10 * time.Minute},
 	{Name: "MARKETDATA", Subjects: []string{"md.>", "feat.>"}, Storage: jetstream.MemoryStorage,
 		Retention: jetstream.LimitsPolicy, MaxAge: time.Hour, MaxBytes: 512 << 20, Discard: jetstream.DiscardOld, Replicas: 1},
 	// Reference-data events (corporate actions for the ledger): durable (section 05).

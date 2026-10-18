@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -247,6 +248,48 @@ func TestHistoricalBarsFixtureDecodesExactly(t *testing.T) {
 		b.GetVolume().GetValue() != "812345" || b.GetTradeCount() != 9123 || b.GetFeed() != "alpaca.sip" || b.GetSource() != "alpaca" ||
 		b.GetAdjustmentBasis() != mdv1.AdjustmentBasis_ADJUSTMENT_BASIS_RAW || b.GetTsClose()-b.GetTsOpen() != int64(time.Minute) {
 		t.Fatalf("bar decoded wrong: %+v", b)
+	}
+}
+
+// CX-010: news is returned as published, keyed by first publication time; bodies only on request.
+func TestCX010NewsFixtureDecodesAndOmitsBodyUnlessRequested(t *testing.T) {
+	raw, err := os.ReadFile(filepath.Join(fixtures, "news.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var seen *http.Request
+	srv := http.NewServeMux()
+	srv.HandleFunc("/v1beta1/news", func(w http.ResponseWriter, r *http.Request) { seen = r; _, _ = w.Write(raw) })
+	f := alpacatest.New()
+	defer f.Close()
+	ts := newServer(t, srv)
+	c := fakeClient(f, time.Second)
+	c.Endpoints.Data = ts
+	start := time.Date(2026, 7, 30, 0, 0, 0, 0, time.UTC)
+	for _, body := range []bool{false, true} {
+		resp, err := c.News(context.Background(), &brokerv1.GetNewsRequest{Symbols: []string{"AAPL", "MSFT"}, Start: start.UnixNano(),
+			End: start.Add(24 * time.Hour).UnixNano(), Limit: 500, IncludeContent: body})
+		if err != nil {
+			t.Fatal(err)
+		}
+		q := seen.URL.Query()
+		if q.Get("limit") != "50" || q.Get("sort") != "asc" || q.Get("symbols") != "AAPL,MSFT" || q.Get("include_content") != strconv.FormatBool(body) {
+			t.Fatalf("news params: %v", q)
+		}
+		if len(resp.GetArticles()) != 3 || resp.GetNextPageToken() == "" {
+			t.Fatalf("articles %d token %q", len(resp.GetArticles()), resp.GetNextPageToken())
+		}
+		a := resp.GetArticles()[0]
+		if a.GetId() != "41230001" || a.GetSource() != "benzinga" || a.GetSymbols()[0] != "AAPL" ||
+			a.GetCreatedAt() != time.Date(2026, 7, 30, 20, 31, 5, 0, time.UTC).UnixNano() || a.GetUpdatedAt() <= a.GetCreatedAt() {
+			t.Fatalf("article decoded wrong: %+v", a)
+		}
+		if (a.GetContent() != "") != body {
+			t.Fatalf("content returned=%v, requested=%v", a.GetContent() != "", body)
+		}
+	}
+	if _, err := c.News(context.Background(), &brokerv1.GetNewsRequest{Start: start.UnixNano(), End: start.UnixNano()}); err == nil {
+		t.Fatal("empty window accepted")
 	}
 }
 

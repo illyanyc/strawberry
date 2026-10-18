@@ -45,10 +45,12 @@ flowchart LR
   BRK --> MD --> BUS
   MD --> LAKE
   MD --> RD
-  NEWS --> CTX
+  BRK -- news --> CTX
+  NEWS --> BRK
   MACRO --> CTX
-  CTX --> LAKE
-  CTX --> BUS
+  CTX -- ctx.kind --> BUS
+  BUS -- ctx.> sink --> MD
+  LAKE -. ref + stored versions .-> CTX
   TV --> GW
   BUS --> FS --> ML
   FS --> RD
@@ -96,7 +98,7 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 | `tb.common.v1` | `Decimal`, `Mode`, `AssetClass`, `Side`, `Horizon`, `Broker`, `Instrument`, `Provenance` | shared |
 | `tb.marketdata.v1` | `Bar`, `Quote`, `Trade`, `CorporateAction`, `SourceHealth` | marketdata → bus, lake, cache |
 | `tb.marketdata.v1` | `MarketDataService` (backfill jobs and status, universe, feed status, `IsFresh`, `GetBars` for charts, `ResolveSymbols` for tickers) ([ADR-0022](../adr/0022-market-data-ingestion.md), [MD-](../business-logic/market-data.md)) | marketdata → api-gateway, execution |
-| `tb.context.v1` | `ContextEvent` | context-data → lake, bus |
+| `tb.context.v1` | `ContextEvent` (kinds news, news_sentiment, macro, calendar, earnings, fundamentals, short_interest, filing, regime; `record_key`, `vintage`, provenance) ([ADR-0032](../adr/0032-context-data-pipeline-and-point-in-time-rules.md), [CX-](../business-logic/context-data.md)) | context-data → bus `ctx.<kind>` → marketdata (lake writer), strategy-runtime (`ctx.calendar`, `ctx.earnings`) |
 | `tb.features.v1` | `FeatureVector` | feature service → ml-infer |
 | `tb.signals.v1` | `Signal`, `RuntimeHeartbeat` (dead-man, RM-017) | ml-infer / strategy runtime → execution |
 | `tb.orders.v1` | `OrderIntent` (horizon, kind, protective spec, source), `RiskDecision`, `Order` (role, attempt, parent), `ExecutionReport`, `KillSwitchEvent` (latched) | strategy/UI → execution → broker-gateway → ledger |
@@ -108,7 +110,7 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 | `tb.audit.v1` | `AuditEvent` | all → audit store |
 | `tb.broker.v1` | `CredentialService` (gRPC: put, delete, list status; no plaintext read) | api-gateway → broker-gateway |
 | `tb.broker.v1` | `BrokerGatewayService` (accounts, sessions, snapshots, submit/cancel/replace/lookup, order and execution lists and streams, instrument info) — one contract for every adapter ([ADR-0018](../adr/0018-broker-gateway-interface.md), [BR-](../business-logic/brokers.md)) | broker-gateway (Alpaca, simulator), broker-gateway-ibkr (IBKR) → execution, ledger, marketdata |
-| `tb.broker.v1` | `BrokerMarketDataService` (historical bars, bidirectional market-data stream over the single upstream socket, assets, corporate actions, feed status) | broker-gateway → marketdata |
+| `tb.broker.v1` | `BrokerMarketDataService` (historical bars, bidirectional market-data stream over the single upstream socket, assets, corporate actions, feed status, vendor news `GetNews`) | broker-gateway → marketdata; `GetNews` → context-data |
 
 The UI ↔ gateway API (REST commands + SSE streams, D3/D14) is specified in [`contracts/openapi/gateway.yaml`](../../contracts/openapi/gateway.yaml). Only `/healthz` and the auth bootstrap endpoints are public (SE-004).
 
@@ -185,6 +187,8 @@ exec.<broker_account>                 acct.snapshot.<broker_account>
 ledger.update.<broker_account>        recon.result.<broker_account>   recon.request.<broker_account>
 risk.kill                             alert.<severity>           sys.health.<service>
 ```
+
+Context data (section 09, ADR-0032) flows context-data → `ctx.<kind>` (durable stream `CONTEXT`, `Nats-Msg-Id` per version) → marketdata's context sink, which stays the only lake writer and compacts `context/kind=…` partitions (CX-003, ST-011). Alpaca news reaches context-data through `BrokerMarketDataService.GetNews` on broker-gateway (credential custody, BR-022); FMP, FRED/ALFRED, FINRA, and SEC EDGAR are called directly from context-data. Readers use `tbcore.context.ContextStore` (point-in-time per `record_key`). Source health goes to `sys.health.ctx.<job>`. strategy-runtime reads `ctx.calendar`/`ctx.earnings` and the lake for `EventBlackout` (CX-016).
 
 `ord.update.<acct>` carries the broker's view (`tb.broker.v1.BrokerOrderUpdate`) from the adapters; the OMS's own `Order` state is published by execution on `ord.order.<acct>`, risk decisions on `ord.decision`, and strategy intents arrive on `ord.intent` (section 07). Execution's and the strategy runtime's heartbeats on `sys.health.execution` / `sys.health.strategy-runtime` feed the dead-man checks (RM-017). The strategy runtime (ADR-0026) consumes `md.bar.*` and its own strategies' `ledger.update.*` and publishes intents on `ord.intent`; it never talks to brokers. Broker adapters publish `ord.update.*`, `exec.*`, `acct.snapshot.*`, and `recon.request.*` through a Postgres transactional outbox (schema `broker`), so a crash never loses or double-publishes an execution (ADR-0018). `recon.request.<acct>` follows every reconnect resync (OE-008).
 

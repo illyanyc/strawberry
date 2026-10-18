@@ -244,7 +244,7 @@ func main() {
 		}, rt.Ops.Registry())
 	}
 
-	verifier, err := svcauth.LoadVerifier(rt.Secrets, c.Service, "api-gateway", "execution", "ledger", "marketdata")
+	verifier, err := svcauth.LoadVerifier(rt.Secrets, c.Service, "api-gateway", "execution", "ledger", "marketdata", "context-data")
 	if err != nil {
 		svc.Fatal(rt.Log, "service keys", err)
 	}

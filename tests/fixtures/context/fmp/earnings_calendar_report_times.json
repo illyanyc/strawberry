@@ -1,0 +1,5 @@
+[
+  {"symbol": "AAPL", "date": "2026-07-30", "time": "amc", "epsActual": 1.62, "epsEstimated": 1.48, "revenueActual": 94930000000, "revenueEstimated": 93800000000, "lastUpdated": "2026-07-31"},
+  {"symbol": "MSFT", "date": "2026-07-28", "time": "amc", "epsActual": 3.41, "epsEstimated": 3.36, "revenueActual": 76400000000, "revenueEstimated": 75900000000, "lastUpdated": "2026-07-29"},
+  {"symbol": "NVDA", "date": "2026-08-26", "time": "bmo", "epsActual": null, "epsEstimated": 1.02, "revenueActual": null, "revenueEstimated": 54100000000, "lastUpdated": "2026-07-25"}
+]

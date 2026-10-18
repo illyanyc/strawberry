@@ -1,6 +1,6 @@
 # marketdata
 
-Single writer of the Parquet lake (D4) and of the reference-data schema `refdata`; historical backfill, live bar pipeline, gap repair, cache writes, cross-source reconciliation, and the daily reference sync.
+Single writer of the Parquet lake (D4) and of the reference-data schema `refdata`; historical backfill, live bar pipeline, gap repair, cache writes, cross-source reconciliation, the daily reference sync, and the context sink that persists context-data's events (ADR-0032).
 
 **Status:** Phase 1 complete (storage, ingestion, reconciliation)  ·  **Language/stack:** Go ([ADR-0004](../../docs/adr/0004-core-language-split.md), D1; [ADR-0020](../../docs/adr/0020-lake-layout-write-path-and-query-layer.md), D38; [ADR-0022](../../docs/adr/0022-market-data-ingestion.md), D40)
 
@@ -13,6 +13,7 @@ Single writer of the Parquet lake (D4) and of the reference-data schema `refdata
 |---|---|---|---|
 | in | gRPC `:9090` | `tb.marketdata.v1.MarketDataService` (Backfill, GetBackfillStatus, SetUniverse, GetBars (UI-010, cache ring), ResolveSymbols (UI-011): api-gateway; GetFeedStatus, IsFresh: execution, api-gateway) | `contracts/proto/tb/marketdata/v1/marketdata.proto`, MD-001, MD-007 |
 | in | HTTP (internal) | ops endpoints `:8081` | OP-010 |
+| in | NATS | `ctx.>` (stream `CONTEXT`, durable `marketdata-context-lake`, batched, acked after the rows are durable) from context-data | CX-001, CX-003, ST-011 |
 | out | gRPC | broker-gateway `BrokerMarketDataService` (historical bars, stream, assets, corporate actions) | ADR-0018, BR-015 |
 | out | HTTPS | FMP `/stable` (assets, delistings, symbol changes, splits, dividends, EOD) | MD-008 |
 | out | NATS | `md.bar.<tf>.<id>`, `md.bar.partial.*`, `md.bar.correction.*` (MARKETDATA); `ref.corporate_action.<id>` (REF); `sys.health.<source>`; `alert.warning` | MD-002, MD-012 |
@@ -22,6 +23,7 @@ Single writer of the Parquet lake (D4) and of the reference-data schema `refdata
 
 ## Business rules enforced here
 - `MD-001`, `MD-003`, `MD-009` → `internal/ingest`; `MD-002`, `MD-004` (building), `MD-006`, `MD-007` → `internal/live`; `MD-008` → `internal/fmp`; `MD-010` → `internal/recon`; `MD-011`, `MD-012` → `internal/refdata`, `internal/refsync`.
+- `CX-001`, `CX-003`, `ST-011` → `internal/ctxsink`, `lake.ContextRowsFromEvent`, `lake.CompactContext`.
 - `ST-001`..`ST-008`, `ST-010` → `internal/lake`, `internal/dq`; `DF-001`, `DF-005`, `DF-007` → `lake.RowFromBar`, `lake.Compact`; `DF-006`, `ST-007` → `internal/refdata`.
 
 ## Layout
@@ -36,7 +38,8 @@ Single writer of the Parquet lake (D4) and of the reference-data schema `refdata
 | `internal/refsync/` | Daily reference sync and corporate-action cross-check |
 | `internal/sched/` | Calendar-aware once-per-session job runner |
 | `internal/universe/` | Embedded dev universe (`dev.txt`) and loader |
-| `internal/lake/` | Lake writer: Parquet schemas, staging, compaction with revisions, atomic writes, manifest (memory + Postgres), verify, retention, context rows, ref exports |
+| `internal/lake/` | Lake writer: Parquet schemas, staging, compaction with revisions, atomic writes, manifest (memory + Postgres), verify, retention, context rows and context compaction (`context.go`), ref exports |
+| `internal/ctxsink/` | Batching durable consumer of `ctx.>` that stages context rows and acks after they are durable; `tb_context_rows_total{kind,outcome}` |
 | `internal/refdata/` | Reference store (memory + Postgres load/flush), symbol history, delisting, universes, corporate-action availability and owner resolutions, calendar mirror, lake export |
 | `internal/dq/` | Data-quality checks (ST-010) |
 | `internal/spikes/` | Verify-early harnesses (V2 delisted probe, V3 FMP probe, V4 atomic rename) |
@@ -56,6 +59,7 @@ Single writer of the Parquet lake (D4) and of the reference-data schema `refdata
 | `TB_FMP_RATE_PER_MIN` / `TB_FMP_BANDWIDTH_GB_30D` | `240` / `16` | 80% of the plan (V3) |
 | `TB_MD_MIN_GAP_RUN_1M` | `5` | Minutes; shorter runs are not gaps |
 | `TB_LAKE_FLUSH_INTERVAL` / `TB_LAKE_TICK_RETENTION` | `30s` / `2160h` | |
+| `TB_MD_CONTEXT_SINK` / `TB_MD_CONTEXT_COMPACT_EVERY` | `true` / `10m` | Persist `ctx.>` to the lake; context partition compaction interval (ST-011) |
 | secret `fmp_api_key` | `unset` | FMP features disabled until the owner writes the key |
 
 ## Run and test

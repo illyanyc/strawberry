@@ -21,7 +21,278 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file tb/broker/v1/market_data.proto.
  */
 export const file_tb_broker_v1_market_data: GenFile = /*@__PURE__*/
-  fileDesc("Ch50Yi9icm9rZXIvdjEvbWFya2V0X2RhdGEucHJvdG8SDHRiLmJyb2tlci52MSKoAQoYR2V0SGlzdG9yaWNhbEJhcnNSZXF1ZXN0Eg8KB3N5bWJvbHMYASADKAkSLgoJdGltZWZyYW1lGAIgASgOMhsudGIubWFya2V0ZGF0YS52MS5UaW1lZnJhbWUSDQoFc3RhcnQYAyABKAMSCwoDZW5kGAQgASgDEgwKBGZlZWQYBSABKAkSEgoKcGFnZV90b2tlbhgGIAEoCRINCgVsaW1pdBgHIAEoDSJZChlHZXRIaXN0b3JpY2FsQmFyc1Jlc3BvbnNlEiMKBGJhcnMYASADKAsyFS50Yi5tYXJrZXRkYXRhLnYxLkJhchIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkiUgoMU3Vic2NyaXB0aW9uEgwKBGJhcnMYASADKAkSFAoMdXBkYXRlZF9iYXJzGAIgAygJEg4KBnF1b3RlcxgDIAMoCRIOCgZ0cmFkZXMYBCADKAkihwEKF1N0cmVhbU1hcmtldERhdGFSZXF1ZXN0EgwKBGZlZWQYASABKAkSLQoJc3Vic2NyaWJlGAIgASgLMhoudGIuYnJva2VyLnYxLlN1YnNjcmlwdGlvbhIvCgt1bnN1YnNjcmliZRgDIAEoCzIaLnRiLmJyb2tlci52MS5TdWJzY3JpcHRpb24itAEKCkZlZWRTdGF0dXMSDAoEZmVlZBgBIAEoCRImCgVzdGF0ZRgCIAEoDjIXLnRiLmJyb2tlci52MS5GZWVkU3RhdGUSFwoPbGFzdF9tZXNzYWdlX2F0GAMgASgDEhcKD2Nvbm5lY3RlZF9zaW5jZRgEIAEoAxISCgpyZWNvbm5lY3RzGAUgASgEEhoKEnN1YnNjcmliZWRfc3ltYm9scxgGIAEoDRIOCgZkZXRhaWwYByABKAki9wEKGFN0cmVhbU1hcmtldERhdGFSZXNwb25zZRIkCgNiYXIYASABKAsyFS50Yi5tYXJrZXRkYXRhLnYxLkJhckgAEiwKC3VwZGF0ZWRfYmFyGAIgASgLMhUudGIubWFya2V0ZGF0YS52MS5CYXJIABIoCgVxdW90ZRgDIAEoCzIXLnRiLm1hcmtldGRhdGEudjEuUXVvdGVIABIoCgV0cmFkZRgEIAEoCzIXLnRiLm1hcmtldGRhdGEudjEuVHJhZGVIABIqCgZzdGF0dXMYBSABKAsyGC50Yi5icm9rZXIudjEuRmVlZFN0YXR1c0gAQgcKBWV2ZW50ItwBCgVBc3NldBIOCgZzeW1ib2wYASABKAkSFwoPYnJva2VyX2Fzc2V0X2lkGAIgASgJEhAKCGV4Y2hhbmdlGAMgASgJEhMKC2Fzc2V0X2NsYXNzGAQgASgJEgwKBG5hbWUYBSABKAkSDgoGc3RhdHVzGAYgASgJEhAKCHRyYWRhYmxlGAcgASgIEhEKCXNob3J0YWJsZRgIIAEoCBIWCg5lYXN5X3RvX2JvcnJvdxgJIAEoCBIUCgxmcmFjdGlvbmFibGUYCiABKAgSEgoKbWFyZ2luYWJsZRgLIAEoCCItChFMaXN0QXNzZXRzUmVxdWVzdBIYChBpbmNsdWRlX2luYWN0aXZlGAEgASgIIkgKEkxpc3RBc3NldHNSZXNwb25zZRIjCgZhc3NldHMYASADKAsyEy50Yi5icm9rZXIudjEuQXNzZXQSDQoFYXNfb2YYAiABKAMiSQoaR2V0Q29ycG9yYXRlQWN0aW9uc1JlcXVlc3QSDwoHc3ltYm9scxgBIAMoCRINCgVzdGFydBgCIAEoAxILCgNlbmQYAyABKAMiUQobR2V0Q29ycG9yYXRlQWN0aW9uc1Jlc3BvbnNlEjIKB2FjdGlvbnMYASADKAsyIS50Yi5tYXJrZXRkYXRhLnYxLkNvcnBvcmF0ZUFjdGlvbiIWChRHZXRGZWVkU3RhdHVzUmVxdWVzdCJAChVHZXRGZWVkU3RhdHVzUmVzcG9uc2USJwoFZmVlZHMYASADKAsyGC50Yi5icm9rZXIudjEuRmVlZFN0YXR1cyq2AQoJRmVlZFN0YXRlEhoKFkZFRURfU1RBVEVfVU5TUEVDSUZJRUQQABIZChVGRUVEX1NUQVRFX0NPTk5FQ1RJTkcQARIYChRGRUVEX1NUQVRFX0NPTk5FQ1RFRBACEhsKF0ZFRURfU1RBVEVfRElTQ09OTkVDVEVEEAMSHwobRkVFRF9TVEFURV9DT05ORUNUSU9OX0xJTUlUEAQSGgoWRkVFRF9TVEFURV9BVVRIX0ZBSUxFRBAFMv0DChdCcm9rZXJNYXJrZXREYXRhU2VydmljZRJkChFHZXRIaXN0b3JpY2FsQmFycxImLnRiLmJyb2tlci52MS5HZXRIaXN0b3JpY2FsQmFyc1JlcXVlc3QaJy50Yi5icm9rZXIudjEuR2V0SGlzdG9yaWNhbEJhcnNSZXNwb25zZRJlChBTdHJlYW1NYXJrZXREYXRhEiUudGIuYnJva2VyLnYxLlN0cmVhbU1hcmtldERhdGFSZXF1ZXN0GiYudGIuYnJva2VyLnYxLlN0cmVhbU1hcmtldERhdGFSZXNwb25zZSgBMAESTwoKTGlzdEFzc2V0cxIfLnRiLmJyb2tlci52MS5MaXN0QXNzZXRzUmVxdWVzdBogLnRiLmJyb2tlci52MS5MaXN0QXNzZXRzUmVzcG9uc2USagoTR2V0Q29ycG9yYXRlQWN0aW9ucxIoLnRiLmJyb2tlci52MS5HZXRDb3Jwb3JhdGVBY3Rpb25zUmVxdWVzdBopLnRiLmJyb2tlci52MS5HZXRDb3Jwb3JhdGVBY3Rpb25zUmVzcG9uc2USWAoNR2V0RmVlZFN0YXR1cxIiLnRiLmJyb2tlci52MS5HZXRGZWVkU3RhdHVzUmVxdWVzdBojLnRiLmJyb2tlci52MS5HZXRGZWVkU3RhdHVzUmVzcG9uc2VCvAEKEGNvbS50Yi5icm9rZXIudjFCD01hcmtldERhdGFQcm90b1ABWkVnaXRodWIuY29tL2lsbHlhbnljL3N0cmF3YmVycnkvY29udHJhY3RzL2dlbi9nby90Yi9icm9rZXIvdjE7YnJva2VydjGiAgNUQliqAgxUYi5Ccm9rZXIuVjHKAgxUYlxCcm9rZXJcVjHiAhhUYlxCcm9rZXJcVjFcR1BCTWV0YWRhdGHqAg5UYjo6QnJva2VyOjpWMWIGcHJvdG8z", [file_tb_marketdata_v1_marketdata]);
+  fileDesc("Ch50Yi9icm9rZXIvdjEvbWFya2V0X2RhdGEucHJvdG8SDHRiLmJyb2tlci52MSJ5Cg5HZXROZXdzUmVxdWVzdBIPCgdzeW1ib2xzGAEgAygJEg0KBXN0YXJ0GAIgASgDEgsKA2VuZBgDIAEoAxISCgpwYWdlX3Rva2VuGAQgASgJEg0KBWxpbWl0GAUgASgNEhcKD2luY2x1ZGVfY29udGVudBgGIAEoCCKzAQoLTmV3c0FydGljbGUSCgoCaWQYASABKAkSEAoIaGVhZGxpbmUYAiABKAkSDwoHc3VtbWFyeRgDIAEoCRIPCgdjb250ZW50GAQgASgJEg4KBmF1dGhvchgFIAEoCRIOCgZzb3VyY2UYBiABKAkSCwoDdXJsGAcgASgJEg8KB3N5bWJvbHMYCCADKAkSEgoKY3JlYXRlZF9hdBgJIAEoAxISCgp1cGRhdGVkX2F0GAogASgDIlcKD0dldE5ld3NSZXNwb25zZRIrCghhcnRpY2xlcxgBIAMoCzIZLnRiLmJyb2tlci52MS5OZXdzQXJ0aWNsZRIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkiqAEKGEdldEhpc3RvcmljYWxCYXJzUmVxdWVzdBIPCgdzeW1ib2xzGAEgAygJEi4KCXRpbWVmcmFtZRgCIAEoDjIbLnRiLm1hcmtldGRhdGEudjEuVGltZWZyYW1lEg0KBXN0YXJ0GAMgASgDEgsKA2VuZBgEIAEoAxIMCgRmZWVkGAUgASgJEhIKCnBhZ2VfdG9rZW4YBiABKAkSDQoFbGltaXQYByABKA0iWQoZR2V0SGlzdG9yaWNhbEJhcnNSZXNwb25zZRIjCgRiYXJzGAEgAygLMhUudGIubWFya2V0ZGF0YS52MS5CYXISFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIlIKDFN1YnNjcmlwdGlvbhIMCgRiYXJzGAEgAygJEhQKDHVwZGF0ZWRfYmFycxgCIAMoCRIOCgZxdW90ZXMYAyADKAkSDgoGdHJhZGVzGAQgAygJIocBChdTdHJlYW1NYXJrZXREYXRhUmVxdWVzdBIMCgRmZWVkGAEgASgJEi0KCXN1YnNjcmliZRgCIAEoCzIaLnRiLmJyb2tlci52MS5TdWJzY3JpcHRpb24SLwoLdW5zdWJzY3JpYmUYAyABKAsyGi50Yi5icm9rZXIudjEuU3Vic2NyaXB0aW9uIrQBCgpGZWVkU3RhdHVzEgwKBGZlZWQYASABKAkSJgoFc3RhdGUYAiABKA4yFy50Yi5icm9rZXIudjEuRmVlZFN0YXRlEhcKD2xhc3RfbWVzc2FnZV9hdBgDIAEoAxIXCg9jb25uZWN0ZWRfc2luY2UYBCABKAMSEgoKcmVjb25uZWN0cxgFIAEoBBIaChJzdWJzY3JpYmVkX3N5bWJvbHMYBiABKA0SDgoGZGV0YWlsGAcgASgJIvcBChhTdHJlYW1NYXJrZXREYXRhUmVzcG9uc2USJAoDYmFyGAEgASgLMhUudGIubWFya2V0ZGF0YS52MS5CYXJIABIsCgt1cGRhdGVkX2JhchgCIAEoCzIVLnRiLm1hcmtldGRhdGEudjEuQmFySAASKAoFcXVvdGUYAyABKAsyFy50Yi5tYXJrZXRkYXRhLnYxLlF1b3RlSAASKAoFdHJhZGUYBCABKAsyFy50Yi5tYXJrZXRkYXRhLnYxLlRyYWRlSAASKgoGc3RhdHVzGAUgASgLMhgudGIuYnJva2VyLnYxLkZlZWRTdGF0dXNIAEIHCgVldmVudCLcAQoFQXNzZXQSDgoGc3ltYm9sGAEgASgJEhcKD2Jyb2tlcl9hc3NldF9pZBgCIAEoCRIQCghleGNoYW5nZRgDIAEoCRITCgthc3NldF9jbGFzcxgEIAEoCRIMCgRuYW1lGAUgASgJEg4KBnN0YXR1cxgGIAEoCRIQCgh0cmFkYWJsZRgHIAEoCBIRCglzaG9ydGFibGUYCCABKAgSFgoOZWFzeV90b19ib3Jyb3cYCSABKAgSFAoMZnJhY3Rpb25hYmxlGAogASgIEhIKCm1hcmdpbmFibGUYCyABKAgiLQoRTGlzdEFzc2V0c1JlcXVlc3QSGAoQaW5jbHVkZV9pbmFjdGl2ZRgBIAEoCCJIChJMaXN0QXNzZXRzUmVzcG9uc2USIwoGYXNzZXRzGAEgAygLMhMudGIuYnJva2VyLnYxLkFzc2V0Eg0KBWFzX29mGAIgASgDIkkKGkdldENvcnBvcmF0ZUFjdGlvbnNSZXF1ZXN0Eg8KB3N5bWJvbHMYASADKAkSDQoFc3RhcnQYAiABKAMSCwoDZW5kGAMgASgDIlEKG0dldENvcnBvcmF0ZUFjdGlvbnNSZXNwb25zZRIyCgdhY3Rpb25zGAEgAygLMiEudGIubWFya2V0ZGF0YS52MS5Db3Jwb3JhdGVBY3Rpb24iFgoUR2V0RmVlZFN0YXR1c1JlcXVlc3QiQAoVR2V0RmVlZFN0YXR1c1Jlc3BvbnNlEicKBWZlZWRzGAEgAygLMhgudGIuYnJva2VyLnYxLkZlZWRTdGF0dXMqtgEKCUZlZWRTdGF0ZRIaChZGRUVEX1NUQVRFX1VOU1BFQ0lGSUVEEAASGQoVRkVFRF9TVEFURV9DT05ORUNUSU5HEAESGAoURkVFRF9TVEFURV9DT05ORUNURUQQAhIbChdGRUVEX1NUQVRFX0RJU0NPTk5FQ1RFRBADEh8KG0ZFRURfU1RBVEVfQ09OTkVDVElPTl9MSU1JVBAEEhoKFkZFRURfU1RBVEVfQVVUSF9GQUlMRUQQBTLFBAoXQnJva2VyTWFya2V0RGF0YVNlcnZpY2USZAoRR2V0SGlzdG9yaWNhbEJhcnMSJi50Yi5icm9rZXIudjEuR2V0SGlzdG9yaWNhbEJhcnNSZXF1ZXN0GicudGIuYnJva2VyLnYxLkdldEhpc3RvcmljYWxCYXJzUmVzcG9uc2USZQoQU3RyZWFtTWFya2V0RGF0YRIlLnRiLmJyb2tlci52MS5TdHJlYW1NYXJrZXREYXRhUmVxdWVzdBomLnRiLmJyb2tlci52MS5TdHJlYW1NYXJrZXREYXRhUmVzcG9uc2UoATABEk8KCkxpc3RBc3NldHMSHy50Yi5icm9rZXIudjEuTGlzdEFzc2V0c1JlcXVlc3QaIC50Yi5icm9rZXIudjEuTGlzdEFzc2V0c1Jlc3BvbnNlEmoKE0dldENvcnBvcmF0ZUFjdGlvbnMSKC50Yi5icm9rZXIudjEuR2V0Q29ycG9yYXRlQWN0aW9uc1JlcXVlc3QaKS50Yi5icm9rZXIudjEuR2V0Q29ycG9yYXRlQWN0aW9uc1Jlc3BvbnNlElgKDUdldEZlZWRTdGF0dXMSIi50Yi5icm9rZXIudjEuR2V0RmVlZFN0YXR1c1JlcXVlc3QaIy50Yi5icm9rZXIudjEuR2V0RmVlZFN0YXR1c1Jlc3BvbnNlEkYKB0dldE5ld3MSHC50Yi5icm9rZXIudjEuR2V0TmV3c1JlcXVlc3QaHS50Yi5icm9rZXIudjEuR2V0TmV3c1Jlc3BvbnNlQrwBChBjb20udGIuYnJva2VyLnYxQg9NYXJrZXREYXRhUHJvdG9QAVpFZ2l0aHViLmNvbS9pbGx5YW55Yy9zdHJhd2JlcnJ5L2NvbnRyYWN0cy9nZW4vZ28vdGIvYnJva2VyL3YxO2Jyb2tlcnYxogIDVEJYqgIMVGIuQnJva2VyLlYxygIMVGJcQnJva2VyXFYx4gIYVGJcQnJva2VyXFYxXEdQQk1ldGFkYXRh6gIOVGI6OkJyb2tlcjo6VjFiBnByb3RvMw", [file_tb_marketdata_v1_marketdata]);
+
+/**
+ * @generated from message tb.broker.v1.GetNewsRequest
+ */
+export type GetNewsRequest = Message<"tb.broker.v1.GetNewsRequest"> & {
+  /**
+   * Empty means all symbols.
+   *
+   * @generated from field: repeated string symbols = 1;
+   */
+  symbols: string[];
+
+  /**
+   * UTC ns, inclusive start and exclusive end on the article's first-publication time.
+   *
+   * @generated from field: int64 start = 2;
+   */
+  start: bigint;
+
+  /**
+   * @generated from field: int64 end = 3;
+   */
+  end: bigint;
+
+  /**
+   * @generated from field: string page_token = 4;
+   */
+  pageToken: string;
+
+  /**
+   * Maximum articles per page (server caps it at the vendor limit, 50 for Alpaca).
+   *
+   * @generated from field: uint32 limit = 5;
+   */
+  limit: number;
+
+  /**
+   * Return the article body (large; only when licensed and enabled, CX-010).
+   *
+   * @generated from field: bool include_content = 6;
+   */
+  includeContent: boolean;
+};
+
+/**
+ * @generated from message tb.broker.v1.GetNewsRequest
+ */
+export type GetNewsRequestJson = {
+  /**
+   * Empty means all symbols.
+   *
+   * @generated from field: repeated string symbols = 1;
+   */
+  symbols?: string[];
+
+  /**
+   * UTC ns, inclusive start and exclusive end on the article's first-publication time.
+   *
+   * @generated from field: int64 start = 2;
+   */
+  start?: string;
+
+  /**
+   * @generated from field: int64 end = 3;
+   */
+  end?: string;
+
+  /**
+   * @generated from field: string page_token = 4;
+   */
+  pageToken?: string;
+
+  /**
+   * Maximum articles per page (server caps it at the vendor limit, 50 for Alpaca).
+   *
+   * @generated from field: uint32 limit = 5;
+   */
+  limit?: number;
+
+  /**
+   * Return the article body (large; only when licensed and enabled, CX-010).
+   *
+   * @generated from field: bool include_content = 6;
+   */
+  includeContent?: boolean;
+};
+
+/**
+ * Describes the message tb.broker.v1.GetNewsRequest.
+ * Use `create(GetNewsRequestSchema)` to create a new message.
+ */
+export const GetNewsRequestSchema: GenMessage<GetNewsRequest, {jsonType: GetNewsRequestJson}> = /*@__PURE__*/
+  messageDesc(file_tb_broker_v1_market_data, 0);
+
+/**
+ * @generated from message tb.broker.v1.NewsArticle
+ */
+export type NewsArticle = Message<"tb.broker.v1.NewsArticle"> & {
+  /**
+   * Vendor article ID (stable across updates).
+   *
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string headline = 2;
+   */
+  headline: string;
+
+  /**
+   * @generated from field: string summary = 3;
+   */
+  summary: string;
+
+  /**
+   * HTML body when requested, else empty.
+   *
+   * @generated from field: string content = 4;
+   */
+  content: string;
+
+  /**
+   * @generated from field: string author = 5;
+   */
+  author: string;
+
+  /**
+   * Upstream provider, e.g. "benzinga".
+   *
+   * @generated from field: string source = 6;
+   */
+  source: string;
+
+  /**
+   * @generated from field: string url = 7;
+   */
+  url: string;
+
+  /**
+   * @generated from field: repeated string symbols = 8;
+   */
+  symbols: string[];
+
+  /**
+   * First publication time (UTC ns). Point-in-time availability derives from this (CX-010).
+   *
+   * @generated from field: int64 created_at = 9;
+   */
+  createdAt: bigint;
+
+  /**
+   * Last vendor update (UTC ns); never used for availability.
+   *
+   * @generated from field: int64 updated_at = 10;
+   */
+  updatedAt: bigint;
+};
+
+/**
+ * @generated from message tb.broker.v1.NewsArticle
+ */
+export type NewsArticleJson = {
+  /**
+   * Vendor article ID (stable across updates).
+   *
+   * @generated from field: string id = 1;
+   */
+  id?: string;
+
+  /**
+   * @generated from field: string headline = 2;
+   */
+  headline?: string;
+
+  /**
+   * @generated from field: string summary = 3;
+   */
+  summary?: string;
+
+  /**
+   * HTML body when requested, else empty.
+   *
+   * @generated from field: string content = 4;
+   */
+  content?: string;
+
+  /**
+   * @generated from field: string author = 5;
+   */
+  author?: string;
+
+  /**
+   * Upstream provider, e.g. "benzinga".
+   *
+   * @generated from field: string source = 6;
+   */
+  source?: string;
+
+  /**
+   * @generated from field: string url = 7;
+   */
+  url?: string;
+
+  /**
+   * @generated from field: repeated string symbols = 8;
+   */
+  symbols?: string[];
+
+  /**
+   * First publication time (UTC ns). Point-in-time availability derives from this (CX-010).
+   *
+   * @generated from field: int64 created_at = 9;
+   */
+  createdAt?: string;
+
+  /**
+   * Last vendor update (UTC ns); never used for availability.
+   *
+   * @generated from field: int64 updated_at = 10;
+   */
+  updatedAt?: string;
+};
+
+/**
+ * Describes the message tb.broker.v1.NewsArticle.
+ * Use `create(NewsArticleSchema)` to create a new message.
+ */
+export const NewsArticleSchema: GenMessage<NewsArticle, {jsonType: NewsArticleJson}> = /*@__PURE__*/
+  messageDesc(file_tb_broker_v1_market_data, 1);
+
+/**
+ * @generated from message tb.broker.v1.GetNewsResponse
+ */
+export type GetNewsResponse = Message<"tb.broker.v1.GetNewsResponse"> & {
+  /**
+   * @generated from field: repeated tb.broker.v1.NewsArticle articles = 1;
+   */
+  articles: NewsArticle[];
+
+  /**
+   * Empty when there are no more pages.
+   *
+   * @generated from field: string next_page_token = 2;
+   */
+  nextPageToken: string;
+};
+
+/**
+ * @generated from message tb.broker.v1.GetNewsResponse
+ */
+export type GetNewsResponseJson = {
+  /**
+   * @generated from field: repeated tb.broker.v1.NewsArticle articles = 1;
+   */
+  articles?: NewsArticleJson[];
+
+  /**
+   * Empty when there are no more pages.
+   *
+   * @generated from field: string next_page_token = 2;
+   */
+  nextPageToken?: string;
+};
+
+/**
+ * Describes the message tb.broker.v1.GetNewsResponse.
+ * Use `create(GetNewsResponseSchema)` to create a new message.
+ */
+export const GetNewsResponseSchema: GenMessage<GetNewsResponse, {jsonType: GetNewsResponseJson}> = /*@__PURE__*/
+  messageDesc(file_tb_broker_v1_market_data, 2);
 
 /**
  * @generated from message tb.broker.v1.GetHistoricalBarsRequest
@@ -120,7 +391,7 @@ export type GetHistoricalBarsRequestJson = {
  * Use `create(GetHistoricalBarsRequestSchema)` to create a new message.
  */
 export const GetHistoricalBarsRequestSchema: GenMessage<GetHistoricalBarsRequest, {jsonType: GetHistoricalBarsRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_broker_v1_market_data, 0);
+  messageDesc(file_tb_broker_v1_market_data, 3);
 
 /**
  * @generated from message tb.broker.v1.GetHistoricalBarsResponse
@@ -161,7 +432,7 @@ export type GetHistoricalBarsResponseJson = {
  * Use `create(GetHistoricalBarsResponseSchema)` to create a new message.
  */
 export const GetHistoricalBarsResponseSchema: GenMessage<GetHistoricalBarsResponse, {jsonType: GetHistoricalBarsResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_broker_v1_market_data, 1);
+  messageDesc(file_tb_broker_v1_market_data, 4);
 
 /**
  * @generated from message tb.broker.v1.Subscription
@@ -218,7 +489,7 @@ export type SubscriptionJson = {
  * Use `create(SubscriptionSchema)` to create a new message.
  */
 export const SubscriptionSchema: GenMessage<Subscription, {jsonType: SubscriptionJson}> = /*@__PURE__*/
-  messageDesc(file_tb_broker_v1_market_data, 2);
+  messageDesc(file_tb_broker_v1_market_data, 5);
 
 /**
  * @generated from message tb.broker.v1.StreamMarketDataRequest
@@ -273,7 +544,7 @@ export type StreamMarketDataRequestJson = {
  * Use `create(StreamMarketDataRequestSchema)` to create a new message.
  */
 export const StreamMarketDataRequestSchema: GenMessage<StreamMarketDataRequest, {jsonType: StreamMarketDataRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_broker_v1_market_data, 3);
+  messageDesc(file_tb_broker_v1_market_data, 6);
 
 /**
  * @generated from message tb.broker.v1.FeedStatus
@@ -360,7 +631,7 @@ export type FeedStatusJson = {
  * Use `create(FeedStatusSchema)` to create a new message.
  */
 export const FeedStatusSchema: GenMessage<FeedStatus, {jsonType: FeedStatusJson}> = /*@__PURE__*/
-  messageDesc(file_tb_broker_v1_market_data, 4);
+  messageDesc(file_tb_broker_v1_market_data, 7);
 
 /**
  * @generated from message tb.broker.v1.StreamMarketDataResponse
@@ -451,7 +722,7 @@ export type StreamMarketDataResponseJson = {
  * Use `create(StreamMarketDataResponseSchema)` to create a new message.
  */
 export const StreamMarketDataResponseSchema: GenMessage<StreamMarketDataResponse, {jsonType: StreamMarketDataResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_broker_v1_market_data, 5);
+  messageDesc(file_tb_broker_v1_market_data, 8);
 
 /**
  * @generated from message tb.broker.v1.Asset
@@ -578,7 +849,7 @@ export type AssetJson = {
  * Use `create(AssetSchema)` to create a new message.
  */
 export const AssetSchema: GenMessage<Asset, {jsonType: AssetJson}> = /*@__PURE__*/
-  messageDesc(file_tb_broker_v1_market_data, 6);
+  messageDesc(file_tb_broker_v1_market_data, 9);
 
 /**
  * @generated from message tb.broker.v1.ListAssetsRequest
@@ -609,7 +880,7 @@ export type ListAssetsRequestJson = {
  * Use `create(ListAssetsRequestSchema)` to create a new message.
  */
 export const ListAssetsRequestSchema: GenMessage<ListAssetsRequest, {jsonType: ListAssetsRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_broker_v1_market_data, 7);
+  messageDesc(file_tb_broker_v1_market_data, 10);
 
 /**
  * @generated from message tb.broker.v1.ListAssetsResponse
@@ -646,7 +917,7 @@ export type ListAssetsResponseJson = {
  * Use `create(ListAssetsResponseSchema)` to create a new message.
  */
 export const ListAssetsResponseSchema: GenMessage<ListAssetsResponse, {jsonType: ListAssetsResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_broker_v1_market_data, 8);
+  messageDesc(file_tb_broker_v1_market_data, 11);
 
 /**
  * @generated from message tb.broker.v1.GetCorporateActionsRequest
@@ -697,7 +968,7 @@ export type GetCorporateActionsRequestJson = {
  * Use `create(GetCorporateActionsRequestSchema)` to create a new message.
  */
 export const GetCorporateActionsRequestSchema: GenMessage<GetCorporateActionsRequest, {jsonType: GetCorporateActionsRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_broker_v1_market_data, 9);
+  messageDesc(file_tb_broker_v1_market_data, 12);
 
 /**
  * @generated from message tb.broker.v1.GetCorporateActionsResponse
@@ -724,7 +995,7 @@ export type GetCorporateActionsResponseJson = {
  * Use `create(GetCorporateActionsResponseSchema)` to create a new message.
  */
 export const GetCorporateActionsResponseSchema: GenMessage<GetCorporateActionsResponse, {jsonType: GetCorporateActionsResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_broker_v1_market_data, 10);
+  messageDesc(file_tb_broker_v1_market_data, 13);
 
 /**
  * @generated from message tb.broker.v1.GetFeedStatusRequest
@@ -743,7 +1014,7 @@ export type GetFeedStatusRequestJson = {
  * Use `create(GetFeedStatusRequestSchema)` to create a new message.
  */
 export const GetFeedStatusRequestSchema: GenMessage<GetFeedStatusRequest, {jsonType: GetFeedStatusRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_broker_v1_market_data, 11);
+  messageDesc(file_tb_broker_v1_market_data, 14);
 
 /**
  * @generated from message tb.broker.v1.GetFeedStatusResponse
@@ -770,7 +1041,7 @@ export type GetFeedStatusResponseJson = {
  * Use `create(GetFeedStatusResponseSchema)` to create a new message.
  */
 export const GetFeedStatusResponseSchema: GenMessage<GetFeedStatusResponse, {jsonType: GetFeedStatusResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_broker_v1_market_data, 12);
+  messageDesc(file_tb_broker_v1_market_data, 15);
 
 /**
  * @generated from enum tb.broker.v1.FeedState
@@ -873,6 +1144,18 @@ export const BrokerMarketDataService: GenService<{
     methodKind: "unary";
     input: typeof GetFeedStatusRequestSchema;
     output: typeof GetFeedStatusResponseSchema;
+  },
+  /**
+   * One page of vendor news (Alpaca: Benzinga) for context-data (section 09, ADR-0029). Only
+   * broker-gateway holds the Alpaca credential (SE-031), so news is fetched here. Text fields are
+   * untrusted and returned as the vendor sent them; context-data sanitizes them (CX-011).
+   *
+   * @generated from rpc tb.broker.v1.BrokerMarketDataService.GetNews
+   */
+  getNews: {
+    methodKind: "unary";
+    input: typeof GetNewsRequestSchema;
+    output: typeof GetNewsResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_tb_broker_v1_market_data, 0);

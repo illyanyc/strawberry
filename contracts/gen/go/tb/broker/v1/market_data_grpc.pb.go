@@ -33,6 +33,7 @@ const (
 	BrokerMarketDataService_ListAssets_FullMethodName          = "/tb.broker.v1.BrokerMarketDataService/ListAssets"
 	BrokerMarketDataService_GetCorporateActions_FullMethodName = "/tb.broker.v1.BrokerMarketDataService/GetCorporateActions"
 	BrokerMarketDataService_GetFeedStatus_FullMethodName       = "/tb.broker.v1.BrokerMarketDataService/GetFeedStatus"
+	BrokerMarketDataService_GetNews_FullMethodName             = "/tb.broker.v1.BrokerMarketDataService/GetNews"
 )
 
 // BrokerMarketDataServiceClient is the client API for BrokerMarketDataService service.
@@ -49,6 +50,10 @@ type BrokerMarketDataServiceClient interface {
 	// Corporate actions announced or effective in a date range.
 	GetCorporateActions(ctx context.Context, in *GetCorporateActionsRequest, opts ...grpc.CallOption) (*GetCorporateActionsResponse, error)
 	GetFeedStatus(ctx context.Context, in *GetFeedStatusRequest, opts ...grpc.CallOption) (*GetFeedStatusResponse, error)
+	// One page of vendor news (Alpaca: Benzinga) for context-data (section 09, ADR-0029). Only
+	// broker-gateway holds the Alpaca credential (SE-031), so news is fetched here. Text fields are
+	// untrusted and returned as the vendor sent them; context-data sanitizes them (CX-011).
+	GetNews(ctx context.Context, in *GetNewsRequest, opts ...grpc.CallOption) (*GetNewsResponse, error)
 }
 
 type brokerMarketDataServiceClient struct {
@@ -112,6 +117,16 @@ func (c *brokerMarketDataServiceClient) GetFeedStatus(ctx context.Context, in *G
 	return out, nil
 }
 
+func (c *brokerMarketDataServiceClient) GetNews(ctx context.Context, in *GetNewsRequest, opts ...grpc.CallOption) (*GetNewsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetNewsResponse)
+	err := c.cc.Invoke(ctx, BrokerMarketDataService_GetNews_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BrokerMarketDataServiceServer is the server API for BrokerMarketDataService service.
 // All implementations must embed UnimplementedBrokerMarketDataServiceServer
 // for forward compatibility.
@@ -126,6 +141,10 @@ type BrokerMarketDataServiceServer interface {
 	// Corporate actions announced or effective in a date range.
 	GetCorporateActions(context.Context, *GetCorporateActionsRequest) (*GetCorporateActionsResponse, error)
 	GetFeedStatus(context.Context, *GetFeedStatusRequest) (*GetFeedStatusResponse, error)
+	// One page of vendor news (Alpaca: Benzinga) for context-data (section 09, ADR-0029). Only
+	// broker-gateway holds the Alpaca credential (SE-031), so news is fetched here. Text fields are
+	// untrusted and returned as the vendor sent them; context-data sanitizes them (CX-011).
+	GetNews(context.Context, *GetNewsRequest) (*GetNewsResponse, error)
 	mustEmbedUnimplementedBrokerMarketDataServiceServer()
 }
 
@@ -150,6 +169,9 @@ func (UnimplementedBrokerMarketDataServiceServer) GetCorporateActions(context.Co
 }
 func (UnimplementedBrokerMarketDataServiceServer) GetFeedStatus(context.Context, *GetFeedStatusRequest) (*GetFeedStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetFeedStatus not implemented")
+}
+func (UnimplementedBrokerMarketDataServiceServer) GetNews(context.Context, *GetNewsRequest) (*GetNewsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetNews not implemented")
 }
 func (UnimplementedBrokerMarketDataServiceServer) mustEmbedUnimplementedBrokerMarketDataServiceServer() {
 }
@@ -252,6 +274,24 @@ func _BrokerMarketDataService_GetFeedStatus_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BrokerMarketDataService_GetNews_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetNewsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BrokerMarketDataServiceServer).GetNews(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BrokerMarketDataService_GetNews_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BrokerMarketDataServiceServer).GetNews(ctx, req.(*GetNewsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BrokerMarketDataService_ServiceDesc is the grpc.ServiceDesc for BrokerMarketDataService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -274,6 +314,10 @@ var BrokerMarketDataService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFeedStatus",
 			Handler:    _BrokerMarketDataService_GetFeedStatus_Handler,
+		},
+		{
+			MethodName: "GetNews",
+			Handler:    _BrokerMarketDataService_GetNews_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

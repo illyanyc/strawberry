@@ -3,6 +3,8 @@
 /* eslint-disable */
 
 // Alternative and context data produced by `context-data` (bus subjects ctx.<kind>, lake).
+// marketdata, the only lake writer (D4), persists every event on ctx.> to the `context` dataset
+// (ADR-0029). Point-in-time rules per kind are in docs/business-logic/context-data.md (CX-).
 
 import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
@@ -16,7 +18,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file tb/context/v1/context.proto.
  */
 export const file_tb_context_v1_context: GenFile = /*@__PURE__*/
-  fileDesc("Cht0Yi9jb250ZXh0L3YxL2NvbnRleHQucHJvdG8SDXRiLmNvbnRleHQudjEi2wEKDENvbnRleHRFdmVudBIQCghldmVudF9pZBgBIAEoCRIoCgRraW5kGAIgASgOMhoudGIuY29udGV4dC52MS5Db250ZXh0S2luZBIWCg5pbnN0cnVtZW50X2lkcxgDIAMoCRIsCgpwcm92ZW5hbmNlGAQgASgLMhgudGIuY29tbW9uLnYxLlByb3ZlbmFuY2USKAoHcGF5bG9hZBgFIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSDgoGc291cmNlGAYgASgJEg8KB3ZpbnRhZ2UYByABKAkqyAEKC0NvbnRleHRLaW5kEhwKGENPTlRFWFRfS0lORF9VTlNQRUNJRklFRBAAEhUKEUNPTlRFWFRfS0lORF9ORVdTEAESFgoSQ09OVEVYVF9LSU5EX01BQ1JPEAISGQoVQ09OVEVYVF9LSU5EX0VBUk5JTkdTEAMSGQoVQ09OVEVYVF9LSU5EX0NBTEVOREFSEAQSHQoZQ09OVEVYVF9LSU5EX0ZVTkRBTUVOVEFMUxAFEhcKE0NPTlRFWFRfS0lORF9SRUdJTUUQBkLAAQoRY29tLnRiLmNvbnRleHQudjFCDENvbnRleHRQcm90b1ABWkdnaXRodWIuY29tL2lsbHlhbnljL3N0cmF3YmVycnkvY29udHJhY3RzL2dlbi9nby90Yi9jb250ZXh0L3YxO2NvbnRleHR2MaICA1RDWKoCDVRiLkNvbnRleHQuVjHKAg1UYlxDb250ZXh0XFYx4gIZVGJcQ29udGV4dFxWMVxHUEJNZXRhZGF0YeoCD1RiOjpDb250ZXh0OjpWMWIGcHJvdG8z", [file_google_protobuf_struct, file_tb_common_v1_common]);
+  fileDesc("Cht0Yi9jb250ZXh0L3YxL2NvbnRleHQucHJvdG8SDXRiLmNvbnRleHQudjEigAIKDENvbnRleHRFdmVudBIQCghldmVudF9pZBgBIAEoCRIoCgRraW5kGAIgASgOMhoudGIuY29udGV4dC52MS5Db250ZXh0S2luZBIWCg5pbnN0cnVtZW50X2lkcxgDIAMoCRIsCgpwcm92ZW5hbmNlGAQgASgLMhgudGIuY29tbW9uLnYxLlByb3ZlbmFuY2USKAoHcGF5bG9hZBgFIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSDgoGc291cmNlGAYgASgJEg8KB3ZpbnRhZ2UYByABKAkSEgoKcmVjb3JkX2tleRgIIAEoCRIPCgdzeW1ib2xzGAkgAygJKqMCCgtDb250ZXh0S2luZBIcChhDT05URVhUX0tJTkRfVU5TUEVDSUZJRUQQABIVChFDT05URVhUX0tJTkRfTkVXUxABEhYKEkNPTlRFWFRfS0lORF9NQUNSTxACEhkKFUNPTlRFWFRfS0lORF9FQVJOSU5HUxADEhkKFUNPTlRFWFRfS0lORF9DQUxFTkRBUhAEEh0KGUNPTlRFWFRfS0lORF9GVU5EQU1FTlRBTFMQBRIXChNDT05URVhUX0tJTkRfUkVHSU1FEAYSHwobQ09OVEVYVF9LSU5EX1NIT1JUX0lOVEVSRVNUEAcSFwoTQ09OVEVYVF9LSU5EX0ZJTElORxAIEh8KG0NPTlRFWFRfS0lORF9ORVdTX1NFTlRJTUVOVBAJQsABChFjb20udGIuY29udGV4dC52MUIMQ29udGV4dFByb3RvUAFaR2dpdGh1Yi5jb20vaWxseWFueWMvc3RyYXdiZXJyeS9jb250cmFjdHMvZ2VuL2dvL3RiL2NvbnRleHQvdjE7Y29udGV4dHYxogIDVENYqgINVGIuQ29udGV4dC5WMcoCDVRiXENvbnRleHRcVjHiAhlUYlxDb250ZXh0XFYxXEdQQk1ldGFkYXRh6gIPVGI6OkNvbnRleHQ6OlYxYgZwcm90bzM", [file_google_protobuf_struct, file_tb_common_v1_common]);
 
 /**
  * @generated from message tb.context.v1.ContextEvent
@@ -50,7 +52,7 @@ export type ContextEvent = Message<"tb.context.v1.ContextEvent"> & {
   payload?: JsonObject | undefined;
 
   /**
-   * Source identifier, e.g. "alpaca.news", "fmp", "fred".
+   * Source identifier, e.g. "alpaca.news", "fmp", "alfred", "finra", "edgar".
    *
    * @generated from field: string source = 6;
    */
@@ -62,6 +64,22 @@ export type ContextEvent = Message<"tb.context.v1.ContextEvent"> & {
    * @generated from field: string vintage = 7;
    */
   vintage: string;
+
+  /**
+   * Stable identity of the logical record across snapshots and revisions (e.g. the news ID, the
+   * series and period, the filing accession). Point-in-time reads keep, per record_key and
+   * instrument, the version with the latest available_at <= as_of (CX-002).
+   *
+   * @generated from field: string record_key = 8;
+   */
+  recordKey: string;
+
+  /**
+   * Ticker symbols as reported by the source (instrument_ids are resolved as of event time).
+   *
+   * @generated from field: repeated string symbols = 9;
+   */
+  symbols: string[];
 };
 
 /**
@@ -96,7 +114,7 @@ export type ContextEventJson = {
   payload?: StructJson;
 
   /**
-   * Source identifier, e.g. "alpaca.news", "fmp", "fred".
+   * Source identifier, e.g. "alpaca.news", "fmp", "alfred", "finra", "edgar".
    *
    * @generated from field: string source = 6;
    */
@@ -108,6 +126,22 @@ export type ContextEventJson = {
    * @generated from field: string vintage = 7;
    */
   vintage?: string;
+
+  /**
+   * Stable identity of the logical record across snapshots and revisions (e.g. the news ID, the
+   * series and period, the filing accession). Point-in-time reads keep, per record_key and
+   * instrument, the version with the latest available_at <= as_of (CX-002).
+   *
+   * @generated from field: string record_key = 8;
+   */
+  recordKey?: string;
+
+  /**
+   * Ticker symbols as reported by the source (instrument_ids are resolved as of event time).
+   *
+   * @generated from field: repeated string symbols = 9;
+   */
+  symbols?: string[];
 };
 
 /**
@@ -127,40 +161,73 @@ export enum ContextKind {
   UNSPECIFIED = 0,
 
   /**
+   * Alpaca (Benzinga) headline with symbols; text is untrusted.
+   *
    * @generated from enum value: CONTEXT_KIND_NEWS = 1;
    */
   NEWS = 1,
 
   /**
+   * ALFRED/FRED observation of one series period at one vintage.
+   *
    * @generated from enum value: CONTEXT_KIND_MACRO = 2;
    */
   MACRO = 2,
 
   /**
+   * FMP earnings schedule or result for one instrument and report.
+   *
    * @generated from enum value: CONTEXT_KIND_EARNINGS = 3;
    */
   EARNINGS = 3,
 
   /**
+   * FMP economic-calendar event (schedule, consensus, actual).
+   *
    * @generated from enum value: CONTEXT_KIND_CALENDAR = 4;
    */
   CALENDAR = 4,
 
   /**
+   * FMP financial-statement snapshot (one fetch, restated in place by the vendor).
+   *
    * @generated from enum value: CONTEXT_KIND_FUNDAMENTALS = 5;
    */
   FUNDAMENTALS = 5,
 
   /**
+   * Point-in-time regime labels (versioned).
+   *
    * @generated from enum value: CONTEXT_KIND_REGIME = 6;
    */
   REGIME = 6,
+
+  /**
+   * FINRA consolidated short interest for one settlement date.
+   *
+   * @generated from enum value: CONTEXT_KIND_SHORT_INTEREST = 7;
+   */
+  SHORT_INTEREST = 7,
+
+  /**
+   * SEC EDGAR filing metadata (form, accession, acceptance time).
+   *
+   * @generated from enum value: CONTEXT_KIND_FILING = 8;
+   */
+  FILING = 8,
+
+  /**
+   * Sentiment score of one news item by one model version, with its contamination flag.
+   *
+   * @generated from enum value: CONTEXT_KIND_NEWS_SENTIMENT = 9;
+   */
+  NEWS_SENTIMENT = 9,
 }
 
 /**
  * @generated from enum tb.context.v1.ContextKind
  */
-export type ContextKindJson = "CONTEXT_KIND_UNSPECIFIED" | "CONTEXT_KIND_NEWS" | "CONTEXT_KIND_MACRO" | "CONTEXT_KIND_EARNINGS" | "CONTEXT_KIND_CALENDAR" | "CONTEXT_KIND_FUNDAMENTALS" | "CONTEXT_KIND_REGIME";
+export type ContextKindJson = "CONTEXT_KIND_UNSPECIFIED" | "CONTEXT_KIND_NEWS" | "CONTEXT_KIND_MACRO" | "CONTEXT_KIND_EARNINGS" | "CONTEXT_KIND_CALENDAR" | "CONTEXT_KIND_FUNDAMENTALS" | "CONTEXT_KIND_REGIME" | "CONTEXT_KIND_SHORT_INTEREST" | "CONTEXT_KIND_FILING" | "CONTEXT_KIND_NEWS_SENTIMENT";
 
 /**
  * Describes the enum tb.context.v1.ContextKind.

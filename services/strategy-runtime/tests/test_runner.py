@@ -13,6 +13,7 @@ import tb_strategy_runtime.__main__ as entry
 from tb_strategy_runtime.runner import Runner
 
 from tb.common.v1 import common_pb2
+from tb.context.v1 import context_pb2
 from tb.ledger.v1 import ledger_pb2
 from tb.marketdata.v1 import marketdata_pb2
 from tb.orders.v1 import orders_pb2
@@ -150,3 +151,45 @@ def test_every_jetstream_subscription_names_its_stream(tmp_path: Path, monkeypat
     stop.set()
     asyncio.run(entry.run(Runner.from_registry(registry(tmp_path)), "nats://x", "u", "p", "rt", 1.0, stop))
     assert nc.js.subs == [("ledger.update.sim-paper", "LEDGER"), ("md.bar.15m.I1", "MARKETDATA")]
+
+
+def blackout_registry(tmp_path: Path) -> Path:
+    p = tmp_path / "strategies.json"
+    entry_ = json.loads(registry(tmp_path).read_text())["strategies"][0]
+    entry_["runtime"]["blackout"] = {"kinds": ["CPI"], "before_minutes": 30, "after_minutes": 120}
+    p.write_text(json.dumps({"strategies": [entry_]}), encoding="utf-8")
+    return p
+
+
+def cpi_event(at_ns: int, available_ns: int) -> context_pb2.ContextEvent:
+    ev = context_pb2.ContextEvent(kind=context_pb2.CONTEXT_KIND_CALENDAR, record_key="US|CPI YoY|x", source="fmp")
+    ev.provenance.event_time, ev.provenance.available_at = at_ns, available_ns
+    ev.payload.update({"event": "CPI YoY", "category": "CPI", "impact": "High", "country": "US"})
+    return ev
+
+
+def test_cx016_event_blackout_blocks_cpi_entries_in_paper(tmp_path: Path) -> None:
+    """Acceptance (paper): the runtime drops the ORB entry inside a CPI blackout delivered on
+    ctx.calendar, and opens normally without it. Exits are never blocked."""
+    s = xnys().session(date(2026, 10, 14))
+    assert s is not None
+    release = int((s.open - timedelta(hours=1)).timestamp()) * NS  # 08:30 New York
+    plain = Runner.from_registry(blackout_registry(tmp_path))
+    plain.on_bar(bar(0, "100", "101", "99", "100.5"))
+    assert len(plain.on_bar(bar(1, "100.5", "101.5", "100.4", "101.4"))) == 1
+    r = Runner.from_registry(blackout_registry(tmp_path))
+    assert r.uses_events()
+    r.on_context_event(cpi_event(release, release - 7 * 86_400 * NS))
+    r.on_bar(bar(0, "100", "101", "99", "100.5"))
+    assert r.on_bar(bar(1, "100.5", "101.5", "100.4", "101.4")) == []
+    assert r.hosted[0].impl.blocked  # type: ignore[attr-defined]
+
+
+def test_cx016_blackout_unknown_at_decision_time_does_not_block(tmp_path: Path) -> None:
+    s = xnys().session(date(2026, 10, 14))
+    assert s is not None
+    release = int((s.open - timedelta(hours=1)).timestamp()) * NS
+    r = Runner.from_registry(blackout_registry(tmp_path))
+    r.on_context_event(cpi_event(release, int(s.close.timestamp()) * NS))  # published after the decision
+    r.on_bar(bar(0, "100", "101", "99", "100.5"))
+    assert len(r.on_bar(bar(1, "100.5", "101.5", "100.4", "101.4"))) == 1

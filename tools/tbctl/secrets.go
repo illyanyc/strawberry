@@ -20,7 +20,11 @@ import (
 // natsUsers lists bus users and their subject permissions (least privilege; widened per phase).
 var natsUsers = map[string]struct{ pub, sub []string }{
 	"api_gateway": {pub: []string{"alert.>", "sys.health.api-gateway"}, sub: []string{"_INBOX.>", "md.bar.>", "exec.>"}},
-	"marketdata":  {pub: []string{"md.>", "ref.>", "alert.>", "sys.health.marketdata", "sys.health.alpaca.>", "sys.health.fmp"}, sub: []string{"_INBOX.>"}},
+	// marketdata also persists context events (ctx.>) to the lake as its only writer (ADR-0032).
+	"marketdata": {pub: []string{"md.>", "ref.>", "alert.>", "sys.health.marketdata", "sys.health.alpaca.>", "sys.health.fmp", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
+		sub: []string{"_INBOX.>", "ctx.>"}},
+	// context-data publishes point-in-time context events and its source health (section 09).
+	"context_data": {pub: []string{"ctx.>", "alert.>", "sys.health.context-data", "sys.health.ctx.>"}, sub: []string{"_INBOX.>"}},
 	// JetStream pull consumers need the consumer API and ack subjects ($JS.API.CONSUMER.>,
 	// $JS.API.STREAM.INFO.>, $JS.ACK.>).
 	"execution": {pub: []string{"ord.>", "risk.kill", "alert.>", "sys.health.execution", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
@@ -34,7 +38,7 @@ var natsUsers = map[string]struct{ pub, sub []string }{
 	// The strategy runtime only publishes intents and its heartbeat; it reads bars and its own
 	// strategies' ledger updates (ADR-0026).
 	"strategy_runtime": {pub: []string{"ord.intent", "sys.health.strategy-runtime", "alert.>", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
-		sub: []string{"_INBOX.>", "md.bar.>", "ledger.update.>"}},
+		sub: []string{"_INBOX.>", "md.bar.>", "ledger.update.>", "ctx.calendar", "ctx.earnings"}},
 	// The monitor forwards bus alerts to Alertmanager and builds daily reports from order-path and
 	// ledger events (section 13).
 	"monitor": {pub: []string{"alert.>", "sys.health.monitor", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
@@ -43,7 +47,7 @@ var natsUsers = map[string]struct{ pub, sub []string }{
 }
 
 // signingServices get Ed25519 service-token keys (SE-040).
-var signingServices = []string{"api-gateway", "broker-gateway", "execution", "ledger", "marketdata"}
+var signingServices = []string{"api-gateway", "broker-gateway", "context-data", "execution", "ledger", "marketdata"}
 
 // initSecrets writes every missing secret into dir. Existing files are never overwritten, so the
 // command is safe to re-run after adding a new service. Files are 0644 inside a 0700 directory: the
@@ -162,7 +166,7 @@ func initSecrets(dir string) error {
 	// Optional integrations: placeholders keep Compose happy until the owner fills them in. The IBKR
 	// login files are mounted only into the matching ib-gateway container (IB-070).
 	for _, name := range []string{
-		"pushover_user_key", "pushover_app_token", "cloudflared_tunnel_token", "fmp_api_key",
+		"pushover_user_key", "pushover_app_token", "cloudflared_tunnel_token", "fmp_api_key", "fred_api_key",
 		"ibkr_paper_username", "ibkr_paper_password", "ibkr_live_username", "ibkr_live_password",
 	} {
 		if err := put(name, func() (string, error) { return "unset", nil }); err != nil {

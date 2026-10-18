@@ -23,6 +23,54 @@ FEED_STATE_DISCONNECTED: FeedState
 FEED_STATE_CONNECTION_LIMIT: FeedState
 FEED_STATE_AUTH_FAILED: FeedState
 
+class GetNewsRequest(_message.Message):
+    __slots__ = ("symbols", "start", "end", "page_token", "limit", "include_content")
+    SYMBOLS_FIELD_NUMBER: _ClassVar[int]
+    START_FIELD_NUMBER: _ClassVar[int]
+    END_FIELD_NUMBER: _ClassVar[int]
+    PAGE_TOKEN_FIELD_NUMBER: _ClassVar[int]
+    LIMIT_FIELD_NUMBER: _ClassVar[int]
+    INCLUDE_CONTENT_FIELD_NUMBER: _ClassVar[int]
+    symbols: _containers.RepeatedScalarFieldContainer[str]
+    start: int
+    end: int
+    page_token: str
+    limit: int
+    include_content: bool
+    def __init__(self, symbols: _Optional[_Iterable[str]] = ..., start: _Optional[int] = ..., end: _Optional[int] = ..., page_token: _Optional[str] = ..., limit: _Optional[int] = ..., include_content: _Optional[bool] = ...) -> None: ...
+
+class NewsArticle(_message.Message):
+    __slots__ = ("id", "headline", "summary", "content", "author", "source", "url", "symbols", "created_at", "updated_at")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    HEADLINE_FIELD_NUMBER: _ClassVar[int]
+    SUMMARY_FIELD_NUMBER: _ClassVar[int]
+    CONTENT_FIELD_NUMBER: _ClassVar[int]
+    AUTHOR_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_FIELD_NUMBER: _ClassVar[int]
+    URL_FIELD_NUMBER: _ClassVar[int]
+    SYMBOLS_FIELD_NUMBER: _ClassVar[int]
+    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+    UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    headline: str
+    summary: str
+    content: str
+    author: str
+    source: str
+    url: str
+    symbols: _containers.RepeatedScalarFieldContainer[str]
+    created_at: int
+    updated_at: int
+    def __init__(self, id: _Optional[str] = ..., headline: _Optional[str] = ..., summary: _Optional[str] = ..., content: _Optional[str] = ..., author: _Optional[str] = ..., source: _Optional[str] = ..., url: _Optional[str] = ..., symbols: _Optional[_Iterable[str]] = ..., created_at: _Optional[int] = ..., updated_at: _Optional[int] = ...) -> None: ...
+
+class GetNewsResponse(_message.Message):
+    __slots__ = ("articles", "next_page_token")
+    ARTICLES_FIELD_NUMBER: _ClassVar[int]
+    NEXT_PAGE_TOKEN_FIELD_NUMBER: _ClassVar[int]
+    articles: _containers.RepeatedCompositeFieldContainer[NewsArticle]
+    next_page_token: str
+    def __init__(self, articles: _Optional[_Iterable[_Union[NewsArticle, _Mapping]]] = ..., next_page_token: _Optional[str] = ...) -> None: ...
+
 class GetHistoricalBarsRequest(_message.Message):
     __slots__ = ("symbols", "timeframe", "start", "end", "feed", "page_token", "limit")
     SYMBOLS_FIELD_NUMBER: _ClassVar[int]

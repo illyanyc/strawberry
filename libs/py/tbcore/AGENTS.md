@@ -11,11 +11,13 @@ Shared Python library. It holds the code that MUST be shared by training, backte
 | `src/tbcore/logging.py`, `redact.py` | JSON formatter with `service`, `correlation_id`, redaction (mirrors Go) | SE-012 |
 | `src/tbcore/secrets.py` | `get_secret(name)` from mounted files | SE-010 |
 | `src/tbcore/data/lake.py` | `Lake`: `bars(instruments, timeframe, start, end, as_of, adjust, feed, versions)`, `corporate_actions`, `universe`, `resolve`, `history`, `context`, `ref`; `apply_adjustment`; `asof_join` | DF-002, DF-005, DF-006, DF-007, ST-006, MD-012 |
+| `src/tbcore/context/` | Context data (section 09, ADR-0032): `availability` (per-source rule times, `stamp`, FINRA schedule CSV), `canonical` (payload JSON identical to the Go sink), `store.ContextStore` (point-in-time reads per `record_key`: `news_for`, `sentiment_agg`, `macro`, `upcoming_events`, `earnings_window`, `short_interest`, `filings`, `fundamentals`, `regime`), `schemas` (payload schemas), `news` (syndicated duplicates), `sentiment` (aggregates), `regime` (`regime_v1`), `events` (`categorize`, `EventBlackout`, `BlackoutStrategy`, `InMemoryEventSource`), `features` (`context_features`, joined by `materialize(context=...)` and the online engine) | CX-002..CX-007, CX-013..CX-018, DF-010 |
+| `src/tbcore/svcauth.py` | Ed25519 service-token signer for Python gRPC clients, wire-compatible with `libs/go/svcauth` | SE-040 |
 | `src/tbcore/data/calendar.py`, `xnys_sessions.csv` | XNYS sessions (same file as `libs/go/calendar`), bar opens/closes, lookups | MD-004, MD-005, DF-011 |
 | `src/tbcore/dq.py` | `dq_check` (same rules as Go `internal/dq`) | ST-010 |
 | `src/tbcore/features/core.py` | `@feature`, `FeatureDef`, `FeatureSet` (content hash), `compute` (the single computation path) | DF-003, DF-004, DF-013 |
 | `src/tbcore/features/library.py` | 16 MVP features, `mvp_feature_set` | DF-013 |
-| `src/tbcore/features/store.py` | `materialize` (snapshots), `gc_snapshots`, `OnlineFeatureEngine`, `compare`, `parity_check` | DF-002, DF-004, DF-009 |
+| `src/tbcore/features/store.py` | `materialize` (snapshots, optional `context=` features), `gc_snapshots`, `OnlineFeatureEngine` (optional context store), `compare`, `parity_check` | DF-002, DF-004, DF-009, CX-018 |
 | `src/tbcore/strategy/` | Strategy API (`Strategy`, `StrategyContext`, `Bar`, `Intent`, deterministic `new_ulid`), `fixed_fractional_qty`, `OpeningRangeBreakout` (Phase 2 baseline) | SM-011, SM-014, DF-002, RM-010 |
 | `tests/` | Unit, property, parity, leakage, perf (`TB_PERF=1`) tests; `lakekit.py` writes test lakes in the production layout | — |
 
@@ -28,4 +30,6 @@ Shared Python library. It holds the code that MUST be shared by training, backte
 - Feature/label/strategy code must never be copied into services; import it from here.
 - New features must be finite-lookback and price-scale invariant (DF-013) and appear in the parity and future-shift tests; changing a feature's code requires a version bump.
 - Read timestamps with Polars, not DuckDB: DuckDB maps UTC-adjusted Parquet timestamps to microseconds, which can break strict `available_at` comparisons.
-- Only marketdata writes the lake (D4); tests use `tests/lakekit.py` to build lakes in the same layout.
+- Only marketdata writes the lake (D4); tests use `tests/lakekit.py` (`write_bars`, `write_context`, `context_row`) to build lakes in the same layout.
+- Context payloads must hash identically in Go and Python (`tbcore.context.canonical`, digest pinned in `test_cx003_canonical_json_matches_go` and `TestCX003CanonicalPayloadDigest`); payload fields must be deterministic functions of vendor content (no fetch times), or every fetch becomes a new version.
+- Context reads never key on `event_time`; use `ContextStore` (per `record_key`).

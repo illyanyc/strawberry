@@ -47,3 +47,21 @@ groups:
         annotations:
           summary: "FMP requests failing repeatedly (breaker likely open)"
           runbook_url: docs/runbooks/market-data.md
+
+      # Section 09 (CX-019): a context source missed its freshness limit; features fall back to the
+      # last versions known and strategy blackouts may miss new events.
+      - alert: ContextSourceStale
+        expr: max by (ctx_job) (tb_context_source_stale) > 0
+        for: 15m
+        labels: { severity: warning }
+        annotations:
+          summary: "Context job {{ $labels.ctx_job }} has not succeeded within its freshness limit"
+          runbook_url: docs/runbooks/context-data.md
+
+      - alert: ContextLakeSinkPoison
+        expr: increase(tb_context_rows_total{outcome="poison"}[1h]) > 0
+        for: 0m
+        labels: { severity: warning }
+        annotations:
+          summary: "marketdata rejected invalid context events (CX-001); context-data is publishing malformed versions"
+          runbook_url: docs/runbooks/context-data.md

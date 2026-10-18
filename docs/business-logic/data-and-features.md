@@ -25,7 +25,7 @@ Market and context data correctness, point-in-time access, corporate-action adju
 | DF-007 | Partial (non-final) bars MUST NOT be written to the lake as final; a later correction supersedes an earlier value with both retained for audit. | Implemented | `lake.RowFromBar` (rejects partial bars), `lake.Compact` (revisions retained); `TestDF007*` |
 | DF-008 | Normalization, scaling, and feature selection MUST be rolling or fitted within the training fold only. | Specified | — |
 | DF-009 | Dataset snapshots are immutable and garbage-collected only when unreferenced by runs or backtests. | Implemented | `tbcore.features.materialize` (content-addressed, temp-dir rename), `gc_snapshots`; `test_df009_snapshots_immutable_deterministic_and_gc` |
-| DF-010 | Macro and other revised series MUST be stored with vintages; features use the vintage available at `as_of`. | Specified | — |
+| DF-010 | Macro and other revised series MUST be stored with vintages; features use the vintage available at `as_of`. | Implemented | ALFRED vintages as context versions (`tb_context_data.sources.alfred`), `tbcore.context.ContextStore.macro`; `test_cx006_macro_as_of_returns_vintage_known_then`, `test_cx002_go_written_context_fixture_vintages_as_of` (rules in [context data](context-data.md)) |
 | DF-011 | All timestamps are stored in UTC; local exchange time is derived via the exchange calendar (DST-aware). | Implemented | `libs/go/calendar`, `tbcore.data.calendar`, `tbcore.data.to_ns` (rejects naive datetimes); `TestDF011DSTAndHalfDays`, `test_naive_datetimes_rejected` |
 | DF-012 | Leakage tests (shuffled-future, label-shift, timestamp assertions) MUST run in CI and cover every feature set and label. | Implemented for features (labels: Phase 3; generated-code lint: Phase 4) | `test_df012_future_shift_leakage`, `test_df012_shuffled_labels_carry_no_signal`, `materialize` timestamp assertion |
 | DF-013 | Every feature MUST have a finite declared `lookback` (its value depends only on the current and previous `lookback − 1` bars of the instrument) and MUST be invariant to scaling the price or volume series by a constant (returns, ratios, z-scores of logs), so full-history and ring-buffer computations and any later backward adjustment agree. | Implemented | `tbcore.features.core`, `library`; parity and future-shift tests |
@@ -42,7 +42,7 @@ Market and context data correctness, point-in-time access, corporate-action adju
 
 | Scenario | Expected behavior | Rules |
 |---|---|---|
-| Earnings released after the close with `event_time` during the day | Usable only from `available_at` (after close) | DF-002 |
+| Earnings released after the close with `event_time` during the day | Usable only from `available_at` (20:00 New York, CX-007) | DF-002, CX-007 |
 | Split announced after the query date | Not applied to an as-of query before the announcement | DF-005 |
 | Symbol delisted in 2022 | Present in historical universes up to delisting | DF-006 |
 | DST change | US open at 14:30 UTC in winter, 13:30 UTC in summer; calendar handles it | DF-011 |

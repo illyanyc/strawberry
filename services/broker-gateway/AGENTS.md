@@ -13,7 +13,7 @@ Custodian of broker credentials and home of the Alpaca adapter, the broker simul
 |---|---|---|---|
 | in | gRPC `:9090` | `tb.broker.v1.CredentialService` (api-gateway only) | `contracts/proto/tb/broker/v1/credentials.proto` |
 | in | gRPC `:9090` | `tb.broker.v1.BrokerGatewayService` (orders: execution only; reads: execution, ledger, marketdata, api-gateway; see `grpcsvc.AllowedCallers`) | `contracts/proto/tb/broker/v1/gateway.proto` |
-| in | gRPC `:9090` | `tb.broker.v1.BrokerMarketDataService` (marketdata; feed status also api-gateway) | `contracts/proto/tb/broker/v1/market_data.proto` |
+| in | gRPC `:9090` | `tb.broker.v1.BrokerMarketDataService` (marketdata; feed status also api-gateway; `GetNews` context-data only, BR-022) | `contracts/proto/tb/broker/v1/market_data.proto` |
 | out | HTTPS/WSS | Alpaca trading REST, `trade_updates` stream, data REST, market-data stream | brokers.md "Alpaca specifics" |
 | out | Postgres | schemas `secrets`, `broker`; `audit.append` | `libs/go/db/migrations/{secrets,broker}/` |
 | out | NATS | outbox relay → `ord.update.*`, `exec.*`, `acct.snapshot.*`, `recon.request.*`, `alert.*` (user `broker_gateway`) | ADR-0018 |
@@ -22,6 +22,7 @@ Custodian of broker credentials and home of the Alpaca adapter, the broker simul
 - Attribution IDs are validated with the shared `libs/go/attribution` package (BR-003, VP-002).
 - `BR-001`..`BR-021` (brokers.md): contract suite, capabilities, attribution, error model, reject and status mapping, idempotent submit, canonical exec IDs, ordering, session state machine, resync, backoff, live gate, audit, single data socket, budgets, rounding, bracket legs, manual orders, no account-wide endpoints, margin events.
 - `OE-002`..`OE-011` (adapter side), `VP-001` (manual orders pass through untouched).
+- `BR-022` vendor news pass-through for context-data (`internal/alpaca/data.go` `News`, route `/v1beta1/news`).
 - `SE-030`..`SE-033` credential custody; `SE-040` per-method caller allowlists (`internal/grpcsvc`, `internal/credsvc`); `SE-012` redaction of credential material in errors and logs; `SE-021` order requests audited before sending.
 
 ## Layout

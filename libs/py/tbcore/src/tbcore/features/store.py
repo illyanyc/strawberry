@@ -18,6 +18,8 @@ from typing import Any, Literal
 
 import polars as pl
 
+from tbcore.context.features import ContextFeatureSpec, context_features
+from tbcore.context.store import ContextStore
 from tbcore.data.calendar import TIMEFRAMES, Calendar, xnys
 from tbcore.data.lake import Lake, TimeLike, apply_adjustment, to_dt, to_ns
 from tbcore.features.core import BAR_COLUMNS, FeatureSet, compute
@@ -85,6 +87,7 @@ def materialize(
     out_root: str | os.PathLike[str] | None = None,
     calendar: Calendar | None = None,
     exclude_quarantined: bool = True,
+    context: ContextFeatureSpec | None = None,
 ) -> DatasetSnapshot:
     """Compute ``fs`` over the point-in-time ``universe`` for bars in ``[start, end)`` and store an
     immutable snapshot (DF-009).
@@ -95,6 +98,8 @@ def materialize(
       quarantined symbol-days are dropped (MD-010) unless ``exclude_quarantined=False``.
     * ``snapshot_id`` hashes the feature-set hash, universe membership, range, as_of, versions, and
       the exact input files (immutable names), so the same ID always means the same data (DF-I3).
+    * With ``context``, the point-in-time context features (CX-018) are joined per row using the
+      row's ``available_at`` as the decision time; context inputs are part of the snapshot ID.
     """
     cal = calendar or xnys()
     s_ns, e_ns = to_ns(start), to_ns(end)
@@ -105,6 +110,7 @@ def materialize(
     ctx_ids = sorted(set(fs.context.values()) | set(sector.values()))
     inputs = [os.path.relpath(p, lake.root) for ds in ("bars", "bar_revisions") for p in lake.files(ds, timeframe)]
     ref_files = sorted(os.path.relpath(p, lake.root) for p in lake.files("ref"))
+    ctx_files = sorted(os.path.relpath(p, lake.root) for p in lake.files("context")) if context else []
     ident = {
         "feature_set": fs.hash,
         "universe": universe,
@@ -117,6 +123,7 @@ def materialize(
         "inputs": sorted(inputs),
         "ref": ref_files,
         "sector": sector,
+        **({"context": context.hash, "context_inputs": ctx_files} if context else {}),
     }
     snapshot_id = hashlib.sha256(json.dumps(ident, sort_keys=True, default=str).encode()).hexdigest()[:32]
     root = Path(out_root) if out_root else lake.root / "snapshots"
@@ -142,6 +149,8 @@ def materialize(
     )
     if exclude_quarantined:
         feats = lake.drop_quarantined(feats)
+    if context is not None:
+        feats = context_features(feats, ContextStore(lake), context, time_col="available_at")
     # Leakage guard: no feature row may be computed from data unavailable at its decision time.
     if feats.height and feats.select((pl.col("available_at").dt.epoch("ns") > a_ns).any()).item():
         raise AssertionError("materialize: a feature row uses data with available_at > as_of (DF-002)")
@@ -149,7 +158,7 @@ def materialize(
         **{k: v for k, v in ident.items() if k != "members"},
         "snapshot_id": snapshot_id,
         "feature_set_id": fs.id,
-        "features": fs.names,
+        "features": fs.names + (context.names if context else []),
         "rows": feats.height,
         "instruments": len(insts),
         "created_at": time.time(),
@@ -201,8 +210,12 @@ class OnlineFeatureEngine:
         sector_of: dict[str, str] | None = None,
         actions: pl.DataFrame | None = None,
         ring: int | None = None,
+        context_store: ContextStore | None = None,
+        context: ContextFeatureSpec | None = None,
     ) -> None:
         self.fs = fs
+        self.context_store = context_store
+        self.context = context
         self.sector_of = dict(sector_of or {})
         self.ring = ring or fs.max_lookback
         self.actions = actions if actions is not None else pl.DataFrame()
@@ -223,7 +236,10 @@ class OnlineFeatureEngine:
         panel = apply_adjustment(panel, self.actions, "split_div").select(BAR_COLUMNS)
         out = compute(self.fs, panel, sector_of=self.sector_of)
         keys = bars.select("instrument_id", "ts_open")
-        return out.join(keys, on=["instrument_id", "ts_open"], how="inner").sort("instrument_id")
+        out = out.join(keys, on=["instrument_id", "ts_open"], how="inner").sort("instrument_id")
+        if self.context is not None and self.context_store is not None:
+            out = context_features(out, self.context_store, self.context, time_col="available_at")
+        return out
 
 
 @dataclass(frozen=True)

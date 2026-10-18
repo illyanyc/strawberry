@@ -43,6 +43,7 @@ import (
 	"github.com/illyanyc/strawberry/libs/go/svc"
 	"github.com/illyanyc/strawberry/libs/go/svcauth"
 	"github.com/illyanyc/strawberry/services/marketdata/internal/api"
+	"github.com/illyanyc/strawberry/services/marketdata/internal/ctxsink"
 	"github.com/illyanyc/strawberry/services/marketdata/internal/fmp"
 	"github.com/illyanyc/strawberry/services/marketdata/internal/ingest"
 	"github.com/illyanyc/strawberry/services/marketdata/internal/lake"
@@ -77,6 +78,9 @@ type cfg struct {
 	LakeFlush     time.Duration `env:"TB_LAKE_FLUSH_INTERVAL" envDefault:"30s" json:"lake_flush_interval"`
 	HistoryStart  string        `env:"TB_MD_HISTORY_START" json:"history_start"` // YYYY-MM-DD; empty = no history load
 	CatchupDays   int           `env:"TB_MD_CATCHUP_DAYS" envDefault:"10" json:"catchup_days"`
+	// Context events from context-data (ctx.>) are persisted here (ADR-0032, CX-003).
+	ContextSink    bool          `env:"TB_MD_CONTEXT_SINK" envDefault:"true" json:"context_sink"`
+	ContextCompact time.Duration `env:"TB_MD_CONTEXT_COMPACT_EVERY" envDefault:"10m" json:"context_compact_every"`
 }
 
 func main() {
@@ -273,6 +277,10 @@ func main() {
 	}}
 	go scheduler.Run(ctx)
 	go publishHealth(ctx, js, pipe, fc, c.Feed)
+	if c.ContextSink {
+		go ctxsink.New(lk, rt.Log, rt.Ops.Registry()).Run(ctx, js)
+		go compactContextEvery(ctx, rt.Log, lk, c.ContextCompact)
+	}
 
 	verifier, err := svcauth.LoadVerifier(rt.Secrets, c.Service, "api-gateway", "execution")
 	if err != nil {
@@ -300,6 +308,27 @@ func main() {
 		svc.Fatal(rt.Log, "grpc", err)
 	}
 	rt.Wait()
+}
+
+// compactContextEvery merges staged context files on a timer so partitions stay one file each.
+func compactContextEvery(ctx context.Context, log *slog.Logger, lk *lake.Lake, every time.Duration) {
+	if every <= 0 {
+		return
+	}
+	t := time.NewTicker(every)
+	defer t.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
+			if res, err := lk.CompactAllContext(ctx); err != nil {
+				log.Warn("context compaction failed", "err", err)
+			} else if len(res) > 0 {
+				log.Info("context compacted", "partitions", len(res))
+			}
+		}
+	}
 }
 
 // publishHealth publishes SourceHealth on sys.health.<source> every 15 s (MD-008).

@@ -243,6 +243,18 @@ spike-v2: ## V2: probe Alpaca history for known delisted tickers (needs Alpaca k
 spike-v3: ## V3: probe the owner's FMP key (/stable vs /api/v3, limits, intraday); needs .secrets/fmp_api_key
 	$(COMPOSE) run --rm --no-deps marketdata spike v3
 
+.PHONY: spike-v6
+spike-v6: ## V6: FMP earnings report timing (BMO/AMC) in /stable and real-time entitlement; needs .secrets/fmp_api_key
+	TB_SECRETS_DIR=$(CURDIR)/.secrets uv run python -m tb_context_data spike v6 spike-v6-report.json
+
+.PHONY: ctx-backfill
+ctx-backfill: ## Context backfill in the running stack: SOURCE=calendar|earnings|fundamentals|macro|short_interest|filings|news|regime START=YYYY-MM-DD END=YYYY-MM-DD
+	$(COMPOSE) exec context-data python -m tb_context_data backfill $(SOURCE) $(START) $(END)
+
+.PHONY: test-ctx-live
+test-ctx-live: ## Opt-in context-data tests against real APIs (FINRA, EDGAR; FRED/FMP with TB_CTX_FRED_KEY/TB_CTX_FMP_KEY)
+	TB_CTX_LIVE_TEST=1 uv run pytest services/context-data/ctx_tests -m ctx_live -v
+
 .PHONY: spike-v4
 spike-v4: dirs ## V4: atomic-rename stress across the lake bind mount (writer in container, native reader), 120 s
 	@mkdir -p data/lake/spikes/v4

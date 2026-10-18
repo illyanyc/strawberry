@@ -5,6 +5,8 @@
 // source: tb/context/v1/context.proto
 
 // Alternative and context data produced by `context-data` (bus subjects ctx.<kind>, lake).
+// marketdata, the only lake writer (D4), persists every event on ctx.> to the `context` dataset
+// (ADR-0029). Point-in-time rules per kind are in docs/business-logic/context-data.md (CX-).
 
 package contextv1
 
@@ -28,13 +30,25 @@ const (
 type ContextKind int32
 
 const (
-	ContextKind_CONTEXT_KIND_UNSPECIFIED  ContextKind = 0
-	ContextKind_CONTEXT_KIND_NEWS         ContextKind = 1
-	ContextKind_CONTEXT_KIND_MACRO        ContextKind = 2
-	ContextKind_CONTEXT_KIND_EARNINGS     ContextKind = 3
-	ContextKind_CONTEXT_KIND_CALENDAR     ContextKind = 4
+	ContextKind_CONTEXT_KIND_UNSPECIFIED ContextKind = 0
+	// Alpaca (Benzinga) headline with symbols; text is untrusted.
+	ContextKind_CONTEXT_KIND_NEWS ContextKind = 1
+	// ALFRED/FRED observation of one series period at one vintage.
+	ContextKind_CONTEXT_KIND_MACRO ContextKind = 2
+	// FMP earnings schedule or result for one instrument and report.
+	ContextKind_CONTEXT_KIND_EARNINGS ContextKind = 3
+	// FMP economic-calendar event (schedule, consensus, actual).
+	ContextKind_CONTEXT_KIND_CALENDAR ContextKind = 4
+	// FMP financial-statement snapshot (one fetch, restated in place by the vendor).
 	ContextKind_CONTEXT_KIND_FUNDAMENTALS ContextKind = 5
-	ContextKind_CONTEXT_KIND_REGIME       ContextKind = 6
+	// Point-in-time regime labels (versioned).
+	ContextKind_CONTEXT_KIND_REGIME ContextKind = 6
+	// FINRA consolidated short interest for one settlement date.
+	ContextKind_CONTEXT_KIND_SHORT_INTEREST ContextKind = 7
+	// SEC EDGAR filing metadata (form, accession, acceptance time).
+	ContextKind_CONTEXT_KIND_FILING ContextKind = 8
+	// Sentiment score of one news item by one model version, with its contamination flag.
+	ContextKind_CONTEXT_KIND_NEWS_SENTIMENT ContextKind = 9
 )
 
 // Enum value maps for ContextKind.
@@ -47,15 +61,21 @@ var (
 		4: "CONTEXT_KIND_CALENDAR",
 		5: "CONTEXT_KIND_FUNDAMENTALS",
 		6: "CONTEXT_KIND_REGIME",
+		7: "CONTEXT_KIND_SHORT_INTEREST",
+		8: "CONTEXT_KIND_FILING",
+		9: "CONTEXT_KIND_NEWS_SENTIMENT",
 	}
 	ContextKind_value = map[string]int32{
-		"CONTEXT_KIND_UNSPECIFIED":  0,
-		"CONTEXT_KIND_NEWS":         1,
-		"CONTEXT_KIND_MACRO":        2,
-		"CONTEXT_KIND_EARNINGS":     3,
-		"CONTEXT_KIND_CALENDAR":     4,
-		"CONTEXT_KIND_FUNDAMENTALS": 5,
-		"CONTEXT_KIND_REGIME":       6,
+		"CONTEXT_KIND_UNSPECIFIED":    0,
+		"CONTEXT_KIND_NEWS":           1,
+		"CONTEXT_KIND_MACRO":          2,
+		"CONTEXT_KIND_EARNINGS":       3,
+		"CONTEXT_KIND_CALENDAR":       4,
+		"CONTEXT_KIND_FUNDAMENTALS":   5,
+		"CONTEXT_KIND_REGIME":         6,
+		"CONTEXT_KIND_SHORT_INTEREST": 7,
+		"CONTEXT_KIND_FILING":         8,
+		"CONTEXT_KIND_NEWS_SENTIMENT": 9,
 	}
 )
 
@@ -94,10 +114,16 @@ type ContextEvent struct {
 	Provenance    *v1.Provenance         `protobuf:"bytes,4,opt,name=provenance,proto3" json:"provenance,omitempty"`
 	// Kind-specific payload. Text in here is untrusted input (prompt-injection risk for the assistant).
 	Payload *structpb.Struct `protobuf:"bytes,5,opt,name=payload,proto3" json:"payload,omitempty"`
-	// Source identifier, e.g. "alpaca.news", "fmp", "fred".
+	// Source identifier, e.g. "alpaca.news", "fmp", "alfred", "finra", "edgar".
 	Source string `protobuf:"bytes,6,opt,name=source,proto3" json:"source,omitempty"`
 	// Vintage for revised series (rule DF-010); empty for unrevised data.
-	Vintage       string `protobuf:"bytes,7,opt,name=vintage,proto3" json:"vintage,omitempty"`
+	Vintage string `protobuf:"bytes,7,opt,name=vintage,proto3" json:"vintage,omitempty"`
+	// Stable identity of the logical record across snapshots and revisions (e.g. the news ID, the
+	// series and period, the filing accession). Point-in-time reads keep, per record_key and
+	// instrument, the version with the latest available_at <= as_of (CX-002).
+	RecordKey string `protobuf:"bytes,8,opt,name=record_key,json=recordKey,proto3" json:"record_key,omitempty"`
+	// Ticker symbols as reported by the source (instrument_ids are resolved as of event time).
+	Symbols       []string `protobuf:"bytes,9,rep,name=symbols,proto3" json:"symbols,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -181,11 +207,25 @@ func (x *ContextEvent) GetVintage() string {
 	return ""
 }
 
+func (x *ContextEvent) GetRecordKey() string {
+	if x != nil {
+		return x.RecordKey
+	}
+	return ""
+}
+
+func (x *ContextEvent) GetSymbols() []string {
+	if x != nil {
+		return x.Symbols
+	}
+	return nil
+}
+
 var File_tb_context_v1_context_proto protoreflect.FileDescriptor
 
 const file_tb_context_v1_context_proto_rawDesc = "" +
 	"\n" +
-	"\x1btb/context/v1/context.proto\x12\rtb.context.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x19tb/common/v1/common.proto\"\x9f\x02\n" +
+	"\x1btb/context/v1/context.proto\x12\rtb.context.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x19tb/common/v1/common.proto\"\xd8\x02\n" +
 	"\fContextEvent\x12\x19\n" +
 	"\bevent_id\x18\x01 \x01(\tR\aeventId\x12.\n" +
 	"\x04kind\x18\x02 \x01(\x0e2\x1a.tb.context.v1.ContextKindR\x04kind\x12%\n" +
@@ -195,7 +235,10 @@ const file_tb_context_v1_context_proto_rawDesc = "" +
 	"provenance\x121\n" +
 	"\apayload\x18\x05 \x01(\v2\x17.google.protobuf.StructR\apayload\x12\x16\n" +
 	"\x06source\x18\x06 \x01(\tR\x06source\x12\x18\n" +
-	"\avintage\x18\a \x01(\tR\avintage*\xc8\x01\n" +
+	"\avintage\x18\a \x01(\tR\avintage\x12\x1d\n" +
+	"\n" +
+	"record_key\x18\b \x01(\tR\trecordKey\x12\x18\n" +
+	"\asymbols\x18\t \x03(\tR\asymbols*\xa3\x02\n" +
 	"\vContextKind\x12\x1c\n" +
 	"\x18CONTEXT_KIND_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11CONTEXT_KIND_NEWS\x10\x01\x12\x16\n" +
@@ -203,7 +246,10 @@ const file_tb_context_v1_context_proto_rawDesc = "" +
 	"\x15CONTEXT_KIND_EARNINGS\x10\x03\x12\x19\n" +
 	"\x15CONTEXT_KIND_CALENDAR\x10\x04\x12\x1d\n" +
 	"\x19CONTEXT_KIND_FUNDAMENTALS\x10\x05\x12\x17\n" +
-	"\x13CONTEXT_KIND_REGIME\x10\x06B\xc0\x01\n" +
+	"\x13CONTEXT_KIND_REGIME\x10\x06\x12\x1f\n" +
+	"\x1bCONTEXT_KIND_SHORT_INTEREST\x10\a\x12\x17\n" +
+	"\x13CONTEXT_KIND_FILING\x10\b\x12\x1f\n" +
+	"\x1bCONTEXT_KIND_NEWS_SENTIMENT\x10\tB\xc0\x01\n" +
 	"\x11com.tb.context.v1B\fContextProtoP\x01ZGgithub.com/illyanyc/strawberry/contracts/gen/go/tb/context/v1;contextv1\xa2\x02\x03TCX\xaa\x02\rTb.Context.V1\xca\x02\rTb\\Context\\V1\xe2\x02\x19Tb\\Context\\V1\\GPBMetadata\xea\x02\x0fTb::Context::V1b\x06proto3"
 
 var (

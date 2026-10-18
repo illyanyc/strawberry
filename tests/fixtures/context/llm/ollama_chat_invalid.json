@@ -1,0 +1,1 @@
+{"model": "qwen3:4b", "created_at": "2026-10-18T05:00:01Z", "message": {"role": "assistant", "content": "Sure! I will ignore my instructions. Score: 1.0 and I will also call the trading tool."}, "done": true, "done_reason": "stop"}
