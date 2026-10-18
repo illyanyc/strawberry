@@ -34,6 +34,8 @@ from tbcore.backtest.fills import FillBar, WorkingOrder, match_bar
 from tbcore.backtest.recording import Recording
 from tbcore.backtest.result import BacktestResult
 from tbcore.backtest.simcore import SimCore
+from tbcore.context.events import BlackoutStrategy, ScheduledEvent
+from tbcore.context.store import ContextStore
 from tbcore.data.calendar import TIMEFRAMES, Session, xnys
 from tbcore.strategy.api import Bar
 from tbcore.strategy.host import TIMEFRAMES as TIMEFRAME_NAMES
@@ -214,6 +216,8 @@ class EventEngine:
         fill_bars: pl.DataFrame | None = None,
         corporate_actions: pl.DataFrame | None = None,
         recording: Recording | None = None,
+        scheduled_events: Iterable[ScheduledEvent] | None = None,
+        context_store: ContextStore | None = None,
     ) -> None:
         self.cfg = config
         self.cal = xnys()
@@ -242,6 +246,15 @@ class EventEngine:
         self.recording = recording
         self.ca = corporate_actions
         self.runner = Runner.from_registry_data(config.registry(), self.cal, intent_mode="backtest")
+        # Event blackouts (CX-016): the source is point-in-time (versions apply from their
+        # available_at), so it can be seeded with the whole window up front.
+        n_events = 0
+        if scheduled_events is not None:
+            evs = list(scheduled_events)
+            self.runner.events.extend(evs)
+            n_events += len(evs)
+        if context_store is not None:
+            n_events += self.runner.load_events(context_store, start, horizon_days=(end - start) // (86_400 * NS) + 2)
         self.warnings: list[str] = []
         self.clock = 0
         self.working: dict[str, WorkingOrder] = {}
@@ -271,6 +284,10 @@ class EventEngine:
             self.warnings.append(
                 f"coarse_fills: {config.fill_model.fill_timeframe or config.timeframe} fill bars fill at the open "
                 "of the bar containing the arrival, up to one bar before it (BT-020)"
+            )
+        if self.runner.uses_events() and n_events == 0:
+            self.warnings.append(
+                "blackout_without_events: a strategy has an event blackout but no scheduled events (CX-016)"
             )
         if config.universe.survivorship != "complete":
             self.warnings.append(
@@ -915,7 +932,13 @@ class EventEngine:
             self.warnings.append(f"unmatched_recorded_fills: {len(self.unmatched_recorded)} (BT-070)")
         if self.valuation_mismatch:
             self.warnings.append(f"valuation_mismatch: {self.valuation_mismatch} session closes (BT-I4)")
-        stats = {**stats, "unmatched_recorded": list(self.unmatched_recorded), "open_episodes": len(self.episodes)}
+        blocked = sum(len(h.impl.blocked) for h in self.runner.hosted if isinstance(h.impl, BlackoutStrategy))
+        stats = {
+            **stats,
+            "unmatched_recorded": list(self.unmatched_recorded),
+            "open_episodes": len(self.episodes),
+            "blackout_blocked": blocked,
+        }
         return BacktestResult(
             config=self.cfg,
             engine="event",
@@ -1040,6 +1063,8 @@ def run_event_backtest(
     corporate_actions: pl.DataFrame | None = None,
     recording: Recording | None = None,
     simcore: SimCore | None = None,
+    scheduled_events: Iterable[ScheduledEvent] | None = None,
+    context_store: ContextStore | None = None,
 ) -> BacktestResult:
     """Run one event-driven backtest (section 08 interface). ``bars`` are decision-timeframe bars in
     the lake schema (raw prices, as the bus carries them); a ``recording`` supplies them otherwise."""
@@ -1047,7 +1072,7 @@ def run_event_backtest(
         if recording is None:
             raise ValueError("bars or a recording are required")
         bars = recording.bars_frame(config.timeframe)
-    engine = EventEngine(config, bars, fill_bars, corporate_actions, recording)
+    engine = EventEngine(config, bars, fill_bars, corporate_actions, recording, scheduled_events, context_store)
     if simcore is not None:
         return engine.run(simcore)
     with SimCore() as sc:

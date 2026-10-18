@@ -36,6 +36,8 @@ class StrategySpec(BaseModel):
     params: dict[str, Any] = Field(default_factory=dict)
     # Strategy-scope risk limits (execution registry keys, RM-003).
     limits: dict[str, str] = Field(default_factory=dict)
+    # Event blackout around scheduled releases (CX-016), as in the registry's runtime block.
+    blackout: dict[str, Any] | None = None
 
     def registry_entry(self, code_commit: str = "") -> dict[str, Any]:
         return {
@@ -58,6 +60,7 @@ class StrategySpec(BaseModel):
                 "timeframe": self.timeframe,
                 "instruments": list(self.instruments),
                 "params": self.params,
+                **({"blackout": self.blackout} if self.blackout else {}),
             },
             "limits": dict(self.limits),
         }

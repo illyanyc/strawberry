@@ -15,6 +15,7 @@ from tbcore.backtest.costs import CostModelConfig
 from tbcore.backtest.event import LeakageError, run_event_backtest
 from tbcore.backtest.simcore import SimCore
 from tbcore.backtest.synthetic import random_walk_bars
+from tbcore.context.events import ScheduledEvent
 from tbcore.data.calendar import xnys
 
 from .btkit import NS, gate_bars, iid, orb_config
@@ -233,3 +234,29 @@ def test_bt003_perf_event_driven_one_year_100_symbols_5m_under_60s() -> None:
     reqs, trades = r.stats["simcore_requests"], r.trades.height
     print(f"BT-003 perf: {bars.height:,} bars, {reqs:,} simcore requests, {trades:,} trades in {elapsed:.1f} s")
     assert elapsed < 60
+
+
+def test_cx016_event_blackout_blocks_entries_in_backtests() -> None:
+    bars = gate_bars(SYMS, SCALES)
+    base = orb_config([iid(s) for s in SYMS], START, END, allowlist=[iid("AAPL")])
+    spec = base.strategies[0].model_copy(
+        update={"blackout": {"kinds": ["CPI"], "before_minutes": 60, "after_minutes": 60}}
+    )
+    cfg = base.model_copy(update={"strategies": (spec,)})
+    cpi_at = int(datetime(2026, 10, 12, 14, 30, tzinfo=UTC).timestamp()) * NS  # 10:30 ET, known a week ahead
+    cpi = ScheduledEvent(
+        kind="calendar",
+        name="CPI",
+        at=cpi_at,
+        available_at=cpi_at - 7 * 86_400 * NS,
+        category="CPI",
+        impact="high",
+        country="US",
+    )
+    blocked = run_event_backtest(cfg, bars, scheduled_events=[cpi])
+    free = run_event_backtest(base, bars)
+    day1 = int(datetime(2026, 10, 13, tzinfo=UTC).timestamp()) * NS
+    assert free.intents.filter((pl.col("kind") == "open") & (pl.col("decision_time") < day1)).height == 4
+    assert blocked.intents.filter((pl.col("kind") == "open") & (pl.col("decision_time") < day1)).height == 0
+    assert blocked.stats["blackout_blocked"] == 4
+    assert any(w.startswith("blackout_without_events") for w in run_event_backtest(cfg, bars).warnings)
