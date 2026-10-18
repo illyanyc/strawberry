@@ -136,6 +136,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0038-nested-studies-trial-ledger-and-research-cycles.md` | Exists | ADR (D56, implements D9/D31): nested Optuna sub-studies, lineage trial ledger, effective N, MinBTL cycles, pre-registration |
 | `docs/adr/0039-sealed-holdout-service.md` | Exists | ADR (D57): `HoldoutService`, holdout schema and role, forward-only boundary, quarterly touches, frozen-model evaluation |
 | `docs/adr/0040-registry-promotion-gates-and-analyst-permissions.md` | Exists | ADR (D58): registry stages, permission table, gates, evidence packs, research deployments, retraining |
+| `docs/adr/0041-ai-research-analyst-loop-and-tool-server.md` | Exists | ADR (D59): Centaur split, deterministic orchestrator with a schema-validated LLM, tool server walls, optimizer-owned autonomy, deterministic stop rules, evidence matching, journal |
 | `docs/adr/0042-analyst-llm-providers-masking-and-egress.md` | Exists | ADR (D60, refines D26): pluggable providers per role over plain HTTP, `GuardedLLM` (caps, masking, egress guard, validation, call log), always-on masking, two-layer egress allowlist, local-only quarantined role, spend caps |
 | `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, IBKR weekly 2FA / manual VNC login / gateway outages (`ibkr-weekly-2fa.md`), broker outage, market data (stale, slow, gaps, reconciliation breaches, corporate-action disputes), context data (stale sources, poison events, backfills, scoring model), IBKR weekly 2FA, ledger reconciliation break, kill switches, halts, and dead-man alerts |
 | `docs/threat-model.md` | Exists | Assets, actors, entry points, STRIDE table mapped to SE-/OP- rules, residual risks |
@@ -186,6 +187,16 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `services/assistant/src/tb_assistant/masking.py` | Exists | Per-round ticker/ID aliases, relative dates, dropped account and price fields, egress guard (AN-051, AN-052) |
 | `services/assistant/src/tb_assistant/quarantine.py` | Exists | Local-only quarantined role: untrusted text to enumerated `UntrustedSummary` fields (AN-054) |
 | `services/assistant/src/tb_assistant/schemas.py` | Exists | Strict Pydantic schemas for every LLM output (planner, quarantine, coder, chat) |
+| `services/assistant/src/tb_assistant/loop.py` | Exists | Analyst loop controller: triggers, evidence collection, quarantine, planner call, deterministic stop rules, level-gated launches, approvals, continuations, lowering autonomy (AN-001..AN-063) |
+| `services/assistant/src/tb_assistant/tools.py` | Exists | Tool server: tool registry with kinds and minimum levels, forbidden names, level check, budget check, holdout stripping, sanitization, size limits, audit and call log (AN-030..AN-032, AN-056, AN-060) |
+| `services/assistant/src/tb_assistant/planner.py` | Exists | Planner role: prompt payload, evidence verification, action validation, rank score (AN-010..AN-013) |
+| `services/assistant/src/tb_assistant/digest.py` | Exists | Reports to the evidence table under canonical metric names (diagnostics, runs, gates, cost, regimes, lineage stats, ledger, studies, live feedback) |
+| `services/assistant/src/tb_assistant/configs.py` | Exists | JSON merge patches onto training configs, ablation variants, and study specs; schema checks (AN-011) |
+| `services/assistant/src/tb_assistant/budget.py` | Exists | Loop budget guard: trials per round, CPU hours per day, concurrency, rounds, wall clock, 80 % alerts (AN-020) |
+| `services/assistant/src/tb_assistant/journal.py` | Exists | Research journal and loop state: memory and Postgres (`analyst` schema) stores (AN-003, AN-055) |
+| `services/assistant/src/tb_assistant/audit.py` | Exists | Analyst audit events through `audit.append` |
+| `services/assistant/src/tb_assistant/research.py` | Exists | gRPC client for `MLService`/`OptimizerService` with service tokens; no holdout client (AN-030) |
+| `services/assistant/src/tb_assistant/eval/` | Exists | In-memory section 10/11 fake enforcing EX-031..EX-036 (`fake_research.py`) and the analyst harness (`harness.py`) for tests and the evaluation suite |
 | `services/assistant/src/tb_assistant/config.py` | Exists | `TB_*` settings: providers per role, egress allowlist, prices and caps, loop thresholds, default budgets |
 | `services/assistant/tests/` | Exists | Assistant tests (`conftest.py` runs async tests without pytest-asyncio) |
 | `services/ml/` | Exists (placeholder) | Python on `tbcore`: ops surface; native launchd worker on macOS (D29), Phase 4 |

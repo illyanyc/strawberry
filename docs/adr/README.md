@@ -56,4 +56,5 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0038](0038-nested-studies-trial-ledger-and-research-cycles.md) | Nested Optuna studies, one trial ledger per lineage, and MinBTL research cycles | Accepted | 2026-10-18 |
 | [0039](0039-sealed-holdout-service.md) | Sealed holdout service with its own schema, role, and audience | Accepted | 2026-10-18 |
 | [0040](0040-registry-promotion-gates-and-analyst-permissions.md) | Registry stages, promotion gates, the analyst permission table, evidence packs, and retraining | Accepted | 2026-10-18 |
+| [0041](0041-ai-research-analyst-loop-and-tool-server.md) | AI Research Analyst: deterministic Centaur loop, tool server, stop rules, and the research journal | Accepted | 2026-10-18 |
 | [0042](0042-analyst-llm-providers-masking-and-egress.md) | Analyst LLM providers per role, prompt masking, the egress guard and allowlisting proxy, and spend caps | Accepted | 2026-10-18 |

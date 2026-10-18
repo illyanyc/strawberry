@@ -104,7 +104,8 @@ class HeuristicAnalyst:
         props = _schema_keys(prompt)
         tools = set(prompt.get("tools", []))
         current = (prompt.get("current") or {}).get("training_config") or {}
-        params = current.get("params", {}) if isinstance(current, dict) else {}
+        params = current.get("hyperparams", {}) if isinstance(current, dict) else {}
+        families = {f.get("family") for f in (prompt.get("context") or {}).get("families", []) if isinstance(f, dict)}
         findings: list[dict[str, Any]] = []
         actions: list[dict[str, Any]] = []
         launch = "launch_ablation" if "launch_ablation" in tools else "none"
@@ -182,7 +183,7 @@ class HeuristicAnalyst:
                     description="Strengthen regularization and shrink trees to close the train/validation gap.",
                     target="training_config",
                     tool=launch,
-                    config_diff={"params": diff},
+                    config_diff={"hyperparams": diff},
                     hypothesis="The gap is variance; more regularization raises validation score.",
                     expected_effect="Smaller gap, equal or better validation score.",
                     expected_gain=0.08,
@@ -190,19 +191,20 @@ class HeuristicAnalyst:
                     trial_cost=1,
                     reduces_complexity=True,
                 )
-            act(
-                category="model_type",
-                description="Fit the linear baseline on the same features as a simpler challenger.",
-                target="training_config",
-                tool=launch,
-                config_diff={"family": "ridge"},
-                hypothesis="A simpler model generalizes as well when the tree model overfits.",
-                expected_effect="Comparable deflated Sharpe at lower variance.",
-                expected_gain=0.04,
-                est_compute_hours=0.2,
-                trial_cost=1,
-                reduces_complexity=True,
-            )
+            if "ridge" in families and current.get("family") != "ridge":
+                act(
+                    category="model_type",
+                    description="Fit the linear baseline on the same features as a simpler challenger.",
+                    target="training_config",
+                    tool="launch_training" if "launch_training" in tools else "none",
+                    config_diff={"family": "ridge", "hyperparams": None},
+                    hypothesis="A simpler model generalizes as well when the tree model overfits.",
+                    expected_effect="Comparable deflated Sharpe at lower variance.",
+                    expected_gain=0.04,
+                    est_compute_hours=0.2,
+                    trial_cost=1,
+                    reduces_complexity=True,
+                )
         elif valid and train and gap and gap["value"] < 0.03:
             improving = _ev(ev, "learning_curve.valid_still_improving")
             if improving and improving["value"] >= 1:
@@ -221,7 +223,7 @@ class HeuristicAnalyst:
                         target="training_config",
                         tool=launch,
                         config_diff={
-                            "params": {
+                            "hyperparams": {
                                 rounds: _bounded(props, rounds, float(cur if isinstance(cur, int | float) else 200) * 2)
                             }
                         },
@@ -248,7 +250,7 @@ class HeuristicAnalyst:
                     description=f"Ablate feature {top_name} and rerun the leakage suite on it.",
                     target="feature_set",
                     tool=launch,
-                    config_diff={"exclude_features": [top_name]},
+                    config_diff={"drop_feature_groups": [top_name]},
                     hypothesis="If the edge collapses without it, the feature leaks.",
                     expected_effect="Edge survives (keep) or collapses (leak found).",
                     expected_gain=0.06,
@@ -292,12 +294,13 @@ class HeuristicAnalyst:
                 [sharpe, sharpe2],
                 "The strategy is profitable at modeled costs but not at twice the costs: turnover eats the edge.",
             )
+            quant = (current.get("evaluation") or {}).get("top_quantile", 0.2) if isinstance(current, dict) else 0.2
             act(
                 category="trade_rules",
-                description="Raise the entry threshold to cut turnover.",
+                description="Trade only the strongest signals (smaller top quantile) to cut turnover.",
                 target="training_config",
-                tool=launch,
-                config_diff={"trade_rules": {"entry_threshold_multiplier": 1.5}},
+                tool="launch_training" if "launch_training" in tools else "none",
+                config_diff={"evaluation": {"top_quantile": round(float(quant) / 2, 4)}},
                 hypothesis="Fewer, stronger signals survive costs.",
                 expected_effect="Positive result at 2x costs.",
                 expected_gain=0.05,
@@ -322,13 +325,37 @@ class HeuristicAnalyst:
                 description="Train a challenger on a more recent window with recency weighting.",
                 target="training_config",
                 tool="launch_training" if "launch_training" in tools else "none",
-                config_diff={"data_window": {"recency_half_life_days": 90}},
+                config_diff={"sample_weighting": {"method": "time_decay", "decay": 0.3}},
                 hypothesis="The relationship changed; recent data describes it better.",
                 expected_effect="Challenger recovers the live hit rate in shadow.",
                 expected_gain=0.05,
                 est_compute_hours=0.5,
                 trial_cost=1,
             )
+        if not actions and "launch_study" in tools and props:
+            # Centaur default: nothing obviously wrong, so let the optimizer search a narrow space
+            # around the current configuration instead of hand-tuning.
+            space = []
+            for key in ("lambda_l2", "num_leaves", "min_child_samples", "alpha"):
+                if key in props and isinstance(params.get(key), int | float):
+                    cur = float(params[key])
+                    lo, hi = _bounded(props, key, max(cur / 3, 1e-3)), _bounded(props, key, cur * 3)
+                    kind = "int" if props[key].get("type") == "integer" else "log_float"
+                    space.append({"name": key, "kind": kind, "low": lo, "high": hi})
+            if space:
+                act(
+                    category="search_space",
+                    description="Run a small pre-registered Optuna study in a narrow space around the current best.",
+                    target="study_spec",
+                    tool="launch_study",
+                    config_diff={"search_space": space, "budget": {"max_trials": 5}},
+                    hypothesis="Local refinement may find a better-regularized neighbor.",
+                    expected_effect="Small deflated improvement or a plateau.",
+                    expected_gain=0.02,
+                    est_compute_hours=1.0,
+                    trial_cost=5,
+                    overfit_risk="medium",
+                )
         return self._out(findings, actions, False, "continue", prompt)
 
     @staticmethod
@@ -480,7 +507,7 @@ class FakeLLM:
                 "description": "Huge unfocused search.",
                 "target": "study_spec",
                 "tool": "launch_study",
-                "config_diff": {"n_trials": 100000},
+                "config_diff": {"budget": {"max_trials": 100000}},
                 "hypothesis": "",
                 "expected_effect": "",
                 "expected_gain": 1.0,
