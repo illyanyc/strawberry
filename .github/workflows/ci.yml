@@ -99,6 +99,8 @@ jobs:
         with: { go-version: "${{ env.GO_VERSION }}", cache-dependency-path: "**/go.sum" }
       - name: Shared broker contract suite against the IBKR adapter (BR-001, fake gateway)
         run: make test-ibkr-contract
+      - name: D30 swing routing through the real IBKR adapter (fake gateway)
+        run: make paper-ibkr
       - name: Phase 2 gate - five ORB paper sessions through the full path (tests/paper)
         run: make paper-gate
       - name: Upload paper-gate evidence

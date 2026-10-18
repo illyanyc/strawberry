@@ -72,6 +72,7 @@ Prerequisites: Docker (Colima on the Mac Mini, ADR-0013), `make`, `git`. Develop
 | `make lint` | buf lint + breaking, golangci-lint, ruff + mypy, tsc + eslint, docs gate |
 | `make test` | Go (`-race`), Python, and web unit tests |
 | `make test-integration` | Go tests including Postgres-backed integration tests (throwaway container) |
+| `make paper-ibkr` | D30 swing routing through the real IBKR adapter over its fake gateway (GTC protective stop, ledger booking) |
 | `make paper-gate` | Phase 2 gate: five simulated ORB sessions through the Python runtime, OMS, simulators, and ledger (writes `paper-gate-evidence.json`) |
 | `cd tests/paper && go test ./...` | Phase 2 Gate 2 scenarios on the in-process paper harness (simulators, ledger, execution, embedded NATS) |
 | `make smoke` | Smoke test of the running stack (readiness, auth gate, ports, e2e passkey flow with leak canary, Prometheus, audit chain) |

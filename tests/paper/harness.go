@@ -80,6 +80,10 @@ type Options struct {
 	Policies      map[string]execapp.AccountPolicy
 	ExecStore     *execapp.Memory
 	LedgerStore   *ledgerapp.Memory
+	// ExtraBrokers are additional adapter endpoints (e.g. the real IBKR adapter over its fake
+	// gateway); ExtraSwing are their accounts routed for swing.
+	ExtraBrokers []execapp.BrokerEndpoint
+	ExtraSwing   []string
 }
 
 // Harness is a running paper stack.
@@ -275,7 +279,7 @@ func New(t testing.TB, o Options) *Harness {
 func (h *Harness) ExecConfig() execapp.Config {
 	ec := execapp.DefaultConfig()
 	ec.Now, ec.Wall = h.Clock.Now, time.Now
-	ec.Routing = map[commonv1.Horizon][]string{commonv1.Horizon_HORIZON_INTRADAY: {Alpaca}, commonv1.Horizon_HORIZON_SWING: {IBKR}}
+	ec.Routing = map[commonv1.Horizon][]string{commonv1.Horizon_HORIZON_INTRADAY: {Alpaca}, commonv1.Horizon_HORIZON_SWING: append([]string{IBKR}, h.opts.ExtraSwing...)}
 	ec.Policies = map[string]execapp.AccountPolicy{
 		Alpaca: {MarginMultiple: decimal.NewFromInt(1), MarginUtilCap: decimal.NewFromInt(1), PDTGuard: "off", PDTMax: 3, Segregation: true},
 		IBKR:   {MarginMultiple: decimal.NewFromInt(2), MarginUtilCap: decimal.RequireFromString("0.5"), PDTGuard: "off", PDTMax: 3, Segregation: false},
@@ -303,6 +307,7 @@ func (h *Harness) startExec() {
 		{Audience: "broker-gateway", Client: brokerv1.NewBrokerGatewayServiceClient(dial(t, h.brokerAddr["broker-gateway"]))},
 		{Audience: "broker-gateway-ibkr", Client: brokerv1.NewBrokerGatewayServiceClient(dial(t, h.brokerAddr["broker-gateway-ibkr"]))},
 	}}
+	brokers.Endpoints = append(brokers.Endpoints, h.opts.ExtraBrokers...)
 	instr := execapp.StaticInstruments{}
 	for sym, id := range h.Instr {
 		instr[id] = &commonv1.Instrument{InstrumentId: id, Symbol: sym, AssetClass: commonv1.AssetClass_ASSET_CLASS_US_EQUITY, Currency: "USD"}

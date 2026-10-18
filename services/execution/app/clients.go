@@ -21,6 +21,8 @@ type BrokerEndpoint struct {
 	// "broker-gateway-ibkr").
 	Audience string
 	Client   brokerv1.BrokerGatewayServiceClient
+	// Opts override the call options for this endpoint (tests with their own signer).
+	Opts []grpc.CallOption
 }
 
 // Brokers routes each account to the adapter that lists it (D30: Alpaca and the simulator through
@@ -35,6 +37,9 @@ type Brokers struct {
 }
 
 func (b *Brokers) opts(i int) []grpc.CallOption {
+	if b.Endpoints[i].Opts != nil {
+		return b.Endpoints[i].Opts
+	}
 	if b.Signer == nil {
 		return nil
 	}
