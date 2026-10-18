@@ -5,7 +5,7 @@ The AI Research Analyst and chat assistant (section 12; [ADR-0041](../../docs/ad
 **Status:** Phase 4  ·  **Language/stack:** Python 3.12 on `tbcore`, asyncio, `httpx`, `asyncpg`, `nats-py`, `grpcio` ([ADR-0004](../../docs/adr/0004-core-language-split.md), D1)
 
 ## Responsibilities
-- Owns: the analyst loop (triggers, rounds, stop rules, budgets, autonomy-gated launches, approvals), the tool server, LLM providers per role with masking and the egress guard, the quarantined role, the coder role and sandbox jobs, the research journal (schema `analyst`), chat, the `llm-egress` proxy, the standalone sandbox worker (`sandbox/worker.py`, its own image).
+- Owns: the analyst loop (triggers, rounds, stop rules, budgets, autonomy-gated launches, approvals), the tool server, LLM providers per role with masking and the egress guard, the quarantined role, the coder role and sandbox jobs, the research journal (schema `analyst`), chat, the evaluation suite, the `llm-egress` proxy, the standalone sandbox worker (`sandbox/worker.py`, its own image).
 - Does not own: statistics (sections 08/10/11), the trial ledger, autonomy levels and promotion gates (optimizer, EX-031..EX-036), the holdout (never reachable), live feedback computation (monitor), containment (execution, monitor).
 
 ## Interfaces
@@ -25,7 +25,7 @@ The AI Research Analyst and chat assistant (section 12; [ADR-0041](../../docs/ad
 - AN-023, AN-050..AN-056 → `guarded.py`, `llm/`, `masking.py`, `quarantine.py`, `egress_proxy.py` (`tests/test_llm_layer.py`, `tests/test_service.py`)
 - AN-030..AN-032, AN-056, AN-060 → `tools.py` (`tests/test_loop.py`)
 - AN-070..AN-073 → `ast_policy.py`, `coder.py`, `sandbox/worker.py` (`tests/test_coder.py`, `tests/python/test_analyst_sandbox.py`)
-- AN-080 → `chat.py` (`tests/test_service.py`)
+- AN-080 → `chat.py` (`tests/test_service.py`); AN-081 → `eval/scenarios.py` (`tests/test_eval.py`)
 - BT-081 (no evaluator imports) → `tests/python/test_evaluator_isolation.py`
 
 ## Layout
@@ -40,7 +40,7 @@ The AI Research Analyst and chat assistant (section 12; [ADR-0041](../../docs/ad
 | `src/tb_assistant/journal.py`, `audit.py`, `refdata.py` | Journal, audit, known tickers for masking |
 | `src/tb_assistant/service.py`, `bus.py`, `chat.py`, `research.py` | gRPC service, NATS wiring, chat, research client |
 | `src/tb_assistant/egress_proxy.py` | `llm-egress` allowlisting proxy |
-| `src/tb_assistant/eval/` | Research fakes and the analyst harness |
+| `src/tb_assistant/eval/` | Research fakes, the analyst harness, and the evaluation suite (`scenarios.py`, `python -m tb_assistant.eval`) |
 | `sandbox/worker.py` | Standalone sandbox worker (image `infra/docker/analyst-sandbox.Dockerfile`) |
 | `tests/` | Unit and integration tests (async tests without pytest-asyncio, `conftest.py`) |
 
@@ -65,6 +65,7 @@ Secrets (files only, SE-010): `pg_svc_assistant_password`, `nats_assistant_passw
 ## Run and test
 - Run: `make up PROFILES=core,observability,ml,ml-workers` (assistant, `llm-egress`, `analyst-sandbox`, `candidate-checker`); locally `uv run python -m tb_assistant`.
 - Test: `uv run pytest services/assistant/tests tests/python/test_analyst_sandbox.py tests/python/test_evaluator_isolation.py`.
+- Evaluation suite: `uv run python -m tb_assistant.eval [--json out.json]` (54 scenarios; fake planner by default; set `TB_LLM_PLANNER_PROVIDER` plus keys as mounted secrets and `TB_SECRETS_DIR` to score a real model; exits 1 below `TB_EVAL_THRESHOLD`, default 0.95).
 
 ## Operational notes
 - Every round, LLM call, and tool call is in schema `analyst` and the audit log; replay a round from its masked prompt and response (`analyst.llm_calls`).

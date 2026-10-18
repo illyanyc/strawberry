@@ -199,7 +199,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `services/assistant/src/tb_assistant/journal.py` | Exists | Research journal and loop state: memory and Postgres (`analyst` schema) stores (AN-003, AN-055) |
 | `services/assistant/src/tb_assistant/audit.py` | Exists | Analyst audit events through `audit.append` |
 | `services/assistant/src/tb_assistant/research.py` | Exists | gRPC client for `MLService`/`OptimizerService` with service tokens; no holdout client (AN-030) |
-| `services/assistant/src/tb_assistant/eval/` | Exists | In-memory section 10/11 fake enforcing EX-031..EX-036 (`fake_research.py`) and the analyst harness (`harness.py`) for tests and the evaluation suite |
+| `services/assistant/src/tb_assistant/eval/` | Exists | In-memory section 10/11 fake enforcing EX-031..EX-036 (`fake_research.py`), the analyst harness (`harness.py`), and the 54-scenario evaluation suite (`scenarios.py`, runner `__main__.py`: `python -m tb_assistant.eval`) (AN-081) |
 | `services/assistant/src/tb_assistant/ast_policy.py` | Exists | Static policy for coder output (imports, builtins, dunders, classes, numpy storage/random) (AN-070) |
 | `services/assistant/src/tb_assistant/coder.py` | Exists | Coder role, shared-volume sandbox client, code proposals with review-only patches, owner review (AN-070..AN-073) |
 | `services/assistant/sandbox/worker.py` | Exists | Standalone sandbox worker (stdlib + numpy): per-job child with CPU, memory, file-size, and wall-clock limits; full, repeat, and prefix runs (AN-071) |

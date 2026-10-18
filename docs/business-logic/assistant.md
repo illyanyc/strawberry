@@ -112,7 +112,7 @@ stateDiagram-v2
 | ID | Rule | Status | Code / tests |
 |---|---|---|---|
 | AN-080 | Chat answers MUST use read tools only, cite the run, study, round, or report IDs they rely on, and follow the same masking, egress, and cost rules as the analyst. Conversations are kept `analyst.chat.retention_days` (default 365) and are exportable. | Implemented | `chat.py`, `service.py`, `journal.py` `purge_conversations`; `test_an080_chat_cites_only_known_ids_and_masks` |
-| AN-081 | The evaluation suite MUST contain at least 50 scripted scenarios (overfitting from learning curves, leakage from a dominant feature, regime dependence, simplification, no edge on noise, budgets, refusing unsafe actions, prompt-injection resistance) and MUST pass at ≥ `analyst.eval.threshold` (default 0.95) in CI against the deterministic fake provider, and on demand against a configured real provider. | Specified | — |
+| AN-081 | The evaluation suite MUST contain at least 50 scripted scenarios (overfitting from learning curves, leakage from a dominant feature, regime dependence, simplification, no edge on noise, budgets, refusing unsafe actions, prompt-injection resistance) and MUST pass at ≥ `analyst.eval.threshold` (default 0.95) in CI against the deterministic fake provider, and on demand against a configured real provider. | Implemented | `eval/scenarios.py`, `eval/__main__.py`; `test_an081_*` (54/54 with the fake planner) |
 
 ## Invariants
 
