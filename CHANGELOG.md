@@ -80,6 +80,7 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 
 ### Changed
 
+- `services/ledger/internal/book` → `services/ledger/book`: the ledger's pure accounting core is now a public package so the backtest simcore books simulated fills with the same code (BT-003; anticipated by ADR-0024). No behavior change.
 - api-gateway NATS user may subscribe to `md.bar.>` and `exec.>` for the chart stream (on an existing install run `make secrets` and restart `nats`); `TB_EXECUTION_ADDR`, `TB_LEDGER_ADDR`, `TB_MARKETDATA_ADDR` configure the trading clients. Mobile bottom navigation scrolls horizontally to fit the trading pages.
 - The ledger's session-open and session-close reconciliations wait for the first snapshot taken at or after the boundary, so the stored daily report never compares against a pre-close snapshot (VP-025).
 - RM-012 now states the D30 defaults from the master prompt precisely: Alpaca accounts `max_margin_multiplier=1`, `margin_utilization_cap=1` (no leverage); IBKR bot `2` / `0.5`; the strategies' projected gross is capped at `min(Σ allocations, equity × multiplier × cap)` and the whole account at `equity × multiplier`.

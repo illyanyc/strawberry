@@ -12,7 +12,7 @@ import (
 	commonv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/common/v1"
 	ledgerv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/ledger/v1"
 	"github.com/illyanyc/strawberry/libs/go/svcauth"
-	"github.com/illyanyc/strawberry/services/ledger/internal/book"
+	"github.com/illyanyc/strawberry/services/ledger/book"
 	"github.com/illyanyc/strawberry/services/ledger/internal/engine"
 )
 

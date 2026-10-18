@@ -20,7 +20,7 @@ import (
 	ordersv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/orders/v1"
 	"github.com/illyanyc/strawberry/libs/go/attribution"
 	"github.com/illyanyc/strawberry/libs/go/db"
-	"github.com/illyanyc/strawberry/services/ledger/internal/book"
+	"github.com/illyanyc/strawberry/services/ledger/book"
 )
 
 const acct = "sim-paper"

@@ -29,7 +29,7 @@ import (
 	"github.com/illyanyc/strawberry/libs/go/audit"
 	"github.com/illyanyc/strawberry/libs/go/calendar"
 	"github.com/illyanyc/strawberry/libs/go/outbox"
-	"github.com/illyanyc/strawberry/services/ledger/internal/book"
+	"github.com/illyanyc/strawberry/services/ledger/book"
 )
 
 // Resolver maps a broker symbol or broker instrument ID to the platform instrument_id at time at

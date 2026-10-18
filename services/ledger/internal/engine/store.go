@@ -10,7 +10,7 @@ import (
 	mdv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/marketdata/v1"
 	"github.com/illyanyc/strawberry/libs/go/audit"
 	"github.com/illyanyc/strawberry/libs/go/outbox"
-	"github.com/illyanyc/strawberry/services/ledger/internal/book"
+	"github.com/illyanyc/strawberry/services/ledger/book"
 )
 
 // Batch is everything one engine operation changes; Store.Commit writes it atomically.

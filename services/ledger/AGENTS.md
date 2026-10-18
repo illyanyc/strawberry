@@ -17,19 +17,19 @@ Owns the full real account per broker, split into per-strategy virtual portfolio
 | out | Postgres | schema `ledger` (owner `ledger_owner`), `refdata` (read), `audit.append` | `libs/go/db/migrations/ledger/` |
 
 ## Business rules enforced here
-- VP-001, VP-015..VP-018 attribution, opening balance, breaks → `internal/engine/engine.go`, `internal/book/events.go`
-- VP-003..VP-005, VP-020 ownership and capital → `internal/book/capital.go`
-- VP-007, VP-008, VP-013, VP-014 reconciliation → `internal/book/recon.go`
+- VP-001, VP-015..VP-018 attribution, opening balance, breaks → `internal/engine/engine.go`, `book/events.go`
+- VP-003..VP-005, VP-020 ownership and capital → `book/capital.go`
+- VP-007, VP-008, VP-013, VP-014 reconciliation → `book/recon.go`
 - VP-009 allocations, VP-019 resolutions (audited) → `internal/engine/engine.go`
 - VP-010, VP-023 corporate actions; VP-021 shadow ledger; VP-022 wash sales; VP-024 equity; VP-025 reports
-- Tests cite the IDs: `internal/book/book_test.go`, `internal/engine/engine_test.go`
+- Tests cite the IDs: `book/book_test.go`, `internal/engine/engine_test.go`
 
 ## Layout
 | Path | Purpose |
 |---|---|
 | `cmd/ledger/` | Entrypoint (config, Postgres, NATS, relay, gRPC with the svcauth allowlist) |
 | `app/` | Public wiring: engine + consumers + tick loop + gRPC registration; memory and Postgres stores (used by `tests/paper`) |
-| `internal/book/` | Pure accounting core: owners, lots, shadow ledger, events, breaks, reservations, reconciliation, capital |
+| `book/` | Pure accounting core: owners, lots, shadow ledger, events, breaks, reservations, reconciliation, capital. Public so the backtest simcore (`services/execution/cmd/tb-simcore`) books simulated fills with the same code (BT-003); keep it free of I/O |
 | `internal/engine/` | Serialized engine, persistence batches, Postgres and memory stores, refdata resolver, views |
 | `internal/server/` | `LedgerService` implementation and caller allowlist |
 
