@@ -31,6 +31,7 @@ from tb_optimizer.holdout import HoldoutCore
 from tb_optimizer.nested import Control, DatasetCache, NestedResult, NestedRunner
 from tb_optimizer.stats import EffectiveN, Series, align, cumulative, cycle_budget, effective_n
 from tbcore.audit import AuditSink, MemoryAudit, digest
+from tbcore.backtest import tearsheet
 from tbcore.buspub import MemoryPublisher, Publisher
 from tbcore.docstore import DocStore, MemoryDocStore
 from tbcore.ml import caller as callers
@@ -723,6 +724,12 @@ class OptimizerCore:
         surv = "complete" if cand.synthetic_data else "unknown"
         rep = gates.build_gate_report(cid, nested, ds, cfg, mat, eff, champ_series, champ_id, res, surv, event)
         self.store.put(K_GATE, rep.report_id, rep, lin.lineage_id, cid)
+        if event is not None and event.result is not None:
+            tearsheet.write(
+                Path(run.artifact_uri) / "tearsheet_event.html",
+                event.result,
+                overfitting={"DSR (lineage N)": rep.dsr, "effective N": rep.n_effective, "PBO": rep.pbo},
+            )
         cand.gate_report_id = rep.report_id
         cand.registry_entry_json = json_format_dumps(registry.registry_entry(cand, "shadow", *self.accounts))
         self.store.put(K_CAND, cid, cand, lin.lineage_id, w.study.study_id)

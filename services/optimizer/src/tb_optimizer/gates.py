@@ -23,6 +23,7 @@ from tb.optimizer.v1 import optimizer_pb2 as op
 from tb_optimizer.nested import NestedResult, OuterResult
 from tb_optimizer.stats import EffectiveN, Matrix, Series
 from tbcore.backtest.model_eval import evaluate_event, strategy_spec
+from tbcore.backtest.result import BacktestResult
 from tbcore.ml import config as mlconfig
 from tbcore.ml import dataset as mldataset
 from tbcore.ml import models
@@ -41,6 +42,7 @@ class EventEvidence:
     net_pnl_2x: float
     max_drawdown: float
     warnings: list[str]
+    result: BacktestResult | None = None
 
 
 def strategy_params(cfg: tp.TrainingConfig, benchmark: str) -> dict[str, Any]:
@@ -72,7 +74,13 @@ def event_evidence(nested: NestedResult, ds: mldataset.Dataset, cfg: tp.Training
     )
     ev = evaluate_event(dec, ds.bars, spec, start, end, snapshot_id=ds.snapshot_id)
     return EventEvidence(
-        Series(ev.days, ev.rets), Series(ev.days, ev.rets_2x), ev.trades, ev.net_pnl_2x, ev.max_drawdown, ev.warnings
+        Series(ev.days, ev.rets),
+        Series(ev.days, ev.rets_2x),
+        ev.trades,
+        ev.net_pnl_2x,
+        ev.max_drawdown,
+        ev.warnings,
+        ev.result,
     )
 
 

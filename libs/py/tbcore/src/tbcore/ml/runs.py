@@ -20,6 +20,7 @@ import numpy as np
 import polars as pl
 
 from tb.ml.v1 import training_pb2 as tp
+from tbcore.backtest.tearsheet import render_series
 from tbcore.docstore import DocStore
 from tbcore.ml.config import canonical_json, to_dict
 from tbcore.ml.diagnostics import build_report, importance
@@ -198,6 +199,28 @@ def persist(
     if caller is not None:
         run.launched_by.CopyFrom(caller)
     (d / "model_card.md").write_text(model_card(res, run, report))
+    folds = pl.DataFrame(
+        {
+            "fold": [f.fold for f in run.folds],
+            "test_rows": [f.test_rows for f in run.folds],
+            "skill": [skill(res.task, dict(f.metrics), "val_") for f in run.folds],
+            "net_return": [f.backtest.get("net_return", math.nan) for f in run.folds],
+            "trades": [f.backtest.get("trades", 0.0) for f in run.folds],
+        }
+    )
+    (d / "tearsheet.html").write_text(
+        render_series(
+            f"Training run {run_id}",
+            f"{cfg.family} on {cfg.data_source} · {cfg.timeframe} · vectorized out-of-fold evaluation "
+            "(screening, BT-006)",
+            res.session_returns,
+            res.session_returns_2x,
+            summary={k: v for k, v in run.oos_metrics.items() if k.startswith(("bt_", "oos_", "primary_"))},
+            tables={"Folds": folds},
+            warnings=[f"{x.code}: {x.message}" for x in report.findings],
+        )
+    )
+    run.tearsheet_uri = str(d / "tearsheet.html")
     t = tracker or NullTracker()
     try:
         params = {k: str(v) for k, v in _flatten(to_dict(cfg)).items()}

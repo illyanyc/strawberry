@@ -132,6 +132,8 @@ def test_ml022_ml013_run_is_stored_with_diagnostics_card_and_event(tmp_path: Pat
     assert rep.holdout_excluded and rep.run_id == run.run_id
     assert Path(run.model_card_uri).read_text().startswith("# Model card")
     assert (Path(run.artifact_uri) / "model" / "bundle.sha256").exists()
+    page, engine = core.tearsheet(run.run_id)
+    assert engine == "vectorized" and "<svg" in page and "<script" not in page
     assert core.importance(run.run_id, "permutation").per_fold
     assert core.profile(run.dataset.snapshot_id).rows == run.dataset.rows
     subj, msg, _ = bus.sent[-1]

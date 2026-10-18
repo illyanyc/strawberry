@@ -111,6 +111,8 @@ def test_ex001_ex024_study_completes_with_outer_estimate_dsr_and_pbo(world: dict
     assert set(rep.cost_sensitivity.net_return) >= {"1x", "1.5x", "2x"}
     assert rep.engine == "event"  # BT-006: rerun event-driven before the gate
     assert rep.thresholds["dsr_min"] == 0.95
+    run_dir = Path(core.store.get("run", core.candidate(st.candidate_id).run_id, tp.TrainingRun).artifact_uri)  # type: ignore[union-attr]
+    assert "<script" not in (run_dir / "tearsheet_event.html").read_text()
     trials = core.trials(study_id=st.study_id)
     assert {t.preregistration_hash for t in trials} == {trials[0].preregistration_hash}
     assert {"hyperparams", "features", "labels"} <= set(trials[0].dimensions)

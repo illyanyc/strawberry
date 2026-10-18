@@ -1351,6 +1351,103 @@ func (x *GetModelCardResponse) GetCard() *ModelCard {
 	return nil
 }
 
+type GetTearsheetRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RunId         string                 `protobuf:"bytes,1,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTearsheetRequest) Reset() {
+	*x = GetTearsheetRequest{}
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTearsheetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTearsheetRequest) ProtoMessage() {}
+
+func (x *GetTearsheetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTearsheetRequest.ProtoReflect.Descriptor instead.
+func (*GetTearsheetRequest) Descriptor() ([]byte, []int) {
+	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *GetTearsheetRequest) GetRunId() string {
+	if x != nil {
+		return x.RunId
+	}
+	return ""
+}
+
+type GetTearsheetResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Html  string                 `protobuf:"bytes,1,opt,name=html,proto3" json:"html,omitempty"`
+	// event | vectorized
+	Engine        string `protobuf:"bytes,2,opt,name=engine,proto3" json:"engine,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTearsheetResponse) Reset() {
+	*x = GetTearsheetResponse{}
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTearsheetResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTearsheetResponse) ProtoMessage() {}
+
+func (x *GetTearsheetResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTearsheetResponse.ProtoReflect.Descriptor instead.
+func (*GetTearsheetResponse) Descriptor() ([]byte, []int) {
+	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *GetTearsheetResponse) GetHtml() string {
+	if x != nil {
+		return x.Html
+	}
+	return ""
+}
+
+func (x *GetTearsheetResponse) GetEngine() string {
+	if x != nil {
+		return x.Engine
+	}
+	return ""
+}
+
 type GetDiagnosticsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	RunId         string                 `protobuf:"bytes,1,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
@@ -1361,7 +1458,7 @@ type GetDiagnosticsRequest struct {
 
 func (x *GetDiagnosticsRequest) Reset() {
 	*x = GetDiagnosticsRequest{}
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[28]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1373,7 +1470,7 @@ func (x *GetDiagnosticsRequest) String() string {
 func (*GetDiagnosticsRequest) ProtoMessage() {}
 
 func (x *GetDiagnosticsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[28]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1386,7 +1483,7 @@ func (x *GetDiagnosticsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDiagnosticsRequest.ProtoReflect.Descriptor instead.
 func (*GetDiagnosticsRequest) Descriptor() ([]byte, []int) {
-	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{28}
+	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *GetDiagnosticsRequest) GetRunId() string {
@@ -1412,7 +1509,7 @@ type GetDiagnosticsResponse struct {
 
 func (x *GetDiagnosticsResponse) Reset() {
 	*x = GetDiagnosticsResponse{}
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[29]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1424,7 +1521,7 @@ func (x *GetDiagnosticsResponse) String() string {
 func (*GetDiagnosticsResponse) ProtoMessage() {}
 
 func (x *GetDiagnosticsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[29]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1437,7 +1534,7 @@ func (x *GetDiagnosticsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDiagnosticsResponse.ProtoReflect.Descriptor instead.
 func (*GetDiagnosticsResponse) Descriptor() ([]byte, []int) {
-	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{29}
+	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *GetDiagnosticsResponse) GetReport() *DiagnosticsReport {
@@ -1457,7 +1554,7 @@ type GetLearningCurvesRequest struct {
 
 func (x *GetLearningCurvesRequest) Reset() {
 	*x = GetLearningCurvesRequest{}
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[30]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1469,7 +1566,7 @@ func (x *GetLearningCurvesRequest) String() string {
 func (*GetLearningCurvesRequest) ProtoMessage() {}
 
 func (x *GetLearningCurvesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[30]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1482,7 +1579,7 @@ func (x *GetLearningCurvesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLearningCurvesRequest.ProtoReflect.Descriptor instead.
 func (*GetLearningCurvesRequest) Descriptor() ([]byte, []int) {
-	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{30}
+	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *GetLearningCurvesRequest) GetRunId() string {
@@ -1508,7 +1605,7 @@ type GetLearningCurvesResponse struct {
 
 func (x *GetLearningCurvesResponse) Reset() {
 	*x = GetLearningCurvesResponse{}
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[31]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1520,7 +1617,7 @@ func (x *GetLearningCurvesResponse) String() string {
 func (*GetLearningCurvesResponse) ProtoMessage() {}
 
 func (x *GetLearningCurvesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[31]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1533,7 +1630,7 @@ func (x *GetLearningCurvesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLearningCurvesResponse.ProtoReflect.Descriptor instead.
 func (*GetLearningCurvesResponse) Descriptor() ([]byte, []int) {
-	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{31}
+	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *GetLearningCurvesResponse) GetCurves() *LearningCurves {
@@ -1555,7 +1652,7 @@ type GetFeatureImportanceRequest struct {
 
 func (x *GetFeatureImportanceRequest) Reset() {
 	*x = GetFeatureImportanceRequest{}
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[32]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1567,7 +1664,7 @@ func (x *GetFeatureImportanceRequest) String() string {
 func (*GetFeatureImportanceRequest) ProtoMessage() {}
 
 func (x *GetFeatureImportanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[32]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1580,7 +1677,7 @@ func (x *GetFeatureImportanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFeatureImportanceRequest.ProtoReflect.Descriptor instead.
 func (*GetFeatureImportanceRequest) Descriptor() ([]byte, []int) {
-	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{32}
+	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *GetFeatureImportanceRequest) GetRunId() string {
@@ -1613,7 +1710,7 @@ type GetFeatureImportanceResponse struct {
 
 func (x *GetFeatureImportanceResponse) Reset() {
 	*x = GetFeatureImportanceResponse{}
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[33]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1625,7 +1722,7 @@ func (x *GetFeatureImportanceResponse) String() string {
 func (*GetFeatureImportanceResponse) ProtoMessage() {}
 
 func (x *GetFeatureImportanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[33]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1638,7 +1735,7 @@ func (x *GetFeatureImportanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFeatureImportanceResponse.ProtoReflect.Descriptor instead.
 func (*GetFeatureImportanceResponse) Descriptor() ([]byte, []int) {
-	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{33}
+	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *GetFeatureImportanceResponse) GetImportance() *FeatureImportance {
@@ -1659,7 +1756,7 @@ type GetErrorSlicesRequest struct {
 
 func (x *GetErrorSlicesRequest) Reset() {
 	*x = GetErrorSlicesRequest{}
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[34]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1671,7 +1768,7 @@ func (x *GetErrorSlicesRequest) String() string {
 func (*GetErrorSlicesRequest) ProtoMessage() {}
 
 func (x *GetErrorSlicesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[34]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1684,7 +1781,7 @@ func (x *GetErrorSlicesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetErrorSlicesRequest.ProtoReflect.Descriptor instead.
 func (*GetErrorSlicesRequest) Descriptor() ([]byte, []int) {
-	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{34}
+	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *GetErrorSlicesRequest) GetRunId() string {
@@ -1717,7 +1814,7 @@ type GetErrorSlicesResponse struct {
 
 func (x *GetErrorSlicesResponse) Reset() {
 	*x = GetErrorSlicesResponse{}
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[35]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1729,7 +1826,7 @@ func (x *GetErrorSlicesResponse) String() string {
 func (*GetErrorSlicesResponse) ProtoMessage() {}
 
 func (x *GetErrorSlicesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[35]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1742,7 +1839,7 @@ func (x *GetErrorSlicesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetErrorSlicesResponse.ProtoReflect.Descriptor instead.
 func (*GetErrorSlicesResponse) Descriptor() ([]byte, []int) {
-	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{35}
+	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *GetErrorSlicesResponse) GetSlices() []*ErrorSlice {
@@ -1762,7 +1859,7 @@ type GetDatasetProfileRequest struct {
 
 func (x *GetDatasetProfileRequest) Reset() {
 	*x = GetDatasetProfileRequest{}
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[36]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1774,7 +1871,7 @@ func (x *GetDatasetProfileRequest) String() string {
 func (*GetDatasetProfileRequest) ProtoMessage() {}
 
 func (x *GetDatasetProfileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[36]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1787,7 +1884,7 @@ func (x *GetDatasetProfileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDatasetProfileRequest.ProtoReflect.Descriptor instead.
 func (*GetDatasetProfileRequest) Descriptor() ([]byte, []int) {
-	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{36}
+	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *GetDatasetProfileRequest) GetSnapshotId() string {
@@ -1813,7 +1910,7 @@ type GetDatasetProfileResponse struct {
 
 func (x *GetDatasetProfileResponse) Reset() {
 	*x = GetDatasetProfileResponse{}
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[37]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1825,7 +1922,7 @@ func (x *GetDatasetProfileResponse) String() string {
 func (*GetDatasetProfileResponse) ProtoMessage() {}
 
 func (x *GetDatasetProfileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[37]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1838,7 +1935,7 @@ func (x *GetDatasetProfileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDatasetProfileResponse.ProtoReflect.Descriptor instead.
 func (*GetDatasetProfileResponse) Descriptor() ([]byte, []int) {
-	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{37}
+	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *GetDatasetProfileResponse) GetProfile() *DatasetProfile {
@@ -1859,7 +1956,7 @@ type SubmitAblationRequest struct {
 
 func (x *SubmitAblationRequest) Reset() {
 	*x = SubmitAblationRequest{}
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[38]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1871,7 +1968,7 @@ func (x *SubmitAblationRequest) String() string {
 func (*SubmitAblationRequest) ProtoMessage() {}
 
 func (x *SubmitAblationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[38]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1884,7 +1981,7 @@ func (x *SubmitAblationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitAblationRequest.ProtoReflect.Descriptor instead.
 func (*SubmitAblationRequest) Descriptor() ([]byte, []int) {
-	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{38}
+	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *SubmitAblationRequest) GetRunId() string {
@@ -1917,7 +2014,7 @@ type SubmitAblationResponse struct {
 
 func (x *SubmitAblationResponse) Reset() {
 	*x = SubmitAblationResponse{}
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[39]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1929,7 +2026,7 @@ func (x *SubmitAblationResponse) String() string {
 func (*SubmitAblationResponse) ProtoMessage() {}
 
 func (x *SubmitAblationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[39]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1942,7 +2039,7 @@ func (x *SubmitAblationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitAblationResponse.ProtoReflect.Descriptor instead.
 func (*SubmitAblationResponse) Descriptor() ([]byte, []int) {
-	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{39}
+	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *SubmitAblationResponse) GetJobs() []*TrainingJob {
@@ -1964,7 +2061,7 @@ type AnnotateRunRequest struct {
 
 func (x *AnnotateRunRequest) Reset() {
 	*x = AnnotateRunRequest{}
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[40]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1976,7 +2073,7 @@ func (x *AnnotateRunRequest) String() string {
 func (*AnnotateRunRequest) ProtoMessage() {}
 
 func (x *AnnotateRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[40]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1989,7 +2086,7 @@ func (x *AnnotateRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnnotateRunRequest.ProtoReflect.Descriptor instead.
 func (*AnnotateRunRequest) Descriptor() ([]byte, []int) {
-	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{40}
+	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *AnnotateRunRequest) GetRunId() string {
@@ -2021,7 +2118,7 @@ type AnnotateRunResponse struct {
 
 func (x *AnnotateRunResponse) Reset() {
 	*x = AnnotateRunResponse{}
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[41]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2033,7 +2130,7 @@ func (x *AnnotateRunResponse) String() string {
 func (*AnnotateRunResponse) ProtoMessage() {}
 
 func (x *AnnotateRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[41]
+	mi := &file_tb_ml_v1_ml_service_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2046,7 +2143,7 @@ func (x *AnnotateRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnnotateRunResponse.ProtoReflect.Descriptor instead.
 func (*AnnotateRunResponse) Descriptor() ([]byte, []int) {
-	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{41}
+	return file_tb_ml_v1_ml_service_proto_rawDescGZIP(), []int{43}
 }
 
 var File_tb_ml_v1_ml_service_proto protoreflect.FileDescriptor
@@ -2123,7 +2220,12 @@ const file_tb_ml_v1_ml_service_proto_rawDesc = "" +
 	"\x13GetModelCardRequest\x12\x15\n" +
 	"\x06run_id\x18\x01 \x01(\tR\x05runId\"?\n" +
 	"\x14GetModelCardResponse\x12'\n" +
-	"\x04card\x18\x01 \x01(\v2\x13.tb.ml.v1.ModelCardR\x04card\"_\n" +
+	"\x04card\x18\x01 \x01(\v2\x13.tb.ml.v1.ModelCardR\x04card\",\n" +
+	"\x13GetTearsheetRequest\x12\x15\n" +
+	"\x06run_id\x18\x01 \x01(\tR\x05runId\"B\n" +
+	"\x14GetTearsheetResponse\x12\x12\n" +
+	"\x04html\x18\x01 \x01(\tR\x04html\x12\x16\n" +
+	"\x06engine\x18\x02 \x01(\tR\x06engine\"_\n" +
 	"\x15GetDiagnosticsRequest\x12\x15\n" +
 	"\x06run_id\x18\x01 \x01(\tR\x05runId\x12/\n" +
 	"\x06caller\x18\x02 \x01(\v2\x17.tb.ml.v1.CallerContextR\x06caller\"M\n" +
@@ -2164,7 +2266,7 @@ const file_tb_ml_v1_ml_service_proto_rawDesc = "" +
 	"\x06run_id\x18\x01 \x01(\tR\x05runId\x12\x12\n" +
 	"\x04note\x18\x02 \x01(\tR\x04note\x12/\n" +
 	"\x06caller\x18\x03 \x01(\v2\x17.tb.ml.v1.CallerContextR\x06caller\"\x15\n" +
-	"\x13AnnotateRunResponse2\xd3\r\n" +
+	"\x13AnnotateRunResponse2\xa2\x0e\n" +
 	"\tMLService\x12\\\n" +
 	"\x11ListModelFamilies\x12\".tb.ml.v1.ListModelFamiliesRequest\x1a#.tb.ml.v1.ListModelFamiliesResponse\x12V\n" +
 	"\x0fListFeatureSets\x12 .tb.ml.v1.ListFeatureSetsRequest\x1a!.tb.ml.v1.ListFeatureSetsResponse\x12Y\n" +
@@ -2179,7 +2281,8 @@ const file_tb_ml_v1_ml_service_proto_rawDesc = "" +
 	"\bListRuns\x12\x19.tb.ml.v1.ListRunsRequest\x1a\x1a.tb.ml.v1.ListRunsResponse\x12P\n" +
 	"\rRegisterModel\x12\x1e.tb.ml.v1.RegisterModelRequest\x1a\x1f.tb.ml.v1.RegisterModelResponse\x12>\n" +
 	"\aPredict\x12\x18.tb.ml.v1.PredictRequest\x1a\x19.tb.ml.v1.PredictResponse\x12M\n" +
-	"\fGetModelCard\x12\x1d.tb.ml.v1.GetModelCardRequest\x1a\x1e.tb.ml.v1.GetModelCardResponse\x12S\n" +
+	"\fGetModelCard\x12\x1d.tb.ml.v1.GetModelCardRequest\x1a\x1e.tb.ml.v1.GetModelCardResponse\x12M\n" +
+	"\fGetTearsheet\x12\x1d.tb.ml.v1.GetTearsheetRequest\x1a\x1e.tb.ml.v1.GetTearsheetResponse\x12S\n" +
 	"\x0eGetDiagnostics\x12\x1f.tb.ml.v1.GetDiagnosticsRequest\x1a .tb.ml.v1.GetDiagnosticsResponse\x12\\\n" +
 	"\x11GetLearningCurves\x12\".tb.ml.v1.GetLearningCurvesRequest\x1a#.tb.ml.v1.GetLearningCurvesResponse\x12e\n" +
 	"\x14GetFeatureImportance\x12%.tb.ml.v1.GetFeatureImportanceRequest\x1a&.tb.ml.v1.GetFeatureImportanceResponse\x12S\n" +
@@ -2202,7 +2305,7 @@ func file_tb_ml_v1_ml_service_proto_rawDescGZIP() []byte {
 	return file_tb_ml_v1_ml_service_proto_rawDescData
 }
 
-var file_tb_ml_v1_ml_service_proto_msgTypes = make([]protoimpl.MessageInfo, 42)
+var file_tb_ml_v1_ml_service_proto_msgTypes = make([]protoimpl.MessageInfo, 44)
 var file_tb_ml_v1_ml_service_proto_goTypes = []any{
 	(*ListModelFamiliesRequest)(nil),     // 0: tb.ml.v1.ListModelFamiliesRequest
 	(*ListModelFamiliesResponse)(nil),    // 1: tb.ml.v1.ListModelFamiliesResponse
@@ -2232,74 +2335,76 @@ var file_tb_ml_v1_ml_service_proto_goTypes = []any{
 	(*PredictResponse)(nil),              // 25: tb.ml.v1.PredictResponse
 	(*GetModelCardRequest)(nil),          // 26: tb.ml.v1.GetModelCardRequest
 	(*GetModelCardResponse)(nil),         // 27: tb.ml.v1.GetModelCardResponse
-	(*GetDiagnosticsRequest)(nil),        // 28: tb.ml.v1.GetDiagnosticsRequest
-	(*GetDiagnosticsResponse)(nil),       // 29: tb.ml.v1.GetDiagnosticsResponse
-	(*GetLearningCurvesRequest)(nil),     // 30: tb.ml.v1.GetLearningCurvesRequest
-	(*GetLearningCurvesResponse)(nil),    // 31: tb.ml.v1.GetLearningCurvesResponse
-	(*GetFeatureImportanceRequest)(nil),  // 32: tb.ml.v1.GetFeatureImportanceRequest
-	(*GetFeatureImportanceResponse)(nil), // 33: tb.ml.v1.GetFeatureImportanceResponse
-	(*GetErrorSlicesRequest)(nil),        // 34: tb.ml.v1.GetErrorSlicesRequest
-	(*GetErrorSlicesResponse)(nil),       // 35: tb.ml.v1.GetErrorSlicesResponse
-	(*GetDatasetProfileRequest)(nil),     // 36: tb.ml.v1.GetDatasetProfileRequest
-	(*GetDatasetProfileResponse)(nil),    // 37: tb.ml.v1.GetDatasetProfileResponse
-	(*SubmitAblationRequest)(nil),        // 38: tb.ml.v1.SubmitAblationRequest
-	(*SubmitAblationResponse)(nil),       // 39: tb.ml.v1.SubmitAblationResponse
-	(*AnnotateRunRequest)(nil),           // 40: tb.ml.v1.AnnotateRunRequest
-	(*AnnotateRunResponse)(nil),          // 41: tb.ml.v1.AnnotateRunResponse
-	(*ModelFamily)(nil),                  // 42: tb.ml.v1.ModelFamily
-	(*FeatureSetInfo)(nil),               // 43: tb.ml.v1.FeatureSetInfo
-	(*LabelPreset)(nil),                  // 44: tb.ml.v1.LabelPreset
-	(*TrainingConfig)(nil),               // 45: tb.ml.v1.TrainingConfig
-	(*CallerContext)(nil),                // 46: tb.ml.v1.CallerContext
-	(*JobEstimate)(nil),                  // 47: tb.ml.v1.JobEstimate
-	(*TrainingJob)(nil),                  // 48: tb.ml.v1.TrainingJob
-	(*JobProgress)(nil),                  // 49: tb.ml.v1.JobProgress
-	(*TrainingRun)(nil),                  // 50: tb.ml.v1.TrainingRun
-	(*ModelVersion)(nil),                 // 51: tb.ml.v1.ModelVersion
-	(*v1.Signal)(nil),                    // 52: tb.signals.v1.Signal
-	(*ModelCard)(nil),                    // 53: tb.ml.v1.ModelCard
-	(*DiagnosticsReport)(nil),            // 54: tb.ml.v1.DiagnosticsReport
-	(*LearningCurves)(nil),               // 55: tb.ml.v1.LearningCurves
-	(*FeatureImportance)(nil),            // 56: tb.ml.v1.FeatureImportance
-	(*ErrorSlice)(nil),                   // 57: tb.ml.v1.ErrorSlice
-	(*DatasetProfile)(nil),               // 58: tb.ml.v1.DatasetProfile
-	(*AblationVariant)(nil),              // 59: tb.ml.v1.AblationVariant
+	(*GetTearsheetRequest)(nil),          // 28: tb.ml.v1.GetTearsheetRequest
+	(*GetTearsheetResponse)(nil),         // 29: tb.ml.v1.GetTearsheetResponse
+	(*GetDiagnosticsRequest)(nil),        // 30: tb.ml.v1.GetDiagnosticsRequest
+	(*GetDiagnosticsResponse)(nil),       // 31: tb.ml.v1.GetDiagnosticsResponse
+	(*GetLearningCurvesRequest)(nil),     // 32: tb.ml.v1.GetLearningCurvesRequest
+	(*GetLearningCurvesResponse)(nil),    // 33: tb.ml.v1.GetLearningCurvesResponse
+	(*GetFeatureImportanceRequest)(nil),  // 34: tb.ml.v1.GetFeatureImportanceRequest
+	(*GetFeatureImportanceResponse)(nil), // 35: tb.ml.v1.GetFeatureImportanceResponse
+	(*GetErrorSlicesRequest)(nil),        // 36: tb.ml.v1.GetErrorSlicesRequest
+	(*GetErrorSlicesResponse)(nil),       // 37: tb.ml.v1.GetErrorSlicesResponse
+	(*GetDatasetProfileRequest)(nil),     // 38: tb.ml.v1.GetDatasetProfileRequest
+	(*GetDatasetProfileResponse)(nil),    // 39: tb.ml.v1.GetDatasetProfileResponse
+	(*SubmitAblationRequest)(nil),        // 40: tb.ml.v1.SubmitAblationRequest
+	(*SubmitAblationResponse)(nil),       // 41: tb.ml.v1.SubmitAblationResponse
+	(*AnnotateRunRequest)(nil),           // 42: tb.ml.v1.AnnotateRunRequest
+	(*AnnotateRunResponse)(nil),          // 43: tb.ml.v1.AnnotateRunResponse
+	(*ModelFamily)(nil),                  // 44: tb.ml.v1.ModelFamily
+	(*FeatureSetInfo)(nil),               // 45: tb.ml.v1.FeatureSetInfo
+	(*LabelPreset)(nil),                  // 46: tb.ml.v1.LabelPreset
+	(*TrainingConfig)(nil),               // 47: tb.ml.v1.TrainingConfig
+	(*CallerContext)(nil),                // 48: tb.ml.v1.CallerContext
+	(*JobEstimate)(nil),                  // 49: tb.ml.v1.JobEstimate
+	(*TrainingJob)(nil),                  // 50: tb.ml.v1.TrainingJob
+	(*JobProgress)(nil),                  // 51: tb.ml.v1.JobProgress
+	(*TrainingRun)(nil),                  // 52: tb.ml.v1.TrainingRun
+	(*ModelVersion)(nil),                 // 53: tb.ml.v1.ModelVersion
+	(*v1.Signal)(nil),                    // 54: tb.signals.v1.Signal
+	(*ModelCard)(nil),                    // 55: tb.ml.v1.ModelCard
+	(*DiagnosticsReport)(nil),            // 56: tb.ml.v1.DiagnosticsReport
+	(*LearningCurves)(nil),               // 57: tb.ml.v1.LearningCurves
+	(*FeatureImportance)(nil),            // 58: tb.ml.v1.FeatureImportance
+	(*ErrorSlice)(nil),                   // 59: tb.ml.v1.ErrorSlice
+	(*DatasetProfile)(nil),               // 60: tb.ml.v1.DatasetProfile
+	(*AblationVariant)(nil),              // 61: tb.ml.v1.AblationVariant
 }
 var file_tb_ml_v1_ml_service_proto_depIdxs = []int32{
-	42, // 0: tb.ml.v1.ListModelFamiliesResponse.families:type_name -> tb.ml.v1.ModelFamily
-	43, // 1: tb.ml.v1.ListFeatureSetsResponse.feature_sets:type_name -> tb.ml.v1.FeatureSetInfo
-	44, // 2: tb.ml.v1.ListLabelPresetsResponse.presets:type_name -> tb.ml.v1.LabelPreset
-	45, // 3: tb.ml.v1.EstimateTrainingJobRequest.config:type_name -> tb.ml.v1.TrainingConfig
-	46, // 4: tb.ml.v1.EstimateTrainingJobRequest.caller:type_name -> tb.ml.v1.CallerContext
-	47, // 5: tb.ml.v1.EstimateTrainingJobResponse.estimate:type_name -> tb.ml.v1.JobEstimate
-	45, // 6: tb.ml.v1.SubmitTrainingJobRequest.config:type_name -> tb.ml.v1.TrainingConfig
-	46, // 7: tb.ml.v1.SubmitTrainingJobRequest.caller:type_name -> tb.ml.v1.CallerContext
-	48, // 8: tb.ml.v1.SubmitTrainingJobResponse.job:type_name -> tb.ml.v1.TrainingJob
-	48, // 9: tb.ml.v1.GetJobResponse.job:type_name -> tb.ml.v1.TrainingJob
-	48, // 10: tb.ml.v1.ListJobsResponse.jobs:type_name -> tb.ml.v1.TrainingJob
-	49, // 11: tb.ml.v1.StreamJobProgressResponse.progress:type_name -> tb.ml.v1.JobProgress
-	46, // 12: tb.ml.v1.CancelJobRequest.caller:type_name -> tb.ml.v1.CallerContext
-	48, // 13: tb.ml.v1.CancelJobResponse.job:type_name -> tb.ml.v1.TrainingJob
-	50, // 14: tb.ml.v1.GetRunResponse.run:type_name -> tb.ml.v1.TrainingRun
-	50, // 15: tb.ml.v1.ListRunsResponse.runs:type_name -> tb.ml.v1.TrainingRun
-	46, // 16: tb.ml.v1.RegisterModelRequest.caller:type_name -> tb.ml.v1.CallerContext
-	51, // 17: tb.ml.v1.RegisterModelResponse.model_version:type_name -> tb.ml.v1.ModelVersion
-	52, // 18: tb.ml.v1.PredictResponse.signals:type_name -> tb.signals.v1.Signal
-	53, // 19: tb.ml.v1.GetModelCardResponse.card:type_name -> tb.ml.v1.ModelCard
-	46, // 20: tb.ml.v1.GetDiagnosticsRequest.caller:type_name -> tb.ml.v1.CallerContext
-	54, // 21: tb.ml.v1.GetDiagnosticsResponse.report:type_name -> tb.ml.v1.DiagnosticsReport
-	46, // 22: tb.ml.v1.GetLearningCurvesRequest.caller:type_name -> tb.ml.v1.CallerContext
-	55, // 23: tb.ml.v1.GetLearningCurvesResponse.curves:type_name -> tb.ml.v1.LearningCurves
-	46, // 24: tb.ml.v1.GetFeatureImportanceRequest.caller:type_name -> tb.ml.v1.CallerContext
-	56, // 25: tb.ml.v1.GetFeatureImportanceResponse.importance:type_name -> tb.ml.v1.FeatureImportance
-	46, // 26: tb.ml.v1.GetErrorSlicesRequest.caller:type_name -> tb.ml.v1.CallerContext
-	57, // 27: tb.ml.v1.GetErrorSlicesResponse.slices:type_name -> tb.ml.v1.ErrorSlice
-	46, // 28: tb.ml.v1.GetDatasetProfileRequest.caller:type_name -> tb.ml.v1.CallerContext
-	58, // 29: tb.ml.v1.GetDatasetProfileResponse.profile:type_name -> tb.ml.v1.DatasetProfile
-	59, // 30: tb.ml.v1.SubmitAblationRequest.variants:type_name -> tb.ml.v1.AblationVariant
-	46, // 31: tb.ml.v1.SubmitAblationRequest.caller:type_name -> tb.ml.v1.CallerContext
-	48, // 32: tb.ml.v1.SubmitAblationResponse.jobs:type_name -> tb.ml.v1.TrainingJob
-	46, // 33: tb.ml.v1.AnnotateRunRequest.caller:type_name -> tb.ml.v1.CallerContext
+	44, // 0: tb.ml.v1.ListModelFamiliesResponse.families:type_name -> tb.ml.v1.ModelFamily
+	45, // 1: tb.ml.v1.ListFeatureSetsResponse.feature_sets:type_name -> tb.ml.v1.FeatureSetInfo
+	46, // 2: tb.ml.v1.ListLabelPresetsResponse.presets:type_name -> tb.ml.v1.LabelPreset
+	47, // 3: tb.ml.v1.EstimateTrainingJobRequest.config:type_name -> tb.ml.v1.TrainingConfig
+	48, // 4: tb.ml.v1.EstimateTrainingJobRequest.caller:type_name -> tb.ml.v1.CallerContext
+	49, // 5: tb.ml.v1.EstimateTrainingJobResponse.estimate:type_name -> tb.ml.v1.JobEstimate
+	47, // 6: tb.ml.v1.SubmitTrainingJobRequest.config:type_name -> tb.ml.v1.TrainingConfig
+	48, // 7: tb.ml.v1.SubmitTrainingJobRequest.caller:type_name -> tb.ml.v1.CallerContext
+	50, // 8: tb.ml.v1.SubmitTrainingJobResponse.job:type_name -> tb.ml.v1.TrainingJob
+	50, // 9: tb.ml.v1.GetJobResponse.job:type_name -> tb.ml.v1.TrainingJob
+	50, // 10: tb.ml.v1.ListJobsResponse.jobs:type_name -> tb.ml.v1.TrainingJob
+	51, // 11: tb.ml.v1.StreamJobProgressResponse.progress:type_name -> tb.ml.v1.JobProgress
+	48, // 12: tb.ml.v1.CancelJobRequest.caller:type_name -> tb.ml.v1.CallerContext
+	50, // 13: tb.ml.v1.CancelJobResponse.job:type_name -> tb.ml.v1.TrainingJob
+	52, // 14: tb.ml.v1.GetRunResponse.run:type_name -> tb.ml.v1.TrainingRun
+	52, // 15: tb.ml.v1.ListRunsResponse.runs:type_name -> tb.ml.v1.TrainingRun
+	48, // 16: tb.ml.v1.RegisterModelRequest.caller:type_name -> tb.ml.v1.CallerContext
+	53, // 17: tb.ml.v1.RegisterModelResponse.model_version:type_name -> tb.ml.v1.ModelVersion
+	54, // 18: tb.ml.v1.PredictResponse.signals:type_name -> tb.signals.v1.Signal
+	55, // 19: tb.ml.v1.GetModelCardResponse.card:type_name -> tb.ml.v1.ModelCard
+	48, // 20: tb.ml.v1.GetDiagnosticsRequest.caller:type_name -> tb.ml.v1.CallerContext
+	56, // 21: tb.ml.v1.GetDiagnosticsResponse.report:type_name -> tb.ml.v1.DiagnosticsReport
+	48, // 22: tb.ml.v1.GetLearningCurvesRequest.caller:type_name -> tb.ml.v1.CallerContext
+	57, // 23: tb.ml.v1.GetLearningCurvesResponse.curves:type_name -> tb.ml.v1.LearningCurves
+	48, // 24: tb.ml.v1.GetFeatureImportanceRequest.caller:type_name -> tb.ml.v1.CallerContext
+	58, // 25: tb.ml.v1.GetFeatureImportanceResponse.importance:type_name -> tb.ml.v1.FeatureImportance
+	48, // 26: tb.ml.v1.GetErrorSlicesRequest.caller:type_name -> tb.ml.v1.CallerContext
+	59, // 27: tb.ml.v1.GetErrorSlicesResponse.slices:type_name -> tb.ml.v1.ErrorSlice
+	48, // 28: tb.ml.v1.GetDatasetProfileRequest.caller:type_name -> tb.ml.v1.CallerContext
+	60, // 29: tb.ml.v1.GetDatasetProfileResponse.profile:type_name -> tb.ml.v1.DatasetProfile
+	61, // 30: tb.ml.v1.SubmitAblationRequest.variants:type_name -> tb.ml.v1.AblationVariant
+	48, // 31: tb.ml.v1.SubmitAblationRequest.caller:type_name -> tb.ml.v1.CallerContext
+	50, // 32: tb.ml.v1.SubmitAblationResponse.jobs:type_name -> tb.ml.v1.TrainingJob
+	48, // 33: tb.ml.v1.AnnotateRunRequest.caller:type_name -> tb.ml.v1.CallerContext
 	0,  // 34: tb.ml.v1.MLService.ListModelFamilies:input_type -> tb.ml.v1.ListModelFamiliesRequest
 	2,  // 35: tb.ml.v1.MLService.ListFeatureSets:input_type -> tb.ml.v1.ListFeatureSetsRequest
 	4,  // 36: tb.ml.v1.MLService.ListLabelPresets:input_type -> tb.ml.v1.ListLabelPresetsRequest
@@ -2314,36 +2419,38 @@ var file_tb_ml_v1_ml_service_proto_depIdxs = []int32{
 	22, // 45: tb.ml.v1.MLService.RegisterModel:input_type -> tb.ml.v1.RegisterModelRequest
 	24, // 46: tb.ml.v1.MLService.Predict:input_type -> tb.ml.v1.PredictRequest
 	26, // 47: tb.ml.v1.MLService.GetModelCard:input_type -> tb.ml.v1.GetModelCardRequest
-	28, // 48: tb.ml.v1.MLService.GetDiagnostics:input_type -> tb.ml.v1.GetDiagnosticsRequest
-	30, // 49: tb.ml.v1.MLService.GetLearningCurves:input_type -> tb.ml.v1.GetLearningCurvesRequest
-	32, // 50: tb.ml.v1.MLService.GetFeatureImportance:input_type -> tb.ml.v1.GetFeatureImportanceRequest
-	34, // 51: tb.ml.v1.MLService.GetErrorSlices:input_type -> tb.ml.v1.GetErrorSlicesRequest
-	36, // 52: tb.ml.v1.MLService.GetDatasetProfile:input_type -> tb.ml.v1.GetDatasetProfileRequest
-	38, // 53: tb.ml.v1.MLService.SubmitAblation:input_type -> tb.ml.v1.SubmitAblationRequest
-	40, // 54: tb.ml.v1.MLService.AnnotateRun:input_type -> tb.ml.v1.AnnotateRunRequest
-	1,  // 55: tb.ml.v1.MLService.ListModelFamilies:output_type -> tb.ml.v1.ListModelFamiliesResponse
-	3,  // 56: tb.ml.v1.MLService.ListFeatureSets:output_type -> tb.ml.v1.ListFeatureSetsResponse
-	5,  // 57: tb.ml.v1.MLService.ListLabelPresets:output_type -> tb.ml.v1.ListLabelPresetsResponse
-	7,  // 58: tb.ml.v1.MLService.EstimateTrainingJob:output_type -> tb.ml.v1.EstimateTrainingJobResponse
-	9,  // 59: tb.ml.v1.MLService.SubmitTrainingJob:output_type -> tb.ml.v1.SubmitTrainingJobResponse
-	11, // 60: tb.ml.v1.MLService.GetJob:output_type -> tb.ml.v1.GetJobResponse
-	13, // 61: tb.ml.v1.MLService.ListJobs:output_type -> tb.ml.v1.ListJobsResponse
-	15, // 62: tb.ml.v1.MLService.StreamJobProgress:output_type -> tb.ml.v1.StreamJobProgressResponse
-	17, // 63: tb.ml.v1.MLService.CancelJob:output_type -> tb.ml.v1.CancelJobResponse
-	19, // 64: tb.ml.v1.MLService.GetRun:output_type -> tb.ml.v1.GetRunResponse
-	21, // 65: tb.ml.v1.MLService.ListRuns:output_type -> tb.ml.v1.ListRunsResponse
-	23, // 66: tb.ml.v1.MLService.RegisterModel:output_type -> tb.ml.v1.RegisterModelResponse
-	25, // 67: tb.ml.v1.MLService.Predict:output_type -> tb.ml.v1.PredictResponse
-	27, // 68: tb.ml.v1.MLService.GetModelCard:output_type -> tb.ml.v1.GetModelCardResponse
-	29, // 69: tb.ml.v1.MLService.GetDiagnostics:output_type -> tb.ml.v1.GetDiagnosticsResponse
-	31, // 70: tb.ml.v1.MLService.GetLearningCurves:output_type -> tb.ml.v1.GetLearningCurvesResponse
-	33, // 71: tb.ml.v1.MLService.GetFeatureImportance:output_type -> tb.ml.v1.GetFeatureImportanceResponse
-	35, // 72: tb.ml.v1.MLService.GetErrorSlices:output_type -> tb.ml.v1.GetErrorSlicesResponse
-	37, // 73: tb.ml.v1.MLService.GetDatasetProfile:output_type -> tb.ml.v1.GetDatasetProfileResponse
-	39, // 74: tb.ml.v1.MLService.SubmitAblation:output_type -> tb.ml.v1.SubmitAblationResponse
-	41, // 75: tb.ml.v1.MLService.AnnotateRun:output_type -> tb.ml.v1.AnnotateRunResponse
-	55, // [55:76] is the sub-list for method output_type
-	34, // [34:55] is the sub-list for method input_type
+	28, // 48: tb.ml.v1.MLService.GetTearsheet:input_type -> tb.ml.v1.GetTearsheetRequest
+	30, // 49: tb.ml.v1.MLService.GetDiagnostics:input_type -> tb.ml.v1.GetDiagnosticsRequest
+	32, // 50: tb.ml.v1.MLService.GetLearningCurves:input_type -> tb.ml.v1.GetLearningCurvesRequest
+	34, // 51: tb.ml.v1.MLService.GetFeatureImportance:input_type -> tb.ml.v1.GetFeatureImportanceRequest
+	36, // 52: tb.ml.v1.MLService.GetErrorSlices:input_type -> tb.ml.v1.GetErrorSlicesRequest
+	38, // 53: tb.ml.v1.MLService.GetDatasetProfile:input_type -> tb.ml.v1.GetDatasetProfileRequest
+	40, // 54: tb.ml.v1.MLService.SubmitAblation:input_type -> tb.ml.v1.SubmitAblationRequest
+	42, // 55: tb.ml.v1.MLService.AnnotateRun:input_type -> tb.ml.v1.AnnotateRunRequest
+	1,  // 56: tb.ml.v1.MLService.ListModelFamilies:output_type -> tb.ml.v1.ListModelFamiliesResponse
+	3,  // 57: tb.ml.v1.MLService.ListFeatureSets:output_type -> tb.ml.v1.ListFeatureSetsResponse
+	5,  // 58: tb.ml.v1.MLService.ListLabelPresets:output_type -> tb.ml.v1.ListLabelPresetsResponse
+	7,  // 59: tb.ml.v1.MLService.EstimateTrainingJob:output_type -> tb.ml.v1.EstimateTrainingJobResponse
+	9,  // 60: tb.ml.v1.MLService.SubmitTrainingJob:output_type -> tb.ml.v1.SubmitTrainingJobResponse
+	11, // 61: tb.ml.v1.MLService.GetJob:output_type -> tb.ml.v1.GetJobResponse
+	13, // 62: tb.ml.v1.MLService.ListJobs:output_type -> tb.ml.v1.ListJobsResponse
+	15, // 63: tb.ml.v1.MLService.StreamJobProgress:output_type -> tb.ml.v1.StreamJobProgressResponse
+	17, // 64: tb.ml.v1.MLService.CancelJob:output_type -> tb.ml.v1.CancelJobResponse
+	19, // 65: tb.ml.v1.MLService.GetRun:output_type -> tb.ml.v1.GetRunResponse
+	21, // 66: tb.ml.v1.MLService.ListRuns:output_type -> tb.ml.v1.ListRunsResponse
+	23, // 67: tb.ml.v1.MLService.RegisterModel:output_type -> tb.ml.v1.RegisterModelResponse
+	25, // 68: tb.ml.v1.MLService.Predict:output_type -> tb.ml.v1.PredictResponse
+	27, // 69: tb.ml.v1.MLService.GetModelCard:output_type -> tb.ml.v1.GetModelCardResponse
+	29, // 70: tb.ml.v1.MLService.GetTearsheet:output_type -> tb.ml.v1.GetTearsheetResponse
+	31, // 71: tb.ml.v1.MLService.GetDiagnostics:output_type -> tb.ml.v1.GetDiagnosticsResponse
+	33, // 72: tb.ml.v1.MLService.GetLearningCurves:output_type -> tb.ml.v1.GetLearningCurvesResponse
+	35, // 73: tb.ml.v1.MLService.GetFeatureImportance:output_type -> tb.ml.v1.GetFeatureImportanceResponse
+	37, // 74: tb.ml.v1.MLService.GetErrorSlices:output_type -> tb.ml.v1.GetErrorSlicesResponse
+	39, // 75: tb.ml.v1.MLService.GetDatasetProfile:output_type -> tb.ml.v1.GetDatasetProfileResponse
+	41, // 76: tb.ml.v1.MLService.SubmitAblation:output_type -> tb.ml.v1.SubmitAblationResponse
+	43, // 77: tb.ml.v1.MLService.AnnotateRun:output_type -> tb.ml.v1.AnnotateRunResponse
+	56, // [56:78] is the sub-list for method output_type
+	34, // [34:56] is the sub-list for method input_type
 	34, // [34:34] is the sub-list for extension type_name
 	34, // [34:34] is the sub-list for extension extendee
 	0,  // [0:34] is the sub-list for field type_name
@@ -2362,7 +2469,7 @@ func file_tb_ml_v1_ml_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tb_ml_v1_ml_service_proto_rawDesc), len(file_tb_ml_v1_ml_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   42,
+			NumMessages:   44,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -47,6 +47,15 @@ const (
 	ActOrdersCancel          Action = "orders.cancel"
 	ActStrategyModeSet       Action = "strategy.mode.set"
 	ActLedgerBreakResolve    Action = "ledger.break.resolve"
+	// Research (sections 10, 11): views, launches, and governance actions.
+	ActResearchRead       Action = "research.read"
+	ActResearchLaunch     Action = "research.launch"
+	ActResearchCycleOpen  Action = "research.cycle.open"
+	ActModelPromote       Action = "model.promote"
+	ActModelDemote        Action = "model.demote"
+	ActHoldoutEvaluate    Action = "holdout.evaluate"
+	ActHoldoutSchedule    Action = "holdout.schedule"
+	ActAnalystAutonomySet Action = "analyst.autonomy.set"
 )
 
 // stepUp says which fresh second factor an owner action needs.
@@ -94,6 +103,31 @@ var ownerActions = map[Action]stepUp{
 	ActStrategyModeSet: noStepUp,
 	// Resolving a reconciliation break moves ownership or cash (VP-019, RM-007).
 	ActLedgerBreakResolve: stepUpPasskey,
+	// Research views and launches need no step-up; opening a research cycle (D31 rule 3), holdout
+	// access and scheduling (EX-011, EX-014), promotion to paper or live_eligible (N4, EX-052/053),
+	// and raising analyst autonomy (EX-033) need a passkey (escalations in Authorize).
+	ActResearchRead:       noStepUp,
+	ActResearchLaunch:     noStepUp,
+	ActResearchCycleOpen:  stepUpPasskey,
+	ActModelPromote:       noStepUp,
+	ActModelDemote:        noStepUp,
+	ActHoldoutEvaluate:    stepUpPasskey,
+	ActHoldoutSchedule:    stepUpPasskey,
+	ActAnalystAutonomySet: noStepUp,
+}
+
+// escalated reports actions whose step-up depends on the resource (live manual orders, promotion to
+// paper or live_eligible, raising analyst autonomy or budgets).
+func escalated(action Action, res Resource) bool {
+	switch action {
+	case ActOrdersSubmitManual:
+		return strings.EqualFold(res.Mode, "live")
+	case ActModelPromote:
+		return res.Mode == "paper" || res.Mode == "live_eligible"
+	case ActAnalystAutonomySet:
+		return res.Mode == "raise"
+	}
+	return false
 }
 
 // serviceActions lists what each internal service actor may do through the policy layer.
@@ -181,7 +215,7 @@ func Authorize(actor Actor, action Action, res Resource, now time.Time) Decision
 		if !ok {
 			return deny("unknown action %q", action)
 		}
-		if action == ActOrdersSubmitManual && strings.EqualFold(res.Mode, "live") {
+		if escalated(action, res) {
 			req = stepUpPasskey
 		}
 		return checkStepUp(actor, req, now)
@@ -244,7 +278,7 @@ func OwnerActions() []Action {
 
 // RequiresPasskeyStepUp reports whether action needs a passkey step-up for the owner on resource.
 func RequiresPasskeyStepUp(action Action, res Resource) bool {
-	if action == ActOrdersSubmitManual && strings.EqualFold(res.Mode, "live") {
+	if escalated(action, res) {
 		return true
 	}
 	return ownerActions[action] == stepUpPasskey

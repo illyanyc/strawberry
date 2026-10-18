@@ -78,6 +78,11 @@ func main() {
 		svc.Fatal(rt.Log, "trading clients", err)
 	}
 	defer closeTrading()
+	research, closeResearch, err := gateway.DialResearch(cfg, signer)
+	if err != nil {
+		svc.Fatal(rt.Log, "research clients", err)
+	}
+	defer closeResearch()
 
 	var alerts gateway.AlertPublisher
 	var market gateway.MarketBus
@@ -95,7 +100,7 @@ func main() {
 		rt.Ops.AddCheck("bus", bus.Ready(nc))
 	}
 
-	srv, err := gateway.New(cfg, gateway.Deps{Pool: pool, MasterKey: master, Log: rt.Log, Alerts: alerts, Creds: creds, Trading: trading, Market: market})
+	srv, err := gateway.New(cfg, gateway.Deps{Pool: pool, MasterKey: master, Log: rt.Log, Alerts: alerts, Creds: creds, Trading: trading, Research: research, Market: market})
 	if err != nil {
 		svc.Fatal(rt.Log, "init", err)
 	}

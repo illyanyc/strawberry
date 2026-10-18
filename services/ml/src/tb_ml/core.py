@@ -585,6 +585,14 @@ class MLCore:
             run_id=run_id, markdown=md, fields={"family": run.config.family, "snapshot": run.dataset.snapshot_id}
         )
 
+    def tearsheet(self, run_id: str) -> tuple[str, str]:
+        run = self.run(run_id)
+        d = Path(run.artifact_uri)
+        for fname, engine in (("tearsheet_event.html", "event"), ("tearsheet.html", "vectorized")):
+            if (d / fname).exists():
+                return (d / fname).read_text(), engine
+        raise NotFound(f"tearsheet for {run_id}")
+
     def annotate(self, run_id: str, note: str, caller: tp.CallerContext) -> None:
         run = self.run(run_id)
         run.notes.append(f"[{name(caller)}] {note[:NOTE_LIMIT]}")  # untrusted text, stored as data

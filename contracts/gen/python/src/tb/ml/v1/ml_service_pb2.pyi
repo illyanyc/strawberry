@@ -199,6 +199,20 @@ class GetModelCardResponse(_message.Message):
     card: _training_pb2.ModelCard
     def __init__(self, card: _Optional[_Union[_training_pb2.ModelCard, _Mapping]] = ...) -> None: ...
 
+class GetTearsheetRequest(_message.Message):
+    __slots__ = ("run_id",)
+    RUN_ID_FIELD_NUMBER: _ClassVar[int]
+    run_id: str
+    def __init__(self, run_id: _Optional[str] = ...) -> None: ...
+
+class GetTearsheetResponse(_message.Message):
+    __slots__ = ("html", "engine")
+    HTML_FIELD_NUMBER: _ClassVar[int]
+    ENGINE_FIELD_NUMBER: _ClassVar[int]
+    html: str
+    engine: str
+    def __init__(self, html: _Optional[str] = ..., engine: _Optional[str] = ...) -> None: ...
+
 class GetDiagnosticsRequest(_message.Message):
     __slots__ = ("run_id", "caller")
     RUN_ID_FIELD_NUMBER: _ClassVar[int]

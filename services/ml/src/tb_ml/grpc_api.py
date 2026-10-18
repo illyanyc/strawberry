@@ -31,6 +31,7 @@ ANALYST_TOOLS = [
     "GetRun",
     "ListRuns",
     "GetModelCard",
+    "GetTearsheet",
     "GetDiagnostics",
     "GetLearningCurves",
     "GetFeatureImportance",
@@ -136,6 +137,11 @@ class MLServicer:
         return ms.GetModelCardResponse(
             card=self._do(context, "GetModelCard", c, lambda: self.core.model_card(req.run_id))
         )
+
+    def GetTearsheet(self, req: ms.GetTearsheetRequest, context: grpc.ServicerContext) -> Any:
+        c = self._caller(None)
+        page, engine = self._do(context, "GetTearsheet", c, lambda: self.core.tearsheet(req.run_id))
+        return ms.GetTearsheetResponse(html=page, engine=engine)
 
     def GetDiagnostics(self, req: ms.GetDiagnosticsRequest, context: grpc.ServicerContext) -> Any:
         c = self._caller(req.caller)

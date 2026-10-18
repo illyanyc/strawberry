@@ -11,7 +11,7 @@ var mustRequirePasskeyStepUp = []Action{
 	ActTradingLiveEnable, ActStrategyPromoteLive, ActRiskLimitsRaise, ActAllocationIncrease,
 	ActKillSwitchDisable, ActBrokerCredWrite, ActBrokerCredDelete, ActBrokerCredStatus,
 	ActMobileOrderEnable, ActAssistantWriteEnable, ActDataExportPositions, ActAuthPasskeyDelete,
-	ActLedgerBreakResolve,
+	ActLedgerBreakResolve, ActResearchCycleOpen, ActHoldoutEvaluate, ActHoldoutSchedule,
 }
 
 var recoveryActions = []Action{ActAuthPasskeyRegister, ActAuthTOTPEnroll, ActAuthRecoveryRegen}
@@ -43,7 +43,8 @@ func TestSE003AuthorizeMatrix(t *testing.T) {
 }
 
 func expected(state string, act Action) Effect {
-	passkeyStepUp := contains(mustRequirePasskeyStepUp, act)
+	// The matrix uses Resource{Mode: "paper"}: promotion to paper escalates (EX-052).
+	passkeyStepUp := contains(mustRequirePasskeyStepUp, act) || act == ActModelPromote
 	recovery := contains(recoveryActions, act)
 	_, isOwnerAction := ownerActions[act]
 	switch state {
@@ -85,6 +86,46 @@ func TestLiveManualOrderNeedsPasskeyStepUp(t *testing.T) {
 	totp := Actor{Kind: KindOwner, StepUpMethod: StepUpTOTP, StepUpUntil: now.Add(time.Minute)}
 	if d := Authorize(totp, ActOrdersSubmitManual, Resource{Mode: "live"}, now); d.Effect != RequireStepUp {
 		t.Fatalf("live manual order with TOTP step-up: %v", d)
+	}
+}
+
+// Research governance actions (EX-011, EX-014, EX-033, EX-052, EX-053, D31 rule 3).
+func TestEX052ResearchStepUps(t *testing.T) {
+	now := time.Now()
+	plain := Actor{Kind: KindOwner}
+	fresh := Actor{Kind: KindOwner, StepUpMethod: StepUpPasskey, StepUpUntil: now.Add(time.Minute)}
+	cases := []struct {
+		a    Action
+		res  Resource
+		need bool
+	}{
+		{ActResearchRead, Resource{}, false},
+		{ActResearchLaunch, Resource{}, false},
+		{ActModelPromote, Resource{Mode: "validated"}, false},
+		{ActModelPromote, Resource{Mode: "shadow"}, false},
+		{ActModelPromote, Resource{Mode: "paper"}, true},
+		{ActModelPromote, Resource{Mode: "live_eligible"}, true},
+		{ActModelDemote, Resource{}, false},
+		{ActHoldoutEvaluate, Resource{}, true},
+		{ActHoldoutSchedule, Resource{}, true},
+		{ActResearchCycleOpen, Resource{}, true},
+		{ActAnalystAutonomySet, Resource{Mode: "lower"}, false},
+		{ActAnalystAutonomySet, Resource{Mode: "raise"}, true},
+	}
+	for _, c := range cases {
+		d := Authorize(plain, c.a, c.res, now)
+		if c.need != (d.Effect == RequireStepUp) {
+			t.Errorf("%s %v without step-up: %v", c.a, c.res, d)
+		}
+		if Authorize(fresh, c.a, c.res, now).Effect != Allow {
+			t.Errorf("%s %v with a fresh passkey should be allowed", c.a, c.res)
+		}
+		if RequiresPasskeyStepUp(c.a, c.res) != c.need {
+			t.Errorf("RequiresPasskeyStepUp(%s, %v) != %v", c.a, c.res, c.need)
+		}
+	}
+	if Authorize(Actor{Kind: KindAssistant}, ActHoldoutEvaluate, Resource{}, now).Effect != Deny {
+		t.Error("the assistant must never evaluate the holdout")
 	}
 }
 

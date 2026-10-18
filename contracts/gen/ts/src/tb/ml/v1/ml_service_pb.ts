@@ -22,7 +22,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file tb/ml/v1/ml_service.proto.
  */
 export const file_tb_ml_v1_ml_service: GenFile = /*@__PURE__*/
-  fileDesc("Chl0Yi9tbC92MS9tbF9zZXJ2aWNlLnByb3RvEgh0Yi5tbC52MSIaChhMaXN0TW9kZWxGYW1pbGllc1JlcXVlc3QiRAoZTGlzdE1vZGVsRmFtaWxpZXNSZXNwb25zZRInCghmYW1pbGllcxgBIAMoCzIVLnRiLm1sLnYxLk1vZGVsRmFtaWx5IhgKFkxpc3RGZWF0dXJlU2V0c1JlcXVlc3QiSQoXTGlzdEZlYXR1cmVTZXRzUmVzcG9uc2USLgoMZmVhdHVyZV9zZXRzGAEgAygLMhgudGIubWwudjEuRmVhdHVyZVNldEluZm8iGQoXTGlzdExhYmVsUHJlc2V0c1JlcXVlc3QiQgoYTGlzdExhYmVsUHJlc2V0c1Jlc3BvbnNlEiYKB3ByZXNldHMYASADKAsyFS50Yi5tbC52MS5MYWJlbFByZXNldCJvChpFc3RpbWF0ZVRyYWluaW5nSm9iUmVxdWVzdBIoCgZjb25maWcYASABKAsyGC50Yi5tbC52MS5UcmFpbmluZ0NvbmZpZxInCgZjYWxsZXIYAiABKAsyFy50Yi5tbC52MS5DYWxsZXJDb250ZXh0IlYKG0VzdGltYXRlVHJhaW5pbmdKb2JSZXNwb25zZRInCghlc3RpbWF0ZRgBIAEoCzIVLnRiLm1sLnYxLkpvYkVzdGltYXRlEg4KBmVycm9ycxgCIAMoCSKKAQoYU3VibWl0VHJhaW5pbmdKb2JSZXF1ZXN0EigKBmNvbmZpZxgBIAEoCzIYLnRiLm1sLnYxLlRyYWluaW5nQ29uZmlnEicKBmNhbGxlchgCIAEoCzIXLnRiLm1sLnYxLkNhbGxlckNvbnRleHQSGwoTY29uZmlybV9vdmVyX2J1ZGdldBgDIAEoCCI/ChlTdWJtaXRUcmFpbmluZ0pvYlJlc3BvbnNlEiIKA2pvYhgBIAEoCzIVLnRiLm1sLnYxLlRyYWluaW5nSm9iIh8KDUdldEpvYlJlcXVlc3QSDgoGam9iX2lkGAEgASgJIjQKDkdldEpvYlJlc3BvbnNlEiIKA2pvYhgBIAEoCzIVLnRiLm1sLnYxLlRyYWluaW5nSm9iIjQKD0xpc3RKb2JzUmVxdWVzdBISCgpsaW5lYWdlX2lkGAEgASgJEg0KBWxpbWl0GAIgASgFIjcKEExpc3RKb2JzUmVzcG9uc2USIwoEam9icxgBIAMoCzIVLnRiLm1sLnYxLlRyYWluaW5nSm9iIj0KGFN0cmVhbUpvYlByb2dyZXNzUmVxdWVzdBIOCgZqb2JfaWQYASABKAkSEQoJYWZ0ZXJfc2VxGAIgASgDIkQKGVN0cmVhbUpvYlByb2dyZXNzUmVzcG9uc2USJwoIcHJvZ3Jlc3MYASABKAsyFS50Yi5tbC52MS5Kb2JQcm9ncmVzcyJLChBDYW5jZWxKb2JSZXF1ZXN0Eg4KBmpvYl9pZBgBIAEoCRInCgZjYWxsZXIYAiABKAsyFy50Yi5tbC52MS5DYWxsZXJDb250ZXh0IjcKEUNhbmNlbEpvYlJlc3BvbnNlEiIKA2pvYhgBIAEoCzIVLnRiLm1sLnYxLlRyYWluaW5nSm9iIh8KDUdldFJ1blJlcXVlc3QSDgoGcnVuX2lkGAEgASgJIjQKDkdldFJ1blJlc3BvbnNlEiIKA3J1bhgBIAEoCzIVLnRiLm1sLnYxLlRyYWluaW5nUnVuIkQKD0xpc3RSdW5zUmVxdWVzdBISCgpsaW5lYWdlX2lkGAEgASgJEg4KBmZhbWlseRgCIAEoCRINCgVsaW1pdBgDIAEoBSI3ChBMaXN0UnVuc1Jlc3BvbnNlEiMKBHJ1bnMYASADKAsyFS50Yi5tbC52MS5UcmFpbmluZ1J1biJdChRSZWdpc3Rlck1vZGVsUmVxdWVzdBIOCgZydW5faWQYASABKAkSDAoEbmFtZRgCIAEoCRInCgZjYWxsZXIYAyABKAsyFy50Yi5tbC52MS5DYWxsZXJDb250ZXh0IkYKFVJlZ2lzdGVyTW9kZWxSZXNwb25zZRItCg1tb2RlbF92ZXJzaW9uGAEgASgLMhYudGIubWwudjEuTW9kZWxWZXJzaW9uImMKDlByZWRpY3RSZXF1ZXN0EhUKDW1vZGVsX3ZlcnNpb24YASABKAkSFgoOaW5zdHJ1bWVudF9pZHMYAiADKAkSDQoFYXNfb2YYAyABKAMSEwoLc3RyYXRlZ3lfaWQYBCABKAkiOQoPUHJlZGljdFJlc3BvbnNlEiYKB3NpZ25hbHMYASADKAsyFS50Yi5zaWduYWxzLnYxLlNpZ25hbCIlChNHZXRNb2RlbENhcmRSZXF1ZXN0Eg4KBnJ1bl9pZBgBIAEoCSI5ChRHZXRNb2RlbENhcmRSZXNwb25zZRIhCgRjYXJkGAEgASgLMhMudGIubWwudjEuTW9kZWxDYXJkIlAKFUdldERpYWdub3N0aWNzUmVxdWVzdBIOCgZydW5faWQYASABKAkSJwoGY2FsbGVyGAIgASgLMhcudGIubWwudjEuQ2FsbGVyQ29udGV4dCJFChZHZXREaWFnbm9zdGljc1Jlc3BvbnNlEisKBnJlcG9ydBgBIAEoCzIbLnRiLm1sLnYxLkRpYWdub3N0aWNzUmVwb3J0IlMKGEdldExlYXJuaW5nQ3VydmVzUmVxdWVzdBIOCgZydW5faWQYASABKAkSJwoGY2FsbGVyGAIgASgLMhcudGIubWwudjEuQ2FsbGVyQ29udGV4dCJFChlHZXRMZWFybmluZ0N1cnZlc1Jlc3BvbnNlEigKBmN1cnZlcxgBIAEoCzIYLnRiLm1sLnYxLkxlYXJuaW5nQ3VydmVzImYKG0dldEZlYXR1cmVJbXBvcnRhbmNlUmVxdWVzdBIOCgZydW5faWQYASABKAkSDgoGbWV0aG9kGAIgASgJEicKBmNhbGxlchgDIAEoCzIXLnRiLm1sLnYxLkNhbGxlckNvbnRleHQiTwocR2V0RmVhdHVyZUltcG9ydGFuY2VSZXNwb25zZRIvCgppbXBvcnRhbmNlGAEgASgLMhsudGIubWwudjEuRmVhdHVyZUltcG9ydGFuY2UiYgoVR2V0RXJyb3JTbGljZXNSZXF1ZXN0Eg4KBnJ1bl9pZBgBIAEoCRIQCghzbGljZV9ieRgCIAEoCRInCgZjYWxsZXIYAyABKAsyFy50Yi5tbC52MS5DYWxsZXJDb250ZXh0Ij4KFkdldEVycm9yU2xpY2VzUmVzcG9uc2USJAoGc2xpY2VzGAEgAygLMhQudGIubWwudjEuRXJyb3JTbGljZSJYChhHZXREYXRhc2V0UHJvZmlsZVJlcXVlc3QSEwoLc25hcHNob3RfaWQYASABKAkSJwoGY2FsbGVyGAIgASgLMhcudGIubWwudjEuQ2FsbGVyQ29udGV4dCJGChlHZXREYXRhc2V0UHJvZmlsZVJlc3BvbnNlEikKB3Byb2ZpbGUYASABKAsyGC50Yi5tbC52MS5EYXRhc2V0UHJvZmlsZSJ9ChVTdWJtaXRBYmxhdGlvblJlcXVlc3QSDgoGcnVuX2lkGAEgASgJEisKCHZhcmlhbnRzGAIgAygLMhkudGIubWwudjEuQWJsYXRpb25WYXJpYW50EicKBmNhbGxlchgDIAEoCzIXLnRiLm1sLnYxLkNhbGxlckNvbnRleHQiPQoWU3VibWl0QWJsYXRpb25SZXNwb25zZRIjCgRqb2JzGAEgAygLMhUudGIubWwudjEuVHJhaW5pbmdKb2IiWwoSQW5ub3RhdGVSdW5SZXF1ZXN0Eg4KBnJ1bl9pZBgBIAEoCRIMCgRub3RlGAIgASgJEicKBmNhbGxlchgDIAEoCzIXLnRiLm1sLnYxLkNhbGxlckNvbnRleHQiFQoTQW5ub3RhdGVSdW5SZXNwb25zZTLTDQoJTUxTZXJ2aWNlElwKEUxpc3RNb2RlbEZhbWlsaWVzEiIudGIubWwudjEuTGlzdE1vZGVsRmFtaWxpZXNSZXF1ZXN0GiMudGIubWwudjEuTGlzdE1vZGVsRmFtaWxpZXNSZXNwb25zZRJWCg9MaXN0RmVhdHVyZVNldHMSIC50Yi5tbC52MS5MaXN0RmVhdHVyZVNldHNSZXF1ZXN0GiEudGIubWwudjEuTGlzdEZlYXR1cmVTZXRzUmVzcG9uc2USWQoQTGlzdExhYmVsUHJlc2V0cxIhLnRiLm1sLnYxLkxpc3RMYWJlbFByZXNldHNSZXF1ZXN0GiIudGIubWwudjEuTGlzdExhYmVsUHJlc2V0c1Jlc3BvbnNlEmIKE0VzdGltYXRlVHJhaW5pbmdKb2ISJC50Yi5tbC52MS5Fc3RpbWF0ZVRyYWluaW5nSm9iUmVxdWVzdBolLnRiLm1sLnYxLkVzdGltYXRlVHJhaW5pbmdKb2JSZXNwb25zZRJcChFTdWJtaXRUcmFpbmluZ0pvYhIiLnRiLm1sLnYxLlN1Ym1pdFRyYWluaW5nSm9iUmVxdWVzdBojLnRiLm1sLnYxLlN1Ym1pdFRyYWluaW5nSm9iUmVzcG9uc2USOwoGR2V0Sm9iEhcudGIubWwudjEuR2V0Sm9iUmVxdWVzdBoYLnRiLm1sLnYxLkdldEpvYlJlc3BvbnNlEkEKCExpc3RKb2JzEhkudGIubWwudjEuTGlzdEpvYnNSZXF1ZXN0GhoudGIubWwudjEuTGlzdEpvYnNSZXNwb25zZRJeChFTdHJlYW1Kb2JQcm9ncmVzcxIiLnRiLm1sLnYxLlN0cmVhbUpvYlByb2dyZXNzUmVxdWVzdBojLnRiLm1sLnYxLlN0cmVhbUpvYlByb2dyZXNzUmVzcG9uc2UwARJECglDYW5jZWxKb2ISGi50Yi5tbC52MS5DYW5jZWxKb2JSZXF1ZXN0GhsudGIubWwudjEuQ2FuY2VsSm9iUmVzcG9uc2USOwoGR2V0UnVuEhcudGIubWwudjEuR2V0UnVuUmVxdWVzdBoYLnRiLm1sLnYxLkdldFJ1blJlc3BvbnNlEkEKCExpc3RSdW5zEhkudGIubWwudjEuTGlzdFJ1bnNSZXF1ZXN0GhoudGIubWwudjEuTGlzdFJ1bnNSZXNwb25zZRJQCg1SZWdpc3Rlck1vZGVsEh4udGIubWwudjEuUmVnaXN0ZXJNb2RlbFJlcXVlc3QaHy50Yi5tbC52MS5SZWdpc3Rlck1vZGVsUmVzcG9uc2USPgoHUHJlZGljdBIYLnRiLm1sLnYxLlByZWRpY3RSZXF1ZXN0GhkudGIubWwudjEuUHJlZGljdFJlc3BvbnNlEk0KDEdldE1vZGVsQ2FyZBIdLnRiLm1sLnYxLkdldE1vZGVsQ2FyZFJlcXVlc3QaHi50Yi5tbC52MS5HZXRNb2RlbENhcmRSZXNwb25zZRJTCg5HZXREaWFnbm9zdGljcxIfLnRiLm1sLnYxLkdldERpYWdub3N0aWNzUmVxdWVzdBogLnRiLm1sLnYxLkdldERpYWdub3N0aWNzUmVzcG9uc2USXAoRR2V0TGVhcm5pbmdDdXJ2ZXMSIi50Yi5tbC52MS5HZXRMZWFybmluZ0N1cnZlc1JlcXVlc3QaIy50Yi5tbC52MS5HZXRMZWFybmluZ0N1cnZlc1Jlc3BvbnNlEmUKFEdldEZlYXR1cmVJbXBvcnRhbmNlEiUudGIubWwudjEuR2V0RmVhdHVyZUltcG9ydGFuY2VSZXF1ZXN0GiYudGIubWwudjEuR2V0RmVhdHVyZUltcG9ydGFuY2VSZXNwb25zZRJTCg5HZXRFcnJvclNsaWNlcxIfLnRiLm1sLnYxLkdldEVycm9yU2xpY2VzUmVxdWVzdBogLnRiLm1sLnYxLkdldEVycm9yU2xpY2VzUmVzcG9uc2USXAoRR2V0RGF0YXNldFByb2ZpbGUSIi50Yi5tbC52MS5HZXREYXRhc2V0UHJvZmlsZVJlcXVlc3QaIy50Yi5tbC52MS5HZXREYXRhc2V0UHJvZmlsZVJlc3BvbnNlElMKDlN1Ym1pdEFibGF0aW9uEh8udGIubWwudjEuU3VibWl0QWJsYXRpb25SZXF1ZXN0GiAudGIubWwudjEuU3VibWl0QWJsYXRpb25SZXNwb25zZRJKCgtBbm5vdGF0ZVJ1bhIcLnRiLm1sLnYxLkFubm90YXRlUnVuUmVxdWVzdBodLnRiLm1sLnYxLkFubm90YXRlUnVuUmVzcG9uc2VCnwEKDGNvbS50Yi5tbC52MUIOTWxTZXJ2aWNlUHJvdG9QAVo9Z2l0aHViLmNvbS9pbGx5YW55Yy9zdHJhd2JlcnJ5L2NvbnRyYWN0cy9nZW4vZ28vdGIvbWwvdjE7bWx2MaICA1RNWKoCCFRiLk1sLlYxygIIVGJcTWxcVjHiAhRUYlxNbFxWMVxHUEJNZXRhZGF0YeoCClRiOjpNbDo6VjFiBnByb3RvMw", [file_tb_ml_v1_ml, file_tb_ml_v1_training, file_tb_signals_v1_signals]);
+  fileDesc("Chl0Yi9tbC92MS9tbF9zZXJ2aWNlLnByb3RvEgh0Yi5tbC52MSIaChhMaXN0TW9kZWxGYW1pbGllc1JlcXVlc3QiRAoZTGlzdE1vZGVsRmFtaWxpZXNSZXNwb25zZRInCghmYW1pbGllcxgBIAMoCzIVLnRiLm1sLnYxLk1vZGVsRmFtaWx5IhgKFkxpc3RGZWF0dXJlU2V0c1JlcXVlc3QiSQoXTGlzdEZlYXR1cmVTZXRzUmVzcG9uc2USLgoMZmVhdHVyZV9zZXRzGAEgAygLMhgudGIubWwudjEuRmVhdHVyZVNldEluZm8iGQoXTGlzdExhYmVsUHJlc2V0c1JlcXVlc3QiQgoYTGlzdExhYmVsUHJlc2V0c1Jlc3BvbnNlEiYKB3ByZXNldHMYASADKAsyFS50Yi5tbC52MS5MYWJlbFByZXNldCJvChpFc3RpbWF0ZVRyYWluaW5nSm9iUmVxdWVzdBIoCgZjb25maWcYASABKAsyGC50Yi5tbC52MS5UcmFpbmluZ0NvbmZpZxInCgZjYWxsZXIYAiABKAsyFy50Yi5tbC52MS5DYWxsZXJDb250ZXh0IlYKG0VzdGltYXRlVHJhaW5pbmdKb2JSZXNwb25zZRInCghlc3RpbWF0ZRgBIAEoCzIVLnRiLm1sLnYxLkpvYkVzdGltYXRlEg4KBmVycm9ycxgCIAMoCSKKAQoYU3VibWl0VHJhaW5pbmdKb2JSZXF1ZXN0EigKBmNvbmZpZxgBIAEoCzIYLnRiLm1sLnYxLlRyYWluaW5nQ29uZmlnEicKBmNhbGxlchgCIAEoCzIXLnRiLm1sLnYxLkNhbGxlckNvbnRleHQSGwoTY29uZmlybV9vdmVyX2J1ZGdldBgDIAEoCCI/ChlTdWJtaXRUcmFpbmluZ0pvYlJlc3BvbnNlEiIKA2pvYhgBIAEoCzIVLnRiLm1sLnYxLlRyYWluaW5nSm9iIh8KDUdldEpvYlJlcXVlc3QSDgoGam9iX2lkGAEgASgJIjQKDkdldEpvYlJlc3BvbnNlEiIKA2pvYhgBIAEoCzIVLnRiLm1sLnYxLlRyYWluaW5nSm9iIjQKD0xpc3RKb2JzUmVxdWVzdBISCgpsaW5lYWdlX2lkGAEgASgJEg0KBWxpbWl0GAIgASgFIjcKEExpc3RKb2JzUmVzcG9uc2USIwoEam9icxgBIAMoCzIVLnRiLm1sLnYxLlRyYWluaW5nSm9iIj0KGFN0cmVhbUpvYlByb2dyZXNzUmVxdWVzdBIOCgZqb2JfaWQYASABKAkSEQoJYWZ0ZXJfc2VxGAIgASgDIkQKGVN0cmVhbUpvYlByb2dyZXNzUmVzcG9uc2USJwoIcHJvZ3Jlc3MYASABKAsyFS50Yi5tbC52MS5Kb2JQcm9ncmVzcyJLChBDYW5jZWxKb2JSZXF1ZXN0Eg4KBmpvYl9pZBgBIAEoCRInCgZjYWxsZXIYAiABKAsyFy50Yi5tbC52MS5DYWxsZXJDb250ZXh0IjcKEUNhbmNlbEpvYlJlc3BvbnNlEiIKA2pvYhgBIAEoCzIVLnRiLm1sLnYxLlRyYWluaW5nSm9iIh8KDUdldFJ1blJlcXVlc3QSDgoGcnVuX2lkGAEgASgJIjQKDkdldFJ1blJlc3BvbnNlEiIKA3J1bhgBIAEoCzIVLnRiLm1sLnYxLlRyYWluaW5nUnVuIkQKD0xpc3RSdW5zUmVxdWVzdBISCgpsaW5lYWdlX2lkGAEgASgJEg4KBmZhbWlseRgCIAEoCRINCgVsaW1pdBgDIAEoBSI3ChBMaXN0UnVuc1Jlc3BvbnNlEiMKBHJ1bnMYASADKAsyFS50Yi5tbC52MS5UcmFpbmluZ1J1biJdChRSZWdpc3Rlck1vZGVsUmVxdWVzdBIOCgZydW5faWQYASABKAkSDAoEbmFtZRgCIAEoCRInCgZjYWxsZXIYAyABKAsyFy50Yi5tbC52MS5DYWxsZXJDb250ZXh0IkYKFVJlZ2lzdGVyTW9kZWxSZXNwb25zZRItCg1tb2RlbF92ZXJzaW9uGAEgASgLMhYudGIubWwudjEuTW9kZWxWZXJzaW9uImMKDlByZWRpY3RSZXF1ZXN0EhUKDW1vZGVsX3ZlcnNpb24YASABKAkSFgoOaW5zdHJ1bWVudF9pZHMYAiADKAkSDQoFYXNfb2YYAyABKAMSEwoLc3RyYXRlZ3lfaWQYBCABKAkiOQoPUHJlZGljdFJlc3BvbnNlEiYKB3NpZ25hbHMYASADKAsyFS50Yi5zaWduYWxzLnYxLlNpZ25hbCIlChNHZXRNb2RlbENhcmRSZXF1ZXN0Eg4KBnJ1bl9pZBgBIAEoCSI5ChRHZXRNb2RlbENhcmRSZXNwb25zZRIhCgRjYXJkGAEgASgLMhMudGIubWwudjEuTW9kZWxDYXJkIiUKE0dldFRlYXJzaGVldFJlcXVlc3QSDgoGcnVuX2lkGAEgASgJIjQKFEdldFRlYXJzaGVldFJlc3BvbnNlEgwKBGh0bWwYASABKAkSDgoGZW5naW5lGAIgASgJIlAKFUdldERpYWdub3N0aWNzUmVxdWVzdBIOCgZydW5faWQYASABKAkSJwoGY2FsbGVyGAIgASgLMhcudGIubWwudjEuQ2FsbGVyQ29udGV4dCJFChZHZXREaWFnbm9zdGljc1Jlc3BvbnNlEisKBnJlcG9ydBgBIAEoCzIbLnRiLm1sLnYxLkRpYWdub3N0aWNzUmVwb3J0IlMKGEdldExlYXJuaW5nQ3VydmVzUmVxdWVzdBIOCgZydW5faWQYASABKAkSJwoGY2FsbGVyGAIgASgLMhcudGIubWwudjEuQ2FsbGVyQ29udGV4dCJFChlHZXRMZWFybmluZ0N1cnZlc1Jlc3BvbnNlEigKBmN1cnZlcxgBIAEoCzIYLnRiLm1sLnYxLkxlYXJuaW5nQ3VydmVzImYKG0dldEZlYXR1cmVJbXBvcnRhbmNlUmVxdWVzdBIOCgZydW5faWQYASABKAkSDgoGbWV0aG9kGAIgASgJEicKBmNhbGxlchgDIAEoCzIXLnRiLm1sLnYxLkNhbGxlckNvbnRleHQiTwocR2V0RmVhdHVyZUltcG9ydGFuY2VSZXNwb25zZRIvCgppbXBvcnRhbmNlGAEgASgLMhsudGIubWwudjEuRmVhdHVyZUltcG9ydGFuY2UiYgoVR2V0RXJyb3JTbGljZXNSZXF1ZXN0Eg4KBnJ1bl9pZBgBIAEoCRIQCghzbGljZV9ieRgCIAEoCRInCgZjYWxsZXIYAyABKAsyFy50Yi5tbC52MS5DYWxsZXJDb250ZXh0Ij4KFkdldEVycm9yU2xpY2VzUmVzcG9uc2USJAoGc2xpY2VzGAEgAygLMhQudGIubWwudjEuRXJyb3JTbGljZSJYChhHZXREYXRhc2V0UHJvZmlsZVJlcXVlc3QSEwoLc25hcHNob3RfaWQYASABKAkSJwoGY2FsbGVyGAIgASgLMhcudGIubWwudjEuQ2FsbGVyQ29udGV4dCJGChlHZXREYXRhc2V0UHJvZmlsZVJlc3BvbnNlEikKB3Byb2ZpbGUYASABKAsyGC50Yi5tbC52MS5EYXRhc2V0UHJvZmlsZSJ9ChVTdWJtaXRBYmxhdGlvblJlcXVlc3QSDgoGcnVuX2lkGAEgASgJEisKCHZhcmlhbnRzGAIgAygLMhkudGIubWwudjEuQWJsYXRpb25WYXJpYW50EicKBmNhbGxlchgDIAEoCzIXLnRiLm1sLnYxLkNhbGxlckNvbnRleHQiPQoWU3VibWl0QWJsYXRpb25SZXNwb25zZRIjCgRqb2JzGAEgAygLMhUudGIubWwudjEuVHJhaW5pbmdKb2IiWwoSQW5ub3RhdGVSdW5SZXF1ZXN0Eg4KBnJ1bl9pZBgBIAEoCRIMCgRub3RlGAIgASgJEicKBmNhbGxlchgDIAEoCzIXLnRiLm1sLnYxLkNhbGxlckNvbnRleHQiFQoTQW5ub3RhdGVSdW5SZXNwb25zZTKiDgoJTUxTZXJ2aWNlElwKEUxpc3RNb2RlbEZhbWlsaWVzEiIudGIubWwudjEuTGlzdE1vZGVsRmFtaWxpZXNSZXF1ZXN0GiMudGIubWwudjEuTGlzdE1vZGVsRmFtaWxpZXNSZXNwb25zZRJWCg9MaXN0RmVhdHVyZVNldHMSIC50Yi5tbC52MS5MaXN0RmVhdHVyZVNldHNSZXF1ZXN0GiEudGIubWwudjEuTGlzdEZlYXR1cmVTZXRzUmVzcG9uc2USWQoQTGlzdExhYmVsUHJlc2V0cxIhLnRiLm1sLnYxLkxpc3RMYWJlbFByZXNldHNSZXF1ZXN0GiIudGIubWwudjEuTGlzdExhYmVsUHJlc2V0c1Jlc3BvbnNlEmIKE0VzdGltYXRlVHJhaW5pbmdKb2ISJC50Yi5tbC52MS5Fc3RpbWF0ZVRyYWluaW5nSm9iUmVxdWVzdBolLnRiLm1sLnYxLkVzdGltYXRlVHJhaW5pbmdKb2JSZXNwb25zZRJcChFTdWJtaXRUcmFpbmluZ0pvYhIiLnRiLm1sLnYxLlN1Ym1pdFRyYWluaW5nSm9iUmVxdWVzdBojLnRiLm1sLnYxLlN1Ym1pdFRyYWluaW5nSm9iUmVzcG9uc2USOwoGR2V0Sm9iEhcudGIubWwudjEuR2V0Sm9iUmVxdWVzdBoYLnRiLm1sLnYxLkdldEpvYlJlc3BvbnNlEkEKCExpc3RKb2JzEhkudGIubWwudjEuTGlzdEpvYnNSZXF1ZXN0GhoudGIubWwudjEuTGlzdEpvYnNSZXNwb25zZRJeChFTdHJlYW1Kb2JQcm9ncmVzcxIiLnRiLm1sLnYxLlN0cmVhbUpvYlByb2dyZXNzUmVxdWVzdBojLnRiLm1sLnYxLlN0cmVhbUpvYlByb2dyZXNzUmVzcG9uc2UwARJECglDYW5jZWxKb2ISGi50Yi5tbC52MS5DYW5jZWxKb2JSZXF1ZXN0GhsudGIubWwudjEuQ2FuY2VsSm9iUmVzcG9uc2USOwoGR2V0UnVuEhcudGIubWwudjEuR2V0UnVuUmVxdWVzdBoYLnRiLm1sLnYxLkdldFJ1blJlc3BvbnNlEkEKCExpc3RSdW5zEhkudGIubWwudjEuTGlzdFJ1bnNSZXF1ZXN0GhoudGIubWwudjEuTGlzdFJ1bnNSZXNwb25zZRJQCg1SZWdpc3Rlck1vZGVsEh4udGIubWwudjEuUmVnaXN0ZXJNb2RlbFJlcXVlc3QaHy50Yi5tbC52MS5SZWdpc3Rlck1vZGVsUmVzcG9uc2USPgoHUHJlZGljdBIYLnRiLm1sLnYxLlByZWRpY3RSZXF1ZXN0GhkudGIubWwudjEuUHJlZGljdFJlc3BvbnNlEk0KDEdldE1vZGVsQ2FyZBIdLnRiLm1sLnYxLkdldE1vZGVsQ2FyZFJlcXVlc3QaHi50Yi5tbC52MS5HZXRNb2RlbENhcmRSZXNwb25zZRJNCgxHZXRUZWFyc2hlZXQSHS50Yi5tbC52MS5HZXRUZWFyc2hlZXRSZXF1ZXN0Gh4udGIubWwudjEuR2V0VGVhcnNoZWV0UmVzcG9uc2USUwoOR2V0RGlhZ25vc3RpY3MSHy50Yi5tbC52MS5HZXREaWFnbm9zdGljc1JlcXVlc3QaIC50Yi5tbC52MS5HZXREaWFnbm9zdGljc1Jlc3BvbnNlElwKEUdldExlYXJuaW5nQ3VydmVzEiIudGIubWwudjEuR2V0TGVhcm5pbmdDdXJ2ZXNSZXF1ZXN0GiMudGIubWwudjEuR2V0TGVhcm5pbmdDdXJ2ZXNSZXNwb25zZRJlChRHZXRGZWF0dXJlSW1wb3J0YW5jZRIlLnRiLm1sLnYxLkdldEZlYXR1cmVJbXBvcnRhbmNlUmVxdWVzdBomLnRiLm1sLnYxLkdldEZlYXR1cmVJbXBvcnRhbmNlUmVzcG9uc2USUwoOR2V0RXJyb3JTbGljZXMSHy50Yi5tbC52MS5HZXRFcnJvclNsaWNlc1JlcXVlc3QaIC50Yi5tbC52MS5HZXRFcnJvclNsaWNlc1Jlc3BvbnNlElwKEUdldERhdGFzZXRQcm9maWxlEiIudGIubWwudjEuR2V0RGF0YXNldFByb2ZpbGVSZXF1ZXN0GiMudGIubWwudjEuR2V0RGF0YXNldFByb2ZpbGVSZXNwb25zZRJTCg5TdWJtaXRBYmxhdGlvbhIfLnRiLm1sLnYxLlN1Ym1pdEFibGF0aW9uUmVxdWVzdBogLnRiLm1sLnYxLlN1Ym1pdEFibGF0aW9uUmVzcG9uc2USSgoLQW5ub3RhdGVSdW4SHC50Yi5tbC52MS5Bbm5vdGF0ZVJ1blJlcXVlc3QaHS50Yi5tbC52MS5Bbm5vdGF0ZVJ1blJlc3BvbnNlQp8BCgxjb20udGIubWwudjFCDk1sU2VydmljZVByb3RvUAFaPWdpdGh1Yi5jb20vaWxseWFueWMvc3RyYXdiZXJyeS9jb250cmFjdHMvZ2VuL2dvL3RiL21sL3YxO21sdjGiAgNUTViqAghUYi5NbC5WMcoCCFRiXE1sXFYx4gIUVGJcTWxcVjFcR1BCTWV0YWRhdGHqAgpUYjo6TWw6OlYxYgZwcm90bzM", [file_tb_ml_v1_ml, file_tb_ml_v1_training, file_tb_signals_v1_signals]);
 
 /**
  * @generated from message tb.ml.v1.ListModelFamiliesRequest
@@ -909,6 +909,74 @@ export const GetModelCardResponseSchema: GenMessage<GetModelCardResponse, {jsonT
   messageDesc(file_tb_ml_v1_ml_service, 27);
 
 /**
+ * @generated from message tb.ml.v1.GetTearsheetRequest
+ */
+export type GetTearsheetRequest = Message<"tb.ml.v1.GetTearsheetRequest"> & {
+  /**
+   * @generated from field: string run_id = 1;
+   */
+  runId: string;
+};
+
+/**
+ * @generated from message tb.ml.v1.GetTearsheetRequest
+ */
+export type GetTearsheetRequestJson = {
+  /**
+   * @generated from field: string run_id = 1;
+   */
+  runId?: string;
+};
+
+/**
+ * Describes the message tb.ml.v1.GetTearsheetRequest.
+ * Use `create(GetTearsheetRequestSchema)` to create a new message.
+ */
+export const GetTearsheetRequestSchema: GenMessage<GetTearsheetRequest, {jsonType: GetTearsheetRequestJson}> = /*@__PURE__*/
+  messageDesc(file_tb_ml_v1_ml_service, 28);
+
+/**
+ * @generated from message tb.ml.v1.GetTearsheetResponse
+ */
+export type GetTearsheetResponse = Message<"tb.ml.v1.GetTearsheetResponse"> & {
+  /**
+   * @generated from field: string html = 1;
+   */
+  html: string;
+
+  /**
+   * event | vectorized
+   *
+   * @generated from field: string engine = 2;
+   */
+  engine: string;
+};
+
+/**
+ * @generated from message tb.ml.v1.GetTearsheetResponse
+ */
+export type GetTearsheetResponseJson = {
+  /**
+   * @generated from field: string html = 1;
+   */
+  html?: string;
+
+  /**
+   * event | vectorized
+   *
+   * @generated from field: string engine = 2;
+   */
+  engine?: string;
+};
+
+/**
+ * Describes the message tb.ml.v1.GetTearsheetResponse.
+ * Use `create(GetTearsheetResponseSchema)` to create a new message.
+ */
+export const GetTearsheetResponseSchema: GenMessage<GetTearsheetResponse, {jsonType: GetTearsheetResponseJson}> = /*@__PURE__*/
+  messageDesc(file_tb_ml_v1_ml_service, 29);
+
+/**
  * @generated from message tb.ml.v1.GetDiagnosticsRequest
  */
 export type GetDiagnosticsRequest = Message<"tb.ml.v1.GetDiagnosticsRequest"> & {
@@ -943,7 +1011,7 @@ export type GetDiagnosticsRequestJson = {
  * Use `create(GetDiagnosticsRequestSchema)` to create a new message.
  */
 export const GetDiagnosticsRequestSchema: GenMessage<GetDiagnosticsRequest, {jsonType: GetDiagnosticsRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_ml_v1_ml_service, 28);
+  messageDesc(file_tb_ml_v1_ml_service, 30);
 
 /**
  * @generated from message tb.ml.v1.GetDiagnosticsResponse
@@ -970,7 +1038,7 @@ export type GetDiagnosticsResponseJson = {
  * Use `create(GetDiagnosticsResponseSchema)` to create a new message.
  */
 export const GetDiagnosticsResponseSchema: GenMessage<GetDiagnosticsResponse, {jsonType: GetDiagnosticsResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_ml_v1_ml_service, 29);
+  messageDesc(file_tb_ml_v1_ml_service, 31);
 
 /**
  * @generated from message tb.ml.v1.GetLearningCurvesRequest
@@ -1007,7 +1075,7 @@ export type GetLearningCurvesRequestJson = {
  * Use `create(GetLearningCurvesRequestSchema)` to create a new message.
  */
 export const GetLearningCurvesRequestSchema: GenMessage<GetLearningCurvesRequest, {jsonType: GetLearningCurvesRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_ml_v1_ml_service, 30);
+  messageDesc(file_tb_ml_v1_ml_service, 32);
 
 /**
  * @generated from message tb.ml.v1.GetLearningCurvesResponse
@@ -1034,7 +1102,7 @@ export type GetLearningCurvesResponseJson = {
  * Use `create(GetLearningCurvesResponseSchema)` to create a new message.
  */
 export const GetLearningCurvesResponseSchema: GenMessage<GetLearningCurvesResponse, {jsonType: GetLearningCurvesResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_ml_v1_ml_service, 31);
+  messageDesc(file_tb_ml_v1_ml_service, 33);
 
 /**
  * @generated from message tb.ml.v1.GetFeatureImportanceRequest
@@ -1085,7 +1153,7 @@ export type GetFeatureImportanceRequestJson = {
  * Use `create(GetFeatureImportanceRequestSchema)` to create a new message.
  */
 export const GetFeatureImportanceRequestSchema: GenMessage<GetFeatureImportanceRequest, {jsonType: GetFeatureImportanceRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_ml_v1_ml_service, 32);
+  messageDesc(file_tb_ml_v1_ml_service, 34);
 
 /**
  * @generated from message tb.ml.v1.GetFeatureImportanceResponse
@@ -1112,7 +1180,7 @@ export type GetFeatureImportanceResponseJson = {
  * Use `create(GetFeatureImportanceResponseSchema)` to create a new message.
  */
 export const GetFeatureImportanceResponseSchema: GenMessage<GetFeatureImportanceResponse, {jsonType: GetFeatureImportanceResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_ml_v1_ml_service, 33);
+  messageDesc(file_tb_ml_v1_ml_service, 35);
 
 /**
  * @generated from message tb.ml.v1.GetErrorSlicesRequest
@@ -1159,7 +1227,7 @@ export type GetErrorSlicesRequestJson = {
  * Use `create(GetErrorSlicesRequestSchema)` to create a new message.
  */
 export const GetErrorSlicesRequestSchema: GenMessage<GetErrorSlicesRequest, {jsonType: GetErrorSlicesRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_ml_v1_ml_service, 34);
+  messageDesc(file_tb_ml_v1_ml_service, 36);
 
 /**
  * @generated from message tb.ml.v1.GetErrorSlicesResponse
@@ -1186,7 +1254,7 @@ export type GetErrorSlicesResponseJson = {
  * Use `create(GetErrorSlicesResponseSchema)` to create a new message.
  */
 export const GetErrorSlicesResponseSchema: GenMessage<GetErrorSlicesResponse, {jsonType: GetErrorSlicesResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_ml_v1_ml_service, 35);
+  messageDesc(file_tb_ml_v1_ml_service, 37);
 
 /**
  * @generated from message tb.ml.v1.GetDatasetProfileRequest
@@ -1223,7 +1291,7 @@ export type GetDatasetProfileRequestJson = {
  * Use `create(GetDatasetProfileRequestSchema)` to create a new message.
  */
 export const GetDatasetProfileRequestSchema: GenMessage<GetDatasetProfileRequest, {jsonType: GetDatasetProfileRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_ml_v1_ml_service, 36);
+  messageDesc(file_tb_ml_v1_ml_service, 38);
 
 /**
  * @generated from message tb.ml.v1.GetDatasetProfileResponse
@@ -1250,7 +1318,7 @@ export type GetDatasetProfileResponseJson = {
  * Use `create(GetDatasetProfileResponseSchema)` to create a new message.
  */
 export const GetDatasetProfileResponseSchema: GenMessage<GetDatasetProfileResponse, {jsonType: GetDatasetProfileResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_ml_v1_ml_service, 37);
+  messageDesc(file_tb_ml_v1_ml_service, 39);
 
 /**
  * @generated from message tb.ml.v1.SubmitAblationRequest
@@ -1297,7 +1365,7 @@ export type SubmitAblationRequestJson = {
  * Use `create(SubmitAblationRequestSchema)` to create a new message.
  */
 export const SubmitAblationRequestSchema: GenMessage<SubmitAblationRequest, {jsonType: SubmitAblationRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_ml_v1_ml_service, 38);
+  messageDesc(file_tb_ml_v1_ml_service, 40);
 
 /**
  * @generated from message tb.ml.v1.SubmitAblationResponse
@@ -1324,7 +1392,7 @@ export type SubmitAblationResponseJson = {
  * Use `create(SubmitAblationResponseSchema)` to create a new message.
  */
 export const SubmitAblationResponseSchema: GenMessage<SubmitAblationResponse, {jsonType: SubmitAblationResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_ml_v1_ml_service, 39);
+  messageDesc(file_tb_ml_v1_ml_service, 41);
 
 /**
  * @generated from message tb.ml.v1.AnnotateRunRequest
@@ -1375,7 +1443,7 @@ export type AnnotateRunRequestJson = {
  * Use `create(AnnotateRunRequestSchema)` to create a new message.
  */
 export const AnnotateRunRequestSchema: GenMessage<AnnotateRunRequest, {jsonType: AnnotateRunRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_ml_v1_ml_service, 40);
+  messageDesc(file_tb_ml_v1_ml_service, 42);
 
 /**
  * @generated from message tb.ml.v1.AnnotateRunResponse
@@ -1394,7 +1462,7 @@ export type AnnotateRunResponseJson = {
  * Use `create(AnnotateRunResponseSchema)` to create a new message.
  */
 export const AnnotateRunResponseSchema: GenMessage<AnnotateRunResponse, {jsonType: AnnotateRunResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_ml_v1_ml_service, 41);
+  messageDesc(file_tb_ml_v1_ml_service, 43);
 
 /**
  * @generated from service tb.ml.v1.MLService
@@ -1515,6 +1583,17 @@ export const MLService: GenService<{
     methodKind: "unary";
     input: typeof GetModelCardRequestSchema;
     output: typeof GetModelCardResponseSchema;
+  },
+  /**
+   * Static HTML tearsheet of a run (inline SVG, no scripts): event-driven for study candidates,
+   * the vectorized out-of-fold evaluation otherwise (ML-012).
+   *
+   * @generated from rpc tb.ml.v1.MLService.GetTearsheet
+   */
+  getTearsheet: {
+    methodKind: "unary";
+    input: typeof GetTearsheetRequestSchema;
+    output: typeof GetTearsheetResponseSchema;
   },
   /**
    * Diagnostics and analyst tools (holdout excluded by construction).

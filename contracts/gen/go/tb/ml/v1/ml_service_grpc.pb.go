@@ -39,6 +39,7 @@ const (
 	MLService_RegisterModel_FullMethodName        = "/tb.ml.v1.MLService/RegisterModel"
 	MLService_Predict_FullMethodName              = "/tb.ml.v1.MLService/Predict"
 	MLService_GetModelCard_FullMethodName         = "/tb.ml.v1.MLService/GetModelCard"
+	MLService_GetTearsheet_FullMethodName         = "/tb.ml.v1.MLService/GetTearsheet"
 	MLService_GetDiagnostics_FullMethodName       = "/tb.ml.v1.MLService/GetDiagnostics"
 	MLService_GetLearningCurves_FullMethodName    = "/tb.ml.v1.MLService/GetLearningCurves"
 	MLService_GetFeatureImportance_FullMethodName = "/tb.ml.v1.MLService/GetFeatureImportance"
@@ -68,6 +69,9 @@ type MLServiceClient interface {
 	// Batch path for swing; uses the persisted pipeline and fails closed on a feature-set mismatch (ML-040).
 	Predict(ctx context.Context, in *PredictRequest, opts ...grpc.CallOption) (*PredictResponse, error)
 	GetModelCard(ctx context.Context, in *GetModelCardRequest, opts ...grpc.CallOption) (*GetModelCardResponse, error)
+	// Static HTML tearsheet of a run (inline SVG, no scripts): event-driven for study candidates,
+	// the vectorized out-of-fold evaluation otherwise (ML-012).
+	GetTearsheet(ctx context.Context, in *GetTearsheetRequest, opts ...grpc.CallOption) (*GetTearsheetResponse, error)
 	// Diagnostics and analyst tools (holdout excluded by construction).
 	GetDiagnostics(ctx context.Context, in *GetDiagnosticsRequest, opts ...grpc.CallOption) (*GetDiagnosticsResponse, error)
 	GetLearningCurves(ctx context.Context, in *GetLearningCurvesRequest, opts ...grpc.CallOption) (*GetLearningCurvesResponse, error)
@@ -236,6 +240,16 @@ func (c *mLServiceClient) GetModelCard(ctx context.Context, in *GetModelCardRequ
 	return out, nil
 }
 
+func (c *mLServiceClient) GetTearsheet(ctx context.Context, in *GetTearsheetRequest, opts ...grpc.CallOption) (*GetTearsheetResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetTearsheetResponse)
+	err := c.cc.Invoke(ctx, MLService_GetTearsheet_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *mLServiceClient) GetDiagnostics(ctx context.Context, in *GetDiagnosticsRequest, opts ...grpc.CallOption) (*GetDiagnosticsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetDiagnosticsResponse)
@@ -326,6 +340,9 @@ type MLServiceServer interface {
 	// Batch path for swing; uses the persisted pipeline and fails closed on a feature-set mismatch (ML-040).
 	Predict(context.Context, *PredictRequest) (*PredictResponse, error)
 	GetModelCard(context.Context, *GetModelCardRequest) (*GetModelCardResponse, error)
+	// Static HTML tearsheet of a run (inline SVG, no scripts): event-driven for study candidates,
+	// the vectorized out-of-fold evaluation otherwise (ML-012).
+	GetTearsheet(context.Context, *GetTearsheetRequest) (*GetTearsheetResponse, error)
 	// Diagnostics and analyst tools (holdout excluded by construction).
 	GetDiagnostics(context.Context, *GetDiagnosticsRequest) (*GetDiagnosticsResponse, error)
 	GetLearningCurves(context.Context, *GetLearningCurvesRequest) (*GetLearningCurvesResponse, error)
@@ -386,6 +403,9 @@ func (UnimplementedMLServiceServer) Predict(context.Context, *PredictRequest) (*
 }
 func (UnimplementedMLServiceServer) GetModelCard(context.Context, *GetModelCardRequest) (*GetModelCardResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetModelCard not implemented")
+}
+func (UnimplementedMLServiceServer) GetTearsheet(context.Context, *GetTearsheetRequest) (*GetTearsheetResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetTearsheet not implemented")
 }
 func (UnimplementedMLServiceServer) GetDiagnostics(context.Context, *GetDiagnosticsRequest) (*GetDiagnosticsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetDiagnostics not implemented")
@@ -674,6 +694,24 @@ func _MLService_GetModelCard_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MLService_GetTearsheet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTearsheetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MLServiceServer).GetTearsheet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MLService_GetTearsheet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MLServiceServer).GetTearsheet(ctx, req.(*GetTearsheetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MLService_GetDiagnostics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetDiagnosticsRequest)
 	if err := dec(in); err != nil {
@@ -858,6 +896,10 @@ var MLService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetModelCard",
 			Handler:    _MLService_GetModelCard_Handler,
+		},
+		{
+			MethodName: "GetTearsheet",
+			Handler:    _MLService_GetTearsheet_Handler,
 		},
 		{
 			MethodName: "GetDiagnostics",
