@@ -5,10 +5,12 @@
 package refdata
 
 import (
+	"cmp"
 	"context"
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -389,6 +391,20 @@ func (m *Memory) Export(ctx context.Context, l *lake.Lake) error {
 	sort.Slice(acts, func(i, j int) bool { return acts[i].Source+acts[i].SourceID < acts[j].Source+acts[j].SourceID })
 	mems := append([]Member(nil), m.Members...)
 	m.mu.Unlock()
+	// Stable order: the Postgres load order differs from insertion order, and identical content
+	// must produce an identical export.
+	slices.SortFunc(syms, func(a, b SymbolSpan) int {
+		return cmp.Or(strings.Compare(a.InstrumentID, b.InstrumentID), cmp.Compare(a.ValidFrom, b.ValidFrom), strings.Compare(a.Symbol, b.Symbol))
+	})
+	slices.SortFunc(bids, func(a, b BrokerID) int {
+		return cmp.Or(strings.Compare(a.InstrumentID, b.InstrumentID), strings.Compare(a.Broker, b.Broker), cmp.Compare(a.ValidFrom, b.ValidFrom))
+	})
+	slices.SortFunc(attrs, func(a, b Attributes) int {
+		return cmp.Or(strings.Compare(a.InstrumentID, b.InstrumentID), strings.Compare(a.Source, b.Source), cmp.Compare(a.ValidFrom, b.ValidFrom))
+	})
+	slices.SortFunc(mems, func(a, b Member) int {
+		return cmp.Or(strings.Compare(a.Universe, b.Universe), strings.Compare(a.InstrumentID, b.InstrumentID), cmp.Compare(a.ValidFrom, b.ValidFrom))
+	})
 	return errors.Join(
 		lake.WriteRef(ctx, l, "instruments", insts),
 		lake.WriteRef(ctx, l, "symbols", syms),

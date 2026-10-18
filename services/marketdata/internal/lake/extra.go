@@ -4,11 +4,14 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/parquet-go/parquet-go"
 
 	commonv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/common/v1"
 )
@@ -77,11 +80,41 @@ func WriteRef[T any](ctx context.Context, l *Lake, table string, rows []T) error
 	lk := l.partLock("ref/" + table)
 	lk.Lock()
 	defer lk.Unlock()
-	fi, err := writeAtomic(l.Root, "ref", table+".parquet", rows, map[string]string{"tb.exported_at": time.Now().UTC().Format(time.RFC3339)})
+	raw, err := json.Marshal(rows)
+	if err != nil {
+		return err
+	}
+	sum := sha256.Sum256(raw)
+	digest := hex.EncodeToString(sum[:])
+	// Unchanged content keeps the existing file, so periodic exports (and exports right after a
+	// restore) do not rewrite identical data.
+	if refDigest(filepath.Join(l.Root, "ref", table+".parquet")) == digest {
+		return nil
+	}
+	fi, err := writeAtomic(l.Root, "ref", table+".parquet", rows,
+		map[string]string{"tb.exported_at": time.Now().UTC().Format(time.RFC3339), "tb.content_sha256": digest})
 	if err != nil {
 		return err
 	}
 	return l.record(ctx, fi, "ref", "ref")
+}
+
+func refDigest(path string) string {
+	f, err := os.Open(path) //nolint:gosec // path built from the lake root and a fixed table name
+	if err != nil {
+		return ""
+	}
+	defer func() { _ = f.Close() }()
+	st, err := f.Stat()
+	if err != nil {
+		return ""
+	}
+	pf, err := parquet.OpenFile(f, st.Size())
+	if err != nil {
+		return ""
+	}
+	v, _ := pf.Lookup("tb.content_sha256")
+	return v
 }
 
 // PurgeOlderThan deletes partitions of dataset whose `date=YYYY-MM-DD` directory is older than

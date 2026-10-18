@@ -1,6 +1,7 @@
 package lake
 
 import (
+	"bytes"
 	"context"
 	"os"
 	"path/filepath"
@@ -221,5 +222,31 @@ func TestGenerateFixtureLake(t *testing.T) {
 	staged := bar("01FIXTUREAAAAAAAAAAAAAAAAA", 30, 53, time.Minute)
 	if _, err := l.StageBars(ctx, []*mdv1.Bar{staged}); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestWriteRefSkipsUnchangedContent(t *testing.T) {
+	ctx := context.Background()
+	l := New(t.TempDir(), NewMemoryManifest())
+	type row struct {
+		ID string `parquet:"id"`
+	}
+	path := filepath.Join(l.Root, "ref", "t.parquet")
+	if err := WriteRef(ctx, l, "t", []row{{"a"}}); err != nil {
+		t.Fatal(err)
+	}
+	before, _ := os.ReadFile(path)
+	time.Sleep(1100 * time.Millisecond) // tb.exported_at has second resolution
+	if err := WriteRef(ctx, l, "t", []row{{"a"}}); err != nil {
+		t.Fatal(err)
+	}
+	if after, _ := os.ReadFile(path); !bytes.Equal(before, after) {
+		t.Fatal("identical export rewrote the file")
+	}
+	if err := WriteRef(ctx, l, "t", []row{{"a"}, {"b"}}); err != nil {
+		t.Fatal(err)
+	}
+	if after, _ := os.ReadFile(path); bytes.Equal(before, after) {
+		t.Fatal("changed export was skipped")
 	}
 }

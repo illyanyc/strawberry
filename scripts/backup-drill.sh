@@ -27,6 +27,7 @@ make -s restore BACKUP="$file"
 if diff -r data/lake.drill-orig data/lake >/dev/null; then
   echo "drill: lake restored byte-for-byte"
 else
+  diff -rq data/lake.drill-orig data/lake >&2 || true
   echo "drill: FAILED: lake differs" >&2; exit 1
 fi
 rm -rf data/lake.drill-orig data/lake/_drill

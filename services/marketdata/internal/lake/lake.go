@@ -19,8 +19,10 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -198,8 +200,8 @@ func writeAtomic[T any](root, rel, name string, rows []T, meta map[string]string
 	cw := &countWriter{w: io.MultiWriter(f, h)}
 	opts := []parquet.WriterOption{parquet.Compression(&zstd.Codec{}), parquet.KeyValueMetadata("tb.schema_version", SchemaVersion),
 		parquet.PageBufferSize(1 << 20)}
-	for k, v := range meta {
-		opts = append(opts, parquet.KeyValueMetadata(k, v))
+	for _, k := range slices.Sorted(maps.Keys(meta)) {
+		opts = append(opts, parquet.KeyValueMetadata(k, meta[k]))
 	}
 	w := parquet.NewGenericWriter[T](cw, opts...)
 	if _, err := w.Write(rows); err != nil {
