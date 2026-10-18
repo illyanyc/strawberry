@@ -36,6 +36,7 @@ var (
 	ErrNotFound          = errors.New("execution: not found")
 	ErrInvalid           = errors.New("execution: invalid request")
 	ErrStepUp            = errors.New("execution: desktop passkey step-up required")
+	ErrForbidden         = errors.New("execution: forbidden")
 	errUnknownInstrument = errors.New("execution: unknown instrument")
 )
 
@@ -105,6 +106,12 @@ type Engine struct {
 	instrCache map[string]*brokerv1.InstrumentInfo
 	flattened  map[string]string
 	alerted    map[string]bool
+	evidence   GraduationEvidence
+	research   GraduationResearch
+	liveDB     LiveDB
+	readiness  map[string]*ordersv1.LiveReadiness
+	cleanSess  map[string]map[string]struct{}
+	enablement map[string]Enablement
 	runtimeAt  time.Time
 	started    time.Time
 	deadman    bool
@@ -172,6 +179,7 @@ func New(ctx context.Context, cfg Config, store Store, brokers Brokers, ledger L
 	for _, h := range st.Halts {
 		e.halts[h.GetHaltId()] = h
 	}
+	e.initLive()
 	return e, nil
 }
 

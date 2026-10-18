@@ -527,3 +527,9 @@ def test_ex062_profiles_file_validation(tmp_path: Path) -> None:
     assert deployment.raised({"max_drawdown": "3000"}, "20000", {"max_drawdown": "2000"}, "20000") is False
     assert deployment.raised({"max_drawdown": "3000"}, "20000", {}, "20000") is True
     assert deployment.raised({}, "20000", {"max_order_qty": "10"}, "20000") is True
+
+
+def test_gl002_graduation_statistics_fail_closed_without_a_candidate(tmp_path: Path) -> None:
+    core = OptimizerCore(MemoryDocStore(), tmp_path, holdout_store=MemoryDocStore(), audit=MemoryAudit())
+    st = core.graduation_statistics("missing", [1.0, 2.0, 3.0], "intraday")
+    assert st.strategy_id == "missing" and not st.dsr_available and st.registry_stage == ""

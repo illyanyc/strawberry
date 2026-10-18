@@ -133,6 +133,7 @@ async def serve(settings: IbkrSettings, enablement: LiveEnablement | None = None
     if settings.ibkr_record_path:
         recording = Path(settings.ibkr_record_path).open("a", encoding="utf-8")  # noqa: SIM115
     adapter = build_adapter(settings, FanoutSink(*sinks), metrics, audit, journal, recording)
+    adapter.set_live_enablement(enablement or NoLiveEnablement())
     ref.append(adapter)
 
     blocked = live_gate(settings, enablement or NoLiveEnablement(), accounts)
@@ -197,6 +198,7 @@ async def watch_live_enablement(
         except Exception:
             log.warning("live enablement re-check failed", exc_info=True)
             continue
+        adapter.set_live_enablement(gate)
         reason = live_gate(settings, gate, accounts)
         if reason is not None:
             log.error("live enablement revoked; stopping the live IBKR adapter", extra={"reason": reason})

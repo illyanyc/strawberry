@@ -402,8 +402,24 @@ class IbkrAdapter:
         self._account_code(broker_account_id)
         return self._overlay(self.supervisor.status_for(broker_account_id))
 
+    def set_live_enablement(self, enablement: object) -> None:
+        """GL-012: the audited row. Read-only until orders_enabled."""
+        self._live_enablement = enablement
+
+    def _reject_mode(self, req: OrderRequest) -> None:
+        """GL-052 / GL-012: paper credentials never place a live order; read-only live places none."""
+        live = self._cfg.environment is Environment.LIVE
+        if live and req.mode != "live":
+            raise InvalidOrderError("live account accepts only live-mode orders", "mode")
+        if not live and req.mode == "live":
+            raise InvalidOrderError("paper credential cannot place a live order", "mode")
+        gate = getattr(self, "_live_enablement", None)
+        if live and (gate is None or not gate.orders_enabled(req.broker_account_id)):
+            raise InvalidOrderError("live account is read-only until the trading stage", "live_readonly")
+
     async def submit_order(self, req: OrderRequest) -> SubmitAck:
         """Place an order exactly once (OE-002, OE-003, OE-004, OE-011, OE-I1; IB-001, IB-021)."""
+        self._reject_mode(req)
         account_code = self._account_code(req.broker_account_id)
         existing = self._by_cid.get(req.client_order_id)
         if existing is not None:

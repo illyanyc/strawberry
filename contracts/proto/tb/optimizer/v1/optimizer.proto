@@ -69,6 +69,12 @@ service OptimizerService {
   // Owner only; raising any limit above the lineage's current effective limits needs a passkey
   // step-up (RM-007). The analyst is denied at every level.
   rpc SetDeploymentLimits(SetDeploymentLimitsRequest) returns (SetDeploymentLimitsResponse);
+  // Research-side inputs of the section 15 graduation report (GL-002, ADR-0054): the strategy's
+  // registry stage, DSR on the combined research + paper record (lineage effective N, D31 rule 2),
+  // the backtest's horizon-matched 95th-percentile drawdown, the modeled shortfall, and the latest
+  // live-vs-backtest divergence. Callers: api-gateway, execution. Never the assistant.
+  rpc GetGraduationStatistics(GetGraduationStatisticsRequest) returns (GetGraduationStatisticsResponse);
+
 }
 
 // Budget limits a study, a lineage, or the analyst (EX-060).
@@ -857,4 +863,44 @@ message SetDeploymentLimitsResponse {
   DeploymentLimits limits = 1;
   // True when the change raised a limit or the allocation (and therefore needed step-up).
   bool raised = 2;
+}
+
+message GetGraduationStatisticsRequest {
+  string strategy_id = 1;
+  // Per-session paper returns as a fraction of the allocation, oldest first (from execution).
+  repeated double paper_session_returns = 2;
+  // intraday | swing
+  string horizon = 3;
+}
+
+// GraduationStatistics: every value carries an `*_available` flag; a missing input fails its
+// criterion in execution (fail closed, GL-002).
+message GraduationStatistics {
+  string strategy_id = 1;
+  string candidate_id = 2;
+  // tb.ml.v1.RegistryStage name, empty when the strategy has no registry candidate.
+  string registry_stage = 3;
+  // DSR of the concatenated out-of-fold research record and the paper record, deflated by the
+  // lineage's effective N and cross-trial Sharpe variance.
+  double dsr_combined = 4;
+  double n_effective = 5;
+  int32 n_observations = 6;
+  bool dsr_available = 7;
+  // 95th percentile of the maximum drawdown (fraction of allocation) over block-bootstrap paths of
+  // the candidate's out-of-fold session returns, each path as long as the paper window.
+  double backtest_drawdown_p95 = 8;
+  bool drawdown_available = 9;
+  // Modeled round-trip implementation shortfall in bps from the candidate's cost model.
+  double modeled_shortfall_bps = 10;
+  bool shortfall_available = 11;
+  // Latest live-vs-backtest trade match rate from monitoring, and how many sessions it covers.
+  double divergence_match_rate = 12;
+  int32 divergence_sessions = 13;
+  bool divergence_available = 14;
+  int64 computed_at = 15;
+}
+
+message GetGraduationStatisticsResponse {
+  GraduationStatistics statistics = 1;
+
 }

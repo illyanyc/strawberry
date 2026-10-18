@@ -104,6 +104,8 @@ jobs:
         run: make paper-ibkr
       - name: Phase 2 gate - five ORB paper sessions through the full path (tests/paper)
         run: make paper-gate
+      - name: Section 15 live gate - step-up, analyst denial, paper credential (simulators only)
+        run: make live-gate
       - name: Upload paper-gate evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

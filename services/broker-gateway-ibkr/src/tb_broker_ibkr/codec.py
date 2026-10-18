@@ -203,6 +203,7 @@ def order_request_from_proto(req: gw.BrokerOrderRequest) -> OrderRequest:
         correlation_id=req.correlation_id,
         instrument=instrument,
         symbol=inst.symbol,
+        mode="live" if req.mode == common.MODE_LIVE else ("paper" if req.mode == common.MODE_PAPER else ""),
     )
 
 

@@ -31,6 +31,7 @@ func (e *Engine) Tick(ctx context.Context) {
 		}
 	}
 	e.pollSessions(ctx)
+	e.guardLive(ctx)
 	e.reconcileAll(ctx)
 	e.lifecycle(ctx)
 	e.deadmanCheck(ctx)

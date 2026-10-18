@@ -69,3 +69,4 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0051](0051-tradingview-webhook-strategies-and-chart-embedding.md) | TradingView: opt-in `tv-<name>` webhook strategies behind Cloudflare Access, and chart embedding where licensing allows | Accepted | 2026-10-18 |
 | [0052](0052-web-push-from-the-gateway-and-the-installed-pwa.md) | Web Push from the gateway, fed by Alertmanager, to the installed PWA | Accepted | 2026-10-18 |
 | [0053](0053-phone-halts-need-a-fresh-passkey.md) | A phone halts after a fresh passkey; a desktop with one confirmation; only a desktop resumes | Accepted | 2026-10-18 |
+| [0054](0054-go-live-graduation-and-live-enablement.md) | Go-live: monitor evidence plus combined DSR, two-stage enablement, one promotion path | Accepted | 2026-10-18 |

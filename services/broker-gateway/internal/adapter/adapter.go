@@ -115,9 +115,11 @@ type AuditFunc func(ctx context.Context, e audit.Event) error
 // Append implements Auditor.
 func (f AuditFunc) Append(ctx context.Context, e audit.Event) error { return f(ctx, e) }
 
-// LiveGate reports whether a live account may run (BR-013).
+// LiveGate reports whether a live account may run (BR-013) and whether it may accept orders
+// (GL-012: enabled is read-only; orders_enabled is the trading stage).
 type LiveGate interface {
 	Allowed(ctx context.Context, account string) (bool, string)
+	OrdersAllowed(ctx context.Context, account string) (bool, string)
 }
 
 // IsFinal reports whether an order state is terminal.

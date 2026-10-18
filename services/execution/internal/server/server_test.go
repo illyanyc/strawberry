@@ -33,7 +33,8 @@ func TestRM018MonitorAllowlist(t *testing.T) {
 			has = has || c == "monitor"
 		}
 		want := map[string]bool{svc + "DemoteStrategy": true, svc + "TriggerKillSwitch": true, svc + "ListOrders": true, svc + "ListIntents": true,
-			svc + "ListFills": true, svc + "ListStrategies": true, svc + "ListKillSwitches": true, svc + "GetTradingStatus": true}[m]
+			svc + "ListFills": true, svc + "ListStrategies": true, svc + "ListKillSwitches": true, svc + "GetTradingStatus": true,
+			svc + "DemoteFromLive": true}[m]
 		if has != want {
 			t.Fatalf("%s: monitor allowed=%v, want %v", m, has, want)
 		}

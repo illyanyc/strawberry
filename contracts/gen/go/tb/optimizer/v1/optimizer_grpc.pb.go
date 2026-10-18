@@ -63,6 +63,7 @@ const (
 	OptimizerService_TriggerRetrain_FullMethodName                = "/tb.optimizer.v1.OptimizerService/TriggerRetrain"
 	OptimizerService_GetDeploymentLimits_FullMethodName           = "/tb.optimizer.v1.OptimizerService/GetDeploymentLimits"
 	OptimizerService_SetDeploymentLimits_FullMethodName           = "/tb.optimizer.v1.OptimizerService/SetDeploymentLimits"
+	OptimizerService_GetGraduationStatistics_FullMethodName       = "/tb.optimizer.v1.OptimizerService/GetGraduationStatistics"
 )
 
 // OptimizerServiceClient is the client API for OptimizerService service.
@@ -117,6 +118,11 @@ type OptimizerServiceClient interface {
 	// Owner only; raising any limit above the lineage's current effective limits needs a passkey
 	// step-up (RM-007). The analyst is denied at every level.
 	SetDeploymentLimits(ctx context.Context, in *SetDeploymentLimitsRequest, opts ...grpc.CallOption) (*SetDeploymentLimitsResponse, error)
+	// Research-side inputs of the section 15 graduation report (GL-002, ADR-0054): the strategy's
+	// registry stage, DSR on the combined research + paper record (lineage effective N, D31 rule 2),
+	// the backtest's horizon-matched 95th-percentile drawdown, the modeled shortfall, and the latest
+	// live-vs-backtest divergence. Callers: api-gateway, execution. Never the assistant.
+	GetGraduationStatistics(ctx context.Context, in *GetGraduationStatisticsRequest, opts ...grpc.CallOption) (*GetGraduationStatisticsResponse, error)
 }
 
 type optimizerServiceClient struct {
@@ -486,6 +492,16 @@ func (c *optimizerServiceClient) SetDeploymentLimits(ctx context.Context, in *Se
 	return out, nil
 }
 
+func (c *optimizerServiceClient) GetGraduationStatistics(ctx context.Context, in *GetGraduationStatisticsRequest, opts ...grpc.CallOption) (*GetGraduationStatisticsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetGraduationStatisticsResponse)
+	err := c.cc.Invoke(ctx, OptimizerService_GetGraduationStatistics_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OptimizerServiceServer is the server API for OptimizerService service.
 // All implementations must embed UnimplementedOptimizerServiceServer
 // for forward compatibility.
@@ -538,6 +554,11 @@ type OptimizerServiceServer interface {
 	// Owner only; raising any limit above the lineage's current effective limits needs a passkey
 	// step-up (RM-007). The analyst is denied at every level.
 	SetDeploymentLimits(context.Context, *SetDeploymentLimitsRequest) (*SetDeploymentLimitsResponse, error)
+	// Research-side inputs of the section 15 graduation report (GL-002, ADR-0054): the strategy's
+	// registry stage, DSR on the combined research + paper record (lineage effective N, D31 rule 2),
+	// the backtest's horizon-matched 95th-percentile drawdown, the modeled shortfall, and the latest
+	// live-vs-backtest divergence. Callers: api-gateway, execution. Never the assistant.
+	GetGraduationStatistics(context.Context, *GetGraduationStatisticsRequest) (*GetGraduationStatisticsResponse, error)
 	mustEmbedUnimplementedOptimizerServiceServer()
 }
 
@@ -652,6 +673,9 @@ func (UnimplementedOptimizerServiceServer) GetDeploymentLimits(context.Context, 
 }
 func (UnimplementedOptimizerServiceServer) SetDeploymentLimits(context.Context, *SetDeploymentLimitsRequest) (*SetDeploymentLimitsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetDeploymentLimits not implemented")
+}
+func (UnimplementedOptimizerServiceServer) GetGraduationStatistics(context.Context, *GetGraduationStatisticsRequest) (*GetGraduationStatisticsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetGraduationStatistics not implemented")
 }
 func (UnimplementedOptimizerServiceServer) mustEmbedUnimplementedOptimizerServiceServer() {}
 func (UnimplementedOptimizerServiceServer) testEmbeddedByValue()                          {}
@@ -1297,6 +1321,24 @@ func _OptimizerService_SetDeploymentLimits_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OptimizerService_GetGraduationStatistics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGraduationStatisticsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OptimizerServiceServer).GetGraduationStatistics(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OptimizerService_GetGraduationStatistics_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OptimizerServiceServer).GetGraduationStatistics(ctx, req.(*GetGraduationStatisticsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OptimizerService_ServiceDesc is the grpc.ServiceDesc for OptimizerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1439,6 +1481,10 @@ var OptimizerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetDeploymentLimits",
 			Handler:    _OptimizerService_SetDeploymentLimits_Handler,
+		},
+		{
+			MethodName: "GetGraduationStatistics",
+			Handler:    _OptimizerService_GetGraduationStatistics_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

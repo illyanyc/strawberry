@@ -103,6 +103,7 @@ func (s *Server) registerTradingRoutes(priv func(string, string, func(http.Respo
 	priv("GET", "/api/v1/bars", s.handleBars)
 	priv("GET", "/api/v1/instruments/{id}/freshness", s.handleFreshness)
 	priv("GET", "/api/v1/stream/market", s.handleMarketStream)
+	s.registerLiveRoutes(priv)
 }
 
 // ---- helpers ----

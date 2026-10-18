@@ -29,7 +29,7 @@ from tb.optimizer.v1 import optimizer_pb2 as op
 from tb_optimizer import deployment, gates, registry
 from tb_optimizer.holdout import HoldoutCore
 from tb_optimizer.nested import Control, DatasetCache, NestedResult, NestedRunner
-from tb_optimizer.stats import EffectiveN, Series, align, cumulative, cycle_budget, effective_n
+from tb_optimizer.stats import EffectiveN, Series, align, cumulative, cycle_budget, dsr_of, effective_n
 from tbcore.audit import AuditSink, MemoryAudit, digest
 from tbcore.backtest import tearsheet
 from tbcore.buspub import MemoryPublisher, Publisher
@@ -422,6 +422,35 @@ class OptimizerCore:
         return cumulative(
             lineage_id, trials, self._series(trials), self.holdout_touches(lineage_id), 1, self._cycle(lin)
         )
+
+    def graduation_statistics(
+        self, strategy_id: str, paper_returns: list[float], horizon: str
+    ) -> op.GraduationStatistics:
+        """GL-002: DSR of the paper record deflated by the lineage's effective N, plus registry stage.
+
+        ``paper_returns`` are per-session fractions, or bps when the median absolute value exceeds 1
+        (the monitor's ``session_returns_bps``). Missing inputs leave the available flags false.
+        """
+        del horizon  # the monitor already applied the horizon's session and trade minimums
+        st = op.GraduationStatistics(strategy_id=strategy_id, computed_at=time.time_ns())
+        cands = [c for c in self.candidates() if c.strategy_id == strategy_id]
+        if not cands:
+            return st
+        cand = max(cands, key=lambda c: (c.stage, c.stage_changed_at))
+        st.candidate_id = cand.candidate_id
+        st.registry_stage = mlp.RegistryStage.Name(cand.stage)
+        rets = np.asarray(paper_returns, dtype=np.float64)
+        if rets.size and float(np.nanmedian(np.abs(rets))) > 1:
+            rets = rets / 1e4
+        if rets.size >= 3 and cand.lineage_id:
+            eff = self.effective(cand.lineage_id)
+            dsr = dsr_of(rets, eff)
+            st.n_effective = eff.n_effective
+            st.n_observations = int(rets.size)
+            if math.isfinite(dsr):
+                st.dsr_combined = float(dsr)
+                st.dsr_available = True
+        return st
 
     # ---------------------------------------------------------------- studies
     def _deny(self, caller: tp.CallerContext, action: str, target: str, why: str) -> None:

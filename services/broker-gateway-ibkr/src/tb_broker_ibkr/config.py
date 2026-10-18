@@ -100,11 +100,16 @@ class LiveEnablement(Protocol):
 
     def is_live_enabled(self, broker_account_id: str) -> bool: ...
 
+    def orders_enabled(self, broker_account_id: str) -> bool: ...
+
 
 class NoLiveEnablement:
     """Phase 1 default: the audited enablement flow (section 15) does not exist yet, so nothing is enabled."""
 
     def is_live_enabled(self, broker_account_id: str) -> bool:
+        return False
+
+    def orders_enabled(self, broker_account_id: str) -> bool:
         return False
 
 

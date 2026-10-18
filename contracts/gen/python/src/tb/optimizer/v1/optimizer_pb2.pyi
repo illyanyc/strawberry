@@ -1306,3 +1306,53 @@ class SetDeploymentLimitsResponse(_message.Message):
     limits: DeploymentLimits
     raised: bool
     def __init__(self, limits: _Optional[_Union[DeploymentLimits, _Mapping]] = ..., raised: _Optional[bool] = ...) -> None: ...
+
+class GetGraduationStatisticsRequest(_message.Message):
+    __slots__ = ("strategy_id", "paper_session_returns", "horizon")
+    STRATEGY_ID_FIELD_NUMBER: _ClassVar[int]
+    PAPER_SESSION_RETURNS_FIELD_NUMBER: _ClassVar[int]
+    HORIZON_FIELD_NUMBER: _ClassVar[int]
+    strategy_id: str
+    paper_session_returns: _containers.RepeatedScalarFieldContainer[float]
+    horizon: str
+    def __init__(self, strategy_id: _Optional[str] = ..., paper_session_returns: _Optional[_Iterable[float]] = ..., horizon: _Optional[str] = ...) -> None: ...
+
+class GraduationStatistics(_message.Message):
+    __slots__ = ("strategy_id", "candidate_id", "registry_stage", "dsr_combined", "n_effective", "n_observations", "dsr_available", "backtest_drawdown_p95", "drawdown_available", "modeled_shortfall_bps", "shortfall_available", "divergence_match_rate", "divergence_sessions", "divergence_available", "computed_at")
+    STRATEGY_ID_FIELD_NUMBER: _ClassVar[int]
+    CANDIDATE_ID_FIELD_NUMBER: _ClassVar[int]
+    REGISTRY_STAGE_FIELD_NUMBER: _ClassVar[int]
+    DSR_COMBINED_FIELD_NUMBER: _ClassVar[int]
+    N_EFFECTIVE_FIELD_NUMBER: _ClassVar[int]
+    N_OBSERVATIONS_FIELD_NUMBER: _ClassVar[int]
+    DSR_AVAILABLE_FIELD_NUMBER: _ClassVar[int]
+    BACKTEST_DRAWDOWN_P95_FIELD_NUMBER: _ClassVar[int]
+    DRAWDOWN_AVAILABLE_FIELD_NUMBER: _ClassVar[int]
+    MODELED_SHORTFALL_BPS_FIELD_NUMBER: _ClassVar[int]
+    SHORTFALL_AVAILABLE_FIELD_NUMBER: _ClassVar[int]
+    DIVERGENCE_MATCH_RATE_FIELD_NUMBER: _ClassVar[int]
+    DIVERGENCE_SESSIONS_FIELD_NUMBER: _ClassVar[int]
+    DIVERGENCE_AVAILABLE_FIELD_NUMBER: _ClassVar[int]
+    COMPUTED_AT_FIELD_NUMBER: _ClassVar[int]
+    strategy_id: str
+    candidate_id: str
+    registry_stage: str
+    dsr_combined: float
+    n_effective: float
+    n_observations: int
+    dsr_available: bool
+    backtest_drawdown_p95: float
+    drawdown_available: bool
+    modeled_shortfall_bps: float
+    shortfall_available: bool
+    divergence_match_rate: float
+    divergence_sessions: int
+    divergence_available: bool
+    computed_at: int
+    def __init__(self, strategy_id: _Optional[str] = ..., candidate_id: _Optional[str] = ..., registry_stage: _Optional[str] = ..., dsr_combined: _Optional[float] = ..., n_effective: _Optional[float] = ..., n_observations: _Optional[int] = ..., dsr_available: _Optional[bool] = ..., backtest_drawdown_p95: _Optional[float] = ..., drawdown_available: _Optional[bool] = ..., modeled_shortfall_bps: _Optional[float] = ..., shortfall_available: _Optional[bool] = ..., divergence_match_rate: _Optional[float] = ..., divergence_sessions: _Optional[int] = ..., divergence_available: _Optional[bool] = ..., computed_at: _Optional[int] = ...) -> None: ...
+
+class GetGraduationStatisticsResponse(_message.Message):
+    __slots__ = ("statistics",)
+    STATISTICS_FIELD_NUMBER: _ClassVar[int]
+    statistics: GraduationStatistics
+    def __init__(self, statistics: _Optional[_Union[GraduationStatistics, _Mapping]] = ...) -> None: ...

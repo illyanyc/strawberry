@@ -87,6 +87,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **IBC** | The open-source tool that logs IB Gateway in and restarts it on schedule; archived 2026-09-01, pinned at 3.24.2 (D18, IB-073). |
 | **Implementation shortfall** | Fill price versus the intent's decision (reference) price, side-signed, plus fees, in bps (MN-033). |
 | **Intraday-margin guard** | Pre-trade check capping leverage and margin utilization per account so strategies cannot consume the manual book's buying power (RM-012). |
+| **Graduation report** | Section 15 pass/fail for one paper strategy: the monitor's paper evidence (sessions, trades, divergence, breaks, drawdown, shortfall) plus DSR ≥ 0.95 on that record and registry stage `live_eligible` (GL-001, GL-002). |
 | **Kill switch** | Scoped emergency control (global, broker account, strategy, instrument): freeze new orders, cancel open orders, optionally flatten strategy-owned quantity. |
 | **Kill switch latch** | A kill-switch engagement persisted until an owner releases it with a desktop passkey step-up; engaging needs no step-up (RM-006, RM-007). |
 | **Leak canary** | A unique fake secret pushed through a real flow so tests can assert it never appears in logs, responses, audit details, or plaintext storage (SE-012). |

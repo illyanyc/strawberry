@@ -20,23 +20,32 @@ const svc = "/tb.orders.v1.ExecutionService/"
 // execution over gRPC; strategies publish intents on ord.intent. Kill-switch engage and the
 // reduce-only DemoteStrategy are also open to monitor (automatic containment, section 13, RM-018).
 var AllowedCallers = map[string][]string{
-	svc + "SubmitIntent":      {"api-gateway"},
-	svc + "PreviewIntent":     {"api-gateway"},
-	svc + "CancelIntent":      {"api-gateway"},
-	svc + "ListOrders":        {"api-gateway", "monitor"},
-	svc + "ListIntents":       {"api-gateway", "monitor"},
-	svc + "ListFills":         {"api-gateway", "monitor"},
-	svc + "GetTrace":          {"api-gateway"},
-	svc + "ListStrategies":    {"api-gateway", "monitor"},
-	svc + "RegisterStrategy":  {"api-gateway"},
-	svc + "SetStrategyMode":   {"api-gateway"},
-	svc + "GetRiskLimits":     {"api-gateway"},
-	svc + "SetRiskLimits":     {"api-gateway"},
-	svc + "TriggerKillSwitch": {"api-gateway", "monitor"},
-	svc + "ReleaseKillSwitch": {"api-gateway"},
-	svc + "ListKillSwitches":  {"api-gateway", "monitor"},
-	svc + "GetTradingStatus":  {"api-gateway", "monitor"},
-	svc + "DemoteStrategy":    {"api-gateway", "monitor"},
+	svc + "SubmitIntent":        {"api-gateway"},
+	svc + "PreviewIntent":       {"api-gateway"},
+	svc + "CancelIntent":        {"api-gateway"},
+	svc + "ListOrders":          {"api-gateway", "monitor"},
+	svc + "ListIntents":         {"api-gateway", "monitor"},
+	svc + "ListFills":           {"api-gateway", "monitor"},
+	svc + "GetTrace":            {"api-gateway"},
+	svc + "ListStrategies":      {"api-gateway", "monitor"},
+	svc + "RegisterStrategy":    {"api-gateway"},
+	svc + "SetStrategyMode":     {"api-gateway"},
+	svc + "GetRiskLimits":       {"api-gateway"},
+	svc + "SetRiskLimits":       {"api-gateway"},
+	svc + "TriggerKillSwitch":   {"api-gateway", "monitor"},
+	svc + "ReleaseKillSwitch":   {"api-gateway"},
+	svc + "ListKillSwitches":    {"api-gateway", "monitor"},
+	svc + "GetTradingStatus":    {"api-gateway", "monitor"},
+	svc + "DemoteStrategy":      {"api-gateway", "monitor"},
+	svc + "GetLiveStatus":       {"api-gateway"},
+	svc + "GetLiveReadiness":    {"api-gateway"},
+	svc + "SetReadinessItem":    {"api-gateway"},
+	svc + "GetGraduationReport": {"api-gateway"},
+	svc + "EnableLiveAccount":   {"api-gateway"},
+	svc + "DisableLiveAccount":  {"api-gateway"},
+	svc + "PromoteToLive":       {"api-gateway"},
+	svc + "DemoteFromLive":      {"api-gateway", "monitor"},
+	svc + "RaiseLiveCap":        {"api-gateway"},
 }
 
 // Server is the gRPC service.
@@ -53,7 +62,7 @@ func grpcErr(err error) error {
 		return status.Error(codes.NotFound, err.Error())
 	case errors.Is(err, oms.ErrInvalid):
 		return status.Error(codes.InvalidArgument, err.Error())
-	case errors.Is(err, oms.ErrStepUp):
+	case errors.Is(err, oms.ErrStepUp), errors.Is(err, oms.ErrForbidden):
 		return status.Error(codes.PermissionDenied, err.Error())
 	default:
 		return status.Error(codes.Internal, "execution error")
@@ -167,4 +176,62 @@ func (s *Server) ListKillSwitches(_ context.Context, r *ordersv1.ListKillSwitche
 // GetTradingStatus implements ExecutionService.
 func (s *Server) GetTradingStatus(context.Context, *ordersv1.GetTradingStatusRequest) (*ordersv1.GetTradingStatusResponse, error) {
 	return &ordersv1.GetTradingStatusResponse{Status: s.E.Status()}, nil
+}
+
+// GetLiveStatus implements ExecutionService (GL-011).
+func (s *Server) GetLiveStatus(ctx context.Context, _ *ordersv1.GetLiveStatusRequest) (*ordersv1.GetLiveStatusResponse, error) {
+	return &ordersv1.GetLiveStatusResponse{Status: s.E.LiveStatus(ctx)}, nil
+}
+
+// GetLiveReadiness implements ExecutionService (GL-010).
+func (s *Server) GetLiveReadiness(ctx context.Context, r *ordersv1.GetLiveReadinessRequest) (*ordersv1.GetLiveReadinessResponse, error) {
+	rd, err := s.E.LiveReadiness(ctx, r.GetBrokerAccountId())
+	return &ordersv1.GetLiveReadinessResponse{Readiness: rd}, grpcErr(err)
+}
+
+// SetReadinessItem implements ExecutionService (GL-010).
+func (s *Server) SetReadinessItem(ctx context.Context, r *ordersv1.SetReadinessItemRequest) (*ordersv1.SetReadinessItemResponse, error) {
+	rd, err := s.E.SetReadinessItem(ctx, r.GetBrokerAccountId(), r.GetItemId(), r.GetStatus(), r.GetNote(), r.GetEvidenceUrl(), actor(ctx, r.GetActor()))
+	return &ordersv1.SetReadinessItemResponse{Readiness: rd}, grpcErr(err)
+}
+
+// GetGraduationReport implements ExecutionService (GL-001).
+func (s *Server) GetGraduationReport(ctx context.Context, r *ordersv1.GetGraduationReportRequest) (*ordersv1.GetGraduationReportResponse, error) {
+	rep, err := s.E.GraduationReport(ctx, r.GetStrategyId())
+	return &ordersv1.GetGraduationReportResponse{Report: rep}, grpcErr(err)
+}
+
+// EnableLiveAccount implements ExecutionService (GL-011).
+func (s *Server) EnableLiveAccount(ctx context.Context, r *ordersv1.EnableLiveAccountRequest) (*ordersv1.EnableLiveAccountResponse, error) {
+	st, err := s.E.EnableLiveAccount(ctx, r.GetBrokerAccountId(), r.GetConfirmation(), r.GetStage(), actor(ctx, r.GetActor()))
+	return &ordersv1.EnableLiveAccountResponse{Account: st}, grpcErr(err)
+}
+
+// DisableLiveAccount implements ExecutionService (GL-031).
+func (s *Server) DisableLiveAccount(ctx context.Context, r *ordersv1.DisableLiveAccountRequest) (*ordersv1.DisableLiveAccountResponse, error) {
+	st, n, demoted, err := s.E.DisableLiveAccount(ctx, r.GetBrokerAccountId(), r.GetReason(), actor(ctx, r.GetActor()))
+	return &ordersv1.DisableLiveAccountResponse{Account: st, OrdersCanceled: n, DemotedStrategies: demoted}, grpcErr(err)
+}
+
+// PromoteToLive implements ExecutionService (GL-020). The only path to mode live.
+func (s *Server) PromoteToLive(ctx context.Context, r *ordersv1.PromoteToLiveRequest) (*ordersv1.PromoteToLiveResponse, error) {
+	r.Actor = actor(ctx, r.GetActor())
+	resp, err := s.E.PromoteToLive(ctx, r)
+	return resp, grpcErr(err)
+}
+
+// DemoteFromLive implements ExecutionService (GL-030).
+func (s *Server) DemoteFromLive(ctx context.Context, r *ordersv1.DemoteFromLiveRequest) (*ordersv1.DemoteFromLiveResponse, error) {
+	st, n, flat, err := s.E.DemoteFromLive(ctx, r.GetStrategyId(), r.GetReason(), r.GetPositionPolicy(), actor(ctx, r.GetActor()))
+	return &ordersv1.DemoteFromLiveResponse{Strategy: st, OrdersCanceled: n, FlattenIntents: flat}, grpcErr(err)
+}
+
+// RaiseLiveCap implements ExecutionService (GL-040).
+func (s *Server) RaiseLiveCap(ctx context.Context, r *ordersv1.RaiseLiveCapRequest) (*ordersv1.RaiseLiveCapResponse, error) {
+	cap, err := decimal.NewFromString(r.GetNewCap().GetValue())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "new_cap must be a decimal")
+	}
+	st, rep, err := s.E.RaiseLiveCap(ctx, r.GetStrategyId(), cap, r.GetConfirmation(), actor(ctx, r.GetActor()))
+	return &ordersv1.RaiseLiveCapResponse{Strategy: st, LiveWindowReport: rep}, grpcErr(err)
 }
