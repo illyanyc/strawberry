@@ -39,6 +39,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Decimal (contract type)** | `tb.common.v1.Decimal`: an exact base-10 number carried as a string; the only representation for money and quantity in contracts. |
 | **Deflated Sharpe ratio (DSR)** | Sharpe ratio corrected for the number of trials and non-normal returns; used to rank strategies honestly. |
 | **Demotion** | Automatic or manual move of a strategy to `paper` or `halted`. Re-promotion is always manual. |
+| **Evaluator manifest** | `services/backtest/evaluator_manifest.json`: the backtester, cost and fill models, validation, parity, lint, scorer, and simcore paths and modules the AI analyst may not see, write, or import (BT-081, D31 rule 9). |
 | **Event blackout** | A window around a scheduled event (CPI, FOMC, an instrument's earnings) in which a strategy's opening intents are dropped; closes are never blocked (CX-016). |
 | **`event_time`** | When something happened in the world (trade, bar close, news publication). |
 | **Effective number of trials** | The number of independent trials behind a search, estimated as the ONC cluster count of the trials' return correlations; DSR deflates against it (BT-044). |
@@ -112,6 +113,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Routing table** | Config mapping strategy horizons (`intraday`, `swing`) to the broker accounts allowed to receive their orders (RM-011, D30). |
 | **Resync** | What a broker adapter does after every (re)connect before accepting orders: list open orders, fetch executions since the last acknowledged one, publish what was missed, request reconciliation (BR-011). |
 | **Reference data mirror** | Parquet copy of a `refdata` table in the lake's `ref/` directory for Python readers (ST-007). |
+| **Scorer (promotion gate)** | The D31 rule 7 test of a challenger (DSR, PBO, SPA, 2× costs, trades, drawdown) in `tb_backtest.scorer`; the analyst only sees its pass/fail and DSR (BT-080). |
 | **Sealed holdout** | Final data period that optimization never sees; access is logged and counted. |
 | **Self-cross** | Opposite-side orders resting in the same account and instrument across owners; brokers reject them as potential wash trades, so the OMS refuses them and cancels its own before an exit (OE-018). |
 | **Service token** | Short-lived Ed25519-signed token identifying the calling service on an internal call (SE-040). |

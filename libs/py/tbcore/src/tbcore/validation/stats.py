@@ -401,5 +401,7 @@ def bootstrap_ci(
     idx = stationary_bootstrap_indices(r.size, mean_block, n_boot, rng)
     vals = np.array([stat(r[i]) for i in idx])
     vals = vals[np.isfinite(vals)]
+    if vals.size == 0:  # e.g. zero-variance returns: every resampled Sharpe is undefined
+        return math.nan, math.nan
     a = (1 - level) / 2
     return float(np.quantile(vals, a)), float(np.quantile(vals, 1 - a))

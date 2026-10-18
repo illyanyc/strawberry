@@ -1,6 +1,6 @@
 # Backtesting and validation
 
-**Prefix:** `BT-`  ·  **Owners:** `libs/py/tbcore` (`tbcore.backtest`, `tbcore.validation`, `tbcore.parity`, `tbcore.features.lint`), `services/backtest` (scorer, CLI, batch runs), `services/execution/cmd/tb-simcore` (live gate and ledger core in simulation)  ·  **Related:** [ADR-0031](../adr/0031-two-tier-backtester-and-simcore.md), [strategies-and-model-lifecycle.md](strategies-and-model-lifecycle.md) (SM-), [data-and-features.md](data-and-features.md) (DF-), [risk-management.md](risk-management.md) (RM-), [virtual-portfolios-and-attribution.md](virtual-portfolios-and-attribution.md) (VP-), [ADR-0029](../adr/0029-backtest-cost-and-fill-models.md), [ADR-0030](../adr/0030-validation-splitters-and-overfitting-statistics.md), research [02 §3–§4](../research/02-labeling-features-validation.md)
+**Prefix:** `BT-`  ·  **Owners:** `libs/py/tbcore` (`tbcore.backtest`, `tbcore.validation`, `tbcore.parity`, `tbcore.features.lint`), `services/backtest` (scorer, CLI, batch runs), `services/execution/cmd/tb-simcore` (live gate and ledger core in simulation)  ·  **Related:** [ADR-0034](../adr/0034-evaluator-isolation-scorer-and-leakage-suite.md), [ADR-0031](../adr/0031-two-tier-backtester-and-simcore.md), [strategies-and-model-lifecycle.md](strategies-and-model-lifecycle.md) (SM-), [data-and-features.md](data-and-features.md) (DF-), [risk-management.md](risk-management.md) (RM-), [virtual-portfolios-and-attribution.md](virtual-portfolios-and-attribution.md) (VP-), [ADR-0029](../adr/0029-backtest-cost-and-fill-models.md), [ADR-0030](../adr/0030-validation-splitters-and-overfitting-statistics.md), research [02 §3–§4](../research/02-labeling-features-validation.md)
 
 ## Scope
 
@@ -62,8 +62,8 @@ How the platform simulates trading (fills, costs, the event-driven and vectorize
 | BT-065 | The leakage suite (BT-060..BT-064) MUST run in CI for every strategy and feature change and MUST fail a deliberately leaky fixture. | Implemented | `run_leakage_suite` in CI via `test_leakage.py` and `make lint-py`; the leaky fixture `tests/leaky.py` fails future shift and random walk, the ORB baseline passes |
 | BT-070 | Replaying a recorded paper or live bus stream with the recorded fills MUST reproduce the same intents (IDs, quantities, prices), the same decisions, and realized P&L within $0.01 in total. | Implemented | `tbcore.parity.compare_recording` (recorded mode), `EventEngine` recorded fills and recorded bars through `Runner.on_bar`; `test_bt070_*`, `make parity-gate` |
 | BT-071 | Replaying with modeled fills MUST match trade-for-trade (same intent IDs and kinds); the P&L difference is attributed to price slippage, fees, and size, with an unexplained residual ≤ $0.01 per trade. | Implemented | `tbcore.parity.compare_recording` (model mode); `test_bt071_*`, `make parity-gate` |
-| BT-080 | The scorer verdict (D31 rule 7) passes only if DSR ≥ 0.95, PBO ≤ 0.2, SPA (or Romano–Wolf) p ≤ 0.05 against the champion when one exists, net P&L > 0 at 2× costs, and at least `min_trades` trades; the analyst sees only pass/fail and DSR. | Specified | — |
-| BT-081 | Evaluator code (backtester, cost and fill models, splitters, statistics, scorer) MUST be listed in the evaluator manifest; assistant and analyst code MUST NOT import it, and the scorer lives outside `tbcore` (D31 rule 9). | Specified | — |
+| BT-080 | The scorer verdict (D31 rule 7) passes only if DSR ≥ 0.95, PBO ≤ 0.2, SPA (or Romano–Wolf) p ≤ 0.05 against the champion when one exists, net P&L > 0 at 2× costs, and at least `min_trades` trades; the analyst sees only pass/fail and DSR. | Implemented (scorer; trial-ledger feed is section 11) | `services/backtest/src/tb_backtest/scorer/gate.py`; `test_bt080_*` |
+| BT-081 | Evaluator code (backtester, cost and fill models, splitters, statistics, scorer) MUST be listed in the evaluator manifest; assistant and analyst code MUST NOT import it, and the scorer lives outside `tbcore` (D31 rule 9). | Implemented (import ban, manifest; sandbox mounts Planned in section 12) | `services/backtest/evaluator_manifest.json`; `test_bt081_*` |
 
 ## Gate 3 parity evidence
 
@@ -110,6 +110,7 @@ Reference: the 4-vCPU Linux VM that runs CI-class work (the Mac Mini, U4, is exp
 | A regime label decided after a session's open | Never applied to that session's trades: labels join on the entry session as known at its open | BT-051, DF-002 |
 | A strategy peeks through a closure over data it was not given | Input perturbation (future shift) cannot see it; the random-walk check catches it (significant gross profit on martingale prices) | BT-060, BT-061 |
 | A frame feature aggregates per session (`group_by(...).agg(first())`) | Not flagged by PIT003 (frame features group explicitly); reviewed with the feature's parity and future-shift tests (DF-012) | BT-064 |
+| Strategy never trades (flat equity) | Sharpe and its bootstrap interval are undefined (NaN), not an error | BT-047, BT-050 |
 | Walk-forward with `step < test_len` | Splits are produced; stitching refuses overlapping windows | BT-034 |
 | Era-wise splits with eras of unequal size | Folds are built over eras, never splitting one | BT-030 |
 

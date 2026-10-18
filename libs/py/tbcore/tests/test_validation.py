@@ -189,6 +189,7 @@ def test_bt047_romano_wolf_and_bootstrap_ci() -> None:
     r = rng.normal(0.001, 0.01, 1000)
     lo, hi = bootstrap_ci(r, n_boot=400)
     assert lo < sharpe(r) < hi
+    assert all(math.isnan(x) for x in bootstrap_ci(np.zeros(50), n_boot=50))  # flat equity: undefined, not a crash
 
 
 def test_bt040_sharpe_annualization() -> None:
