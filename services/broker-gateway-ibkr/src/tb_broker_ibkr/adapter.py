@@ -419,12 +419,13 @@ class IbkrAdapter:
 
     async def submit_order(self, req: OrderRequest) -> SubmitAck:
         """Place an order exactly once (OE-002, OE-003, OE-004, OE-011, OE-I1; IB-001, IB-021)."""
-        self._reject_mode(req)
         account_code = self._account_code(req.broker_account_id)
         existing = self._by_cid.get(req.client_order_id)
         if existing is not None:
             return self._existing_ack(existing)
+        # A stopped session refuses first (FAILED_PRECONDITION), before the mode gate (GL-052).
         self._require_ready(req.broker_account_id)
+        self._reject_mode(req)
         try:
             attribution = validate_order_ref(req.client_order_id, self._cfg.order_ref_max_len)
             instrument = await self._instrument_for(req)

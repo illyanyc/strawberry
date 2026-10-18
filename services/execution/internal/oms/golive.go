@@ -71,6 +71,7 @@ func (e *Engine) initLive() {
 func (e *Engine) SetLiveSources(ev GraduationEvidence, research GraduationResearch, db LiveDB) {
 	e.mu.Lock()
 	e.evidence, e.research, e.liveDB = ev, research, db
+	e.liveWired = true
 	e.mu.Unlock()
 }
 
@@ -863,6 +864,12 @@ func (e *Engine) RaiseLiveCap(ctx context.Context, id string, newCap decimal.Dec
 // enablement, a promotion timestamp, and a cap (GL-050). A direct edit of the mode column is undone
 // on the next tick and alerted.
 func (e *Engine) guardLive(ctx context.Context) {
+	e.mu.Lock()
+	wired := e.liveWired
+	e.mu.Unlock()
+	if !wired {
+		return
+	}
 	e.noteCleanSession()
 	e.mu.Lock()
 	var bad []string

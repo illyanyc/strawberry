@@ -109,6 +109,7 @@ type Engine struct {
 	evidence   GraduationEvidence
 	research   GraduationResearch
 	liveDB     LiveDB
+	liveWired  bool
 	readiness  map[string]*ordersv1.LiveReadiness
 	cleanSess  map[string]map[string]struct{}
 	enablement map[string]Enablement

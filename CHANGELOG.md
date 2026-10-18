@@ -155,6 +155,8 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 
 ### Fixed
 
+- Live-mode guard (GL-050) runs only after go-live wiring is loaded, so a containment test can persist a simulated live strategy and demote it (RM-018). The IBKR adapter checks the session before the live-mode gate, so a stopped live adapter still refuses with `FAILED_PRECONDITION`. The broker migration's grant to `svc_execution` is applied in the IBKR journal test database, which now creates that role.
+
 - Python service images now include `libgomp1`: LightGBM's wheel links the system OpenMP runtime, so strategy-runtime (which hosts model strategies, SM-015), ml, and optimizer failed at import on the slim base image and `make up` never became healthy.
 - The pre-trade gate rejected every swing order at Monday's open and after market holidays as `data_fresh` failures: daily-bar freshness was measured in wall time (48 h), so Friday's final daily bar looked stale. Daily and longer bars now count trading sessions (RM-004); intraday bars keep the wall-clock bound. This also applied in `tb-simcore`, so event-driven reruns of swing model candidates (and their gate reports) were silently missing most trades.
 - A study whose search stopped before the final selection (for example because the research cycle budget was spent mid-study) reported `completed` with no candidate; it now ends `stopped` with the reason in its message (EX-027, EX-025, EX-060).
