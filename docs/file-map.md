@@ -229,10 +229,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 
 | Path | Status | Purpose |
 |---|---|---|
-| `tests/python/` | Exists | Cross-package Python tests (placeholder services' ops surface, alert rules have runbooks, evaluator isolation BT-081) |
 | `tests/research/` | Exists | Gate 4 evidence harness (`test_gate4.py`, opt-in `make research-gate`): ml, optimizer, and holdout gRPC servers in-process with service tokens, driven as api-gateway does for the owner, plus assistant-identity boundary checks |
-| `tests/python/` | Exists | Cross-package Python tests (placeholder services' ops surface, alert rules have runbooks, evaluator isolation BT-081, analyst sandbox pipeline AN-071/AN-072) |
-| `tests/python/` | Exists | Cross-package Python tests (placeholder services' ops surface, alert rules have runbooks, evaluator isolation BT-081, analyst sandbox pipeline AN-071/AN-072, analyst Compose boundaries AN-032/AN-053/AN-071) |
 | `tests/python/` | Exists | Cross-package Python tests (placeholder services' ops surface, alert rules have runbooks, evaluator isolation BT-081, analyst sandbox pipeline AN-071/AN-072, analyst Compose boundaries AN-032/AN-053/AN-071, Gate 4 analyst loop against the real ml and optimizer services `test_analyst_gate4.py`) |
 | `tests/paper/` | Exists | Go module: Phase 2 paper harness (simulated Alpaca- and IBKR-shaped accounts behind the adapter engine, ledger, execution, embedded NATS, gRPC, shared virtual clock) and the Gate 2 tests, including the five-session ORB gate that runs the real Python strategy runtime (`make paper-gate`), which can record its bus traffic for the Gate 3 parity replay (`recorder.go`, `TB_PAPER_RECORDING`) |
 | `tests/e2e/` | Exists | Go end-to-end test against the running stack: passkey setup/login, step-up, credential storage with leak canary, SSE, audit (`make e2e`, used by the smoke test) |

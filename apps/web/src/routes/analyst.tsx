@@ -23,7 +23,7 @@ import { ApiError } from "@/lib/api";
 import { formatNs } from "@/lib/utils";
 
 /**
- * AI Research Analyst (section 14 Phase 4 slice; UI-025..UI-029): per-lineage research journal with
+ * AI Research Analyst (section 14 Phase 4 slice; UI-018..UI-022): per-lineage research journal with
  * diagnoses, ranked plans and config diffs, proposal approvals, the autonomy selector (raising needs a
  * passkey step-up, handled by the gateway's 403 and the step-up dialog), loop pause, the lineage trial
  * ledger with deflated statistics, code proposals awaiting review, and the assistant chat. The analyst
@@ -87,7 +87,7 @@ function errorText(e: unknown): string {
   return e instanceof ApiError ? e.message || e.code : "Request failed";
 }
 
-/** Loop status, autonomy selector, budgets, and pause (UI-026). */
+/** Loop status, autonomy selector, budgets, and pause (UI-019). */
 export function LoopCard({ status }: { status: LoopStatus }) {
   const qc = useQueryClient();
   const id = status.lineageId;
@@ -179,7 +179,7 @@ export function LoopCard({ status }: { status: LoopStatus }) {
   );
 }
 
-/** Lineage trial ledger with the deflated outcome (UI-028). */
+/** Lineage trial ledger with the deflated outcome (UI-021). */
 export function LedgerCard({ lineage }: { lineage: string }) {
   const q = useQuery({ queryKey: ["analyst", "trials", lineage], queryFn: () => analystApi.trials(lineage), refetchInterval: 30_000 });
   return (
@@ -237,7 +237,7 @@ export function LedgerCard({ lineage }: { lineage: string }) {
   );
 }
 
-/** The research journal (UI-025) and proposal approvals (UI-027). */
+/** The research journal (UI-018) and proposal approvals (UI-020). */
 export function JournalCard({ lineage }: { lineage: string }) {
   const q = useQuery({ queryKey: ["analyst", "journal", lineage], queryFn: () => analystApi.journal(lineage), refetchInterval: 15_000 });
   const [question, setQuestion] = useState("");

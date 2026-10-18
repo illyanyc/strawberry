@@ -84,7 +84,7 @@ describe("analyst helpers", () => {
 });
 
 describe("JournalCard", () => {
-  it("UI-025/UI-027: shows evidence-cited findings and the config diff, and approves selected actions", async () => {
+  it("UI-018/UI-020: shows evidence-cited findings and the config diff, and approves selected actions", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
       const url = String(input);
       if (url.includes("/journal")) return respond(200, { rounds: [round] });
@@ -127,7 +127,7 @@ describe("LoopCard", () => {
     autonomy: { level: 0, paused: false, budget: { maxTrialsPerRound: 5 } },
   };
 
-  it("UI-026, AN-061: raising autonomy goes through the passkey step-up and retries", async () => {
+  it("UI-019, AN-061: raising autonomy goes through the passkey step-up and retries", async () => {
     let calls = 0;
     const stepUp = vi.fn(async () => true);
     setStepUpHandler(stepUp);
@@ -163,7 +163,7 @@ describe("LoopCard", () => {
 });
 
 describe("LedgerCard", () => {
-  it("UI-028: shows every trial with its source and the deflated outcome", async () => {
+  it("UI-021: shows every trial with its source and the deflated outcome", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       respond(200, {
         lineageId: "L1",

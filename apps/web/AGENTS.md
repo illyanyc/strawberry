@@ -32,7 +32,7 @@ The only human interface: a static Vite + React 19 SPA served by `api-gateway`. 
 - `UI-015` order ticket → `src/routes/order-ticket.tsx`; `trading.test.tsx`
 - `UI-016` portfolio → `src/routes/portfolio.tsx`, `src/components/trading.tsx` (`OwnershipTable`); `trading.test.tsx`
 - `UI-017` blotter and trace → `src/routes/orders.tsx`
-- `UI-025`–`UI-029` AI analyst (journal, autonomy selector with step-up to raise, proposal approvals, trial ledger, code proposals, chat) → `src/routes/analyst.tsx`, `src/lib/analyst.ts`; `analyst.test.tsx`, `e2e/shell.spec.ts`
+- `UI-018`–`UI-022` AI analyst (journal, autonomy selector with step-up to raise, proposal approvals, trial ledger, code proposals, chat) → `src/routes/analyst.tsx`, `src/lib/analyst.ts`; `analyst.test.tsx`, `e2e/shell.spec.ts`
 - `UI-I2` no P&L/ownership/risk math → `src/lib/trading.ts` (display helpers only)
 - `UI-023` training (schema forms, estimate-before-launch, SSE progress, run diagnostics) → `src/routes/training.tsx`, `src/components/SchemaForm.tsx`, `src/lib/research.ts`; `research.test.tsx`
 - `UI-024` experiments (ledger, lineage stats, cycles, pre-registered studies, trials, convergence) → `src/routes/experiments.tsx`; `research.test.tsx`

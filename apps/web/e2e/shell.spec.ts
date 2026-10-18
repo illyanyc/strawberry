@@ -93,7 +93,7 @@ test("owner setup, passkey and TOTP login, step-up, credentials, audit", async (
     await page.screenshot({ path: `${shots}/${shot}.png`, fullPage: true });
   }
   // Phase 4 analyst slice: the default stack has no ml profile, so the page must render its
-  // unavailable state cleanly under the strict CSP (UI-007, UI-025).
+  // unavailable state cleanly under the strict CSP (UI-007, UI-018).
   await main.getByRole("link", { name: "AI analyst", exact: true }).click();
   await expect(page.getByRole("heading", { name: "AI research analyst" })).toBeVisible();
   await expect(page.getByText(/assistant unavailable|No research lineage yet/)).toBeVisible();
