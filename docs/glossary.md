@@ -167,6 +167,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Step-up auth** | Fresh re-authentication required for dangerous actions. |
 | **Strategy registry seed** | JSON file (`infra/compose/strategies.json`) shared by execution and the strategy runtime that registers strategies at startup; it never sets `live` and never changes an existing strategy's mode (SM-001). |
 | **Strategy runtime** | The Python service that runs `tbcore.strategy` strategies on final bars and publishes their intents on `ord.intent`; it sees only its strategies' own positions and never talks to brokers (ADR-0026, SM-014). |
+| **Strategy publication** | A user-written strategy definition plus the window, bar size, and universe description of a hypothetical backtest, indexed by time or name. It carries no profit, return, or rank, and it is not a signal or an order (UI-052). |
 | **Syndicated duplicate** | A re-published copy of a news story (same or near-identical headline for the same instrument within 24 h); marked `duplicate_of` and counted once (CX-013). |
 | **Timing difference** | A broker vs ledger difference inside the reconciliation grace window (60 s, ≥ 2 snapshots); blocks only that instrument and becomes a break if it persists (VP-013). |
 | **Tool server** | The assistant component that executes every analyst read and write: forbidden-name denial, level check against the optimizer, budget check, holdout stripping, sanitization, audit (AN-060). |

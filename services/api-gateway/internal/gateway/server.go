@@ -36,6 +36,7 @@ type AlertPublisher interface {
 type Server struct {
 	cfg      Config
 	store    *Store
+	pubs     publicationRepo
 	pool     *pgxpool.Pool
 	wa       *webauthn.WebAuthn
 	keys     keys
@@ -149,6 +150,11 @@ func New(cfg Config, d Deps) (*Server, error) {
 	}
 	s.tv = newTVIntake(cfg, d.TVKey, d.AccessVerifier)
 	s.access = d.AccessVerifier
+	if d.Pool != nil {
+		s.pubs = s.store
+	} else {
+		s.pubs = newMemoryPublications()
+	}
 	s.registerRoutes()
 	return s, nil
 }
@@ -213,6 +219,11 @@ func (s *Server) registerRoutes() {
 	s.registerPushRoutes(priv)
 	priv("GET", "/api/v1/signals", s.handleSignals)
 	priv("GET", "/api/v1/tradingview", s.handleTradingViewStatus)
+	// Strategy publications (UI-052): definition and backtest parameters only. No performance sort.
+	priv("GET", "/api/v1/publications", s.handlePublicationsList)
+	priv("POST", "/api/v1/publications", s.handlePublicationCreate)
+	priv("GET", "/api/v1/publications/{id}", s.handlePublicationGet)
+	priv("DELETE", "/api/v1/publications/{id}", s.handlePublicationWithdraw)
 	s.registerMonitoringRoutes(priv)
 }
 

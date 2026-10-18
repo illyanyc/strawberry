@@ -240,4 +240,6 @@ Signals (ADR-0050) use `sig.<strategy_id>.<instrument_id>` in the 30-day `SIGNAL
 
 Notifications (ADR-0052): Alertmanager's notifying receivers send to Pushover and to the gateway's internal webhook, which fans each alert group out as Web Push to the owner's subscribed browsers and installed PWA; with `alerts.push_fills_enabled` the gateway also pushes executions it sees on `exec.>`.
 
+Strategy publications (UI-052) stay inside api-gateway and `config.publications`. An authenticated user stores a strategy definition and the window, bar size, and universe description of a hypothetical backtest. The index is ordered by publication time or title. It does not publish a signal, it does not call execution, and it has no profit, return, or rank column.
+
 Update this doc when a data flow, subject, store, or trust boundary changes.
