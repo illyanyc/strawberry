@@ -100,7 +100,9 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0005-postgres-layout-and-migrations.md` | Exists | ADR (D5): one `platform` DB, schema per area, `svc_*` roles, owner-role migrations |
 | `docs/adr/0006-audit-log-hash-chain.md` | Exists | ADR (D34): audit hash chain computed in Postgres, verified in Go |
 | `docs/adr/0007-service-to-service-auth.md` | Exists | ADR (D33): Ed25519 service tokens with per-method allowlists |
+| `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2): NATS JetStream, `sync_interval: always`, stream layout, outbox |
 | `docs/adr/0009-owner-authentication.md` | Exists | ADR (D15): passkeys + TOTP + recovery codes, setup token, sessions, CSRF, step-up, lockout |
+| `docs/adr/0010-account-routing-and-day-trade-policy.md` | Exists | ADR (D30): horizon-based account routing, PDT guard off by default, intraday-margin guard, halt on margin events |
 | `docs/adr/0011-secrets-management.md` | Exists | ADR (D16): `/run/secrets` files, SOPS + age at rest, envelope-encrypted broker credentials, KEK rotation |
 | `docs/adr/0012-web-ui-spa-sse-pwa.md` | Exists | ADR (D11, D13, D14): static Vite + React SPA, SSE, PWA + Pushover |
 | `docs/adr/0013-mac-mini-host-colima-native-ml.md` | Exists | ADR (D21, D25, D28, D29): Mac Mini + Compose on Colima at boot, native launchd ML workers, no GPU profile |
@@ -108,24 +110,22 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0015-phase0-data-services.md` | Exists | ADR (D4, D6, D8, D10): lake on host APFS, Valkey 9, MLflow with filesystem artifacts, Prefect 3 |
 | `docs/adr/0016-remote-access.md` | Exists | ADR (D17): host `tailscaled` + `tailscale serve`, optional Cloudflare Tunnel + Access |
 | `docs/adr/0017-ci-and-supply-chain.md` | Exists | ADR (D35): GitHub Actions gates, SHA pinning, gitleaks, Trivy, SBOM, multi-arch, Dependabot |
-| `docs/adr/0010-account-routing-and-day-trade-policy.md` | Exists | ADR (D30): horizon-based account routing, PDT guard off by default, intraday-margin guard, halt on margin events |
+| `docs/adr/0018-broker-gateway-interface.md` | Exists | ADR (D36): one gRPC broker interface for every adapter, typed error model, canonical execution IDs, outbox-backed events |
+| `docs/adr/0019-alpaca-adapter-and-simulator.md` | Exists | ADR (D37): hand-written Alpaca adapter, in-process simulator, single market-data socket, credential-free test fake |
 | `docs/adr/0020-lake-layout-write-path-and-query-layer.md` | Exists | ADR (D38): lake layout, single-writer path, revisions, manifest, refdata mirrors, calendar, Polars query layer, read-time adjustment |
 | `docs/adr/0021-feature-store.md` | Exists | ADR (D39): thin feature store, single compute path, finite lookback, scale invariance, snapshots |
 | `docs/adr/0022-market-data-ingestion.md` | Exists | ADR (D40): Alpaca via broker-gateway, finality window, resumable backfill, FMP `/stable`, reconciliation and quarantine |
-| `docs/adr/0019-alpaca-adapter-and-simulator.md` | Exists | ADR (D37): hand-written Alpaca adapter, in-process simulator, single market-data socket, credential-free test fake |
 | `docs/adr/0023-ibkr-adapter-gateway-and-sessions.md` | Exists | ADR (D41, implements D18): pinned IB Gateway, per-environment `ib_async` adapter, credential custody, network isolation, maintenance-aware supervision, V1 interim |
-| `docs/adr/0018-broker-gateway-interface.md` | Exists | ADR (D36): one gRPC broker interface for every adapter, typed error model, canonical execution IDs, outbox-backed events |
 | `docs/adr/0024-virtual-ledgers-and-reconciliation.md` | Exists | ADR (D42, implements D19): event-sourced virtual ledgers, FIFO lots, broker-lot shadow ledger, reservations, reconciliation with a break taxonomy |
 | `docs/adr/0025-oms-risk-gate-and-kill-switches.md` | Exists | ADR (D43, implements D30): OMS, pre-trade gate, routing and margin guard, protective orders, latched kill switches, dead-man checks |
 | `docs/adr/0026-strategy-runtime-and-orb-baseline.md` | Exists | ADR (D44): strategy API in `tbcore.strategy`, Python strategy runtime publishing intents on the bus, ORB baseline |
 | `docs/adr/0027-monitoring-ops-slice.md` | Exists | ADR (D45): Alertmanager as the only router, monitor bridge for bus alerts, daily reports, trading rules and dashboard |
 | `docs/adr/0028-ui-trading-slice-charts-and-bff.md` | Exists | ADR (D46, settles D12 price charts): Lightweight Charts under the strict CSP, protojson BFF resources typed by generated `*Json` types, new owner actions, SSE chart stream |
-| `docs/adr/0032-context-data-pipeline-and-point-in-time-rules.md` | Exists | ADR (D50): context data through `ctx.<kind>` into the lake via marketdata, record keys, snapshot stamping, per-source availability rules, sources, `tbcore.context` |
-| `docs/adr/0033-quarantined-news-sentiment.md` | Exists | ADR (D51): quarantined news scoring (lexicon baseline, optional local model), contamination flags |
 | `docs/adr/0029-backtest-cost-and-fill-models.md` | Exists | ADR (D47): one NumPy cost model for both tiers with a dated regulatory fee schedule; next-tradable-bar fill model |
 | `docs/adr/0030-validation-splitters-and-overfitting-statistics.md` | Exists | ADR (D48): purged k-fold, CPCV, walk-forward; DSR with ONC effective N, PBO, SPA, Romano–Wolf; DSR as the ranking gate |
 | `docs/adr/0031-two-tier-backtester-and-simcore.md` | Exists | ADR (D7 implemented, D49): event-driven tier on the live runtime core with the OMS, gate, and ledger core in a Go simcore over stdio; vectorized screening tier; bus recordings; config-hash run identity |
-| `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2): NATS JetStream, `sync_interval: always`, stream layout, outbox |
+| `docs/adr/0032-context-data-pipeline-and-point-in-time-rules.md` | Exists | ADR (D50): context data through `ctx.<kind>` into the lake via marketdata, record keys, snapshot stamping, per-source availability rules, sources, `tbcore.context` |
+| `docs/adr/0033-quarantined-news-sentiment.md` | Exists | ADR (D51): quarantined news scoring (lexicon baseline, optional local model), contamination flags |
 | `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, IBKR weekly 2FA / manual VNC login / gateway outages (`ibkr-weekly-2fa.md`), broker outage, market data (stale, slow, gaps, reconciliation breaches, corporate-action disputes), context data (stale sources, poison events, backfills, scoring model), IBKR weekly 2FA, ledger reconciliation break, kill switches, halts, and dead-man alerts |
 | `docs/threat-model.md` | Exists | Assets, actors, entry points, STRIDE table mapped to SE-/OP- rules, residual risks |
 
