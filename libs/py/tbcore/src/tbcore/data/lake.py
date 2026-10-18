@@ -127,6 +127,7 @@ class Lake:
         adjust: Adjust = "split_div",
         feed: str | None = None,
         versions: Literal["latest", "first"] = "latest",
+        exclude_quarantined: bool = False,
     ) -> pl.DataFrame:
         """Bars with ``ts_open`` in ``[start, end)``.
 
@@ -135,6 +136,7 @@ class Lake:
         corporate actions with ``available_at <= as_of`` and ``ex_date <= as_of`` (DF-002, DF-005).
         Without ``feed``, one feed per bar is chosen by ``feed_preference``. ``versions="first"``
         returns each bar as first published (what live decisions saw), ignoring later corrections.
+        ``exclude_quarantined`` drops symbol-days quarantined by cross-source reconciliation (MD-010).
         """
         s, e = to_ns(start), to_ns(end)
         uniq, dup = self._bars_lazy("bars", instruments, timeframe, s, e, feed)
@@ -166,9 +168,27 @@ class Lake:
                 .drop("_feed_rank")
             )
         df = df.sort(["instrument_id", "ts_open"])
+        if exclude_quarantined:
+            df = self.drop_quarantined(df)
         if adjust != "raw":
             df = self.adjust(df, adjust, as_of)
         return df
+
+    def quarantine(self) -> pl.DataFrame:
+        """Unresolved quarantined symbol-days (instrument_id, session_date) from reconciliation (MD-010)."""
+        try:
+            q = self.ref("quarantine")
+        except FileNotFoundError:
+            return pl.DataFrame(schema={"instrument_id": pl.Utf8, "session_date": pl.Date})
+        return q.select("instrument_id", pl.col("session_date").str.to_date()).unique()
+
+    def drop_quarantined(self, df: pl.DataFrame, time_col: str = "ts_open") -> pl.DataFrame:
+        """Remove rows whose (instrument, exchange-local session date) is quarantined."""
+        q = self.quarantine()
+        if q.is_empty() or df.is_empty():
+            return df
+        day = pl.col(time_col).dt.convert_time_zone("America/New_York").dt.date().alias("session_date")
+        return df.with_columns(day).join(q, on=["instrument_id", "session_date"], how="anti").drop("session_date")
 
     @staticmethod
     def _select(
@@ -344,12 +364,17 @@ def apply_adjustment(df: pl.DataFrame, actions: pl.DataFrame, basis: Adjust) -> 
     For a bar opened at τ the price factor is the product of ``f_a`` over actions with ``τ < ex_a``:
     splits ``f = 1/ratio`` (volume * ratio), dividends ``f = 1 - amount / previous close`` (CRSP
     convention; previous close = last raw close before the ex-date in the frame). Actions with
-    ``agreement == "disagreed"`` block adjustment (MD-012).
+    ``agreement == "disagreed"`` block adjustment (MD-012); actions the owner marked ``rejected`` are
+    ignored.
     """
     if df.is_empty() or basis == "raw":
         return df.with_columns(pl.lit(basis).alias("adjustment_basis"))
     types = ["split"] if basis == "split" else ["split", "dividend"]
-    ca = actions.filter(pl.col("type").is_in(types)) if not actions.is_empty() else actions
+    ca = (
+        actions.filter(pl.col("type").is_in(types) & (pl.col("agreement") != "rejected"))
+        if not actions.is_empty()
+        else actions
+    )
     if ca.is_empty():
         return df.with_columns(pl.lit(basis).alias("adjustment_basis"))
     blocked = ca.filter(pl.col("agreement") == "disagreed")["instrument_id"].unique().to_list()

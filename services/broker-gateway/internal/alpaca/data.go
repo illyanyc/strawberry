@@ -93,6 +93,9 @@ func (c *Client) HistoricalBars(ctx context.Context, req *brokerv1.GetHistorical
 		"symbols": {strings.Join(req.GetSymbols(), ",")}, "timeframe": {tf.Param}, "adjustment": {"raw"}, "feed": {feed},
 		"start": {time.Unix(0, req.GetStart()).UTC().Format(time.RFC3339)}, "end": {time.Unix(0, req.GetEnd()).UTC().Format(time.RFC3339)},
 		"limit": {strconv.Itoa(int(limit))}, "sort": {"asc"},
+		// Identify each ticker's entity as of the window's last day, so a recycled ticker never returns
+		// the later company's history and renamed tickers return their own past (spike V2, MD-001).
+		"asof": {time.Unix(0, req.GetEnd()-1).In(nyLoc).Format("2006-01-02")},
 	}
 	if req.GetPageToken() != "" {
 		q.Set("page_token", req.GetPageToken())

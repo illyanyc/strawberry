@@ -68,8 +68,9 @@ build: ## Build every image (all profiles)
 	COMPOSE_PROFILES=core,observability,ml,ml-workers,ops $(COMPOSE) build
 
 .PHONY: up
-up: dirs ## Start the stack (PROFILES=$(PROFILES)) and wait until healthy
+up: dirs ## Start the stack (PROFILES=$(PROFILES)) and wait until healthy (adds secrets introduced since the last run)
 	@test -f $(TB_SECRETS_DIR)/pg_superuser_password || { echo "no secrets: run 'make bootstrap' (or 'make secrets') first"; exit 1; }
+	@$(MAKE) --no-print-directory secrets
 	$(COMPOSE) up -d --build --wait --wait-timeout 600
 
 .PHONY: down
@@ -203,6 +204,17 @@ gen-calendar: ## Regenerate the shared XNYS session table (Go + Python copies) f
 .PHONY: perf
 perf: ## Section 03 performance targets (lake load, as-of join) on this machine
 	TB_PERF=1 uv run pytest libs/py/tbcore/tests/test_features.py -k perf -s -q
+
+.PHONY: lake-verify
+lake-verify: ## Re-hash every lake file against the manifest (ST-003); non-zero exit on corruption
+	$(COMPOSE) exec marketdata /app/service lake verify
+
+.PHONY: spike-v2 spike-v3
+spike-v2: ## V2: probe Alpaca history for known delisted tickers (needs Alpaca keys in broker-gateway)
+	$(COMPOSE) run --rm --no-deps marketdata spike v2
+
+spike-v3: ## V3: probe the owner's FMP key (/stable vs /api/v3, limits, intraday); needs .secrets/fmp_api_key
+	$(COMPOSE) run --rm --no-deps marketdata spike v3
 
 .PHONY: spike-v4
 spike-v4: dirs ## V4: atomic-rename stress across the lake bind mount (writer in container, native reader), 120 s

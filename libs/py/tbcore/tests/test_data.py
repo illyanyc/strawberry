@@ -15,7 +15,7 @@ from hypothesis import strategies as st
 from tbcore.data import AdjustmentBlockedError, Lake, apply_adjustment, asof_join, to_ns, xnys
 from tbcore.dq import dq_check
 
-from .lakekit import SCHEMA, et, ns, ref_tables, synth_bars, write_actions, write_bars
+from .lakekit import SCHEMA, et, ns, ref_tables, synth_bars, write_actions, write_bars, write_ref
 
 REPO = Path(__file__).resolve().parents[4]
 
@@ -182,6 +182,21 @@ def test_md012_disagreement_blocks_adjustment(tmp_path: Path) -> None:
         lake.bars(["X"], "1d", datetime(2024, 1, 1, tzinfo=UTC), datetime(2025, 1, 1, tzinfo=UTC), adjust="raw").height
         == 2
     )
+
+
+def test_md012_owner_rejected_action_is_ignored(tmp_path: Path) -> None:
+    write_bars(tmp_path, _daily("X", [date(2024, 6, 6), date(2024, 6, 7)], [10.0, 5.0]))
+    base = {"instrument_id": "X", "type": "split", "ex_date": ns(et(2024, 6, 7)), "available_at": ns(et(2024, 6, 1))}
+    ref_tables(
+        tmp_path,
+        {"X": (0, 0)},
+        actions=[
+            {**base, "source": "alpaca", "ratio": "3", "agreement": "rejected"},
+            {**base, "source": "fmp", "ratio": "2", "agreement": "confirmed"},
+        ],
+    )
+    adj = Lake(tmp_path).bars(["X"], "1d", datetime(2024, 1, 1, tzinfo=UTC), datetime(2025, 1, 1, tzinfo=UTC))
+    assert adj["close"].to_list() == [5.0, 5.0]
 
 
 def test_df006_universe_includes_delisted_while_listed(tmp_path: Path) -> None:
@@ -443,3 +458,25 @@ def test_calendar_is_fresh() -> None:
     fresh = mod.generate()
     for target in mod.TARGETS:
         assert target.read_text() == fresh, f"{target} is stale; run make gen-calendar"
+
+
+def test_md010_quarantined_symbol_days_excluded(tmp_path: Path) -> None:
+    s = datetime(2026, 3, 2, tzinfo=UTC)
+    write_bars(tmp_path, synth_bars(["A", "B"], s, 2, "15m", extended=False))
+    write_actions(tmp_path, [])
+    write_ref(
+        tmp_path,
+        "quarantine",
+        pl.DataFrame(
+            {"instrument_id": ["A"], "session_date": ["2026-03-03"], "reason": ["recon_breach"], "detail": [""]}
+        ),
+    )
+    lake = Lake(tmp_path)
+    allb = lake.bars(None, "15m", s, s + timedelta(days=3), adjust="raw")
+    clean = lake.bars(None, "15m", s, s + timedelta(days=3), adjust="raw", exclude_quarantined=True)
+    assert allb.height - clean.height == 26
+    dropped = clean.filter(
+        (pl.col("instrument_id") == "A")
+        & (pl.col("ts_open").dt.convert_time_zone("America/New_York").dt.date() == date(2026, 3, 3))
+    )
+    assert dropped.height == 0

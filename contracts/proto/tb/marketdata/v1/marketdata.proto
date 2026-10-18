@@ -143,3 +143,118 @@ message CorporateAction {
   // Sources that reported this action after cross-checking (e.g. ["alpaca", "fmp"]).
   repeated string sources = 17;
 }
+
+// MarketDataService is served by marketdata (section 05, ADR-0022). Callers: api-gateway (UI,
+// operator), execution (IsFresh before every order, RM-004), monitor.
+service MarketDataService {
+  // Starts (or resumes) a resumable, idempotent backfill job; returns immediately.
+  rpc Backfill(BackfillRequest) returns (BackfillResponse);
+  rpc GetBackfillStatus(GetBackfillStatusRequest) returns (GetBackfillStatusResponse);
+  // Replaces the active streaming universe without a restart (MD-009).
+  rpc SetUniverse(SetUniverseRequest) returns (SetUniverseResponse);
+  rpc GetFeedStatus(GetFeedStatusRequest) returns (GetFeedStatusResponse);
+  // Whether the latest final bar is recent enough to trade on (MD-007). Fails closed: unknown
+  // instruments and stalled feeds are not fresh.
+  rpc IsFresh(IsFreshRequest) returns (IsFreshResponse);
+}
+
+enum JobState {
+  JOB_STATE_UNSPECIFIED = 0;
+  JOB_STATE_QUEUED = 1;
+  JOB_STATE_RUNNING = 2;
+  JOB_STATE_SUCCEEDED = 3;
+  JOB_STATE_FAILED = 4;
+  // Finished, but some chunks have unrepaired gaps or data-quality findings (see the report).
+  JOB_STATE_SUCCEEDED_WITH_GAPS = 5;
+}
+
+message BackfillRequest {
+  // Instrument IDs; empty means the named universe.
+  repeated string instrument_ids = 1;
+  string universe = 2;
+  repeated Timeframe timeframes = 3;
+  int64 start = 4;
+  int64 end = 5;
+  // Source, e.g. "alpaca.sip", "alpaca.iex", "fmp".
+  string source = 6;
+  string requested_by = 7;
+}
+
+message BackfillResponse {
+  string job_id = 1;
+}
+
+message GetBackfillStatusRequest {
+  string job_id = 1;
+}
+
+message BackfillReport {
+  int64 chunks_total = 1;
+  int64 chunks_done = 2;
+  int64 rows_fetched = 3;
+  // Rows that were new after compaction (a rerun reports 0, ST-004).
+  int64 rows_added = 4;
+  int64 rows_revised = 5;
+  int64 gaps_found = 6;
+  int64 gaps_repaired = 7;
+  // Missing bars the source confirmed it does not have (e.g. no trades), recorded as coverage gaps.
+  int64 gaps_confirmed_missing = 8;
+  map<string, int64> dq_findings = 9;
+}
+
+message GetBackfillStatusResponse {
+  string job_id = 1;
+  JobState state = 2;
+  BackfillReport report = 3;
+  string error = 4;
+  int64 started_at = 5;
+  int64 finished_at = 6;
+}
+
+message SetUniverseRequest {
+  string universe = 1;
+  repeated string instrument_ids = 2;
+}
+
+message SetUniverseResponse {
+  int32 subscribed = 1;
+}
+
+message FeedStatus {
+  string feed = 1;
+  bool connected = 2;
+  int64 last_message_at = 3;
+  int64 lag_ms = 4;
+  repeated string symbols_stale = 5;
+  string state = 6;
+}
+
+message GetFeedStatusRequest {}
+
+message GetFeedStatusResponse {
+  repeated FeedStatus feeds = 1;
+}
+
+message IsFreshRequest {
+  string instrument_id = 1;
+  Timeframe timeframe = 2;
+  // Maximum age of the latest final bar's close, ns; 0 = two bar intervals (RM-004 default).
+  int64 max_age = 3;
+}
+
+message IsFreshResponse {
+  bool fresh = 1;
+  int64 last_bar_close = 2;
+  string reason = 3;
+}
+
+// SourceHealth is published on sys.health.<source> by marketdata (and context-data) (MD-008).
+message SourceHealth {
+  string source = 1;
+  int64 last_message_age_ms = 2;
+  int64 gap_count = 3;
+  double error_rate = 4;
+  string breaker_state = 5;
+  string reconciliation_status = 6;
+  int64 as_of = 7;
+}

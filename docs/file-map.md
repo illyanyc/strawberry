@@ -105,10 +105,11 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0010-account-routing-and-day-trade-policy.md` | Exists | ADR (D30): horizon-based account routing, PDT guard off by default, intraday-margin guard, halt on margin events |
 | `docs/adr/0020-lake-layout-write-path-and-query-layer.md` | Exists | ADR (D38): lake layout, single-writer path, revisions, manifest, refdata mirrors, calendar, Polars query layer, read-time adjustment |
 | `docs/adr/0021-feature-store.md` | Exists | ADR (D39): thin feature store, single compute path, finite lookback, scale invariance, snapshots |
+| `docs/adr/0022-market-data-ingestion.md` | Exists | ADR (D40): Alpaca via broker-gateway, finality window, resumable backfill, FMP `/stable`, reconciliation and quarantine |
 | `docs/adr/0019-alpaca-adapter-and-simulator.md` | Exists | ADR (D37): hand-written Alpaca adapter, in-process simulator, single market-data socket, credential-free test fake |
 | `docs/adr/0018-broker-gateway-interface.md` | Exists | ADR (D36): one gRPC broker interface for every adapter, typed error model, canonical execution IDs, outbox-backed events |
 | `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2): NATS JetStream, `sync_interval: always`, stream layout, outbox |
-| `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, broker outage (later: kill switch, reconciliation break) |
+| `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, broker outage, market data (stale, slow, gaps, reconciliation breaches, corporate-action disputes) (later: kill switch, ledger reconciliation break) |
 | `docs/threat-model.md` | Exists | Assets, actors, entry points, STRIDE table mapped to SE-/OP- rules, residual risks |
 
 ## Contracts: `contracts/`
@@ -142,7 +143,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 |---|---|---|
 | `services/api-gateway/` | Exists | Go: owner auth (passkeys, TOTP, recovery), sessions, CSRF, step-up, settings, audit API, credential write-through, SSE status stream, static UI. Layout in [`services/api-gateway/AGENTS.md`](../services/api-gateway/AGENTS.md) |
 | `services/broker-gateway/` | Exists | Go: broker-credential custody (envelope encryption, KEK ring, write-only gRPC `CredentialService`); `BrokerGatewayService` + `BrokerMarketDataService` with the Alpaca adapter, simulator, session engine, outbox-backed events, market-data hub, and the shared contract suite. Layout in [`services/broker-gateway/AGENTS.md`](../services/broker-gateway/AGENTS.md) |
-| `services/marketdata/` | Exists | Go: single lake writer (Parquet staging/compaction/revisions, manifest), reference data (`refdata`), data-quality checks, spike harnesses; ingestion with section 05. [`AGENTS.md`](../services/marketdata/AGENTS.md) |
+| `services/marketdata/` | Exists | Go: single lake writer (Parquet staging/compaction/revisions, manifest), reference data (`refdata`) and its daily sync, data-quality checks, resumable backfill, live bar pipeline (finality, resampling, gap repair, bus/cache/lake sinks), FMP client, cross-source reconciliation, scheduler, `MarketDataService`, spike harnesses (V2, V3, V4). [`AGENTS.md`](../services/marketdata/AGENTS.md) |
 | `services/execution/` | Exists (placeholder) | Go: ops surface + NATS + clock-skew check; `tb_trading_enabled=0` until Phase 2. [`AGENTS.md`](../services/execution/AGENTS.md) |
 | `services/ledger/` | Exists (placeholder) | Go: ops surface + NATS; ledgers in Phase 2. [`AGENTS.md`](../services/ledger/AGENTS.md) |
 | `services/context-data/` | Exists (placeholder) | Python on `tbcore`: ops surface; context data in Phase 3 |
@@ -171,7 +172,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 |---|---|---|
 | `tests/python/` | Exists | Cross-package Python tests (placeholder services' ops surface) |
 | `tests/e2e/` | Exists | Go end-to-end test against the running stack: passkey setup/login, step-up, credential storage with leak canary, SSE, audit (`make e2e`, used by the smoke test) |
-| `tests/fixtures/` | Exists | Fixtures (no account data): `alpaca/` (bars, corporate actions, data-stream messages; README explains provenance), `lake/` (Go-written sample lake with a revision and a staged file, read by Python tests), `dq/` (injected-defect bars + expected report shared by Go and Python) |
+| `tests/fixtures/` | Exists | Fixtures (no account data): `alpaca/` (bars, corporate actions, data-stream messages; README explains provenance), `lake/` (Go-written sample lake with a revision and a staged file, read by Python tests), `dq/` (injected-defect bars + expected report shared by Go and Python), `fmp/` (`/stable` response shapes for the FMP client tests) |
 
 ## Infra: `infra/` (agent notes in `infra/AGENTS.md`)
 
@@ -181,7 +182,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `infra/compose/` | Exists | `docker-compose.yml` (profiles core, observability, ml, ml-workers, ops, remote-cloudflare), native-ML overlay, `nats/nats.conf`, `env.example` |
 | `infra/docker/` | Exists | Go (service/gateway targets), Python, ops, and MLflow images; MLflow entrypoint |
 | `infra/ops/` | Exists | `backup.sh`, `restore.sh`, `secrets-bundle.sh` (run in the ops image) |
-| `infra/observability/` | Exists | Prometheus scrape config and alert rules, Alertmanager routing, Alloy config, Grafana provisioning and "Stack overview" dashboard |
+| `infra/observability/` | Exists | Prometheus scrape config and alert rules, Alertmanager routing, Alloy config, Grafana provisioning and the "Stack overview" and "Market data and brokers" dashboards; market-data/broker alert rules (`prometheus/rules/marketdata-brokers.yml`) |
 | `infra/macos/` | Exists | LaunchDaemon templates (Colima at boot, stack auto-start, native ML worker), `install.sh`, `start-stack.sh` |
 | `infra/secrets/` | Exists | SOPS-encrypted bundles only (`.gitkeep` until the owner runs `make secrets-encrypt`) |
 | `infra/terraform/` | Planned | Remote server provisioning (Phase 6) |

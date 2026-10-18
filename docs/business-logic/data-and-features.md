@@ -60,4 +60,4 @@ Market and context data correctness, point-in-time access, corporate-action adju
 
 ## Open questions
 
-- Publication delay defaults per feed and source (section 05, MD rules).
+- None open; publication delays are set by MD-003.

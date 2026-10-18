@@ -4,8 +4,8 @@
 
 // Market data records produced by `marketdata` (bus subjects md.*, lake, cache).
 
-import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
-import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import type { Decimal } from "../../common/v1/common_pb";
 import { file_tb_common_v1_common } from "../../common/v1/common_pb";
 import type { Message } from "@bufbuild/protobuf";
@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file tb/marketdata/v1/marketdata.proto.
  */
 export const file_tb_marketdata_v1_marketdata: GenFile = /*@__PURE__*/
-  fileDesc("CiF0Yi9tYXJrZXRkYXRhL3YxL21hcmtldGRhdGEucHJvdG8SEHRiLm1hcmtldGRhdGEudjEi3AQKA0JhchIVCg1pbnN0cnVtZW50X2lkGAEgASgJEi4KCXRpbWVmcmFtZRgCIAEoDjIbLnRiLm1hcmtldGRhdGEudjEuVGltZWZyYW1lEg8KB3RzX29wZW4YAyABKAMSEAoIdHNfY2xvc2UYBCABKAMSIwoEb3BlbhgFIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiMKBGhpZ2gYBiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIiCgNsb3cYByABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIkCgVjbG9zZRgIIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiUKBnZvbHVtZRgJIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiMKBHZ3YXAYCiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBITCgt0cmFkZV9jb3VudBgLIAEoAxIMCgRmZWVkGAwgASgJEhAKCGlzX2ZpbmFsGA0gASgIEhQKDGF2YWlsYWJsZV9hdBgOIAEoAxITCgtpbmdlc3RlZF9hdBgPIAEoAxIOCgZzb3VyY2UYECABKAkSEAoIcmV2aXNpb24YESABKAUSOwoQYWRqdXN0bWVudF9iYXNpcxgSIAEoDjIhLnRiLm1hcmtldGRhdGEudjEuQWRqdXN0bWVudEJhc2lzEioKB3Nlc3Npb24YEyABKA4yGS50Yi5tYXJrZXRkYXRhLnYxLlNlc3Npb24SEAoIcmVwYWlyZWQYFCABKAgSDgoGc3ltYm9sGBUgASgJIrUCCgVRdW90ZRIVCg1pbnN0cnVtZW50X2lkGAEgASgJEhIKCmV2ZW50X3RpbWUYAiABKAMSKAoJYmlkX3ByaWNlGAMgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJwoIYmlkX3NpemUYBCABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIoCglhc2tfcHJpY2UYBSABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBInCghhc2tfc2l6ZRgGIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEhIKCmNvbmRpdGlvbnMYByADKAkSDAoEZmVlZBgIIAEoCRIUCgxhdmFpbGFibGVfYXQYCSABKAMSEwoLaW5nZXN0ZWRfYXQYCiABKAMSDgoGc3ltYm9sGAsgASgJIv4BCgVUcmFkZRIVCg1pbnN0cnVtZW50X2lkGAEgASgJEhIKCmV2ZW50X3RpbWUYAiABKAMSJAoFcHJpY2UYAyABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIjCgRzaXplGAQgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSEgoKY29uZGl0aW9ucxgFIAMoCRIMCgRmZWVkGAYgASgJEhQKDGF2YWlsYWJsZV9hdBgHIAEoAxITCgtpbmdlc3RlZF9hdBgIIAEoAxIOCgZzeW1ib2wYCSABKAkSEAoIdHJhZGVfaWQYCiABKAkSEAoIZXhjaGFuZ2UYCyABKAki1QMKD0NvcnBvcmF0ZUFjdGlvbhIVCg1pbnN0cnVtZW50X2lkGAEgASgJEjMKBHR5cGUYAiABKA4yJS50Yi5tYXJrZXRkYXRhLnYxLkNvcnBvcmF0ZUFjdGlvblR5cGUSDwoHZXhfZGF0ZRgDIAEoAxIkCgVyYXRpbxgEIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiUKBmFtb3VudBgFIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEh8KF3N1Y2Nlc3Nvcl9pbnN0cnVtZW50X2lkGAYgASgJEg4KBnNvdXJjZRgHIAEoCRIUCgxhdmFpbGFibGVfYXQYCCABKAMSEwoLaW5nZXN0ZWRfYXQYCSABKAMSDgoGc3ltYm9sGAogASgJEhIKCm5ld19zeW1ib2wYCyABKAkSEwoLcmVjb3JkX2RhdGUYDCABKAMSFAoMcGF5YWJsZV9kYXRlGA0gASgDEhMKC2RlY2xhcmVkX2F0GA4gASgDEhEKCXNvdXJjZV9pZBgPIAEoCRI0CglhZ3JlZW1lbnQYECABKA4yIS50Yi5tYXJrZXRkYXRhLnYxLkFncmVlbWVudFN0YXR1cxIPCgdzb3VyY2VzGBEgAygJKpQBCglUaW1lZnJhbWUSGQoVVElNRUZSQU1FX1VOU1BFQ0lGSUVEEAASEAoMVElNRUZSQU1FXzFNEAESEAoMVElNRUZSQU1FXzVNEAISEQoNVElNRUZSQU1FXzE1TRADEhAKDFRJTUVGUkFNRV8xSBAEEhAKDFRJTUVGUkFNRV8xRBAFEhEKDVRJTUVGUkFNRV8zME0QBiqJAQoPQWRqdXN0bWVudEJhc2lzEiAKHEFESlVTVE1FTlRfQkFTSVNfVU5TUEVDSUZJRUQQABIYChRBREpVU1RNRU5UX0JBU0lTX1JBVxABEhoKFkFESlVTVE1FTlRfQkFTSVNfU1BMSVQQAhIeChpBREpVU1RNRU5UX0JBU0lTX1NQTElUX0RJVhADKloKB1Nlc3Npb24SFwoTU0VTU0lPTl9VTlNQRUNJRklFRBAAEg8KC1NFU1NJT05fUFJFEAESEwoPU0VTU0lPTl9SRUdVTEFSEAISEAoMU0VTU0lPTl9QT1NUEAMqlAEKD0FncmVlbWVudFN0YXR1cxIgChxBR1JFRU1FTlRfU1RBVFVTX1VOU1BFQ0lGSUVEEAASIgoeQUdSRUVNRU5UX1NUQVRVU19TSU5HTEVfU09VUkNFEAESGwoXQUdSRUVNRU5UX1NUQVRVU19BR1JFRUQQAhIeChpBR1JFRU1FTlRfU1RBVFVTX0RJU0FHUkVFRBADKpUCChNDb3Jwb3JhdGVBY3Rpb25UeXBlEiUKIUNPUlBPUkFURV9BQ1RJT05fVFlQRV9VTlNQRUNJRklFRBAAEh8KG0NPUlBPUkFURV9BQ1RJT05fVFlQRV9TUExJVBABEiIKHkNPUlBPUkFURV9BQ1RJT05fVFlQRV9ESVZJREVORBACEicKI0NPUlBPUkFURV9BQ1RJT05fVFlQRV9TWU1CT0xfQ0hBTkdFEAMSIwofQ09SUE9SQVRFX0FDVElPTl9UWVBFX0RFTElTVElORxAEEiAKHENPUlBPUkFURV9BQ1RJT05fVFlQRV9NRVJHRVIQBRIiCh5DT1JQT1JBVEVfQUNUSU9OX1RZUEVfU1BJTl9PRkYQBkLYAQoUY29tLnRiLm1hcmtldGRhdGEudjFCD01hcmtldGRhdGFQcm90b1ABWk1naXRodWIuY29tL2lsbHlhbnljL3N0cmF3YmVycnkvY29udHJhY3RzL2dlbi9nby90Yi9tYXJrZXRkYXRhL3YxO21hcmtldGRhdGF2MaICA1RNWKoCEFRiLk1hcmtldGRhdGEuVjHKAhBUYlxNYXJrZXRkYXRhXFYx4gIcVGJcTWFya2V0ZGF0YVxWMVxHUEJNZXRhZGF0YeoCElRiOjpNYXJrZXRkYXRhOjpWMWIGcHJvdG8z", [file_tb_common_v1_common]);
+  fileDesc("CiF0Yi9tYXJrZXRkYXRhL3YxL21hcmtldGRhdGEucHJvdG8SEHRiLm1hcmtldGRhdGEudjEi3AQKA0JhchIVCg1pbnN0cnVtZW50X2lkGAEgASgJEi4KCXRpbWVmcmFtZRgCIAEoDjIbLnRiLm1hcmtldGRhdGEudjEuVGltZWZyYW1lEg8KB3RzX29wZW4YAyABKAMSEAoIdHNfY2xvc2UYBCABKAMSIwoEb3BlbhgFIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiMKBGhpZ2gYBiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIiCgNsb3cYByABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIkCgVjbG9zZRgIIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiUKBnZvbHVtZRgJIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiMKBHZ3YXAYCiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBITCgt0cmFkZV9jb3VudBgLIAEoAxIMCgRmZWVkGAwgASgJEhAKCGlzX2ZpbmFsGA0gASgIEhQKDGF2YWlsYWJsZV9hdBgOIAEoAxITCgtpbmdlc3RlZF9hdBgPIAEoAxIOCgZzb3VyY2UYECABKAkSEAoIcmV2aXNpb24YESABKAUSOwoQYWRqdXN0bWVudF9iYXNpcxgSIAEoDjIhLnRiLm1hcmtldGRhdGEudjEuQWRqdXN0bWVudEJhc2lzEioKB3Nlc3Npb24YEyABKA4yGS50Yi5tYXJrZXRkYXRhLnYxLlNlc3Npb24SEAoIcmVwYWlyZWQYFCABKAgSDgoGc3ltYm9sGBUgASgJIrUCCgVRdW90ZRIVCg1pbnN0cnVtZW50X2lkGAEgASgJEhIKCmV2ZW50X3RpbWUYAiABKAMSKAoJYmlkX3ByaWNlGAMgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJwoIYmlkX3NpemUYBCABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIoCglhc2tfcHJpY2UYBSABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBInCghhc2tfc2l6ZRgGIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEhIKCmNvbmRpdGlvbnMYByADKAkSDAoEZmVlZBgIIAEoCRIUCgxhdmFpbGFibGVfYXQYCSABKAMSEwoLaW5nZXN0ZWRfYXQYCiABKAMSDgoGc3ltYm9sGAsgASgJIv4BCgVUcmFkZRIVCg1pbnN0cnVtZW50X2lkGAEgASgJEhIKCmV2ZW50X3RpbWUYAiABKAMSJAoFcHJpY2UYAyABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIjCgRzaXplGAQgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSEgoKY29uZGl0aW9ucxgFIAMoCRIMCgRmZWVkGAYgASgJEhQKDGF2YWlsYWJsZV9hdBgHIAEoAxITCgtpbmdlc3RlZF9hdBgIIAEoAxIOCgZzeW1ib2wYCSABKAkSEAoIdHJhZGVfaWQYCiABKAkSEAoIZXhjaGFuZ2UYCyABKAki1QMKD0NvcnBvcmF0ZUFjdGlvbhIVCg1pbnN0cnVtZW50X2lkGAEgASgJEjMKBHR5cGUYAiABKA4yJS50Yi5tYXJrZXRkYXRhLnYxLkNvcnBvcmF0ZUFjdGlvblR5cGUSDwoHZXhfZGF0ZRgDIAEoAxIkCgVyYXRpbxgEIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiUKBmFtb3VudBgFIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEh8KF3N1Y2Nlc3Nvcl9pbnN0cnVtZW50X2lkGAYgASgJEg4KBnNvdXJjZRgHIAEoCRIUCgxhdmFpbGFibGVfYXQYCCABKAMSEwoLaW5nZXN0ZWRfYXQYCSABKAMSDgoGc3ltYm9sGAogASgJEhIKCm5ld19zeW1ib2wYCyABKAkSEwoLcmVjb3JkX2RhdGUYDCABKAMSFAoMcGF5YWJsZV9kYXRlGA0gASgDEhMKC2RlY2xhcmVkX2F0GA4gASgDEhEKCXNvdXJjZV9pZBgPIAEoCRI0CglhZ3JlZW1lbnQYECABKA4yIS50Yi5tYXJrZXRkYXRhLnYxLkFncmVlbWVudFN0YXR1cxIPCgdzb3VyY2VzGBEgAygJIq4BCg9CYWNrZmlsbFJlcXVlc3QSFgoOaW5zdHJ1bWVudF9pZHMYASADKAkSEAoIdW5pdmVyc2UYAiABKAkSLwoKdGltZWZyYW1lcxgDIAMoDjIbLnRiLm1hcmtldGRhdGEudjEuVGltZWZyYW1lEg0KBXN0YXJ0GAQgASgDEgsKA2VuZBgFIAEoAxIOCgZzb3VyY2UYBiABKAkSFAoMcmVxdWVzdGVkX2J5GAcgASgJIiIKEEJhY2tmaWxsUmVzcG9uc2USDgoGam9iX2lkGAEgASgJIioKGEdldEJhY2tmaWxsU3RhdHVzUmVxdWVzdBIOCgZqb2JfaWQYASABKAkiwAIKDkJhY2tmaWxsUmVwb3J0EhQKDGNodW5rc190b3RhbBgBIAEoAxITCgtjaHVua3NfZG9uZRgCIAEoAxIUCgxyb3dzX2ZldGNoZWQYAyABKAMSEgoKcm93c19hZGRlZBgEIAEoAxIUCgxyb3dzX3JldmlzZWQYBSABKAMSEgoKZ2Fwc19mb3VuZBgGIAEoAxIVCg1nYXBzX3JlcGFpcmVkGAcgASgDEh4KFmdhcHNfY29uZmlybWVkX21pc3NpbmcYCCABKAMSRQoLZHFfZmluZGluZ3MYCSADKAsyMC50Yi5tYXJrZXRkYXRhLnYxLkJhY2tmaWxsUmVwb3J0LkRxRmluZGluZ3NFbnRyeRoxCg9EcUZpbmRpbmdzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgDOgI4ASLAAQoZR2V0QmFja2ZpbGxTdGF0dXNSZXNwb25zZRIOCgZqb2JfaWQYASABKAkSKQoFc3RhdGUYAiABKA4yGi50Yi5tYXJrZXRkYXRhLnYxLkpvYlN0YXRlEjAKBnJlcG9ydBgDIAEoCzIgLnRiLm1hcmtldGRhdGEudjEuQmFja2ZpbGxSZXBvcnQSDQoFZXJyb3IYBCABKAkSEgoKc3RhcnRlZF9hdBgFIAEoAxITCgtmaW5pc2hlZF9hdBgGIAEoAyI+ChJTZXRVbml2ZXJzZVJlcXVlc3QSEAoIdW5pdmVyc2UYASABKAkSFgoOaW5zdHJ1bWVudF9pZHMYAiADKAkiKQoTU2V0VW5pdmVyc2VSZXNwb25zZRISCgpzdWJzY3JpYmVkGAEgASgFInwKCkZlZWRTdGF0dXMSDAoEZmVlZBgBIAEoCRIRCgljb25uZWN0ZWQYAiABKAgSFwoPbGFzdF9tZXNzYWdlX2F0GAMgASgDEg4KBmxhZ19tcxgEIAEoAxIVCg1zeW1ib2xzX3N0YWxlGAUgAygJEg0KBXN0YXRlGAYgASgJIhYKFEdldEZlZWRTdGF0dXNSZXF1ZXN0IkQKFUdldEZlZWRTdGF0dXNSZXNwb25zZRIrCgVmZWVkcxgBIAMoCzIcLnRiLm1hcmtldGRhdGEudjEuRmVlZFN0YXR1cyJoCg5Jc0ZyZXNoUmVxdWVzdBIVCg1pbnN0cnVtZW50X2lkGAEgASgJEi4KCXRpbWVmcmFtZRgCIAEoDjIbLnRiLm1hcmtldGRhdGEudjEuVGltZWZyYW1lEg8KB21heF9hZ2UYAyABKAMiSAoPSXNGcmVzaFJlc3BvbnNlEg0KBWZyZXNoGAEgASgIEhYKDmxhc3RfYmFyX2Nsb3NlGAIgASgDEg4KBnJlYXNvbhgDIAEoCSKnAQoMU291cmNlSGVhbHRoEg4KBnNvdXJjZRgBIAEoCRIbChNsYXN0X21lc3NhZ2VfYWdlX21zGAIgASgDEhEKCWdhcF9jb3VudBgDIAEoAxISCgplcnJvcl9yYXRlGAQgASgBEhUKDWJyZWFrZXJfc3RhdGUYBSABKAkSHQoVcmVjb25jaWxpYXRpb25fc3RhdHVzGAYgASgJEg0KBWFzX29mGAcgASgDKpQBCglUaW1lZnJhbWUSGQoVVElNRUZSQU1FX1VOU1BFQ0lGSUVEEAASEAoMVElNRUZSQU1FXzFNEAESEAoMVElNRUZSQU1FXzVNEAISEQoNVElNRUZSQU1FXzE1TRADEhAKDFRJTUVGUkFNRV8xSBAEEhAKDFRJTUVGUkFNRV8xRBAFEhEKDVRJTUVGUkFNRV8zME0QBiqJAQoPQWRqdXN0bWVudEJhc2lzEiAKHEFESlVTVE1FTlRfQkFTSVNfVU5TUEVDSUZJRUQQABIYChRBREpVU1RNRU5UX0JBU0lTX1JBVxABEhoKFkFESlVTVE1FTlRfQkFTSVNfU1BMSVQQAhIeChpBREpVU1RNRU5UX0JBU0lTX1NQTElUX0RJVhADKloKB1Nlc3Npb24SFwoTU0VTU0lPTl9VTlNQRUNJRklFRBAAEg8KC1NFU1NJT05fUFJFEAESEwoPU0VTU0lPTl9SRUdVTEFSEAISEAoMU0VTU0lPTl9QT1NUEAMqlAEKD0FncmVlbWVudFN0YXR1cxIgChxBR1JFRU1FTlRfU1RBVFVTX1VOU1BFQ0lGSUVEEAASIgoeQUdSRUVNRU5UX1NUQVRVU19TSU5HTEVfU09VUkNFEAESGwoXQUdSRUVNRU5UX1NUQVRVU19BR1JFRUQQAhIeChpBR1JFRU1FTlRfU1RBVFVTX0RJU0FHUkVFRBADKpUCChNDb3Jwb3JhdGVBY3Rpb25UeXBlEiUKIUNPUlBPUkFURV9BQ1RJT05fVFlQRV9VTlNQRUNJRklFRBAAEh8KG0NPUlBPUkFURV9BQ1RJT05fVFlQRV9TUExJVBABEiIKHkNPUlBPUkFURV9BQ1RJT05fVFlQRV9ESVZJREVORBACEicKI0NPUlBPUkFURV9BQ1RJT05fVFlQRV9TWU1CT0xfQ0hBTkdFEAMSIwofQ09SUE9SQVRFX0FDVElPTl9UWVBFX0RFTElTVElORxAEEiAKHENPUlBPUkFURV9BQ1RJT05fVFlQRV9NRVJHRVIQBRIiCh5DT1JQT1JBVEVfQUNUSU9OX1RZUEVfU1BJTl9PRkYQBiqkAQoISm9iU3RhdGUSGQoVSk9CX1NUQVRFX1VOU1BFQ0lGSUVEEAASFAoQSk9CX1NUQVRFX1FVRVVFRBABEhUKEUpPQl9TVEFURV9SVU5OSU5HEAISFwoTSk9CX1NUQVRFX1NVQ0NFRURFRBADEhQKEEpPQl9TVEFURV9GQUlMRUQQBBIhCh1KT0JfU1RBVEVfU1VDQ0VFREVEX1dJVEhfR0FQUxAFMuIDChFNYXJrZXREYXRhU2VydmljZRJRCghCYWNrZmlsbBIhLnRiLm1hcmtldGRhdGEudjEuQmFja2ZpbGxSZXF1ZXN0GiIudGIubWFya2V0ZGF0YS52MS5CYWNrZmlsbFJlc3BvbnNlEmwKEUdldEJhY2tmaWxsU3RhdHVzEioudGIubWFya2V0ZGF0YS52MS5HZXRCYWNrZmlsbFN0YXR1c1JlcXVlc3QaKy50Yi5tYXJrZXRkYXRhLnYxLkdldEJhY2tmaWxsU3RhdHVzUmVzcG9uc2USWgoLU2V0VW5pdmVyc2USJC50Yi5tYXJrZXRkYXRhLnYxLlNldFVuaXZlcnNlUmVxdWVzdBolLnRiLm1hcmtldGRhdGEudjEuU2V0VW5pdmVyc2VSZXNwb25zZRJgCg1HZXRGZWVkU3RhdHVzEiYudGIubWFya2V0ZGF0YS52MS5HZXRGZWVkU3RhdHVzUmVxdWVzdBonLnRiLm1hcmtldGRhdGEudjEuR2V0RmVlZFN0YXR1c1Jlc3BvbnNlEk4KB0lzRnJlc2gSIC50Yi5tYXJrZXRkYXRhLnYxLklzRnJlc2hSZXF1ZXN0GiEudGIubWFya2V0ZGF0YS52MS5Jc0ZyZXNoUmVzcG9uc2VC2AEKFGNvbS50Yi5tYXJrZXRkYXRhLnYxQg9NYXJrZXRkYXRhUHJvdG9QAVpNZ2l0aHViLmNvbS9pbGx5YW55Yy9zdHJhd2JlcnJ5L2NvbnRyYWN0cy9nZW4vZ28vdGIvbWFya2V0ZGF0YS92MTttYXJrZXRkYXRhdjGiAgNUTViqAhBUYi5NYXJrZXRkYXRhLlYxygIQVGJcTWFya2V0ZGF0YVxWMeICHFRiXE1hcmtldGRhdGFcVjFcR1BCTWV0YWRhdGHqAhJUYjo6TWFya2V0ZGF0YTo6VjFiBnByb3RvMw", [file_tb_common_v1_common]);
 
 /**
  * Bar is raw (unadjusted) OHLCV (rule DF-005). Available at ts_close plus the feed's publication delay.
@@ -401,6 +401,410 @@ export const CorporateActionSchema: GenMessage<CorporateAction> = /*@__PURE__*/
   messageDesc(file_tb_marketdata_v1_marketdata, 3);
 
 /**
+ * @generated from message tb.marketdata.v1.BackfillRequest
+ */
+export type BackfillRequest = Message<"tb.marketdata.v1.BackfillRequest"> & {
+  /**
+   * Instrument IDs; empty means the named universe.
+   *
+   * @generated from field: repeated string instrument_ids = 1;
+   */
+  instrumentIds: string[];
+
+  /**
+   * @generated from field: string universe = 2;
+   */
+  universe: string;
+
+  /**
+   * @generated from field: repeated tb.marketdata.v1.Timeframe timeframes = 3;
+   */
+  timeframes: Timeframe[];
+
+  /**
+   * @generated from field: int64 start = 4;
+   */
+  start: bigint;
+
+  /**
+   * @generated from field: int64 end = 5;
+   */
+  end: bigint;
+
+  /**
+   * Source, e.g. "alpaca.sip", "alpaca.iex", "fmp".
+   *
+   * @generated from field: string source = 6;
+   */
+  source: string;
+
+  /**
+   * @generated from field: string requested_by = 7;
+   */
+  requestedBy: string;
+};
+
+/**
+ * Describes the message tb.marketdata.v1.BackfillRequest.
+ * Use `create(BackfillRequestSchema)` to create a new message.
+ */
+export const BackfillRequestSchema: GenMessage<BackfillRequest> = /*@__PURE__*/
+  messageDesc(file_tb_marketdata_v1_marketdata, 4);
+
+/**
+ * @generated from message tb.marketdata.v1.BackfillResponse
+ */
+export type BackfillResponse = Message<"tb.marketdata.v1.BackfillResponse"> & {
+  /**
+   * @generated from field: string job_id = 1;
+   */
+  jobId: string;
+};
+
+/**
+ * Describes the message tb.marketdata.v1.BackfillResponse.
+ * Use `create(BackfillResponseSchema)` to create a new message.
+ */
+export const BackfillResponseSchema: GenMessage<BackfillResponse> = /*@__PURE__*/
+  messageDesc(file_tb_marketdata_v1_marketdata, 5);
+
+/**
+ * @generated from message tb.marketdata.v1.GetBackfillStatusRequest
+ */
+export type GetBackfillStatusRequest = Message<"tb.marketdata.v1.GetBackfillStatusRequest"> & {
+  /**
+   * @generated from field: string job_id = 1;
+   */
+  jobId: string;
+};
+
+/**
+ * Describes the message tb.marketdata.v1.GetBackfillStatusRequest.
+ * Use `create(GetBackfillStatusRequestSchema)` to create a new message.
+ */
+export const GetBackfillStatusRequestSchema: GenMessage<GetBackfillStatusRequest> = /*@__PURE__*/
+  messageDesc(file_tb_marketdata_v1_marketdata, 6);
+
+/**
+ * @generated from message tb.marketdata.v1.BackfillReport
+ */
+export type BackfillReport = Message<"tb.marketdata.v1.BackfillReport"> & {
+  /**
+   * @generated from field: int64 chunks_total = 1;
+   */
+  chunksTotal: bigint;
+
+  /**
+   * @generated from field: int64 chunks_done = 2;
+   */
+  chunksDone: bigint;
+
+  /**
+   * @generated from field: int64 rows_fetched = 3;
+   */
+  rowsFetched: bigint;
+
+  /**
+   * Rows that were new after compaction (a rerun reports 0, ST-004).
+   *
+   * @generated from field: int64 rows_added = 4;
+   */
+  rowsAdded: bigint;
+
+  /**
+   * @generated from field: int64 rows_revised = 5;
+   */
+  rowsRevised: bigint;
+
+  /**
+   * @generated from field: int64 gaps_found = 6;
+   */
+  gapsFound: bigint;
+
+  /**
+   * @generated from field: int64 gaps_repaired = 7;
+   */
+  gapsRepaired: bigint;
+
+  /**
+   * Missing bars the source confirmed it does not have (e.g. no trades), recorded as coverage gaps.
+   *
+   * @generated from field: int64 gaps_confirmed_missing = 8;
+   */
+  gapsConfirmedMissing: bigint;
+
+  /**
+   * @generated from field: map<string, int64> dq_findings = 9;
+   */
+  dqFindings: { [key: string]: bigint };
+};
+
+/**
+ * Describes the message tb.marketdata.v1.BackfillReport.
+ * Use `create(BackfillReportSchema)` to create a new message.
+ */
+export const BackfillReportSchema: GenMessage<BackfillReport> = /*@__PURE__*/
+  messageDesc(file_tb_marketdata_v1_marketdata, 7);
+
+/**
+ * @generated from message tb.marketdata.v1.GetBackfillStatusResponse
+ */
+export type GetBackfillStatusResponse = Message<"tb.marketdata.v1.GetBackfillStatusResponse"> & {
+  /**
+   * @generated from field: string job_id = 1;
+   */
+  jobId: string;
+
+  /**
+   * @generated from field: tb.marketdata.v1.JobState state = 2;
+   */
+  state: JobState;
+
+  /**
+   * @generated from field: tb.marketdata.v1.BackfillReport report = 3;
+   */
+  report?: BackfillReport | undefined;
+
+  /**
+   * @generated from field: string error = 4;
+   */
+  error: string;
+
+  /**
+   * @generated from field: int64 started_at = 5;
+   */
+  startedAt: bigint;
+
+  /**
+   * @generated from field: int64 finished_at = 6;
+   */
+  finishedAt: bigint;
+};
+
+/**
+ * Describes the message tb.marketdata.v1.GetBackfillStatusResponse.
+ * Use `create(GetBackfillStatusResponseSchema)` to create a new message.
+ */
+export const GetBackfillStatusResponseSchema: GenMessage<GetBackfillStatusResponse> = /*@__PURE__*/
+  messageDesc(file_tb_marketdata_v1_marketdata, 8);
+
+/**
+ * @generated from message tb.marketdata.v1.SetUniverseRequest
+ */
+export type SetUniverseRequest = Message<"tb.marketdata.v1.SetUniverseRequest"> & {
+  /**
+   * @generated from field: string universe = 1;
+   */
+  universe: string;
+
+  /**
+   * @generated from field: repeated string instrument_ids = 2;
+   */
+  instrumentIds: string[];
+};
+
+/**
+ * Describes the message tb.marketdata.v1.SetUniverseRequest.
+ * Use `create(SetUniverseRequestSchema)` to create a new message.
+ */
+export const SetUniverseRequestSchema: GenMessage<SetUniverseRequest> = /*@__PURE__*/
+  messageDesc(file_tb_marketdata_v1_marketdata, 9);
+
+/**
+ * @generated from message tb.marketdata.v1.SetUniverseResponse
+ */
+export type SetUniverseResponse = Message<"tb.marketdata.v1.SetUniverseResponse"> & {
+  /**
+   * @generated from field: int32 subscribed = 1;
+   */
+  subscribed: number;
+};
+
+/**
+ * Describes the message tb.marketdata.v1.SetUniverseResponse.
+ * Use `create(SetUniverseResponseSchema)` to create a new message.
+ */
+export const SetUniverseResponseSchema: GenMessage<SetUniverseResponse> = /*@__PURE__*/
+  messageDesc(file_tb_marketdata_v1_marketdata, 10);
+
+/**
+ * @generated from message tb.marketdata.v1.FeedStatus
+ */
+export type FeedStatus = Message<"tb.marketdata.v1.FeedStatus"> & {
+  /**
+   * @generated from field: string feed = 1;
+   */
+  feed: string;
+
+  /**
+   * @generated from field: bool connected = 2;
+   */
+  connected: boolean;
+
+  /**
+   * @generated from field: int64 last_message_at = 3;
+   */
+  lastMessageAt: bigint;
+
+  /**
+   * @generated from field: int64 lag_ms = 4;
+   */
+  lagMs: bigint;
+
+  /**
+   * @generated from field: repeated string symbols_stale = 5;
+   */
+  symbolsStale: string[];
+
+  /**
+   * @generated from field: string state = 6;
+   */
+  state: string;
+};
+
+/**
+ * Describes the message tb.marketdata.v1.FeedStatus.
+ * Use `create(FeedStatusSchema)` to create a new message.
+ */
+export const FeedStatusSchema: GenMessage<FeedStatus> = /*@__PURE__*/
+  messageDesc(file_tb_marketdata_v1_marketdata, 11);
+
+/**
+ * @generated from message tb.marketdata.v1.GetFeedStatusRequest
+ */
+export type GetFeedStatusRequest = Message<"tb.marketdata.v1.GetFeedStatusRequest"> & {
+};
+
+/**
+ * Describes the message tb.marketdata.v1.GetFeedStatusRequest.
+ * Use `create(GetFeedStatusRequestSchema)` to create a new message.
+ */
+export const GetFeedStatusRequestSchema: GenMessage<GetFeedStatusRequest> = /*@__PURE__*/
+  messageDesc(file_tb_marketdata_v1_marketdata, 12);
+
+/**
+ * @generated from message tb.marketdata.v1.GetFeedStatusResponse
+ */
+export type GetFeedStatusResponse = Message<"tb.marketdata.v1.GetFeedStatusResponse"> & {
+  /**
+   * @generated from field: repeated tb.marketdata.v1.FeedStatus feeds = 1;
+   */
+  feeds: FeedStatus[];
+};
+
+/**
+ * Describes the message tb.marketdata.v1.GetFeedStatusResponse.
+ * Use `create(GetFeedStatusResponseSchema)` to create a new message.
+ */
+export const GetFeedStatusResponseSchema: GenMessage<GetFeedStatusResponse> = /*@__PURE__*/
+  messageDesc(file_tb_marketdata_v1_marketdata, 13);
+
+/**
+ * @generated from message tb.marketdata.v1.IsFreshRequest
+ */
+export type IsFreshRequest = Message<"tb.marketdata.v1.IsFreshRequest"> & {
+  /**
+   * @generated from field: string instrument_id = 1;
+   */
+  instrumentId: string;
+
+  /**
+   * @generated from field: tb.marketdata.v1.Timeframe timeframe = 2;
+   */
+  timeframe: Timeframe;
+
+  /**
+   * Maximum age of the latest final bar's close, ns; 0 = two bar intervals (RM-004 default).
+   *
+   * @generated from field: int64 max_age = 3;
+   */
+  maxAge: bigint;
+};
+
+/**
+ * Describes the message tb.marketdata.v1.IsFreshRequest.
+ * Use `create(IsFreshRequestSchema)` to create a new message.
+ */
+export const IsFreshRequestSchema: GenMessage<IsFreshRequest> = /*@__PURE__*/
+  messageDesc(file_tb_marketdata_v1_marketdata, 14);
+
+/**
+ * @generated from message tb.marketdata.v1.IsFreshResponse
+ */
+export type IsFreshResponse = Message<"tb.marketdata.v1.IsFreshResponse"> & {
+  /**
+   * @generated from field: bool fresh = 1;
+   */
+  fresh: boolean;
+
+  /**
+   * @generated from field: int64 last_bar_close = 2;
+   */
+  lastBarClose: bigint;
+
+  /**
+   * @generated from field: string reason = 3;
+   */
+  reason: string;
+};
+
+/**
+ * Describes the message tb.marketdata.v1.IsFreshResponse.
+ * Use `create(IsFreshResponseSchema)` to create a new message.
+ */
+export const IsFreshResponseSchema: GenMessage<IsFreshResponse> = /*@__PURE__*/
+  messageDesc(file_tb_marketdata_v1_marketdata, 15);
+
+/**
+ * SourceHealth is published on sys.health.<source> by marketdata (and context-data) (MD-008).
+ *
+ * @generated from message tb.marketdata.v1.SourceHealth
+ */
+export type SourceHealth = Message<"tb.marketdata.v1.SourceHealth"> & {
+  /**
+   * @generated from field: string source = 1;
+   */
+  source: string;
+
+  /**
+   * @generated from field: int64 last_message_age_ms = 2;
+   */
+  lastMessageAgeMs: bigint;
+
+  /**
+   * @generated from field: int64 gap_count = 3;
+   */
+  gapCount: bigint;
+
+  /**
+   * @generated from field: double error_rate = 4;
+   */
+  errorRate: number;
+
+  /**
+   * @generated from field: string breaker_state = 5;
+   */
+  breakerState: string;
+
+  /**
+   * @generated from field: string reconciliation_status = 6;
+   */
+  reconciliationStatus: string;
+
+  /**
+   * @generated from field: int64 as_of = 7;
+   */
+  asOf: bigint;
+};
+
+/**
+ * Describes the message tb.marketdata.v1.SourceHealth.
+ * Use `create(SourceHealthSchema)` to create a new message.
+ */
+export const SourceHealthSchema: GenMessage<SourceHealth> = /*@__PURE__*/
+  messageDesc(file_tb_marketdata_v1_marketdata, 16);
+
+/**
  * @generated from enum tb.marketdata.v1.Timeframe
  */
 export enum Timeframe {
@@ -595,4 +999,104 @@ export enum CorporateActionType {
  */
 export const CorporateActionTypeSchema: GenEnum<CorporateActionType> = /*@__PURE__*/
   enumDesc(file_tb_marketdata_v1_marketdata, 4);
+
+/**
+ * @generated from enum tb.marketdata.v1.JobState
+ */
+export enum JobState {
+  /**
+   * @generated from enum value: JOB_STATE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: JOB_STATE_QUEUED = 1;
+   */
+  QUEUED = 1,
+
+  /**
+   * @generated from enum value: JOB_STATE_RUNNING = 2;
+   */
+  RUNNING = 2,
+
+  /**
+   * @generated from enum value: JOB_STATE_SUCCEEDED = 3;
+   */
+  SUCCEEDED = 3,
+
+  /**
+   * @generated from enum value: JOB_STATE_FAILED = 4;
+   */
+  FAILED = 4,
+
+  /**
+   * Finished, but some chunks have unrepaired gaps or data-quality findings (see the report).
+   *
+   * @generated from enum value: JOB_STATE_SUCCEEDED_WITH_GAPS = 5;
+   */
+  SUCCEEDED_WITH_GAPS = 5,
+}
+
+/**
+ * Describes the enum tb.marketdata.v1.JobState.
+ */
+export const JobStateSchema: GenEnum<JobState> = /*@__PURE__*/
+  enumDesc(file_tb_marketdata_v1_marketdata, 5);
+
+/**
+ * MarketDataService is served by marketdata (section 05, ADR-0022). Callers: api-gateway (UI,
+ * operator), execution (IsFresh before every order, RM-004), monitor.
+ *
+ * @generated from service tb.marketdata.v1.MarketDataService
+ */
+export const MarketDataService: GenService<{
+  /**
+   * Starts (or resumes) a resumable, idempotent backfill job; returns immediately.
+   *
+   * @generated from rpc tb.marketdata.v1.MarketDataService.Backfill
+   */
+  backfill: {
+    methodKind: "unary";
+    input: typeof BackfillRequestSchema;
+    output: typeof BackfillResponseSchema;
+  },
+  /**
+   * @generated from rpc tb.marketdata.v1.MarketDataService.GetBackfillStatus
+   */
+  getBackfillStatus: {
+    methodKind: "unary";
+    input: typeof GetBackfillStatusRequestSchema;
+    output: typeof GetBackfillStatusResponseSchema;
+  },
+  /**
+   * Replaces the active streaming universe without a restart (MD-009).
+   *
+   * @generated from rpc tb.marketdata.v1.MarketDataService.SetUniverse
+   */
+  setUniverse: {
+    methodKind: "unary";
+    input: typeof SetUniverseRequestSchema;
+    output: typeof SetUniverseResponseSchema;
+  },
+  /**
+   * @generated from rpc tb.marketdata.v1.MarketDataService.GetFeedStatus
+   */
+  getFeedStatus: {
+    methodKind: "unary";
+    input: typeof GetFeedStatusRequestSchema;
+    output: typeof GetFeedStatusResponseSchema;
+  },
+  /**
+   * Whether the latest final bar is recent enough to trade on (MD-007). Fails closed: unknown
+   * instruments and stalled feeds are not fresh.
+   *
+   * @generated from rpc tb.marketdata.v1.MarketDataService.IsFresh
+   */
+  isFresh: {
+    methodKind: "unary";
+    input: typeof IsFreshRequestSchema;
+    output: typeof IsFreshResponseSchema;
+  },
+}> = /*@__PURE__*/
+  serviceDesc(file_tb_marketdata_v1_marketdata, 0);
 

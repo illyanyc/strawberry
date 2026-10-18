@@ -70,4 +70,5 @@ Custodian of broker credentials and home of the Alpaca adapter, the broker simul
 - Moving a row between `paper` and `live` makes it undecryptable by design (AAD).
 - Order RPC errors use `FAILED_PRECONDITION`, never `UNAVAILABLE` (auto-retry risk, BR-004).
 - Never add `DELETE /v2/orders` or `DELETE /v2/positions` to `alpaca.Routes` (BR-020); the client refuses routes not in the table.
+- Historical bars are always requested raw with `asof` = the window's last New York date; dropping `asof` makes recycled tickers return the wrong company's history (MD-001, spike V2).
 - `alpacatest` JSON is built from public docs; re-record fixtures from a real paper account when keys exist.

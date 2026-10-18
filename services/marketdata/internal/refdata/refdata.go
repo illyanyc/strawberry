@@ -79,7 +79,7 @@ type CorporateAction struct {
 	DeclaredAt            int64  `parquet:"declared_at"`
 	AvailableAt           int64  `parquet:"available_at"`
 	IngestedAt            int64  `parquet:"ingested_at"`
-	Agreement             string `parquet:"agreement"` // single_source | agreed | disagreed
+	Agreement             string `parquet:"agreement"` // single_source | agreed | disagreed | confirmed | rejected
 }
 
 // Member is point-in-time universe membership.
@@ -273,6 +273,9 @@ func (m *Memory) UpsertAction(_ context.Context, a CorporateAction) (bool, error
 		if old.IngestedAt < a.IngestedAt {
 			a.IngestedAt = old.IngestedAt
 		}
+		if OwnerResolved(old.Agreement) {
+			a.Agreement = old.Agreement
+		}
 		m.Actions[k] = a
 		return false, nil
 	}
@@ -280,7 +283,20 @@ func (m *Memory) UpsertAction(_ context.Context, a CorporateAction) (bool, error
 	return true, nil
 }
 
-// SetAgreement updates the cross-source agreement status of an action.
+// Owner resolutions of a cross-source disagreement (MD-012). Automatic cross-checks never
+// overwrite them.
+const (
+	AgreementConfirmed = "confirmed"
+	AgreementRejected  = "rejected"
+)
+
+// OwnerResolved reports whether an agreement status was set by the owner.
+func OwnerResolved(status string) bool {
+	return status == AgreementConfirmed || status == AgreementRejected
+}
+
+// SetAgreement updates the cross-source agreement status of an action; owner resolutions are kept
+// unless status is itself an owner resolution.
 func (m *Memory) SetAgreement(_ context.Context, source, sourceID, status string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -288,6 +304,9 @@ func (m *Memory) SetAgreement(_ context.Context, source, sourceID, status string
 	a, ok := m.Actions[k]
 	if !ok {
 		return fmt.Errorf("refdata: unknown action %s", k)
+	}
+	if OwnerResolved(a.Agreement) && !OwnerResolved(status) {
+		return nil
 	}
 	a.Agreement = status
 	m.Actions[k] = a

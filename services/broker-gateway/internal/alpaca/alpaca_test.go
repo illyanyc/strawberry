@@ -236,7 +236,7 @@ func TestHistoricalBarsFixtureDecodesExactly(t *testing.T) {
 		t.Fatal(err)
 	}
 	q := seen.URL.Query()
-	if q.Get("adjustment") != "raw" || q.Get("feed") != "sip" || q.Get("timeframe") != "1Min" {
+	if q.Get("adjustment") != "raw" || q.Get("feed") != "sip" || q.Get("timeframe") != "1Min" || q.Get("asof") != "2026-03-02" {
 		t.Fatalf("request params: %v (DF-005 requires adjustment=raw)", q)
 	}
 	if len(resp.GetBars()) != 3 || resp.GetNextPageToken() == "" {

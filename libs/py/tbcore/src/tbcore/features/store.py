@@ -84,13 +84,15 @@ def materialize(
     versions: Literal["latest", "first"] = "first",
     out_root: str | os.PathLike[str] | None = None,
     calendar: Calendar | None = None,
+    exclude_quarantined: bool = True,
 ) -> DatasetSnapshot:
     """Compute ``fs`` over the point-in-time ``universe`` for bars in ``[start, end)`` and store an
     immutable snapshot (DF-009).
 
     * Inputs are read with ``as_of`` (default: ``end``) so nothing published later is used (DF-002);
       ``versions="first"`` (default) uses each bar as first published, as live decisions saw it.
-    * Rows are kept only while the instrument was a universe member and listed (DF-006).
+    * Rows are kept only while the instrument was a universe member and listed (DF-006), and
+      quarantined symbol-days are dropped (MD-010) unless ``exclude_quarantined=False``.
     * ``snapshot_id`` hashes the feature-set hash, universe membership, range, as_of, versions, and
       the exact input files (immutable names), so the same ID always means the same data (DF-I3).
     """
@@ -138,6 +140,8 @@ def materialize(
         .unique(subset=["instrument_id", "ts_open"])
         .sort(["instrument_id", "ts_open"])
     )
+    if exclude_quarantined:
+        feats = lake.drop_quarantined(feats)
     # Leakage guard: no feature row may be computed from data unavailable at its decision time.
     if feats.height and feats.select((pl.col("available_at").dt.epoch("ns") > a_ns).any()).item():
         raise AssertionError("materialize: a feature row uses data with available_at > as_of (DF-002)")

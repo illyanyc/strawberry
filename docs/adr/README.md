@@ -37,3 +37,4 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0019](0019-alpaca-adapter-and-simulator.md) | Hand-written Alpaca adapter, in-process simulator, and the single market-data socket | Accepted | 2026-10-17 |
 | [0020](0020-lake-layout-write-path-and-query-layer.md) | Lake layout, single-writer path, reference data, and the point-in-time query layer | Accepted | 2026-10-17 |
 | [0021](0021-feature-store.md) | Thin feature store in tbcore with one computation path, finite lookback, and scale invariance | Accepted | 2026-10-17 |
+| [0022](0022-market-data-ingestion.md) | Market data ingestion: Alpaca through broker-gateway, FMP `/stable`, finality window, resumable backfill, nightly reconciliation | Accepted | 2026-10-17 |

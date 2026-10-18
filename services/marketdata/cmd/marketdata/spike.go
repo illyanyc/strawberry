@@ -17,6 +17,8 @@ func runSpike(args []string) bool {
 		return false
 	}
 	switch args[1] {
+	case "v2", "v3":
+		return false // need the service runtime (secrets, broker-gateway); handled in main
 	case "v4":
 		fs := flag.NewFlagSet("spike v4", flag.ExitOnError)
 		role := fs.String("role", "writer", "writer | reader")

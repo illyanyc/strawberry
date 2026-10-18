@@ -13,10 +13,13 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Broker capabilities** | Per-account declaration of what an adapter supports (order types, TIFs, bracket/OCO/OTO, fractional, short, extended hours, attribution length); execution builds orders against it (BR-002). |
 | **`BROKER_UNAVAILABLE`** | The typed error (gRPC `FAILED_PRECONDITION` + `ErrorInfo` reason) a broker adapter returns for order RPCs while the account session is not `ready` (BR-004, OE-004). |
 | **Canonical execution ID** | The `broker_exec_id` used to deduplicate fills; identical whether a fill arrives on the stream or from a REST resync (Alpaca: `<order_id>:<cumulative qty>`) (BR-008). |
+| **Backfill job** | A resumable marketdata job that fetches historical bars in checkpointed chunks (≤ 100 symbols × a per-timeframe window); a restart skips finished chunks and a rerun writes nothing new (MD-001). |
+| **Bar finality** | A live 1-minute bar becomes final 60 s after its close (Alpaca's update window); only final bars reach the bus, cache, lake, and features (MD-002). |
 | **Bar revision** | Version number of a bar's natural key: 0 when first stored, incremented on every content change; superseded versions live in `bar_revisions/` (ST-005, DF-007). |
 | **Champion / challenger** | The currently deployed model version for a strategy, and a candidate running in shadow or paper alongside it. |
 | **Compaction (lake)** | Merging a partition's staging and part files into one sorted part file with one row per natural key (ST-004). |
 | **Compose profile** | Named group of services in `infra/compose/docker-compose.yml` (`core`, `observability`, `ml`, `ml-workers`, `ops`, `remote-cloudflare`); `make up` starts `core,observability`. |
+| **Correction (bar)** | An update to a bar after it was final: stored as a new revision and published on `md.bar.correction.*` (MD-002, DF-007). |
 | **Correlation ID** | ID carried by every event from signal to fill, for tracing. |
 | **Decimal (contract type)** | `tb.common.v1.Decimal`: an exact base-10 number carried as a string; the only representation for money and quantity in contracts. |
 | **Deflated Sharpe ratio (DSR)** | Sharpe ratio corrected for the number of trials and non-normal returns; used to rank strategies honestly. |
@@ -27,6 +30,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Feature set** | Versioned collection of feature definitions in `libs/py/tbcore`; identical in train, backtest, and live. |
 | **Flatten (strategy-owned)** | Closing all positions of a strategy (or all strategies). Never includes `manual` quantity. |
 | **Dataset snapshot** | Immutable, content-addressed feature extract (`snapshots/<id>/`) whose ID hashes the feature set, universe, range, as-of, and exact input files (DF-009). |
+| **Gap (market data)** | Regular-session minutes the calendar says should have bars but the lake does not; runs of ≥ 5 are recorded in `marketdata.gaps` and re-fetched (MD-006). |
 | **Generated contracts** | Code under `contracts/gen/` produced by `make gen` from `contracts/proto/`; committed, and CI fails if stale (`make gen-check`). |
 | **`ingested_at`** | When the platform stored a datum. |
 | **`instrument_id`** | Internal stable instrument identifier, independent of ticker changes; maps to broker IDs (Alpaca asset ID, IBKR `conId`). |
@@ -43,16 +47,21 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Natural key (bar)** | `(instrument_id, timeframe, ts_open, feed)`: the identity used for idempotent writes and reader deduplication (ST-004). |
 | **Order intent** | A strategy's or user's request to trade, before risk checks. Becomes an order only after an approved risk decision. |
 | **Owner** | The strategy ID or `manual` that a position, lot, or order belongs to. |
+| **Partial bar** | A not-yet-final bar published on `md.bar.partial.*` for the UI only; never stored or used for decisions (MD-002). |
 | **PBO** | Probability of backtest overfitting (combinatorially symmetric cross-validation). |
 | **PDT** | FINRA Pattern Day Trader rule; it limited day trades in margin accounts below $25k and was retired on 2026-06-04. The risk engine keeps an optional per-account `legacy` guard, off by default (RM-008, D30). |
 | **Backward adjustment (as of t)** | Multiplying raw prices before each corporate action's ex-date by the action's factor, using only actions known and effective by t (DF-005). |
 | **Point-in-time (PIT)** | Data as it was knowable at a given moment, including universe membership and corporate actions. |
+| **Publication delay** | Per-feed time between a bar's close and when it counts as available (`available_at` = `ts_close` + delay): Alpaca 60 s, FMP daily 6 h (MD-003). |
 | **Promotion** | Audited, human-approved move of a strategy from `paper` to `live`, with step-up auth and a capital cap. |
 | **Price-scale invariance** | Property of a feature that does not change when the price (or volume) series is multiplied by a constant; required so adjustments never change feature values (DF-013). |
 | **Purged / embargoed CV** | Time-series cross-validation that removes training samples overlapping test labels (purge) and a gap after the test set (embargo). |
+| **Quarantine (symbol-day)** | An instrument's session that failed cross-source reconciliation; excluded from feature snapshots by default, never deleted, resolved by the owner (MD-010). |
 | **Reconciliation** | Check that broker positions equal the sum of virtual ledgers plus the manual bucket; unexplained differences halt affected strategies. |
+| **Reconciliation (cross-source)** | The nightly comparison of Alpaca SIP daily bars with FMP EOD bars within fixed tolerances (MD-010). Distinct from ledger reconciliation. |
 | **Risk decision** | The recorded outcome of pre-trade checks for an intent: approved or rejected, with each check's value and limit. |
 | **Schema owner role** | NOLOGIN Postgres role (`<schema>_owner`) that owns a schema and runs its migrations; services never log in as it. |
+| **Repaired bar** | A final bar recovered over REST after a stream outage instead of from the stream; published once, counted in `tb_md_bars_repaired_total` (MD-006). |
 | **Routing table** | Config mapping strategy horizons (`intraday`, `swing`) to the broker accounts allowed to receive their orders (RM-011, D30). |
 | **Resync** | What a broker adapter does after every (re)connect before accepting orders: list open orders, fetch executions since the last acknowledged one, publish what was missed, request reconciliation (BR-011). |
 | **Reference data mirror** | Parquet copy of a `refdata` table in the lake's `ref/` directory for Python readers (ST-007). |

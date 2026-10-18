@@ -94,7 +94,8 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 | Package | Messages / services | Producer → consumers |
 |---|---|---|
 | `tb.common.v1` | `Decimal`, `Mode`, `AssetClass`, `Side`, `Broker`, `Instrument`, `Provenance` | shared |
-| `tb.marketdata.v1` | `Bar`, `Quote`, `Trade`, `CorporateAction` | marketdata → bus, lake, cache |
+| `tb.marketdata.v1` | `Bar`, `Quote`, `Trade`, `CorporateAction`, `SourceHealth` | marketdata → bus, lake, cache |
+| `tb.marketdata.v1` | `MarketDataService` (backfill jobs and status, universe, feed status, `IsFresh`) ([ADR-0022](../adr/0022-market-data-ingestion.md), [MD-](../business-logic/market-data.md)) | marketdata → api-gateway, execution |
 | `tb.context.v1` | `ContextEvent` | context-data → lake, bus |
 | `tb.features.v1` | `FeatureVector` | feature service → ml-infer |
 | `tb.signals.v1` | `Signal` | ml-infer / strategy → execution |
@@ -152,10 +153,11 @@ flowchart TB
 - Only the gateway and Grafana publish ports, on `127.0.0.1` (SE-051, OP-041). `make up NATIVE_ML=1` additionally exposes Postgres and NATS on loopback for native workers (D29).
 - The same Compose file runs on a Linux droplet later (D21); the `ml-workers` profile replaces native launchd workers there.
 
-## Bus subjects (planned)
+## Bus subjects
 
 ```
 md.bar.<timeframe>.<instrument_id>   md.quote.<instrument_id>   md.trade.<instrument_id>
+md.bar.partial.<tf>.<instrument_id>  md.bar.correction.<tf>.<instrument_id>   ref.corporate_action.<instrument_id>
 ctx.<kind>                            feat.<feature_set>.<instrument_id>
 sig.<strategy_id>                     ord.intent   ord.decision   ord.update.<broker_account>
 exec.<broker_account>                 acct.snapshot.<broker_account>
@@ -164,5 +166,7 @@ risk.kill                             alert.<severity>           sys.health.<ser
 ```
 
 `ord.update.<acct>` carries the broker's view (`tb.broker.v1.BrokerOrderUpdate`) from the adapters; the OMS's own `Order` state will use a separate subject (section 07). Broker adapters publish `ord.update.*`, `exec.*`, `acct.snapshot.*`, and `recon.request.*` through a Postgres transactional outbox (schema `broker`), so a crash never loses or double-publishes an execution (ADR-0018). `recon.request.<acct>` follows every reconnect resync (OE-008).
+
+Final bars (`md.bar.*`) are published 60 s after the bar closes, deduplicated by `Nats-Msg-Id`; partial bars are UI-only and never stored; corrections of final bars carry a higher `revision` (MD-002, DF-007). `ref.corporate_action.*` lives in the durable `REF` stream for the ledger; `sys.health.<source>` carries `SourceHealth` for each data source (ADR-0022).
 
 Update this doc when a data flow, subject, store, or trust boundary changes.

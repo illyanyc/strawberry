@@ -1,0 +1,4 @@
+[
+  {"symbol": "AAPL", "date": "2026-03-03", "adjOpen": 240.10, "adjHigh": 242.75, "adjLow": 239.4, "adjClose": 241.95, "volume": 51234567},
+  {"symbol": "AAPL", "date": "2026-03-02", "adjOpen": 241.12, "adjHigh": 243.0, "adjLow": 240.5, "adjClose": 242.51, "volume": 48765432}
+]
