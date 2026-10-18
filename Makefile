@@ -202,8 +202,9 @@ gen-calendar: ## Regenerate the shared XNYS session table (Go + Python copies) f
 	uv run python scripts/gen_calendar.py
 
 .PHONY: perf
-perf: ## Section 03 performance targets (lake load, as-of join) on this machine
+perf: ## Performance targets on this machine: lake load, as-of join (section 03), bar finality-to-bus U8 (section 05)
 	TB_PERF=1 uv run pytest libs/py/tbcore/tests/test_features.py -k perf -s -q
+	cd services/marketdata && go test -count=1 -run TestU8BarFinalToBusLatency -v ./internal/live | grep -E "U8:|^(ok|FAIL|---)"
 
 .PHONY: lake-verify
 lake-verify: ## Re-hash every lake file against the manifest (ST-003); non-zero exit on corruption

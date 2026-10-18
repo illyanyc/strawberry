@@ -45,5 +45,5 @@ D20 chose Alpaca Algo Trader Plus (SIP) as the primary bar source and FMP for re
 ## Validation
 
 - `TestMD001*` (idempotent, resumable, gap repair, ticker change), `TestMD002FinalityWindowAndCorrections`, `TestMD004ResampledBarsEqualOracle`, `TestMD006StreamKilledThreeMinutesIsRepairedOnce` (zero missing, zero duplicate bars), `TestMD007*`, `TestMD008RetryAfterBreakerAndLegacy`, `TestMD010*`, `TestMD012*`.
-- `TestU8BarFinalToBusLatency`: p99 ≈ 110 ms finality-to-bus-ack for 300 symbols × 5 minutes (plus 5m bars) through an fsync-always JetStream (target < 500 ms).
+- `TestU8BarFinalToBusLatency`: p99 ≈ 110 ms finality-to-bus-ack for 300 symbols × 5 minutes (plus 5m bars) through an fsync-always JetStream (target < 500 ms), asserted by `make perf` and every non-race `go test`; under `-race` (CI) the bound is 5 s.
 - Revisit if the owner's FMP plan lacks `/stable` EOD, if Alpaca changes the `updatedBars` window, or if 1-minute strategies need sub-60 s finality.

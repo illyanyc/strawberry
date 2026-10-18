@@ -61,6 +61,7 @@ Single writer of the Parquet lake (D4) and of the reference-data schema `refdata
 ## Run and test
 - Run: `make up`. Build: `go build ./...`. Lint: `golangci-lint run ./...`.
 - Test: `go test -race ./...` (fakes for broker-gateway and FMP, embedded NATS for the U8 latency test); Postgres-backed tests with `TB_TEST_PG_SUPER_DSN` (`make test-integration`). Regenerate the Python-read fixture lake: `TB_UPDATE_FIXTURES=1 go test ./internal/lake -run Fixture`.
+- Performance: `make perf` asserts U8 (finality-to-bus p99 < 500 ms) without the race detector.
 - Spikes: `make spike-v2`, `make spike-v3` (owner keys), `make spike-v4` (Mac). Lake integrity: `make lake-verify`.
 
 ## Operational notes

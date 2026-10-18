@@ -386,8 +386,14 @@ func TestU8BarFinalToBusLatency(t *testing.T) {
 	if got < 1500 {
 		t.Fatalf("bus received %d of 1500 final 1m bars", got)
 	}
-	if p99 > 500*time.Millisecond {
-		t.Fatalf("p99 %v exceeds U8 500 ms", p99)
+	// U8 is asserted without the race detector (make perf runs it); under -race on shared CI
+	// runners only a gross regression fails.
+	limit := 500 * time.Millisecond
+	if raceEnabled {
+		limit = 5 * time.Second
+	}
+	if p99 > limit {
+		t.Fatalf("p99 %v exceeds %v (U8 target 500 ms without -race)", p99, limit)
 	}
 	if err := ls.Flush(ctx); err != nil {
 		t.Fatal(err)
