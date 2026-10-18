@@ -3101,8 +3101,11 @@ func (x *ReviewActionsRequest) GetActor() string {
 }
 
 type ReviewActionsResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Plan          *ImprovementPlan       `protobuf:"bytes,1,opt,name=plan,proto3" json:"plan,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Plan  *ImprovementPlan       `protobuf:"bytes,1,opt,name=plan,proto3" json:"plan,omitempty"`
+	// At autonomy level 0 the analyst may not launch (ML-024, EX-031): approved actions come back as
+	// prepared requests that api-gateway submits as the owner, then reports with RecordLaunches.
+	Launches      []*PreparedLaunch `protobuf:"bytes,2,rep,name=launches,proto3" json:"launches,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3144,6 +3147,250 @@ func (x *ReviewActionsResponse) GetPlan() *ImprovementPlan {
 	return nil
 }
 
+func (x *ReviewActionsResponse) GetLaunches() []*PreparedLaunch {
+	if x != nil {
+		return x.Launches
+	}
+	return nil
+}
+
+// A validated request for an owner-approved action (AN-060). The gateway parses it as the message
+// type for its kind, replaces the caller with the owner, and submits it.
+type PreparedLaunch struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	RoundId  string                 `protobuf:"bytes,1,opt,name=round_id,json=roundId,proto3" json:"round_id,omitempty"`
+	ActionId string                 `protobuf:"bytes,2,opt,name=action_id,json=actionId,proto3" json:"action_id,omitempty"`
+	// "training" (tb.ml.v1.SubmitTrainingJobRequest), "ablation" (tb.ml.v1.SubmitAblationRequest), or
+	// "study" (tb.optimizer.v1.CreateStudyRequest, then StartStudy with its budget).
+	Kind          string `protobuf:"bytes,3,opt,name=kind,proto3" json:"kind,omitempty"`
+	Request       []byte `protobuf:"bytes,4,opt,name=request,proto3" json:"request,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PreparedLaunch) Reset() {
+	*x = PreparedLaunch{}
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PreparedLaunch) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PreparedLaunch) ProtoMessage() {}
+
+func (x *PreparedLaunch) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PreparedLaunch.ProtoReflect.Descriptor instead.
+func (*PreparedLaunch) Descriptor() ([]byte, []int) {
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *PreparedLaunch) GetRoundId() string {
+	if x != nil {
+		return x.RoundId
+	}
+	return ""
+}
+
+func (x *PreparedLaunch) GetActionId() string {
+	if x != nil {
+		return x.ActionId
+	}
+	return ""
+}
+
+func (x *PreparedLaunch) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *PreparedLaunch) GetRequest() []byte {
+	if x != nil {
+		return x.Request
+	}
+	return nil
+}
+
+type LaunchRecord struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	ActionId string                 `protobuf:"bytes,1,opt,name=action_id,json=actionId,proto3" json:"action_id,omitempty"`
+	// Job IDs (training, ablation) or the study ID the owner's submission returned.
+	JobIds        []string `protobuf:"bytes,2,rep,name=job_ids,json=jobIds,proto3" json:"job_ids,omitempty"`
+	Error         string   `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LaunchRecord) Reset() {
+	*x = LaunchRecord{}
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LaunchRecord) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LaunchRecord) ProtoMessage() {}
+
+func (x *LaunchRecord) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LaunchRecord.ProtoReflect.Descriptor instead.
+func (*LaunchRecord) Descriptor() ([]byte, []int) {
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *LaunchRecord) GetActionId() string {
+	if x != nil {
+		return x.ActionId
+	}
+	return ""
+}
+
+func (x *LaunchRecord) GetJobIds() []string {
+	if x != nil {
+		return x.JobIds
+	}
+	return nil
+}
+
+func (x *LaunchRecord) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+type RecordLaunchesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoundId       string                 `protobuf:"bytes,1,opt,name=round_id,json=roundId,proto3" json:"round_id,omitempty"`
+	Launches      []*LaunchRecord        `protobuf:"bytes,2,rep,name=launches,proto3" json:"launches,omitempty"`
+	Actor         string                 `protobuf:"bytes,3,opt,name=actor,proto3" json:"actor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecordLaunchesRequest) Reset() {
+	*x = RecordLaunchesRequest{}
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecordLaunchesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecordLaunchesRequest) ProtoMessage() {}
+
+func (x *RecordLaunchesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecordLaunchesRequest.ProtoReflect.Descriptor instead.
+func (*RecordLaunchesRequest) Descriptor() ([]byte, []int) {
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *RecordLaunchesRequest) GetRoundId() string {
+	if x != nil {
+		return x.RoundId
+	}
+	return ""
+}
+
+func (x *RecordLaunchesRequest) GetLaunches() []*LaunchRecord {
+	if x != nil {
+		return x.Launches
+	}
+	return nil
+}
+
+func (x *RecordLaunchesRequest) GetActor() string {
+	if x != nil {
+		return x.Actor
+	}
+	return ""
+}
+
+type RecordLaunchesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Plan          *ImprovementPlan       `protobuf:"bytes,1,opt,name=plan,proto3" json:"plan,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecordLaunchesResponse) Reset() {
+	*x = RecordLaunchesResponse{}
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecordLaunchesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecordLaunchesResponse) ProtoMessage() {}
+
+func (x *RecordLaunchesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecordLaunchesResponse.ProtoReflect.Descriptor instead.
+func (*RecordLaunchesResponse) Descriptor() ([]byte, []int) {
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *RecordLaunchesResponse) GetPlan() *ImprovementPlan {
+	if x != nil {
+		return x.Plan
+	}
+	return nil
+}
+
 type SetLoopPausedRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Empty means every lineage.
@@ -3157,7 +3404,7 @@ type SetLoopPausedRequest struct {
 
 func (x *SetLoopPausedRequest) Reset() {
 	*x = SetLoopPausedRequest{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[31]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3169,7 +3416,7 @@ func (x *SetLoopPausedRequest) String() string {
 func (*SetLoopPausedRequest) ProtoMessage() {}
 
 func (x *SetLoopPausedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[31]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3182,7 +3429,7 @@ func (x *SetLoopPausedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetLoopPausedRequest.ProtoReflect.Descriptor instead.
 func (*SetLoopPausedRequest) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{31}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *SetLoopPausedRequest) GetLineageId() string {
@@ -3222,7 +3469,7 @@ type SetLoopPausedResponse struct {
 
 func (x *SetLoopPausedResponse) Reset() {
 	*x = SetLoopPausedResponse{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[32]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3234,7 +3481,7 @@ func (x *SetLoopPausedResponse) String() string {
 func (*SetLoopPausedResponse) ProtoMessage() {}
 
 func (x *SetLoopPausedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[32]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3247,7 +3494,7 @@ func (x *SetLoopPausedResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetLoopPausedResponse.ProtoReflect.Descriptor instead.
 func (*SetLoopPausedResponse) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{32}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *SetLoopPausedResponse) GetLineages() []*LoopStatus {
@@ -3271,7 +3518,7 @@ type RequestAnalysisRequest struct {
 
 func (x *RequestAnalysisRequest) Reset() {
 	*x = RequestAnalysisRequest{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[33]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3283,7 +3530,7 @@ func (x *RequestAnalysisRequest) String() string {
 func (*RequestAnalysisRequest) ProtoMessage() {}
 
 func (x *RequestAnalysisRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[33]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3296,7 +3543,7 @@ func (x *RequestAnalysisRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestAnalysisRequest.ProtoReflect.Descriptor instead.
 func (*RequestAnalysisRequest) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{33}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *RequestAnalysisRequest) GetLineageId() string {
@@ -3343,7 +3590,7 @@ type RequestAnalysisResponse struct {
 
 func (x *RequestAnalysisResponse) Reset() {
 	*x = RequestAnalysisResponse{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[34]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3355,7 +3602,7 @@ func (x *RequestAnalysisResponse) String() string {
 func (*RequestAnalysisResponse) ProtoMessage() {}
 
 func (x *RequestAnalysisResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[34]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3368,7 +3615,7 @@ func (x *RequestAnalysisResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestAnalysisResponse.ProtoReflect.Descriptor instead.
 func (*RequestAnalysisResponse) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{34}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *RequestAnalysisResponse) GetRoundId() string {
@@ -3388,7 +3635,7 @@ type GetTrialLedgerRequest struct {
 
 func (x *GetTrialLedgerRequest) Reset() {
 	*x = GetTrialLedgerRequest{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[35]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3400,7 +3647,7 @@ func (x *GetTrialLedgerRequest) String() string {
 func (*GetTrialLedgerRequest) ProtoMessage() {}
 
 func (x *GetTrialLedgerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[35]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3413,7 +3660,7 @@ func (x *GetTrialLedgerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTrialLedgerRequest.ProtoReflect.Descriptor instead.
 func (*GetTrialLedgerRequest) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{35}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *GetTrialLedgerRequest) GetLineageId() string {
@@ -3448,7 +3695,7 @@ type TrialRow struct {
 
 func (x *TrialRow) Reset() {
 	*x = TrialRow{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[36]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3460,7 +3707,7 @@ func (x *TrialRow) String() string {
 func (*TrialRow) ProtoMessage() {}
 
 func (x *TrialRow) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[36]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3473,7 +3720,7 @@ func (x *TrialRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TrialRow.ProtoReflect.Descriptor instead.
 func (*TrialRow) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{36}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *TrialRow) GetTrialId() string {
@@ -3545,7 +3792,7 @@ type GetTrialLedgerResponse struct {
 
 func (x *GetTrialLedgerResponse) Reset() {
 	*x = GetTrialLedgerResponse{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[37]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3557,7 +3804,7 @@ func (x *GetTrialLedgerResponse) String() string {
 func (*GetTrialLedgerResponse) ProtoMessage() {}
 
 func (x *GetTrialLedgerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[37]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3570,7 +3817,7 @@ func (x *GetTrialLedgerResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTrialLedgerResponse.ProtoReflect.Descriptor instead.
 func (*GetTrialLedgerResponse) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{37}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *GetTrialLedgerResponse) GetLineageId() string {
@@ -3617,7 +3864,7 @@ type ListCodeProposalsRequest struct {
 
 func (x *ListCodeProposalsRequest) Reset() {
 	*x = ListCodeProposalsRequest{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[38]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3629,7 +3876,7 @@ func (x *ListCodeProposalsRequest) String() string {
 func (*ListCodeProposalsRequest) ProtoMessage() {}
 
 func (x *ListCodeProposalsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[38]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3642,7 +3889,7 @@ func (x *ListCodeProposalsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCodeProposalsRequest.ProtoReflect.Descriptor instead.
 func (*ListCodeProposalsRequest) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{38}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *ListCodeProposalsRequest) GetLineageId() string {
@@ -3661,7 +3908,7 @@ type ListCodeProposalsResponse struct {
 
 func (x *ListCodeProposalsResponse) Reset() {
 	*x = ListCodeProposalsResponse{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[39]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3673,7 +3920,7 @@ func (x *ListCodeProposalsResponse) String() string {
 func (*ListCodeProposalsResponse) ProtoMessage() {}
 
 func (x *ListCodeProposalsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[39]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3686,7 +3933,7 @@ func (x *ListCodeProposalsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCodeProposalsResponse.ProtoReflect.Descriptor instead.
 func (*ListCodeProposalsResponse) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{39}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ListCodeProposalsResponse) GetProposals() []*CodeProposal {
@@ -3708,7 +3955,7 @@ type ReviewCodeProposalRequest struct {
 
 func (x *ReviewCodeProposalRequest) Reset() {
 	*x = ReviewCodeProposalRequest{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[40]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3720,7 +3967,7 @@ func (x *ReviewCodeProposalRequest) String() string {
 func (*ReviewCodeProposalRequest) ProtoMessage() {}
 
 func (x *ReviewCodeProposalRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[40]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3733,7 +3980,7 @@ func (x *ReviewCodeProposalRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReviewCodeProposalRequest.ProtoReflect.Descriptor instead.
 func (*ReviewCodeProposalRequest) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{40}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *ReviewCodeProposalRequest) GetProposalId() string {
@@ -3773,7 +4020,7 @@ type ReviewCodeProposalResponse struct {
 
 func (x *ReviewCodeProposalResponse) Reset() {
 	*x = ReviewCodeProposalResponse{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[41]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3785,7 +4032,7 @@ func (x *ReviewCodeProposalResponse) String() string {
 func (*ReviewCodeProposalResponse) ProtoMessage() {}
 
 func (x *ReviewCodeProposalResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[41]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3798,7 +4045,7 @@ func (x *ReviewCodeProposalResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReviewCodeProposalResponse.ProtoReflect.Descriptor instead.
 func (*ReviewCodeProposalResponse) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{41}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *ReviewCodeProposalResponse) GetProposal() *CodeProposal {
@@ -3817,7 +4064,7 @@ type NotifyAutonomyChangedRequest struct {
 
 func (x *NotifyAutonomyChangedRequest) Reset() {
 	*x = NotifyAutonomyChangedRequest{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[42]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3829,7 +4076,7 @@ func (x *NotifyAutonomyChangedRequest) String() string {
 func (*NotifyAutonomyChangedRequest) ProtoMessage() {}
 
 func (x *NotifyAutonomyChangedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[42]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3842,7 +4089,7 @@ func (x *NotifyAutonomyChangedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NotifyAutonomyChangedRequest.ProtoReflect.Descriptor instead.
 func (*NotifyAutonomyChangedRequest) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{42}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *NotifyAutonomyChangedRequest) GetLineageId() string {
@@ -3861,7 +4108,7 @@ type NotifyAutonomyChangedResponse struct {
 
 func (x *NotifyAutonomyChangedResponse) Reset() {
 	*x = NotifyAutonomyChangedResponse{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[43]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3873,7 +4120,7 @@ func (x *NotifyAutonomyChangedResponse) String() string {
 func (*NotifyAutonomyChangedResponse) ProtoMessage() {}
 
 func (x *NotifyAutonomyChangedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[43]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3886,7 +4133,7 @@ func (x *NotifyAutonomyChangedResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NotifyAutonomyChangedResponse.ProtoReflect.Descriptor instead.
 func (*NotifyAutonomyChangedResponse) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{43}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *NotifyAutonomyChangedResponse) GetStatus() *LoopStatus {
@@ -3906,7 +4153,7 @@ type CreateConversationRequest struct {
 
 func (x *CreateConversationRequest) Reset() {
 	*x = CreateConversationRequest{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[44]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3918,7 +4165,7 @@ func (x *CreateConversationRequest) String() string {
 func (*CreateConversationRequest) ProtoMessage() {}
 
 func (x *CreateConversationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[44]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3931,7 +4178,7 @@ func (x *CreateConversationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateConversationRequest.ProtoReflect.Descriptor instead.
 func (*CreateConversationRequest) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{44}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *CreateConversationRequest) GetTitle() string {
@@ -3957,7 +4204,7 @@ type CreateConversationResponse struct {
 
 func (x *CreateConversationResponse) Reset() {
 	*x = CreateConversationResponse{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[45]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3969,7 +4216,7 @@ func (x *CreateConversationResponse) String() string {
 func (*CreateConversationResponse) ProtoMessage() {}
 
 func (x *CreateConversationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[45]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3982,7 +4229,7 @@ func (x *CreateConversationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateConversationResponse.ProtoReflect.Descriptor instead.
 func (*CreateConversationResponse) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{45}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *CreateConversationResponse) GetConversation() *Conversation {
@@ -4001,7 +4248,7 @@ type GetConversationRequest struct {
 
 func (x *GetConversationRequest) Reset() {
 	*x = GetConversationRequest{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[46]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4013,7 +4260,7 @@ func (x *GetConversationRequest) String() string {
 func (*GetConversationRequest) ProtoMessage() {}
 
 func (x *GetConversationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[46]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4026,7 +4273,7 @@ func (x *GetConversationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetConversationRequest.ProtoReflect.Descriptor instead.
 func (*GetConversationRequest) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{46}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *GetConversationRequest) GetConversationId() string {
@@ -4045,7 +4292,7 @@ type GetConversationResponse struct {
 
 func (x *GetConversationResponse) Reset() {
 	*x = GetConversationResponse{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[47]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4057,7 +4304,7 @@ func (x *GetConversationResponse) String() string {
 func (*GetConversationResponse) ProtoMessage() {}
 
 func (x *GetConversationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[47]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4070,7 +4317,7 @@ func (x *GetConversationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetConversationResponse.ProtoReflect.Descriptor instead.
 func (*GetConversationResponse) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{47}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *GetConversationResponse) GetConversation() *Conversation {
@@ -4088,7 +4335,7 @@ type ListConversationsRequest struct {
 
 func (x *ListConversationsRequest) Reset() {
 	*x = ListConversationsRequest{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[48]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4100,7 +4347,7 @@ func (x *ListConversationsRequest) String() string {
 func (*ListConversationsRequest) ProtoMessage() {}
 
 func (x *ListConversationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[48]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4113,7 +4360,7 @@ func (x *ListConversationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConversationsRequest.ProtoReflect.Descriptor instead.
 func (*ListConversationsRequest) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{48}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{52}
 }
 
 type ListConversationsResponse struct {
@@ -4125,7 +4372,7 @@ type ListConversationsResponse struct {
 
 func (x *ListConversationsResponse) Reset() {
 	*x = ListConversationsResponse{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[49]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4137,7 +4384,7 @@ func (x *ListConversationsResponse) String() string {
 func (*ListConversationsResponse) ProtoMessage() {}
 
 func (x *ListConversationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[49]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4150,7 +4397,7 @@ func (x *ListConversationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConversationsResponse.ProtoReflect.Descriptor instead.
 func (*ListConversationsResponse) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{49}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *ListConversationsResponse) GetConversations() []*Conversation {
@@ -4171,7 +4418,7 @@ type PostMessageRequest struct {
 
 func (x *PostMessageRequest) Reset() {
 	*x = PostMessageRequest{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[50]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4183,7 +4430,7 @@ func (x *PostMessageRequest) String() string {
 func (*PostMessageRequest) ProtoMessage() {}
 
 func (x *PostMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[50]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4196,7 +4443,7 @@ func (x *PostMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PostMessageRequest.ProtoReflect.Descriptor instead.
 func (*PostMessageRequest) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{50}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *PostMessageRequest) GetConversationId() string {
@@ -4229,7 +4476,7 @@ type PostMessageResponse struct {
 
 func (x *PostMessageResponse) Reset() {
 	*x = PostMessageResponse{}
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[51]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4241,7 +4488,7 @@ func (x *PostMessageResponse) String() string {
 func (*PostMessageResponse) ProtoMessage() {}
 
 func (x *PostMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[51]
+	mi := &file_tb_analyst_v1_analyst_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4254,7 +4501,7 @@ func (x *PostMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PostMessageResponse.ProtoReflect.Descriptor instead.
 func (*PostMessageResponse) Descriptor() ([]byte, []int) {
-	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{51}
+	return file_tb_analyst_v1_analyst_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *PostMessageResponse) GetReply() *ChatMessage {
@@ -4518,8 +4765,24 @@ const file_tb_analyst_v1_analyst_proto_rawDesc = "" +
 	"action_ids\x18\x02 \x03(\tR\tactionIds\x12\x18\n" +
 	"\aapprove\x18\x03 \x01(\bR\aapprove\x12\x16\n" +
 	"\x06reason\x18\x04 \x01(\tR\x06reason\x12\x14\n" +
-	"\x05actor\x18\x05 \x01(\tR\x05actor\"K\n" +
+	"\x05actor\x18\x05 \x01(\tR\x05actor\"\x86\x01\n" +
 	"\x15ReviewActionsResponse\x122\n" +
+	"\x04plan\x18\x01 \x01(\v2\x1e.tb.analyst.v1.ImprovementPlanR\x04plan\x129\n" +
+	"\blaunches\x18\x02 \x03(\v2\x1d.tb.analyst.v1.PreparedLaunchR\blaunches\"v\n" +
+	"\x0ePreparedLaunch\x12\x19\n" +
+	"\bround_id\x18\x01 \x01(\tR\aroundId\x12\x1b\n" +
+	"\taction_id\x18\x02 \x01(\tR\bactionId\x12\x12\n" +
+	"\x04kind\x18\x03 \x01(\tR\x04kind\x12\x18\n" +
+	"\arequest\x18\x04 \x01(\fR\arequest\"Z\n" +
+	"\fLaunchRecord\x12\x1b\n" +
+	"\taction_id\x18\x01 \x01(\tR\bactionId\x12\x17\n" +
+	"\ajob_ids\x18\x02 \x03(\tR\x06jobIds\x12\x14\n" +
+	"\x05error\x18\x03 \x01(\tR\x05error\"\x81\x01\n" +
+	"\x15RecordLaunchesRequest\x12\x19\n" +
+	"\bround_id\x18\x01 \x01(\tR\aroundId\x127\n" +
+	"\blaunches\x18\x02 \x03(\v2\x1b.tb.analyst.v1.LaunchRecordR\blaunches\x12\x14\n" +
+	"\x05actor\x18\x03 \x01(\tR\x05actor\"L\n" +
+	"\x16RecordLaunchesResponse\x122\n" +
 	"\x04plan\x18\x01 \x01(\v2\x1e.tb.analyst.v1.ImprovementPlanR\x04plan\"{\n" +
 	"\x14SetLoopPausedRequest\x12\x1d\n" +
 	"\n" +
@@ -4676,14 +4939,15 @@ const file_tb_analyst_v1_analyst_proto_rawDesc = "" +
 	"\"CODE_PROPOSAL_STATUS_CHECKS_FAILED\x10\x02\x12(\n" +
 	"$CODE_PROPOSAL_STATUS_AWAITING_REVIEW\x10\x03\x12+\n" +
 	"'CODE_PROPOSAL_STATUS_APPROVED_FOR_MERGE\x10\x04\x12!\n" +
-	"\x1dCODE_PROPOSAL_STATUS_REJECTED\x10\x052\xb0\v\n" +
+	"\x1dCODE_PROPOSAL_STATUS_REJECTED\x10\x052\x8f\f\n" +
 	"\x0eAnalystService\x12Q\n" +
 	"\n" +
 	"GetJournal\x12 .tb.analyst.v1.GetJournalRequest\x1a!.tb.analyst.v1.GetJournalResponse\x12K\n" +
 	"\bGetRound\x12\x1e.tb.analyst.v1.GetRoundRequest\x1a\x1f.tb.analyst.v1.GetRoundResponse\x12W\n" +
 	"\fListLineages\x12\".tb.analyst.v1.ListLineagesRequest\x1a#.tb.analyst.v1.ListLineagesResponse\x12Z\n" +
 	"\rGetLoopStatus\x12#.tb.analyst.v1.GetLoopStatusRequest\x1a$.tb.analyst.v1.GetLoopStatusResponse\x12Z\n" +
-	"\rReviewActions\x12#.tb.analyst.v1.ReviewActionsRequest\x1a$.tb.analyst.v1.ReviewActionsResponse\x12Z\n" +
+	"\rReviewActions\x12#.tb.analyst.v1.ReviewActionsRequest\x1a$.tb.analyst.v1.ReviewActionsResponse\x12]\n" +
+	"\x0eRecordLaunches\x12$.tb.analyst.v1.RecordLaunchesRequest\x1a%.tb.analyst.v1.RecordLaunchesResponse\x12Z\n" +
 	"\rSetLoopPaused\x12#.tb.analyst.v1.SetLoopPausedRequest\x1a$.tb.analyst.v1.SetLoopPausedResponse\x12`\n" +
 	"\x0fRequestAnalysis\x12%.tb.analyst.v1.RequestAnalysisRequest\x1a&.tb.analyst.v1.RequestAnalysisResponse\x12]\n" +
 	"\x0eGetTrialLedger\x12$.tb.analyst.v1.GetTrialLedgerRequest\x1a%.tb.analyst.v1.GetTrialLedgerResponse\x12f\n" +
@@ -4709,7 +4973,7 @@ func file_tb_analyst_v1_analyst_proto_rawDescGZIP() []byte {
 }
 
 var file_tb_analyst_v1_analyst_proto_enumTypes = make([]protoimpl.EnumInfo, 9)
-var file_tb_analyst_v1_analyst_proto_msgTypes = make([]protoimpl.MessageInfo, 52)
+var file_tb_analyst_v1_analyst_proto_msgTypes = make([]protoimpl.MessageInfo, 56)
 var file_tb_analyst_v1_analyst_proto_goTypes = []any{
 	(RoundTrigger)(0),                     // 0: tb.analyst.v1.RoundTrigger
 	(RoundDecision)(0),                    // 1: tb.analyst.v1.RoundDecision
@@ -4751,27 +5015,31 @@ var file_tb_analyst_v1_analyst_proto_goTypes = []any{
 	(*GetLoopStatusResponse)(nil),         // 37: tb.analyst.v1.GetLoopStatusResponse
 	(*ReviewActionsRequest)(nil),          // 38: tb.analyst.v1.ReviewActionsRequest
 	(*ReviewActionsResponse)(nil),         // 39: tb.analyst.v1.ReviewActionsResponse
-	(*SetLoopPausedRequest)(nil),          // 40: tb.analyst.v1.SetLoopPausedRequest
-	(*SetLoopPausedResponse)(nil),         // 41: tb.analyst.v1.SetLoopPausedResponse
-	(*RequestAnalysisRequest)(nil),        // 42: tb.analyst.v1.RequestAnalysisRequest
-	(*RequestAnalysisResponse)(nil),       // 43: tb.analyst.v1.RequestAnalysisResponse
-	(*GetTrialLedgerRequest)(nil),         // 44: tb.analyst.v1.GetTrialLedgerRequest
-	(*TrialRow)(nil),                      // 45: tb.analyst.v1.TrialRow
-	(*GetTrialLedgerResponse)(nil),        // 46: tb.analyst.v1.GetTrialLedgerResponse
-	(*ListCodeProposalsRequest)(nil),      // 47: tb.analyst.v1.ListCodeProposalsRequest
-	(*ListCodeProposalsResponse)(nil),     // 48: tb.analyst.v1.ListCodeProposalsResponse
-	(*ReviewCodeProposalRequest)(nil),     // 49: tb.analyst.v1.ReviewCodeProposalRequest
-	(*ReviewCodeProposalResponse)(nil),    // 50: tb.analyst.v1.ReviewCodeProposalResponse
-	(*NotifyAutonomyChangedRequest)(nil),  // 51: tb.analyst.v1.NotifyAutonomyChangedRequest
-	(*NotifyAutonomyChangedResponse)(nil), // 52: tb.analyst.v1.NotifyAutonomyChangedResponse
-	(*CreateConversationRequest)(nil),     // 53: tb.analyst.v1.CreateConversationRequest
-	(*CreateConversationResponse)(nil),    // 54: tb.analyst.v1.CreateConversationResponse
-	(*GetConversationRequest)(nil),        // 55: tb.analyst.v1.GetConversationRequest
-	(*GetConversationResponse)(nil),       // 56: tb.analyst.v1.GetConversationResponse
-	(*ListConversationsRequest)(nil),      // 57: tb.analyst.v1.ListConversationsRequest
-	(*ListConversationsResponse)(nil),     // 58: tb.analyst.v1.ListConversationsResponse
-	(*PostMessageRequest)(nil),            // 59: tb.analyst.v1.PostMessageRequest
-	(*PostMessageResponse)(nil),           // 60: tb.analyst.v1.PostMessageResponse
+	(*PreparedLaunch)(nil),                // 40: tb.analyst.v1.PreparedLaunch
+	(*LaunchRecord)(nil),                  // 41: tb.analyst.v1.LaunchRecord
+	(*RecordLaunchesRequest)(nil),         // 42: tb.analyst.v1.RecordLaunchesRequest
+	(*RecordLaunchesResponse)(nil),        // 43: tb.analyst.v1.RecordLaunchesResponse
+	(*SetLoopPausedRequest)(nil),          // 44: tb.analyst.v1.SetLoopPausedRequest
+	(*SetLoopPausedResponse)(nil),         // 45: tb.analyst.v1.SetLoopPausedResponse
+	(*RequestAnalysisRequest)(nil),        // 46: tb.analyst.v1.RequestAnalysisRequest
+	(*RequestAnalysisResponse)(nil),       // 47: tb.analyst.v1.RequestAnalysisResponse
+	(*GetTrialLedgerRequest)(nil),         // 48: tb.analyst.v1.GetTrialLedgerRequest
+	(*TrialRow)(nil),                      // 49: tb.analyst.v1.TrialRow
+	(*GetTrialLedgerResponse)(nil),        // 50: tb.analyst.v1.GetTrialLedgerResponse
+	(*ListCodeProposalsRequest)(nil),      // 51: tb.analyst.v1.ListCodeProposalsRequest
+	(*ListCodeProposalsResponse)(nil),     // 52: tb.analyst.v1.ListCodeProposalsResponse
+	(*ReviewCodeProposalRequest)(nil),     // 53: tb.analyst.v1.ReviewCodeProposalRequest
+	(*ReviewCodeProposalResponse)(nil),    // 54: tb.analyst.v1.ReviewCodeProposalResponse
+	(*NotifyAutonomyChangedRequest)(nil),  // 55: tb.analyst.v1.NotifyAutonomyChangedRequest
+	(*NotifyAutonomyChangedResponse)(nil), // 56: tb.analyst.v1.NotifyAutonomyChangedResponse
+	(*CreateConversationRequest)(nil),     // 57: tb.analyst.v1.CreateConversationRequest
+	(*CreateConversationResponse)(nil),    // 58: tb.analyst.v1.CreateConversationResponse
+	(*GetConversationRequest)(nil),        // 59: tb.analyst.v1.GetConversationRequest
+	(*GetConversationResponse)(nil),       // 60: tb.analyst.v1.GetConversationResponse
+	(*ListConversationsRequest)(nil),      // 61: tb.analyst.v1.ListConversationsRequest
+	(*ListConversationsResponse)(nil),     // 62: tb.analyst.v1.ListConversationsResponse
+	(*PostMessageRequest)(nil),            // 63: tb.analyst.v1.PostMessageRequest
+	(*PostMessageResponse)(nil),           // 64: tb.analyst.v1.PostMessageResponse
 }
 var file_tb_analyst_v1_analyst_proto_depIdxs = []int32{
 	2,  // 0: tb.analyst.v1.Finding.category:type_name -> tb.analyst.v1.FindingCategory
@@ -4805,51 +5073,56 @@ var file_tb_analyst_v1_analyst_proto_depIdxs = []int32{
 	21, // 28: tb.analyst.v1.ListLineagesResponse.lineages:type_name -> tb.analyst.v1.LoopStatus
 	21, // 29: tb.analyst.v1.GetLoopStatusResponse.status:type_name -> tb.analyst.v1.LoopStatus
 	13, // 30: tb.analyst.v1.ReviewActionsResponse.plan:type_name -> tb.analyst.v1.ImprovementPlan
-	21, // 31: tb.analyst.v1.SetLoopPausedResponse.lineages:type_name -> tb.analyst.v1.LoopStatus
-	45, // 32: tb.analyst.v1.GetTrialLedgerResponse.trials:type_name -> tb.analyst.v1.TrialRow
-	16, // 33: tb.analyst.v1.GetTrialLedgerResponse.outcome:type_name -> tb.analyst.v1.DeflatedOutcome
-	23, // 34: tb.analyst.v1.ListCodeProposalsResponse.proposals:type_name -> tb.analyst.v1.CodeProposal
-	23, // 35: tb.analyst.v1.ReviewCodeProposalResponse.proposal:type_name -> tb.analyst.v1.CodeProposal
-	21, // 36: tb.analyst.v1.NotifyAutonomyChangedResponse.status:type_name -> tb.analyst.v1.LoopStatus
-	29, // 37: tb.analyst.v1.CreateConversationResponse.conversation:type_name -> tb.analyst.v1.Conversation
-	29, // 38: tb.analyst.v1.GetConversationResponse.conversation:type_name -> tb.analyst.v1.Conversation
-	29, // 39: tb.analyst.v1.ListConversationsResponse.conversations:type_name -> tb.analyst.v1.Conversation
-	28, // 40: tb.analyst.v1.PostMessageResponse.reply:type_name -> tb.analyst.v1.ChatMessage
-	30, // 41: tb.analyst.v1.AnalystService.GetJournal:input_type -> tb.analyst.v1.GetJournalRequest
-	32, // 42: tb.analyst.v1.AnalystService.GetRound:input_type -> tb.analyst.v1.GetRoundRequest
-	34, // 43: tb.analyst.v1.AnalystService.ListLineages:input_type -> tb.analyst.v1.ListLineagesRequest
-	36, // 44: tb.analyst.v1.AnalystService.GetLoopStatus:input_type -> tb.analyst.v1.GetLoopStatusRequest
-	38, // 45: tb.analyst.v1.AnalystService.ReviewActions:input_type -> tb.analyst.v1.ReviewActionsRequest
-	40, // 46: tb.analyst.v1.AnalystService.SetLoopPaused:input_type -> tb.analyst.v1.SetLoopPausedRequest
-	42, // 47: tb.analyst.v1.AnalystService.RequestAnalysis:input_type -> tb.analyst.v1.RequestAnalysisRequest
-	44, // 48: tb.analyst.v1.AnalystService.GetTrialLedger:input_type -> tb.analyst.v1.GetTrialLedgerRequest
-	47, // 49: tb.analyst.v1.AnalystService.ListCodeProposals:input_type -> tb.analyst.v1.ListCodeProposalsRequest
-	49, // 50: tb.analyst.v1.AnalystService.ReviewCodeProposal:input_type -> tb.analyst.v1.ReviewCodeProposalRequest
-	51, // 51: tb.analyst.v1.AnalystService.NotifyAutonomyChanged:input_type -> tb.analyst.v1.NotifyAutonomyChangedRequest
-	53, // 52: tb.analyst.v1.AnalystService.CreateConversation:input_type -> tb.analyst.v1.CreateConversationRequest
-	55, // 53: tb.analyst.v1.AnalystService.GetConversation:input_type -> tb.analyst.v1.GetConversationRequest
-	57, // 54: tb.analyst.v1.AnalystService.ListConversations:input_type -> tb.analyst.v1.ListConversationsRequest
-	59, // 55: tb.analyst.v1.AnalystService.PostMessage:input_type -> tb.analyst.v1.PostMessageRequest
-	31, // 56: tb.analyst.v1.AnalystService.GetJournal:output_type -> tb.analyst.v1.GetJournalResponse
-	33, // 57: tb.analyst.v1.AnalystService.GetRound:output_type -> tb.analyst.v1.GetRoundResponse
-	35, // 58: tb.analyst.v1.AnalystService.ListLineages:output_type -> tb.analyst.v1.ListLineagesResponse
-	37, // 59: tb.analyst.v1.AnalystService.GetLoopStatus:output_type -> tb.analyst.v1.GetLoopStatusResponse
-	39, // 60: tb.analyst.v1.AnalystService.ReviewActions:output_type -> tb.analyst.v1.ReviewActionsResponse
-	41, // 61: tb.analyst.v1.AnalystService.SetLoopPaused:output_type -> tb.analyst.v1.SetLoopPausedResponse
-	43, // 62: tb.analyst.v1.AnalystService.RequestAnalysis:output_type -> tb.analyst.v1.RequestAnalysisResponse
-	46, // 63: tb.analyst.v1.AnalystService.GetTrialLedger:output_type -> tb.analyst.v1.GetTrialLedgerResponse
-	48, // 64: tb.analyst.v1.AnalystService.ListCodeProposals:output_type -> tb.analyst.v1.ListCodeProposalsResponse
-	50, // 65: tb.analyst.v1.AnalystService.ReviewCodeProposal:output_type -> tb.analyst.v1.ReviewCodeProposalResponse
-	52, // 66: tb.analyst.v1.AnalystService.NotifyAutonomyChanged:output_type -> tb.analyst.v1.NotifyAutonomyChangedResponse
-	54, // 67: tb.analyst.v1.AnalystService.CreateConversation:output_type -> tb.analyst.v1.CreateConversationResponse
-	56, // 68: tb.analyst.v1.AnalystService.GetConversation:output_type -> tb.analyst.v1.GetConversationResponse
-	58, // 69: tb.analyst.v1.AnalystService.ListConversations:output_type -> tb.analyst.v1.ListConversationsResponse
-	60, // 70: tb.analyst.v1.AnalystService.PostMessage:output_type -> tb.analyst.v1.PostMessageResponse
-	56, // [56:71] is the sub-list for method output_type
-	41, // [41:56] is the sub-list for method input_type
-	41, // [41:41] is the sub-list for extension type_name
-	41, // [41:41] is the sub-list for extension extendee
-	0,  // [0:41] is the sub-list for field type_name
+	40, // 31: tb.analyst.v1.ReviewActionsResponse.launches:type_name -> tb.analyst.v1.PreparedLaunch
+	41, // 32: tb.analyst.v1.RecordLaunchesRequest.launches:type_name -> tb.analyst.v1.LaunchRecord
+	13, // 33: tb.analyst.v1.RecordLaunchesResponse.plan:type_name -> tb.analyst.v1.ImprovementPlan
+	21, // 34: tb.analyst.v1.SetLoopPausedResponse.lineages:type_name -> tb.analyst.v1.LoopStatus
+	49, // 35: tb.analyst.v1.GetTrialLedgerResponse.trials:type_name -> tb.analyst.v1.TrialRow
+	16, // 36: tb.analyst.v1.GetTrialLedgerResponse.outcome:type_name -> tb.analyst.v1.DeflatedOutcome
+	23, // 37: tb.analyst.v1.ListCodeProposalsResponse.proposals:type_name -> tb.analyst.v1.CodeProposal
+	23, // 38: tb.analyst.v1.ReviewCodeProposalResponse.proposal:type_name -> tb.analyst.v1.CodeProposal
+	21, // 39: tb.analyst.v1.NotifyAutonomyChangedResponse.status:type_name -> tb.analyst.v1.LoopStatus
+	29, // 40: tb.analyst.v1.CreateConversationResponse.conversation:type_name -> tb.analyst.v1.Conversation
+	29, // 41: tb.analyst.v1.GetConversationResponse.conversation:type_name -> tb.analyst.v1.Conversation
+	29, // 42: tb.analyst.v1.ListConversationsResponse.conversations:type_name -> tb.analyst.v1.Conversation
+	28, // 43: tb.analyst.v1.PostMessageResponse.reply:type_name -> tb.analyst.v1.ChatMessage
+	30, // 44: tb.analyst.v1.AnalystService.GetJournal:input_type -> tb.analyst.v1.GetJournalRequest
+	32, // 45: tb.analyst.v1.AnalystService.GetRound:input_type -> tb.analyst.v1.GetRoundRequest
+	34, // 46: tb.analyst.v1.AnalystService.ListLineages:input_type -> tb.analyst.v1.ListLineagesRequest
+	36, // 47: tb.analyst.v1.AnalystService.GetLoopStatus:input_type -> tb.analyst.v1.GetLoopStatusRequest
+	38, // 48: tb.analyst.v1.AnalystService.ReviewActions:input_type -> tb.analyst.v1.ReviewActionsRequest
+	42, // 49: tb.analyst.v1.AnalystService.RecordLaunches:input_type -> tb.analyst.v1.RecordLaunchesRequest
+	44, // 50: tb.analyst.v1.AnalystService.SetLoopPaused:input_type -> tb.analyst.v1.SetLoopPausedRequest
+	46, // 51: tb.analyst.v1.AnalystService.RequestAnalysis:input_type -> tb.analyst.v1.RequestAnalysisRequest
+	48, // 52: tb.analyst.v1.AnalystService.GetTrialLedger:input_type -> tb.analyst.v1.GetTrialLedgerRequest
+	51, // 53: tb.analyst.v1.AnalystService.ListCodeProposals:input_type -> tb.analyst.v1.ListCodeProposalsRequest
+	53, // 54: tb.analyst.v1.AnalystService.ReviewCodeProposal:input_type -> tb.analyst.v1.ReviewCodeProposalRequest
+	55, // 55: tb.analyst.v1.AnalystService.NotifyAutonomyChanged:input_type -> tb.analyst.v1.NotifyAutonomyChangedRequest
+	57, // 56: tb.analyst.v1.AnalystService.CreateConversation:input_type -> tb.analyst.v1.CreateConversationRequest
+	59, // 57: tb.analyst.v1.AnalystService.GetConversation:input_type -> tb.analyst.v1.GetConversationRequest
+	61, // 58: tb.analyst.v1.AnalystService.ListConversations:input_type -> tb.analyst.v1.ListConversationsRequest
+	63, // 59: tb.analyst.v1.AnalystService.PostMessage:input_type -> tb.analyst.v1.PostMessageRequest
+	31, // 60: tb.analyst.v1.AnalystService.GetJournal:output_type -> tb.analyst.v1.GetJournalResponse
+	33, // 61: tb.analyst.v1.AnalystService.GetRound:output_type -> tb.analyst.v1.GetRoundResponse
+	35, // 62: tb.analyst.v1.AnalystService.ListLineages:output_type -> tb.analyst.v1.ListLineagesResponse
+	37, // 63: tb.analyst.v1.AnalystService.GetLoopStatus:output_type -> tb.analyst.v1.GetLoopStatusResponse
+	39, // 64: tb.analyst.v1.AnalystService.ReviewActions:output_type -> tb.analyst.v1.ReviewActionsResponse
+	43, // 65: tb.analyst.v1.AnalystService.RecordLaunches:output_type -> tb.analyst.v1.RecordLaunchesResponse
+	45, // 66: tb.analyst.v1.AnalystService.SetLoopPaused:output_type -> tb.analyst.v1.SetLoopPausedResponse
+	47, // 67: tb.analyst.v1.AnalystService.RequestAnalysis:output_type -> tb.analyst.v1.RequestAnalysisResponse
+	50, // 68: tb.analyst.v1.AnalystService.GetTrialLedger:output_type -> tb.analyst.v1.GetTrialLedgerResponse
+	52, // 69: tb.analyst.v1.AnalystService.ListCodeProposals:output_type -> tb.analyst.v1.ListCodeProposalsResponse
+	54, // 70: tb.analyst.v1.AnalystService.ReviewCodeProposal:output_type -> tb.analyst.v1.ReviewCodeProposalResponse
+	56, // 71: tb.analyst.v1.AnalystService.NotifyAutonomyChanged:output_type -> tb.analyst.v1.NotifyAutonomyChangedResponse
+	58, // 72: tb.analyst.v1.AnalystService.CreateConversation:output_type -> tb.analyst.v1.CreateConversationResponse
+	60, // 73: tb.analyst.v1.AnalystService.GetConversation:output_type -> tb.analyst.v1.GetConversationResponse
+	62, // 74: tb.analyst.v1.AnalystService.ListConversations:output_type -> tb.analyst.v1.ListConversationsResponse
+	64, // 75: tb.analyst.v1.AnalystService.PostMessage:output_type -> tb.analyst.v1.PostMessageResponse
+	60, // [60:76] is the sub-list for method output_type
+	44, // [44:60] is the sub-list for method input_type
+	44, // [44:44] is the sub-list for extension type_name
+	44, // [44:44] is the sub-list for extension extendee
+	0,  // [0:44] is the sub-list for field type_name
 }
 
 func init() { file_tb_analyst_v1_analyst_proto_init() }
@@ -4863,7 +5136,7 @@ func file_tb_analyst_v1_analyst_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tb_analyst_v1_analyst_proto_rawDesc), len(file_tb_analyst_v1_analyst_proto_rawDesc)),
 			NumEnums:      9,
-			NumMessages:   52,
+			NumMessages:   56,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

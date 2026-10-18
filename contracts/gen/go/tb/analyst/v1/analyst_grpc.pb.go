@@ -32,6 +32,7 @@ const (
 	AnalystService_ListLineages_FullMethodName          = "/tb.analyst.v1.AnalystService/ListLineages"
 	AnalystService_GetLoopStatus_FullMethodName         = "/tb.analyst.v1.AnalystService/GetLoopStatus"
 	AnalystService_ReviewActions_FullMethodName         = "/tb.analyst.v1.AnalystService/ReviewActions"
+	AnalystService_RecordLaunches_FullMethodName        = "/tb.analyst.v1.AnalystService/RecordLaunches"
 	AnalystService_SetLoopPaused_FullMethodName         = "/tb.analyst.v1.AnalystService/SetLoopPaused"
 	AnalystService_RequestAnalysis_FullMethodName       = "/tb.analyst.v1.AnalystService/RequestAnalysis"
 	AnalystService_GetTrialLedger_FullMethodName        = "/tb.analyst.v1.AnalystService/GetTrialLedger"
@@ -53,6 +54,7 @@ type AnalystServiceClient interface {
 	ListLineages(ctx context.Context, in *ListLineagesRequest, opts ...grpc.CallOption) (*ListLineagesResponse, error)
 	GetLoopStatus(ctx context.Context, in *GetLoopStatusRequest, opts ...grpc.CallOption) (*GetLoopStatusResponse, error)
 	ReviewActions(ctx context.Context, in *ReviewActionsRequest, opts ...grpc.CallOption) (*ReviewActionsResponse, error)
+	RecordLaunches(ctx context.Context, in *RecordLaunchesRequest, opts ...grpc.CallOption) (*RecordLaunchesResponse, error)
 	SetLoopPaused(ctx context.Context, in *SetLoopPausedRequest, opts ...grpc.CallOption) (*SetLoopPausedResponse, error)
 	RequestAnalysis(ctx context.Context, in *RequestAnalysisRequest, opts ...grpc.CallOption) (*RequestAnalysisResponse, error)
 	GetTrialLedger(ctx context.Context, in *GetTrialLedgerRequest, opts ...grpc.CallOption) (*GetTrialLedgerResponse, error)
@@ -118,6 +120,16 @@ func (c *analystServiceClient) ReviewActions(ctx context.Context, in *ReviewActi
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ReviewActionsResponse)
 	err := c.cc.Invoke(ctx, AnalystService_ReviewActions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *analystServiceClient) RecordLaunches(ctx context.Context, in *RecordLaunchesRequest, opts ...grpc.CallOption) (*RecordLaunchesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RecordLaunchesResponse)
+	err := c.cc.Invoke(ctx, AnalystService_RecordLaunches_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -233,6 +245,7 @@ type AnalystServiceServer interface {
 	ListLineages(context.Context, *ListLineagesRequest) (*ListLineagesResponse, error)
 	GetLoopStatus(context.Context, *GetLoopStatusRequest) (*GetLoopStatusResponse, error)
 	ReviewActions(context.Context, *ReviewActionsRequest) (*ReviewActionsResponse, error)
+	RecordLaunches(context.Context, *RecordLaunchesRequest) (*RecordLaunchesResponse, error)
 	SetLoopPaused(context.Context, *SetLoopPausedRequest) (*SetLoopPausedResponse, error)
 	RequestAnalysis(context.Context, *RequestAnalysisRequest) (*RequestAnalysisResponse, error)
 	GetTrialLedger(context.Context, *GetTrialLedgerRequest) (*GetTrialLedgerResponse, error)
@@ -268,6 +281,9 @@ func (UnimplementedAnalystServiceServer) GetLoopStatus(context.Context, *GetLoop
 }
 func (UnimplementedAnalystServiceServer) ReviewActions(context.Context, *ReviewActionsRequest) (*ReviewActionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReviewActions not implemented")
+}
+func (UnimplementedAnalystServiceServer) RecordLaunches(context.Context, *RecordLaunchesRequest) (*RecordLaunchesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RecordLaunches not implemented")
 }
 func (UnimplementedAnalystServiceServer) SetLoopPaused(context.Context, *SetLoopPausedRequest) (*SetLoopPausedResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetLoopPaused not implemented")
@@ -406,6 +422,24 @@ func _AnalystService_ReviewActions_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AnalystServiceServer).ReviewActions(ctx, req.(*ReviewActionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AnalystService_RecordLaunches_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecordLaunchesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AnalystServiceServer).RecordLaunches(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AnalystService_RecordLaunches_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AnalystServiceServer).RecordLaunches(ctx, req.(*RecordLaunchesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -616,6 +650,10 @@ var AnalystService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReviewActions",
 			Handler:    _AnalystService_ReviewActions_Handler,
+		},
+		{
+			MethodName: "RecordLaunches",
+			Handler:    _AnalystService_RecordLaunches_Handler,
 		},
 		{
 			MethodName: "SetLoopPaused",

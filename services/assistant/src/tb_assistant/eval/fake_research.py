@@ -239,6 +239,10 @@ class FakeResearch:
     ) -> training_pb2.TrainingJob:
         lin = self._lin(cfg.lineage_id)
         if actor == training_pb2.ACTOR_ANALYST:
+            if lin.proto.autonomy_level < 1:
+                raise ResearchCallError(
+                    ML, "SubmitTrainingJob", "PERMISSION_DENIED", "analyst launches need autonomy >= 1 (ML-024)"
+                )
             if lin.cycle.status != optimizer_pb2.CYCLE_STATUS_OPEN:
                 raise ResearchCallError(ML, "SubmitTrainingJob", "FAILED_PRECONDITION", "cycle_spent")
             if len(lin.trials) >= lin.proto.analyst_budget.max_trials:
@@ -401,11 +405,9 @@ class FakeResearch:
                 cfg.feature_set.name = cfg.feature_set.name + "".join(f"-minus-{g}" for g in v.drop_feature_groups)
             if v.hyperparams.fields:
                 cfg.hyperparams.update(json_format.MessageToDict(v.hyperparams))
-            jobs.append(
-                self._submit(
-                    cfg, training_pb2.ACTOR_ANALYST, req.caller.analyst_round_id, kind="ablation", base=req.run_id
-                )
-            )
+            analyst = req.caller.actor == training_pb2.ACTOR_ANALYST
+            actor = training_pb2.ACTOR_ANALYST if analyst else training_pb2.ACTOR_OWNER
+            jobs.append(self._submit(cfg, actor, req.caller.analyst_round_id, kind="ablation", base=req.run_id))
         return ml_service_pb2.SubmitAblationResponse(jobs=jobs)
 
     def _GetJob(self, req: ml_service_pb2.GetJobRequest) -> Message:
@@ -467,6 +469,8 @@ class FakeResearch:
 
     def _CreateStudy(self, req: optimizer_pb2.CreateStudyRequest) -> Message:
         lin = self._lin(req.spec.lineage_id)
+        if req.caller.actor == training_pb2.ACTOR_ANALYST and lin.proto.autonomy_level < 1:
+            raise ResearchCallError(OPT, "CreateStudy", "PERMISSION_DENIED", "analyst studies need autonomy >= 1")
         if req.caller.actor == training_pb2.ACTOR_ANALYST and lin.cycle.status != optimizer_pb2.CYCLE_STATUS_OPEN:
             raise ResearchCallError(OPT, "CreateStudy", "FAILED_PRECONDITION", "cycle_spent")
         if not req.spec.preregistration.hypothesis:

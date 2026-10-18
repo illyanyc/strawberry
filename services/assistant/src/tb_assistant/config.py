@@ -80,8 +80,9 @@ class Settings(ServiceSettings):
     sandbox_timeout_seconds: float = 120.0
     chat_retention_days: int = 365
     eval_threshold: float = 0.95
-    # Research-service endpoints (sections 10/11), resolved by the tool backend.
-    research_api_url: str = "http://optimizer:8082"
+    # Research-service endpoints (sections 10/11). No holdout endpoint exists for the analyst (AN-030).
+    ml_addr: str = "ml:9090"
+    optimizer_addr: str = "optimizer:9091"
     account_ids: str = Field(default="", description="Comma-separated account identifiers the egress guard blocks")
 
     def egress_allowlist(self) -> frozenset[str]:

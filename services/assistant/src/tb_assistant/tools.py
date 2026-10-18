@@ -105,6 +105,7 @@ TOOLS: dict[str, ToolSpec] = {
         ToolSpec("get_gate_report", "read", 0, "Gate pass/fail and DSR of a candidate (analyst view)"),
         ToolSpec("get_trial_ledger", "read", 0, "Lineage trial ledger summary and cycles"),
         ToolSpec("get_cumulative_overfitting_stats", "read", 0, "Lineage-level DSR, effective N, PBO"),
+        ToolSpec("list_trials", "read", 0, "Trials of the lineage (ledger rows, owner view and journal links)"),
         ToolSpec("get_live_feedback", "read", 0, "Latest LiveFeedbackReport of a strategy"),
         ToolSpec("get_lineage", "read", 0, "Lineage settings (level, budgets)"),
         ToolSpec("list_candidates", "read", 0, "Candidates of a lineage"),
@@ -124,7 +125,6 @@ TOOLS: dict[str, ToolSpec] = {
     )
 }
 WRITE_KINDS = frozenset({"write", "notify"})
-OWNER_APPROVABLE = frozenset({"launch_training", "launch_ablation", "launch_study", "deploy_challenger_shadow"})
 LEVEL_FREE_WRITES = frozenset({"annotate_run", "write_journal_entry"})
 
 
@@ -307,11 +307,7 @@ class ToolServer:
         args: dict[str, Any] | None = None,
         *,
         cost: tuple[int, float] = (0, 0.0),
-        approved: bool = False,
     ) -> ToolResult:
-        """``approved`` marks an action the owner approved through api-gateway: level-1 launch tools
-        may then run at level 0 (level 0 means "every launch needs owner approval"). It never lowers
-        the level of promotion or nomination tools."""
         args = args or {}
         in_hash = _sha({"tool": name, "args": args})
         spec = TOOLS.get(name)
@@ -320,8 +316,7 @@ class ToolServer:
             await self._record(ctx, name, -1, "denied", in_hash, "", reason)
             raise ToolDeniedError(name, reason)
         level = await self.level(ctx.lineage_id)
-        needed = 0 if approved and name in OWNER_APPROVABLE else spec.min_level
-        if needed > level:
+        if spec.min_level > level:
             reason = f"needs autonomy level {spec.min_level}, lineage is at {level}"
             await self._record(ctx, name, level, "denied", in_hash, "", reason)
             raise ToolDeniedError(name, reason)
@@ -504,6 +499,12 @@ class ToolServer:
         assert isinstance(r, optimizer_pb2.GetCumulativeOverfittingStatsResponse)
         rid = f"stats:{ctx.lineage_id}:{r.stats.n_trials}"
         return self._res("get_cumulative_overfitting_stats", r.stats, rid)
+
+    async def _t_list_trials(self, ctx: ToolContext, a: dict[str, Any]) -> ToolResult:
+        req = optimizer_pb2.ListTrialsRequest(lineage_id=ctx.lineage_id, limit=int(a.get("limit", 200)))
+        r = await self._opt("ListTrials", req)
+        assert isinstance(r, optimizer_pb2.ListTrialsResponse)
+        return self._res("list_trials", r, f"trials:{ctx.lineage_id}")
 
     async def _t_get_live_feedback(self, ctx: ToolContext, a: dict[str, Any]) -> ToolResult:
         msg = self.feedback.latest_feedback(a["strategy_id"]) if self.feedback else None

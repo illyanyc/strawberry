@@ -22,7 +22,7 @@ from google.protobuf import json_format
 from google.protobuf.message import Message
 
 from tb.analyst.v1 import analyst_pb2
-from tb.ml.v1 import ml_pb2, training_pb2
+from tb.ml.v1 import ml_pb2, ml_service_pb2, training_pb2
 from tb.optimizer.v1 import optimizer_pb2
 from tb_assistant import configs
 from tb_assistant.audit import AuditRecord, AuditSink
@@ -378,7 +378,7 @@ class AnalystLoop:
                         ),
                     )
             else:
-                launched, stopped_by_budget = await self._launch_all(ctx, rnd, loop, budget, approved=False)
+                launched, stopped_by_budget = await self._launch_all(ctx, rnd, loop, budget)
                 if launched:
                     rnd.decision = analyst_pb2.ROUND_DECISION_CONTINUE
                 elif stopped_by_budget:
@@ -748,7 +748,6 @@ class AnalystLoop:
         loop: LoopRecord,
         budget: analyst_pb2.Budget,
         *,
-        approved: bool,
         only: set[str] | None = None,
     ) -> tuple[int, bool]:
         launched, budget_stop = 0, False
@@ -770,7 +769,7 @@ class AnalystLoop:
                 continue
             try:
                 args, cost = await self._prepare(ctx, rnd, act)
-                res = await self.tools.call(ctx, act.tool, args, cost=cost, approved=approved)
+                res = await self.tools.call(ctx, act.tool, args, cost=cost)
             except configs.DiffError as exc:
                 act.status, act.status_reason = analyst_pb2.ACTION_STATUS_SKIPPED, f"invalid diff: {exc}"[:300]
                 continue
@@ -918,9 +917,11 @@ class AnalystLoop:
 
     async def review_actions(
         self, round_id: str, action_ids: list[str], *, approve: bool, reason: str, actor: str
-    ) -> analyst_pb2.ImprovementPlan:
-        """Owner approval or rejection (via api-gateway only). Approved launch actions run even at
-        level 0: owner approval is what level 0 waits for (AN-060)."""
+    ) -> tuple[analyst_pb2.ImprovementPlan, list[analyst_pb2.PreparedLaunch]]:
+        """Owner approval or rejection (via api-gateway only, AN-060). At level >= 1 approved actions
+        launch as the analyst. At level 0 the analyst may not launch (ML-024, EX-031): approved
+        actions come back as prepared, validated requests that api-gateway submits as the owner and
+        reports back with ``record_launches``."""
         rnd = await self.journal.get_round(round_id)
         if rnd is None:
             raise KeyError(round_id)
@@ -941,14 +942,94 @@ class AnalystLoop:
                 rnd.correlation_id,
             )
         )
+        prepared: list[analyst_pb2.PreparedLaunch] = []
         if approve and not loop.paused:
             budget = loop.budget() if loop.budget_json else self.s.default_budget
             ctx = ToolContext(rnd.lineage_id, round_id, rnd.correlation_id, budget)
-            self.budget.begin_round(rnd.lineage_id, round_id)
-            launched, _ = await self._launch_all(ctx, rnd, loop, budget, approved=True, only=wanted)
-            if launched:
-                rnd.decision = analyst_pb2.ROUND_DECISION_CONTINUE
-                loop.state = analyst_pb2.LOOP_STATE_AWAITING_RESULTS
+            level = await self.tools.level(rnd.lineage_id)
+            if level >= 1:
+                self.budget.begin_round(rnd.lineage_id, round_id)
+                launched, _ = await self._launch_all(ctx, rnd, loop, budget, only=wanted)
+                if launched:
+                    rnd.decision = analyst_pb2.ROUND_DECISION_CONTINUE
+                    loop.state = analyst_pb2.LOOP_STATE_AWAITING_RESULTS
+            else:
+                prepared = await self._prepare_for_owner(ctx, rnd, wanted)
+        await self.journal.save_round(rnd)
+        await self.journal.save_loop(loop)
+        return rnd.plan, prepared
+
+    async def _prepare_for_owner(
+        self, ctx: ToolContext, rnd: analyst_pb2.AnalystRound, wanted: set[str]
+    ) -> list[analyst_pb2.PreparedLaunch]:
+        out: list[analyst_pb2.PreparedLaunch] = []
+        for act in rnd.plan.actions:
+            if act.action_id not in wanted or act.status != analyst_pb2.ACTION_STATUS_APPROVED:
+                continue
+            if act.tool not in LAUNCH_TOOLS:
+                act.status, act.status_reason = analyst_pb2.ACTION_STATUS_SKIPPED, "nothing to launch"
+                continue
+            try:
+                args, _ = await self._prepare(ctx, rnd, act)
+            except (configs.DiffError, ResearchCallError, ToolDeniedError) as exc:
+                act.status, act.status_reason = analyst_pb2.ACTION_STATUS_SKIPPED, f"invalid diff: {exc}"[:300]
+                continue
+            owner = training_pb2.CallerContext(
+                actor=training_pb2.ACTOR_OWNER,
+                analyst_round_id=rnd.round_id,
+                reason=act.description[:200],
+                correlation_id=rnd.correlation_id,
+            )
+            req: Message
+            if act.tool == "launch_training":
+                kind, req = "training", ml_service_pb2.SubmitTrainingJobRequest(config=args["config"], caller=owner)
+            elif act.tool == "launch_ablation":
+                kind = "ablation"
+                req = ml_service_pb2.SubmitAblationRequest(
+                    run_id=args["run_id"], variants=args["variants"], caller=owner
+                )
+            else:
+                kind, req = "study", optimizer_pb2.CreateStudyRequest(spec=args["spec"], caller=owner)
+            out.append(
+                analyst_pb2.PreparedLaunch(
+                    round_id=rnd.round_id, action_id=act.action_id, kind=kind, request=req.SerializeToString()
+                )
+            )
+        return out
+
+    async def record_launches(
+        self, round_id: str, launches: list[analyst_pb2.LaunchRecord], *, actor: str
+    ) -> analyst_pb2.ImprovementPlan:
+        """The owner's submissions of approved actions (level 0): map jobs to the round so their
+        completions run the continuation round."""
+        rnd = await self.journal.get_round(round_id)
+        if rnd is None:
+            raise KeyError(round_id)
+        loop = await self.journal.get_loop(rnd.lineage_id)
+        by_id = {a.action_id: a for a in rnd.plan.actions}
+        for rec in launches:
+            act = by_id.get(rec.action_id)
+            if act is None or act.status != analyst_pb2.ACTION_STATUS_APPROVED:
+                continue
+            if rec.error or not rec.job_ids:
+                act.status, act.status_reason = analyst_pb2.ACTION_STATUS_FAILED, (rec.error or "no job")[:300]
+                continue
+            act.status = analyst_pb2.ACTION_STATUS_LAUNCHED
+            for j in rec.job_ids:
+                act.launched_ids.append(f"job:{j}")
+                loop.pending[j] = [round_id, act.action_id]
+        if loop.pending:
+            rnd.decision = analyst_pb2.ROUND_DECISION_CONTINUE
+            loop.state = analyst_pb2.LOOP_STATE_AWAITING_RESULTS
+        await self.audit.append(
+            AuditRecord(
+                actor or "owner",
+                "analyst.actions.launched",
+                rnd.lineage_id,
+                {"round_id": round_id, "launches": [list(r.job_ids) for r in launches]},
+                rnd.correlation_id,
+            )
+        )
         await self.journal.save_round(rnd)
         await self.journal.save_loop(loop)
         return rnd.plan

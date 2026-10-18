@@ -639,6 +639,46 @@ class ReviewActionsRequest(_message.Message):
     def __init__(self, round_id: _Optional[str] = ..., action_ids: _Optional[_Iterable[str]] = ..., approve: _Optional[bool] = ..., reason: _Optional[str] = ..., actor: _Optional[str] = ...) -> None: ...
 
 class ReviewActionsResponse(_message.Message):
+    __slots__ = ("plan", "launches")
+    PLAN_FIELD_NUMBER: _ClassVar[int]
+    LAUNCHES_FIELD_NUMBER: _ClassVar[int]
+    plan: ImprovementPlan
+    launches: _containers.RepeatedCompositeFieldContainer[PreparedLaunch]
+    def __init__(self, plan: _Optional[_Union[ImprovementPlan, _Mapping]] = ..., launches: _Optional[_Iterable[_Union[PreparedLaunch, _Mapping]]] = ...) -> None: ...
+
+class PreparedLaunch(_message.Message):
+    __slots__ = ("round_id", "action_id", "kind", "request")
+    ROUND_ID_FIELD_NUMBER: _ClassVar[int]
+    ACTION_ID_FIELD_NUMBER: _ClassVar[int]
+    KIND_FIELD_NUMBER: _ClassVar[int]
+    REQUEST_FIELD_NUMBER: _ClassVar[int]
+    round_id: str
+    action_id: str
+    kind: str
+    request: bytes
+    def __init__(self, round_id: _Optional[str] = ..., action_id: _Optional[str] = ..., kind: _Optional[str] = ..., request: _Optional[bytes] = ...) -> None: ...
+
+class LaunchRecord(_message.Message):
+    __slots__ = ("action_id", "job_ids", "error")
+    ACTION_ID_FIELD_NUMBER: _ClassVar[int]
+    JOB_IDS_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    action_id: str
+    job_ids: _containers.RepeatedScalarFieldContainer[str]
+    error: str
+    def __init__(self, action_id: _Optional[str] = ..., job_ids: _Optional[_Iterable[str]] = ..., error: _Optional[str] = ...) -> None: ...
+
+class RecordLaunchesRequest(_message.Message):
+    __slots__ = ("round_id", "launches", "actor")
+    ROUND_ID_FIELD_NUMBER: _ClassVar[int]
+    LAUNCHES_FIELD_NUMBER: _ClassVar[int]
+    ACTOR_FIELD_NUMBER: _ClassVar[int]
+    round_id: str
+    launches: _containers.RepeatedCompositeFieldContainer[LaunchRecord]
+    actor: str
+    def __init__(self, round_id: _Optional[str] = ..., launches: _Optional[_Iterable[_Union[LaunchRecord, _Mapping]]] = ..., actor: _Optional[str] = ...) -> None: ...
+
+class RecordLaunchesResponse(_message.Message):
     __slots__ = ("plan",)
     PLAN_FIELD_NUMBER: _ClassVar[int]
     plan: ImprovementPlan

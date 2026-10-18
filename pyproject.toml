@@ -78,7 +78,7 @@ follow_untyped_imports = true
 
 [[tool.mypy.overrides]]
 # grpcio's Python API is untyped (no published stubs for grpc.aio generic handlers / grpc_status).
-module = ["tb_broker_ibkr.grpc_service", "ibkr_tests.test_grpc", "ibkr_tests.test_main", "ibkr_tests.test_journal_pg", "ctx_tests.test_engine"]
+module = ["tb_assistant.service", "tb_assistant.__main__", "tb_broker_ibkr.grpc_service", "ibkr_tests.test_grpc", "ibkr_tests.test_main", "ibkr_tests.test_journal_pg", "ctx_tests.test_engine"]
 disallow_untyped_calls = false
 disable_error_code = ["type-arg", "no-any-return"]
 

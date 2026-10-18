@@ -15,7 +15,7 @@ from tb_assistant.research import ResearchCallError
 from tb_assistant.tools import FORBIDDEN_TOOLS, TOOLS, ToolContext, ToolDeniedError
 
 from tb.analyst.v1 import analyst_pb2 as A
-from tb.ml.v1 import ml_pb2, training_pb2
+from tb.ml.v1 import ml_pb2, ml_service_pb2, training_pb2
 from tb.monitor.v1 import feedback_pb2
 from tb.optimizer.v1 import optimizer_pb2
 
@@ -102,19 +102,51 @@ async def test_an060_level0_waits_for_approval_then_owner_approval_launches() ->
     assert all(a.status == A.ACTION_STATUS_PROPOSED for a in r.plan.actions)
     assert "analyst.plan.ready" in h.pub.subjects()
     assert not h.research.completions  # nothing launched
-    # A launch tool call without approval is refused at level 0.
+    # The analyst cannot launch at level 0: the tool server refuses, and so would the ml service.
     ctx = ToolContext("L1", r.round_id, "c", default_budget())
     with pytest.raises(ToolDeniedError):
         await h.tools.call(ctx, "launch_ablation", {"run_id": "x", "variants": []})
     first = r.plan.actions[0].action_id
-    plan = await h.loop.review_actions(r.round_id, [first], approve=True, reason="ok", actor="owner")
+    plan, prepared = await h.loop.review_actions(r.round_id, [first], approve=True, reason="ok", actor="owner")
+    assert plan.actions[0].status == A.ACTION_STATUS_APPROVED and len(prepared) == 1
+    # api-gateway submits the prepared request as the owner (here: straight to the fake services).
+    p = prepared[0]
+    assert p.kind in {"training", "ablation"}
+    if p.kind == "ablation":
+        req = ml_service_pb2.SubmitAblationRequest.FromString(p.request)
+        assert req.caller.actor == training_pb2.ACTOR_OWNER and req.caller.analyst_round_id == r.round_id
+        resp = await h.research.call("tb.ml.v1.MLService", "SubmitAblation", req)
+        job_ids = [j.job_id for j in resp.jobs]
+    else:
+        req2 = ml_service_pb2.SubmitTrainingJobRequest.FromString(p.request)
+        resp2 = await h.research.call("tb.ml.v1.MLService", "SubmitTrainingJob", req2)
+        job_ids = [resp2.job.job_id]
+    plan = await h.loop.record_launches(r.round_id, [A.LaunchRecord(action_id=first, job_ids=job_ids)], actor="owner")
     assert plan.actions[0].status == A.ACTION_STATUS_LAUNCHED
-    assert h.research.completions
-    rej = await h.loop.review_actions(
+    # The completion opens a continuation round, which again waits for approval at level 0.
+    nxt = await h.pump()
+    assert nxt and nxt[0].trigger == A.ROUND_TRIGGER_CONTINUATION
+    rej_plan, none = await h.loop.review_actions(
         r.round_id, [a.action_id for a in r.plan.actions[1:]], approve=False, reason="no", actor="owner"
     )
-    assert all(a.status == A.ACTION_STATUS_REJECTED for a in rej.actions[1:])
-    assert "analyst.actions.approve" in h.audit.actions() and "analyst.actions.reject" in h.audit.actions()
+    assert not none and all(a.status == A.ACTION_STATUS_REJECTED for a in rej_plan.actions[1:])
+    assert {"analyst.actions.approve", "analyst.actions.reject", "analyst.actions.launched"} <= set(h.audit.actions())
+
+
+async def test_an060_level1_approval_launches_as_the_analyst() -> None:
+    h = build(lineages={"L1": {"level": 1, "world": EDGE}}, budget=default_budget(max_trials_per_round=1))
+    r, _ = await _first_round(h)
+    assert r is not None
+    skipped = [a for a in r.plan.actions if a.status == A.ACTION_STATUS_SKIPPED and "budget" in a.status_reason]
+    assert skipped
+    # Re-approving a budget-skipped action does nothing (only PROPOSED actions can be approved).
+    plan, prepared = await h.loop.review_actions(
+        r.round_id, [skipped[0].action_id], approve=True, reason="", actor="owner"
+    )
+    assert (
+        not prepared
+        and next(a for a in plan.actions if a.action_id == skipped[0].action_id).status == A.ACTION_STATUS_SKIPPED
+    )
 
 
 # ---- level 2: promotion within limits (AN-062)
@@ -171,7 +203,7 @@ async def test_an032_forbidden_tools_denied_and_audited_at_every_level(name: str
     h = build(lineages={"L1": {"level": level}})
     ctx = ToolContext("L1", "r", "c", default_budget())
     with pytest.raises(ToolDeniedError, match="forbidden"):
-        await h.tools.call(ctx, name, {"candidate_id": "x"}, approved=True)
+        await h.tools.call(ctx, name, {"candidate_id": "x"})
     assert h.audit.records[-1].action == "analyst.tool.denied"
     assert name not in TOOLS
 

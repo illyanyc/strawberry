@@ -415,6 +415,36 @@ message ReviewActionsRequest {
 }
 message ReviewActionsResponse {
   ImprovementPlan plan = 1;
+  // At autonomy level 0 the analyst may not launch (ML-024, EX-031): approved actions come back as
+  // prepared requests that api-gateway submits as the owner, then reports with RecordLaunches.
+  repeated PreparedLaunch launches = 2;
+}
+
+// A validated request for an owner-approved action (AN-060). The gateway parses it as the message
+// type for its kind, replaces the caller with the owner, and submits it.
+message PreparedLaunch {
+  string round_id = 1;
+  string action_id = 2;
+  // "training" (tb.ml.v1.SubmitTrainingJobRequest), "ablation" (tb.ml.v1.SubmitAblationRequest), or
+  // "study" (tb.optimizer.v1.CreateStudyRequest, then StartStudy with its budget).
+  string kind = 3;
+  bytes request = 4;
+}
+
+message LaunchRecord {
+  string action_id = 1;
+  // Job IDs (training, ablation) or the study ID the owner's submission returned.
+  repeated string job_ids = 2;
+  string error = 3;
+}
+
+message RecordLaunchesRequest {
+  string round_id = 1;
+  repeated LaunchRecord launches = 2;
+  string actor = 3;
+}
+message RecordLaunchesResponse {
+  ImprovementPlan plan = 1;
 }
 
 message SetLoopPausedRequest {
@@ -521,6 +551,7 @@ service AnalystService {
   rpc ListLineages(ListLineagesRequest) returns (ListLineagesResponse);
   rpc GetLoopStatus(GetLoopStatusRequest) returns (GetLoopStatusResponse);
   rpc ReviewActions(ReviewActionsRequest) returns (ReviewActionsResponse);
+  rpc RecordLaunches(RecordLaunchesRequest) returns (RecordLaunchesResponse);
   rpc SetLoopPaused(SetLoopPausedRequest) returns (SetLoopPausedResponse);
   rpc RequestAnalysis(RequestAnalysisRequest) returns (RequestAnalysisResponse);
   rpc GetTrialLedger(GetTrialLedgerRequest) returns (GetTrialLedgerResponse);

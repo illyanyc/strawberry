@@ -203,6 +203,12 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `services/assistant/src/tb_assistant/ast_policy.py` | Exists | Static policy for coder output (imports, builtins, dunders, classes, numpy storage/random) (AN-070) |
 | `services/assistant/src/tb_assistant/coder.py` | Exists | Coder role, shared-volume sandbox client, code proposals with review-only patches, owner review (AN-070..AN-073) |
 | `services/assistant/sandbox/worker.py` | Exists | Standalone sandbox worker (stdlib + numpy): per-job child with CPU, memory, file-size, and wall-clock limits; full, repeat, and prefix runs (AN-071) |
+| `services/assistant/src/tb_assistant/__main__.py` | Exists | Service wiring: Postgres journal and audit, NATS, research clients, providers, loop, coder, chat, gRPC `AnalystService`, retention; `egress-proxy` subcommand |
+| `services/assistant/src/tb_assistant/service.py` | Exists | gRPC `AnalystService` (api-gateway only): journal, rounds, status, review and record launches, pause, analysis requests, trial ledger view, code proposals, chat |
+| `services/assistant/src/tb_assistant/bus.py` | Exists | NATS consumers (research completions, live feedback, retrain triggers, autonomy lowering) and the JetStream publisher |
+| `services/assistant/src/tb_assistant/chat.py` | Exists | Chat assistant: read-only evidence, masked prompts, citation filtering (AN-080) |
+| `services/assistant/src/tb_assistant/egress_proxy.py` | Exists | `llm-egress` allowlisting CONNECT/HTTP proxy (AN-053) |
+| `services/assistant/src/tb_assistant/refdata.py` | Exists | Known tickers and instrument IDs from `refdata` for masking and the egress guard |
 | `services/assistant/src/tb_assistant/config.py` | Exists | `TB_*` settings: providers per role, egress allowlist, prices and caps, loop thresholds, default budgets |
 | `services/assistant/tests/` | Exists | Assistant tests (`conftest.py` runs async tests without pytest-asyncio) |
 | `services/ml/` | Exists (placeholder) | Python on `tbcore`: ops surface; native launchd worker on macOS (D29), Phase 4 |

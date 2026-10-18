@@ -88,6 +88,11 @@ class SpendLedger:
         if m != self._month:
             self._month, self.month_usd = m, 0.0
 
+    def seed(self, now: datetime, *, today_usd: float, month_usd: float) -> None:
+        """Restore spend already logged today and this month (service restart)."""
+        self._roll(now)
+        self.today_usd, self.month_usd = today_usd, month_usd
+
     def check(self, now: datetime) -> None:
         self._roll(now)
         if self.today_usd >= self.max_usd_per_day:

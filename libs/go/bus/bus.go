@@ -75,6 +75,14 @@ var Streams = []jetstream.StreamConfig{
 	// ml.registry.stage_changed, optimizer.retrain_requested.<lineage>; the analyst consumes them durably.
 	{Name: "RESEARCH", Subjects: []string{"ml.>", "backtest.>", "optimizer.>"}, Storage: jetstream.FileStorage,
 		Retention: jetstream.LimitsPolicy, MaxAge: 30 * 24 * time.Hour, Replicas: 1, Duplicates: 10 * time.Minute},
+	// Live feedback (ADR-0044): monitor.feedback.<strategy>, monitor.retrain_suggested.<lineage>,
+	// monitor.decay|drift|divergence.<lineage>; the analyst and the optimizer consume them durably.
+	{Name: "MONITOR", Subjects: []string{"monitor.>"}, Storage: jetstream.FileStorage,
+		Retention: jetstream.LimitsPolicy, MaxAge: 30 * 24 * time.Hour, Replicas: 1, Duplicates: 10 * time.Minute},
+	// AI analyst (ADR-0041): analyst.round.completed, analyst.plan.ready, analyst.escalation,
+	// analyst.autonomy.lower (from the monitor).
+	{Name: "ANALYST", Subjects: []string{"analyst.>"}, Storage: jetstream.FileStorage,
+		Retention: jetstream.LimitsPolicy, MaxAge: 90 * 24 * time.Hour, Replicas: 1, Duplicates: 10 * time.Minute},
 	{Name: "SYS", Subjects: []string{"sys.>"}, Storage: jetstream.MemoryStorage,
 		Retention: jetstream.LimitsPolicy, MaxAge: 10 * time.Minute, Replicas: 1},
 }
