@@ -23,6 +23,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Bar finality** | A live 1-minute bar becomes final 60 s after its close (Alpaca's update window); only final bars reach the bus, cache, lake, and features (MD-002). |
 | **Bar revision** | Version number of a bar's natural key: 0 when first stored, incremented on every content change; superseded versions live in `bar_revisions/` (ST-005, DF-007). |
 | **Champion / challenger** | The currently deployed model version for a strategy, and a candidate running in shadow or paper alongside it. |
+| **Combinatorial purged cross-validation (CPCV)** | Selection splitter that cuts the history into N contiguous groups and tests every combination of k groups (purged and embargoed), yielding C(N−1, k−1) full out-of-sample paths (BT-033). |
 | **Compaction (lake)** | Merging a partition's staging and part files into one sorted part file with one row per natural key (ST-004). |
 | **Cold restart (IBC)** | IBC's Sunday-only full gateway restart at `ColdRestartTime` (default 17:00 ET): a fresh login, with an IBKR Mobile 2FA push for live; the platform's weekly IBKR login (IB-014). |
 | **Compose profile** | Named group of services in `infra/compose/docker-compose.yml` (`core`, `observability`, `ml`, `ml-workers`, `ops`, `remote-cloudflare`); `make up` starts `core,observability`. |
@@ -31,6 +32,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Correction (bar)** | An update to a bar after it was final: stored as a new revision and published on `md.bar.correction.*` (MD-002, DF-007). |
 | **Correlation ID** | ID carried by every event from signal to fill, for tracing. |
 | **Correlation trace** | The UI view of everything recorded for one correlation ID: intent, risk decision with every check, orders, and fills (UI-017). |
+| **Cost stress (2×)** | The same backtest with every cost component (spread, impact, fees, borrow) doubled via `cost_multiplier`; reports show 1× and 2×, and D31 promotion requires a positive result at 2× (BT-015). |
 | **Daily restart (IBC)** | IBC's daily gateway restart at `AUTO_RESTART_TIME` (default 23:45 ET) that reuses the session token, so no 2FA; outages inside its window do not alert (IB-013). |
 | **Dead-man check** | Heartbeat watch that contains risk when a component stops: execution latches cancel-open kill switches when the strategy runtime's heartbeat is lost; broker-gateway cancels working platform orders when execution's heartbeat is lost (RM-017). |
 | **Decimal (contract type)** | `tb.common.v1.Decimal`: an exact base-10 number carried as a string; the only representation for money and quantity in contracts. |
@@ -38,8 +40,10 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Demotion** | Automatic or manual move of a strategy to `paper` or `halted`. Re-promotion is always manual. |
 | **Event blackout** | A window around a scheduled event (CPI, FOMC, an instrument's earnings) in which a strategy's opening intents are dropped; closes are never blocked (CX-016). |
 | **`event_time`** | When something happened in the world (trade, bar close, news publication). |
+| **Effective number of trials** | The number of independent trials behind a search, estimated as the ONC cluster count of the trials' return correlations; DSR deflates against it (BT-044). |
 | **Encroachment** | A manual sell (in the broker's app) that takes manual quantity below zero while a strategy holds the instrument, i.e. the owner sold strategy-attributed shares; raises a critical break (VP-016). |
 | **End-of-day summary** | Daily report 10 minutes after the close: fills, fees, reconciliation, breaks per account; realized P&L per owner; approved and rejected intents per strategy; alerts (MN-006). |
+| **Era** | One cross-sectional date (e.g. a session) treated as an indivisible unit by the splitters; used for swing books (BT-030). |
 | **Fail closed** | On uncertainty (stale data, disconnect, unknown order state), stop opening risk instead of guessing. |
 | **Feature lookback** | Number of bars (current included) a feature's value depends on; finite by rule DF-013, it sizes the online ring buffer and offline warm-up. |
 | **Feature set** | Versioned collection of feature definitions in `libs/py/tbcore`; identical in train, backtest, and live. |
@@ -63,6 +67,8 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Marketable limit (collar)** | A limit order priced a few basis points through the last price, used instead of a market order so fills are bounded (OE-013). |
 | **Master client ID (IBKR)** | The API client ID (1) configured as `TWS_MASTER_CLIENT_ID`, which receives updates for every order including those placed in TWS or IBKR Mobile (IB-017). |
 | **Meta-labeling** | A secondary model that decides whether to act on (and how to size) a primary model's signal. |
+| **MinBTL** | Minimum backtest length: the history below which a given number of independent noise trials is expected to produce a target in-sample Sharpe; bounds a research cycle's trial budget (BT-043, D31 rule 3). |
+| **MinTRL** | Minimum track record length: observations needed before a Sharpe ratio is significantly above a target at a confidence level (BT-042). |
 | **Native ML worker** | ML/backtest/optimizer process run directly on macOS under launchd (MPS/MLX available) instead of in a container (D29). |
 | **Mode** | `backtest`, `paper`, or `live`; carried by every strategy, order, and fill. |
 | **`orderRef`** | Free-text IBKR order field carrying the attribution ID; IBKR's echo of it must match what was sent (IB-001, IB-002, spike V1). |
@@ -95,6 +101,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Reservation** | Cash (buys) or own quantity (sells) the ledger holds for an intent's open orders, so concurrent intents cannot spend the same capital; shrinks with fills, released on terminal states (VP-020). |
 | **Risk decision** | The recorded outcome of pre-trade checks for an intent: approved or rejected, with each check's value and limit. |
 | **Rule time** | The vendor or official availability of a context version (publication, release, acceptance, vintage date) plus a configured delay; first-seen versions are stamped with it (CX-004). |
+| **Romano–Wolf stepdown** | Bootstrap multiple-testing procedure giving adjusted p-values for each of several challengers against a benchmark (BT-047). |
 | **Schema owner role** | NOLOGIN Postgres role (`<schema>_owner`) that owns a schema and runs its migrations; services never log in as it. |
 | **Repaired bar** | A final bar recovered over REST after a stream outage instead of from the stream; published once, counted in `tb_md_bars_repaired_total` (MD-006). |
 | **Routing table** | Config mapping strategy horizons (`intraday`, `swing`) to the broker accounts allowed to receive their orders (RM-011, D30). |
@@ -106,6 +113,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Setup token** | One-time, 30-minute token printed by `make setup-token` that authorizes registering the first owner (SE-007). |
 | **Session state (broker)** | Per-account adapter health: `disconnected`, `connecting`, `authenticated`, `syncing`, `ready`, `degraded`, `stopped`; only `ready` accepts orders (BR-010). |
 | **Snapshot stamping** | Setting a context version's `available_at`: rule time when first seen, fetch time when vendor-restated content changes, official time for authoritative histories (CX-004). |
+| **SPA test** | Hansen's test for superior predictive ability: whether any challenger beats the benchmark after accounting for the number of challengers; consistent p-value from the stationary bootstrap (BT-046). |
 | **Staging file** | Lake file with newly written rows, visible to readers at once and merged by compaction (ST-004). |
 | **Shadow mode** | A model produces signals that are recorded but never sent as orders. |
 | **Startup recovery** | The state after an execution restart in which no intent is approved until every ready account's open orders were reconciled with the broker (OE-020). |
