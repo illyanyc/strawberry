@@ -10,9 +10,9 @@ Phase 5 (ADR-0051): ``tv-<name>`` strategies consume their webhook signals from
 ``sig.tv-<name>.<instrument>`` (new messages only: a signal that arrived while the runtime was down is
 never acted on late, SM-020).
 
-Model strategies also publish every scoring as ``Signal`` on ``sig.<strategy_id>`` and the scored
-features as ``FeatureVector`` on ``feat.<feature_set>.<instrument_id>`` (ML-042, MN-038), and record
-the feature and scoring time in ``tb_inference_seconds`` (ML-043). Research deployments are re-read
+Model strategies also publish every scoring as ``Signal`` on ``sig.<strategy_id>.<instrument_id>`` and
+the scored features as ``FeatureVector`` on ``feat.<feature_set>.<instrument_id>`` (ML-042, MN-038), and
+record the feature and scoring time in ``tb_inference_seconds`` (ML-043). Research deployments are re-read
 every ``TB_RESEARCH_RELOAD_SECONDS`` (default 30): added shadow/paper entries are hosted, retired
 ones dropped; a research entry is never live and never replaces a seed entry (SM-016).
 """
@@ -49,7 +49,7 @@ from tbcore.data.lake import Lake
 from tbcore.logging import configure
 from tbcore.secrets import SecretNotFoundError, get_secret
 from tbcore.service import ServiceSettings, create_ops_app
-from tbcore.strategy.host import Runner, feature_subject, feature_vector_messages, signal_messages
+from tbcore.strategy.host import Runner, feature_subject, feature_vector_messages, signal_messages, signal_subject
 
 log = logging.getLogger("strategy-runtime")
 # ML-043: p99 of the "score" stage must stay under 20 ms per batch of the active universe on CPU.
@@ -106,7 +106,9 @@ async def run(
             INFERENCE.labels(h.strategy_id, "score").observe(sb.score_seconds)
             for sig in signal_messages(h, sb):
                 await js.publish(
-                    f"sig.{h.strategy_id}", sig.SerializeToString(), headers={"Nats-Msg-Id": sig.signal_id}
+                    signal_subject(h.strategy_id, sig.instrument_id),
+                    sig.SerializeToString(),
+                    headers={"Nats-Msg-Id": sig.signal_id},
                 )
             for fv in feature_vector_messages(sb):
                 await js.publish(

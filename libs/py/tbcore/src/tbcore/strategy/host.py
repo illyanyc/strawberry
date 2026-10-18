@@ -464,6 +464,12 @@ def feature_vector_messages(sb: ScoredBatch) -> list[features_pb2.FeatureVector]
     ]
 
 
+def signal_subject(strategy_id: str, instrument_id: str) -> str:
+    """``sig.<strategy_id>.<instrument_id>``: one subject per strategy and instrument for every producer, so
+    chart overlays can filter by instrument (``sig.*.<instrument>``)."""
+    return f"sig.{strategy_id}.{instrument_id}"
+
+
 def feature_subject(feature_set_id: str, instrument_id: str) -> str:
     return f"feat.{feature_set_id.partition('@')[0].replace('.', '_')}.{instrument_id}"
 

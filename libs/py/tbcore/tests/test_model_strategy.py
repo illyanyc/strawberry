@@ -20,7 +20,7 @@ from tbcore.data.calendar import xnys
 from tbcore.ml import config, dataset, models, schema, synthetic, train
 from tbcore.ml.bundle import FeatureMismatchError, ModelBundle
 from tbcore.strategy.api import Bar
-from tbcore.strategy.host import Runner, feature_subject, feature_vector_messages, signal_messages
+from tbcore.strategy.host import Runner, feature_subject, feature_vector_messages, signal_messages, signal_subject
 from tbcore.strategy.model_signal import OnlineModelScores
 
 PRESET = "intraday_small"
@@ -224,6 +224,7 @@ def test_ml042_scored_batches_become_signals_and_feature_vectors(tmp_path: Path)
     again = signal_messages(h, sb)
     assert [s.signal_id for s in again] == [s.signal_id for s in sigs]  # replays dedupe on Nats-Msg-Id
     assert feature_subject(sb.feature_set_id, "I1") == f"feat.{sb.feature_set_id.partition('@')[0]}.I1"
+    assert signal_subject("mlsig", "I1") == "sig.mlsig.I1"
 
 
 def test_ml043_tree_inference_p99_under_20ms_for_an_intraday_universe() -> None:

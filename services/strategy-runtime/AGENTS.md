@@ -14,7 +14,7 @@ Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes t
 | in | NATS (ordered consumers) | `md.bar.<tf>.<instrument>` for hosted instruments; `ledger.update.<acct>` from today's start | `tb.marketdata.v1.Bar`, `tb.ledger.v1.LedgerUpdate` |
 | out | NATS (JetStream) | `ord.intent` (`Nats-Msg-Id` = intent ID) | `tb.orders.v1.OrderIntent` |
 | out | NATS (core) | `sys.health.strategy-runtime` | `tb.signals.v1.RuntimeHeartbeat` |
-| out | NATS (JetStream) | `sig.<strategy_id>` and `feat.<feature_set>.<instrument_id>` for every online model scoring (ML-042; monitor drift inputs, MN-038) | `tb.signals.v1.Signal`, `tb.features.v1.FeatureVector` |
+| out | NATS (JetStream) | `sig.<strategy_id>.<instrument_id>` and `feat.<feature_set>.<instrument_id>` for every online model scoring (ML-042; monitor drift inputs, MN-038) | `tb.signals.v1.Signal`, `tb.features.v1.FeatureVector` |
 | out | HTTP (ops) | `/metrics`: `tb_inference_seconds{strategy, stage=features\|score}` (ML-043) | Prometheus |
 | in | file | registry seed (`TB_STRATEGY_REGISTRY`) shared with execution | `infra/compose/strategies.json` |
 | in | file | research deployments (`TB_RESEARCH_REGISTRY`, written by the optimizer): shadow/paper model strategies, never live (EX-056), re-read every 30 s (SM-016) | same entry format, runtime classes `model_signal`/`meta_filter` (SM-015) |
