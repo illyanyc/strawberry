@@ -66,7 +66,7 @@ export function Badge({ tone = "neutral", children, className }: { tone?: BadgeT
     warn: "bg-warn/15 text-warn border-warn/30",
     danger: "bg-live/15 text-live border-live/40",
     paper: "bg-paper/15 text-paper border-paper/30",
-    live: "bg-live text-white border-live",
+    live: "bg-live-bg text-white border-live-bg",
     info: "bg-info/15 text-info border-info/30",
   } as const;
   return (

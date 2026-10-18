@@ -91,7 +91,7 @@ export function GlobalKillSwitch({ trading }: { trading: TradingCore | null | un
     return (
       <Link
         to="/risk"
-        className="live-pulse inline-flex h-8 items-center gap-1.5 rounded-lg bg-live px-3 text-xs font-semibold uppercase tracking-wide text-white"
+        className="live-pulse inline-flex h-8 items-center gap-1.5 rounded-lg bg-live-bg px-3 text-xs font-semibold uppercase tracking-wide text-white"
         aria-label={`Trading frozen by ${global.length} global kill switch${global.length > 1 ? "es" : ""}; open Risk to review or release`}
       >
         <Snowflake className="size-3.5" aria-hidden />

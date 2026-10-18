@@ -13,7 +13,7 @@ export function EnvironmentBanner({ mode, environment }: { mode: "paper" | "live
       data-mode={mode ?? "unknown"}
       className={cn(
         "flex items-center justify-center gap-3 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em]",
-        live ? "live-pulse bg-live text-white" : mode === "paper" ? "bg-paper/20 text-paper" : "bg-panel-2 text-muted",
+        live ? "live-pulse bg-live-bg text-white" : mode === "paper" ? "bg-paper/20 text-paper" : "bg-panel-2 text-muted",
       )}
     >
       <span>{live ? "● LIVE TRADING ENABLED" : mode === "paper" ? "PAPER" : "CONNECTING…"}</span>
