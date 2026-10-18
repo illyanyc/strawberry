@@ -3,7 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-10-18
 - **Decision register:** D57 (implements N2's sealed holdout and D31 rule 5)
-- **Related:** EX-010..EX-015, SE-033, SM-003, SM-I3; ADR-0035, ADR-0037, ADR-0038
+- **Related:** EX-010..EX-015, SE-035, SM-003, SM-I3; ADR-0035, ADR-0037, ADR-0038
 
 ## Context
 

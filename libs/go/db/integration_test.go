@@ -123,7 +123,7 @@ func TestSE032SchemaIsolation(t *testing.T) {
 		"svc_execution": {`SELECT * FROM broker.executions`, `SELECT * FROM broker.outbox`,
 			`INSERT INTO refdata.instruments (instrument_id, asset_class) VALUES ('x', 'us_equity')`},
 		"svc_ledger": {`SELECT * FROM marketdata.lake_files`, `DELETE FROM refdata.corporate_actions`},
-		// SE-033 / EX-012: only svc_holdout reaches the sealed holdout; research records are ml/optimizer only.
+		// SE-035 / EX-012: only svc_holdout reaches the sealed holdout; research records are ml/optimizer only.
 		"svc_optimizer": {`SELECT * FROM holdout.docs`},
 		"svc_ml":        {`SELECT * FROM holdout.docs`, `SELECT * FROM secrets.broker_credentials`},
 		"svc_holdout":   {`SELECT * FROM research.docs`},
