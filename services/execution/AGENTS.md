@@ -11,7 +11,7 @@ Owns the OMS, the pre-trade risk gate (D30 routing, intraday-margin guard, PDT g
 ## Interfaces
 | Direction | Kind | Name | Contract |
 |---|---|---|---|
-| in | gRPC `:9090` | `tb.orders.v1.ExecutionService` (caller api-gateway; monitor may read and engage) | `contracts/proto/tb/orders/v1/execution.proto` |
+| in | gRPC `:9090` | `tb.orders.v1.ExecutionService` (caller api-gateway; monitor may read, engage kill switches, and call the reduce-only `DemoteStrategy`, RM-018) | `contracts/proto/tb/orders/v1/execution.proto` |
 | in | NATS (durable) | `ord.intent`, `ord.update.>`, `exec.>`, `risk.kill` (ORDERS); `acct.snapshot.>`, `recon.result.>` (LEDGER); `md.bar.*.*` (ordered, last per subject) | `OrderIntent`, `BrokerOrderUpdate`, `ExecutionReport`, `KillSwitchEvent`, `AccountSnapshot`, `ReconciliationResult`, `Bar` |
 | in | NATS (core) | `sys.health.strategy-runtime` | runtime heartbeat (dead-man) |
 | out | gRPC | `BrokerGatewayService` per adapter (`TB_BROKER_ENDPOINTS`), `LedgerService` (`TB_LEDGER_ADDR`) | service tokens (SE-040) |
@@ -31,7 +31,7 @@ Owns the OMS, the pre-trade risk gate (D30 routing, intraday-margin guard, PDT g
 | `cmd/execution/` | Entrypoint (config, Postgres, NATS, relay, clients, registry seed, gRPC allowlist) |
 | `app/` | Public wiring: engine + consumers + tick loop, gRPC clients for adapters and the ledger, refdata instrument lookup, registry seed, metrics |
 | `internal/risk/` | Pure pre-trade checks and limits |
-| `internal/oms/` | OMS engine, stores (memory, Postgres), kill switches, lifecycle, views |
+| `internal/oms/` | OMS engine, stores (memory, Postgres), kill switches, reduce-only demotion (`demote.go`, RM-018), lifecycle, views |
 | `internal/server/` | `ExecutionService` and caller allowlist |
 | `internal/simcore/` | Backtest simcore ([ADR-0031](../../docs/adr/0031-two-tier-backtester-and-simcore.md)): the real OMS engine on the in-memory store, a passive simulated broker (held bracket legs, broker-side OCO), and an `oms.Ledger` adapter over `services/ledger/book`; served on stdio by `cmd/tb-simcore` |
 | `cmd/tb-simcore/` | `tb-simcore` binary for the event-driven backtester (tb.backtest.v1 simcore protocol on stdin/stdout; no sockets, no secrets) |
@@ -46,7 +46,7 @@ Owns the OMS, the pre-trade risk gate (D30 routing, intraday-margin guard, PDT g
 | `TB_STRATEGY_REGISTRY` | `` (compose: `/etc/tb/strategies.json`) | SM-001 seed |
 | `TB_INTRADAY_FLATTEN_BEFORE_CLOSE` / `TB_DEADMAN_TIMEOUT` | `10m` / `30s` | OE-016 / RM-017 |
 | `TB_NTP_SERVER` / `TB_CLOCK_MAX_SKEW` | `time.cloudflare.com` / `250ms` | Clock check gates intents (fail closed) |
-| Secrets | — | `pg_svc_execution_password`, `nats_execution_password`, `svc_execution_ed25519`, `svc_api_gateway_ed25519.pub` |
+| Secrets | — | `pg_svc_execution_password`, `nats_execution_password`, `svc_execution_ed25519`, `svc_api_gateway_ed25519.pub`, `svc_monitor_ed25519.pub` (containment, ADR-0045) |
 
 ## Run and test
 - Run: `make up`. Build: `go build ./...`. Lint: `golangci-lint run ./...`.

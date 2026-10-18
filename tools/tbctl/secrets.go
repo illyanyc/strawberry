@@ -67,7 +67,7 @@ var natsUsers = map[string]struct{ pub, sub []string }{
 }
 
 // signingServices get Ed25519 service-token keys (SE-040).
-var signingServices = []string{"api-gateway", "assistant", "broker-gateway", "context-data", "execution", "ledger", "marketdata", "ml", "optimizer"}
+var signingServices = []string{"api-gateway", "assistant", "broker-gateway", "context-data", "execution", "ledger", "marketdata", "ml", "monitor", "optimizer"}
 
 // initSecrets writes every missing secret into dir. Existing files are never overwritten, so the
 // command is safe to re-run after adding a new service. Files are 0644 inside a 0700 directory: the

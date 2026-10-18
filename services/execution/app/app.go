@@ -40,6 +40,9 @@ type (
 	Memory            = oms.Memory
 	Engine            = oms.Engine
 	StaticInstruments = oms.StaticInstruments
+	// Tx is one store commit; tests use it to seed persisted state (for example a strategy left in
+	// live mode by the section 15 go-live flow) before a restart.
+	Tx = oms.Tx
 )
 
 // DefaultConfig returns the documented defaults.

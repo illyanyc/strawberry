@@ -33,7 +33,7 @@ stateDiagram-v2
 | SM-003 | The sealed final holdout MUST NOT be accessible to optimization; each access is logged and counted, and evaluated once per promotion candidate. | Implemented | Holdout service (EX-010..EX-015; `test_ex010_ex012_holdout_is_refused_to_studies_and_the_analyst`, `test_ex011_ex013_*`) |
 | SM-004 | Promotion to `live` MUST require: graduation criteria met, explicit human approval with step-up auth, a per-strategy capital cap, the global live flag, and an audit record. | Specified | — |
 | SM-005 | Default graduation criteria: ≥ 20 trading days and ≥ 100 trades in paper; live-vs-backtest divergence within tolerance; no unexplained reconciliation breaks; max drawdown within the backtest's 95th percentile. All configurable. | Specified | — |
-| SM-006 | Any risk breach, reconciliation failure, or monitoring alarm MAY demote automatically to `paper` or `halted`; re-promotion MUST be manual. | Specified | — |
+| SM-006 | Any risk breach, reconciliation failure, or monitoring alarm MAY demote automatically to `paper` (from `live`) or `halted` (from `shadow`/`paper`); re-promotion MUST be manual. Monitoring demotes through the reduce-only `DemoteStrategy` (RM-018) under a per-strategy containment policy (MN-034, MN-035). | Implemented | execution `oms/demote.go`; monitor `containment.py`; `TestRM018*` |
 | SM-007 | Every model, backtest, and experiment MUST record code commit, config, dataset snapshot ID, seeds, and environment lockfile; unreproducible runs are not promotable. | Implemented | `tbcore/ml/runs.py` (ML-010, ML-013, ML-015; `test_ml015_rebuild_reproduces_metrics_exactly`) |
 | SM-008 | Strategy ranking MUST report multiple-testing-aware statistics (deflated Sharpe, PBO) alongside Sharpe, Sortino, Calmar, max drawdown, turnover, cost drag. | Implemented | `tb_optimizer/stats.py`, `gates.py` (EX-021, EX-024) |
 | SM-009 | Challengers run in shadow or paper next to the champion; replacing a live champion follows SM-004. | Implemented | `tb_optimizer/registry.py`, `core.py` (EX-052, EX-056; `test_ex056_shadow_challenger_runs_next_to_the_paper_champion`) |
@@ -59,7 +59,7 @@ stateDiagram-v2
 |---|---|---|
 | Optimizer requests data overlapping the holdout period | Refused; logged | SM-003 |
 | Paper strategy passes criteria but recon had one explained break | Eligible; explained breaks are recorded with reason | SM-005 |
-| Live drift alarm at 15:55 | Auto-demote to `paper`; strategy-owned positions handled per the demotion policy (DECISION PENDING: hold vs flatten) | SM-006 |
+| Live drift alarm at 15:55 | Auto-demote to `paper` (latched strategy kill switch); strategy-owned positions are held with their broker-side protection unless the containment policy's severe action is `kill_flatten` (ADR-0045) | SM-006, RM-018 |
 | Assistant proposes raising a risk limit | Shown as a suggestion only; owner must apply with step-up auth | SM-010, RM-007 |
 | TradingView sends `buy` for a ticker the `tv-<name>` strategy does not list | Signal dropped by the strategy (logged); no intent | SM-020 |
 | TradingView `exit` while manual and another strategy also hold the instrument | Closes only the `tv-<name>` strategy's own quantity | SM-020, VP-003 |

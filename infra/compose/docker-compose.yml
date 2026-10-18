@@ -124,6 +124,8 @@ secrets:
   svc_ml_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_ml_ed25519.pub" }
   svc_optimizer_ed25519: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_optimizer_ed25519" }
   svc_optimizer_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_optimizer_ed25519.pub" }
+  svc_monitor_ed25519: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_monitor_ed25519" }
+  svc_monitor_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_monitor_ed25519.pub" }
   nats_broker_gateway_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_broker_gateway_password" }
   fmp_api_key: { file: "${TB_SECRETS_DIR:-../../.secrets}/fmp_api_key" }
   fred_api_key: { file: "${TB_SECRETS_DIR:-../../.secrets}/fred_api_key" }
@@ -361,7 +363,7 @@ services:
       TB_LEDGER_ADDR: ledger:9090
       TB_ROUTING: ${TB_ROUTING:-intraday=alpaca-paper|sim-paper;swing=ibkr-paper-bot}
       TB_STRATEGY_REGISTRY: /etc/tb/strategies.json
-    secrets: [nats_execution_password, pg_svc_execution_password, svc_execution_ed25519, svc_api_gateway_ed25519.pub]
+    secrets: [nats_execution_password, pg_svc_execution_password, svc_execution_ed25519, svc_api_gateway_ed25519.pub, svc_monitor_ed25519.pub]
     volumes: ["./strategies.json:/etc/tb/strategies.json:ro"]
     networks: [backend, edge]
     healthcheck: *go-healthcheck
