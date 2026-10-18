@@ -230,7 +230,7 @@ async def run(
     if holder is not None:
         holder["runner"], holder["core"] = feedback, core
     if cfg.monitor_grpc_addr:
-        verifier = Verifier.from_secrets("monitor", ["api-gateway", "assistant"], cfg.secrets_dir)
+        verifier = Verifier.from_secrets("monitor", ["api-gateway", "assistant", "execution"], cfg.secrets_dir)
         server, port = serve(
             cfg.monitor_grpc_addr, [(SERVICE, MonitorServicer(core, inbox), ALLOW)], verifier, workers=8
         )

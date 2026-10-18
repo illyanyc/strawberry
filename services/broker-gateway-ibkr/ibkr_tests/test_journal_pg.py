@@ -58,7 +58,7 @@ async def fresh_db() -> tuple[str, str, Callable[[], Awaitable[None]]]:
     name = f"tb_ibkr_{uuid.uuid4().hex[:10]}"
     admin = await asyncpg.connect(SUPER)
     await admin.execute(f'CREATE DATABASE "{name}"')
-    for role in ("svc_broker_gateway", "svc_broker_gateway_ibkr", "broker_owner", "broker_ibkr_owner"):
+    for role in ("svc_broker_gateway", "svc_broker_gateway_ibkr", "svc_execution", "broker_owner", "broker_ibkr_owner"):
         exists = await admin.fetchval("SELECT 1 FROM pg_roles WHERE rolname = $1", role)
         login = "LOGIN PASSWORD 'pw'" if role.startswith("svc_") else "NOLOGIN"
         await admin.execute(f'{"ALTER" if exists else "CREATE"} ROLE "{role}" {login}')

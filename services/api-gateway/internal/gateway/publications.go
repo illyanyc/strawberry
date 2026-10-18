@@ -14,7 +14,7 @@ import (
 	"github.com/illyanyc/strawberry/libs/go/policy"
 )
 
-// UI-052: a publication is a strategy definition plus the non-performance parameters of a
+// UI-053: a publication is a strategy definition plus the non-performance parameters of a
 // hypothetical backtest. The index is ordered by publication time or title. It is not a
 // leaderboard: there is no profit, return, rank, or signal, and no path from here to an order.
 // A cross-user "money made" board, and public return statistics, are refused.
@@ -32,7 +32,7 @@ var (
 	publicationBars     = map[string]bool{"1m": true, "5m": true, "15m": true, "30m": true, "1h": true, "1d": true}
 )
 
-// publication is one active or withdrawn index entry. It has no performance fields (UI-052).
+// publication is one active or withdrawn index entry. It has no performance fields (UI-053).
 type publication struct {
 	ID          string
 	OwnerID     string
@@ -56,7 +56,7 @@ type publicationRequest struct {
 	Universe    string `json:"universe"`
 }
 
-// publicationView is the only JSON shape a publication is allowed to take (UI-052).
+// publicationView is the only JSON shape a publication is allowed to take (UI-053).
 type publicationView struct {
 	ID          string `json:"id"`
 	DisplayName string `json:"display_name"`
@@ -84,7 +84,7 @@ func (s *Server) handlePublicationsList(w http.ResponseWriter, r *http.Request, 
 	}
 	sortBy, ok := publicationSort(r.URL.Query().Get("sort"))
 	if !ok {
-		// UI-052: the index is not ranked by results.
+		// UI-053: the index is not ranked by results.
 		writeError(w, http.StatusBadRequest, "bad_sort", "sort must be published_at or name")
 		return
 	}
@@ -125,7 +125,7 @@ func (s *Server) handlePublicationCreate(w http.ResponseWriter, r *http.Request,
 		return
 	}
 	var req publicationRequest
-	// DisallowUnknownFields rejects profit, return, rank, signal, and order fields (UI-052).
+	// DisallowUnknownFields rejects profit, return, rank, signal, and order fields (UI-053).
 	if err := decode(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "bad_request", "invalid publication")
 		return
@@ -183,7 +183,7 @@ func (p publication) view(reader string) publicationView {
 	}
 }
 
-// publicationSort accepts only time or name. Any result-based sort is rejected (UI-052).
+// publicationSort accepts only time or name. Any result-based sort is rejected (UI-053).
 func publicationSort(v string) (string, bool) {
 	switch v {
 	case "", "published_at":

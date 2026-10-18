@@ -26,7 +26,9 @@ const (
 	ActSettingsRead          Action = "settings.read"
 	ActSettingsWrite         Action = "settings.write"
 	ActTradingLiveEnable     Action = "trading.live.enable"
+	ActTradingLiveDisable    Action = "trading.live.disable"
 	ActStrategyPromoteLive   Action = "strategy.promote.live"
+	ActStrategyDemoteLive    Action = "strategy.demote.live"
 	ActRiskLimitsRaise       Action = "risk.limits.raise"
 	ActRiskLimitsLower       Action = "risk.limits.lower"
 	ActAllocationIncrease    Action = "allocation.increase"
@@ -102,7 +104,9 @@ var ownerActions = map[Action]stepUp{
 	ActSettingsRead:         noStepUp,
 	ActSettingsWrite:        noStepUp,
 	ActTradingLiveEnable:    stepUpPasskey,
+	ActTradingLiveDisable:   noStepUp,
 	ActStrategyPromoteLive:  stepUpPasskey,
+	ActStrategyDemoteLive:   noStepUp,
 	ActRiskLimitsRaise:      stepUpPasskey,
 	ActRiskLimitsLower:      noStepUp,
 	ActAllocationIncrease:   stepUpPasskey,

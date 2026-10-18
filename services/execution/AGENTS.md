@@ -6,7 +6,7 @@ Owns the OMS, the pre-trade risk gate (D30 routing, intraday-margin guard, PDT g
 
 ## Responsibilities
 - Owns: schema `execution`, `ExecutionService`, `ord.decision`, `ord.order.<acct>`, `risk.kill` (engagements), `sys.health.execution` heartbeat.
-- Does not own: ledger math and reservations (ledger), broker sessions and attribution validation (adapters), sizing (strategy layer, `tbcore.strategy`), live promotion (section 15).
+- Does not own: ledger math and reservations (ledger), broker sessions and attribution validation (adapters), sizing (strategy layer, `tbcore.strategy`). Live promotion is `internal/oms/golive.go` (section 15, GL-*): the only writer of mode `live`.
 
 ## Interfaces
 | Direction | Kind | Name | Contract |

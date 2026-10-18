@@ -22,6 +22,7 @@ The specification of how the platform behaves, by domain. **These docs are the s
 | Optimization, experiments, holdout, registry | [optimization.md](optimization.md) | `EX-` | `services/optimizer` (studies, trial ledger, gates, registry, holdout), `services/backtest` (scorer) |
 | AI research analyst and assistant | [assistant.md](assistant.md) | `AN-` | `assistant`, `backtest` (candidate checker), `monitor` (feedback), `api-gateway` (owner actions) |
 | Security | [security.md](security.md) | `SE-` | `libs/go` (policy, audit, secrets, svcauth, db), `api-gateway`, `broker-gateway` |
+| Go-live and paper graduation | [go-live.md](go-live.md) | `GL-` | `execution` (promotion, readiness), `broker-gateway` (order mode), `monitor` (evidence), `optimizer` (DSR), `apps/web` (Go live page) |
 
 New domain: copy [`_template.md`](_template.md), pick a two-letter prefix, add it to this table and to `.cursor/rules/documentation-discipline.mdc`.
 

@@ -23,6 +23,7 @@ import {
   type LucideIcon,
   PieChart,
   Radio,
+  Rocket,
   ScrollText,
   Settings2,
   ShieldAlert,
@@ -57,6 +58,7 @@ export type NavPath =
   | "/publications"
   | "/risk"
   | "/monitoring"
+  | "/live"
   | "/settings/notifications"
   | "/settings/tradingview"
   | "/settings/security"
@@ -94,6 +96,7 @@ export const NAV: readonly NavItem[] = [
   { to: "/publications", label: "Publications", short: "Published", icon: Library, section: "research", key: "u", keywords: "publish definition user content index" },
   { to: "/risk", label: "Risk & kill switches", short: "Risk", icon: ShieldAlert, section: "operations", key: "r", keywords: "kill switch halt limits freeze" },
   { to: "/monitoring", label: "Monitoring", short: "Monitor", icon: HeartPulse, section: "operations", key: "m", keywords: "health drift divergence shortfall containment alerts inbox daily report graduation" },
+  { to: "/live", label: "Go live", short: "Go live", icon: Rocket, section: "operations", key: "l", keywords: "graduation live enable promote capital cap readiness checklist" },
   { to: "/settings/notifications", label: "Notifications", short: "Alerts", icon: BellRing, section: "settings", key: "n", keywords: "push pwa install pushover web push" },
   { to: "/settings/tradingview", label: "TradingView", short: "TradingView", icon: Radio, section: "settings", keywords: "webhook tv signals cloudflare" },
   { to: "/settings/security", label: "Security", short: "Security", icon: ShieldCheck, section: "settings", keywords: "passkey totp recovery sessions" },

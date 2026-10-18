@@ -59,9 +59,9 @@ func (s *Server) publicationCall(method, path, body string) *httptest.ResponseRe
 	return rec
 }
 
-// UI-052: performance fields and result sorts are rejected; a stored entry has no profit,
+// UI-053: performance fields and result sorts are rejected; a stored entry has no profit,
 // return, or rank, and the word "buy" inside a rules description is still just text.
-func TestUI052PublicationsRejectPerformanceAndBadSort(t *testing.T) {
+func TestUI053PublicationsRejectPerformanceAndBadSort(t *testing.T) {
 	srv := publicationServer(t)
 	for _, extra := range []string{
 		`"pnl": "1000"`,

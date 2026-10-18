@@ -152,6 +152,10 @@ ibkr-vnc-stop: ## Remove the on-demand VNC proxy (the gateway keeps running)
 test-ibkr-contract: ## Shared Go broker contract suite (BR-001) against the IBKR adapter over its fake gateway
 	scripts/ibkr-contract.sh
 
+.PHONY: live-gate
+live-gate: ## Section 15 gate: live refused without step-up, analyst denied, paper credential cannot place a live order (tests/paper, simulators only)
+	cd tests/paper && go test -count=1 -run TestLiveGate -timeout 10m ./...
+
 .PHONY: paper-gate
 paper-gate: ## Phase 2 gate: five simulated ORB sessions through runtime, OMS, simulators, ledger (writes paper-gate-evidence.json)
 	cd tests/paper && TB_PAPER_GATE_REQUIRED=1 TB_PAPER_EVIDENCE=$(CURDIR)/paper-gate-evidence.json TB_PAPER_RECORDING=$(CURDIR)/paper-gate.tbrec \

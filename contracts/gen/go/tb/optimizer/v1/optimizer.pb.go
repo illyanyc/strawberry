@@ -7155,6 +7155,277 @@ func (x *SetDeploymentLimitsResponse) GetRaised() bool {
 	return false
 }
 
+type GetGraduationStatisticsRequest struct {
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	StrategyId string                 `protobuf:"bytes,1,opt,name=strategy_id,json=strategyId,proto3" json:"strategy_id,omitempty"`
+	// Per-session paper returns as a fraction of the allocation, oldest first (from execution).
+	PaperSessionReturns []float64 `protobuf:"fixed64,2,rep,packed,name=paper_session_returns,json=paperSessionReturns,proto3" json:"paper_session_returns,omitempty"`
+	// intraday | swing
+	Horizon       string `protobuf:"bytes,3,opt,name=horizon,proto3" json:"horizon,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetGraduationStatisticsRequest) Reset() {
+	*x = GetGraduationStatisticsRequest{}
+	mi := &file_tb_optimizer_v1_optimizer_proto_msgTypes[105]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetGraduationStatisticsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetGraduationStatisticsRequest) ProtoMessage() {}
+
+func (x *GetGraduationStatisticsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_optimizer_v1_optimizer_proto_msgTypes[105]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetGraduationStatisticsRequest.ProtoReflect.Descriptor instead.
+func (*GetGraduationStatisticsRequest) Descriptor() ([]byte, []int) {
+	return file_tb_optimizer_v1_optimizer_proto_rawDescGZIP(), []int{105}
+}
+
+func (x *GetGraduationStatisticsRequest) GetStrategyId() string {
+	if x != nil {
+		return x.StrategyId
+	}
+	return ""
+}
+
+func (x *GetGraduationStatisticsRequest) GetPaperSessionReturns() []float64 {
+	if x != nil {
+		return x.PaperSessionReturns
+	}
+	return nil
+}
+
+func (x *GetGraduationStatisticsRequest) GetHorizon() string {
+	if x != nil {
+		return x.Horizon
+	}
+	return ""
+}
+
+// GraduationStatistics: every value carries an `*_available` flag; a missing input fails its
+// criterion in execution (fail closed, GL-002).
+type GraduationStatistics struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	StrategyId  string                 `protobuf:"bytes,1,opt,name=strategy_id,json=strategyId,proto3" json:"strategy_id,omitempty"`
+	CandidateId string                 `protobuf:"bytes,2,opt,name=candidate_id,json=candidateId,proto3" json:"candidate_id,omitempty"`
+	// tb.ml.v1.RegistryStage name, empty when the strategy has no registry candidate.
+	RegistryStage string `protobuf:"bytes,3,opt,name=registry_stage,json=registryStage,proto3" json:"registry_stage,omitempty"`
+	// DSR of the concatenated out-of-fold research record and the paper record, deflated by the
+	// lineage's effective N and cross-trial Sharpe variance.
+	DsrCombined   float64 `protobuf:"fixed64,4,opt,name=dsr_combined,json=dsrCombined,proto3" json:"dsr_combined,omitempty"`
+	NEffective    float64 `protobuf:"fixed64,5,opt,name=n_effective,json=nEffective,proto3" json:"n_effective,omitempty"`
+	NObservations int32   `protobuf:"varint,6,opt,name=n_observations,json=nObservations,proto3" json:"n_observations,omitempty"`
+	DsrAvailable  bool    `protobuf:"varint,7,opt,name=dsr_available,json=dsrAvailable,proto3" json:"dsr_available,omitempty"`
+	// 95th percentile of the maximum drawdown (fraction of allocation) over block-bootstrap paths of
+	// the candidate's out-of-fold session returns, each path as long as the paper window.
+	BacktestDrawdownP95 float64 `protobuf:"fixed64,8,opt,name=backtest_drawdown_p95,json=backtestDrawdownP95,proto3" json:"backtest_drawdown_p95,omitempty"`
+	DrawdownAvailable   bool    `protobuf:"varint,9,opt,name=drawdown_available,json=drawdownAvailable,proto3" json:"drawdown_available,omitempty"`
+	// Modeled round-trip implementation shortfall in bps from the candidate's cost model.
+	ModeledShortfallBps float64 `protobuf:"fixed64,10,opt,name=modeled_shortfall_bps,json=modeledShortfallBps,proto3" json:"modeled_shortfall_bps,omitempty"`
+	ShortfallAvailable  bool    `protobuf:"varint,11,opt,name=shortfall_available,json=shortfallAvailable,proto3" json:"shortfall_available,omitempty"`
+	// Latest live-vs-backtest trade match rate from monitoring, and how many sessions it covers.
+	DivergenceMatchRate float64 `protobuf:"fixed64,12,opt,name=divergence_match_rate,json=divergenceMatchRate,proto3" json:"divergence_match_rate,omitempty"`
+	DivergenceSessions  int32   `protobuf:"varint,13,opt,name=divergence_sessions,json=divergenceSessions,proto3" json:"divergence_sessions,omitempty"`
+	DivergenceAvailable bool    `protobuf:"varint,14,opt,name=divergence_available,json=divergenceAvailable,proto3" json:"divergence_available,omitempty"`
+	ComputedAt          int64   `protobuf:"varint,15,opt,name=computed_at,json=computedAt,proto3" json:"computed_at,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *GraduationStatistics) Reset() {
+	*x = GraduationStatistics{}
+	mi := &file_tb_optimizer_v1_optimizer_proto_msgTypes[106]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GraduationStatistics) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GraduationStatistics) ProtoMessage() {}
+
+func (x *GraduationStatistics) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_optimizer_v1_optimizer_proto_msgTypes[106]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GraduationStatistics.ProtoReflect.Descriptor instead.
+func (*GraduationStatistics) Descriptor() ([]byte, []int) {
+	return file_tb_optimizer_v1_optimizer_proto_rawDescGZIP(), []int{106}
+}
+
+func (x *GraduationStatistics) GetStrategyId() string {
+	if x != nil {
+		return x.StrategyId
+	}
+	return ""
+}
+
+func (x *GraduationStatistics) GetCandidateId() string {
+	if x != nil {
+		return x.CandidateId
+	}
+	return ""
+}
+
+func (x *GraduationStatistics) GetRegistryStage() string {
+	if x != nil {
+		return x.RegistryStage
+	}
+	return ""
+}
+
+func (x *GraduationStatistics) GetDsrCombined() float64 {
+	if x != nil {
+		return x.DsrCombined
+	}
+	return 0
+}
+
+func (x *GraduationStatistics) GetNEffective() float64 {
+	if x != nil {
+		return x.NEffective
+	}
+	return 0
+}
+
+func (x *GraduationStatistics) GetNObservations() int32 {
+	if x != nil {
+		return x.NObservations
+	}
+	return 0
+}
+
+func (x *GraduationStatistics) GetDsrAvailable() bool {
+	if x != nil {
+		return x.DsrAvailable
+	}
+	return false
+}
+
+func (x *GraduationStatistics) GetBacktestDrawdownP95() float64 {
+	if x != nil {
+		return x.BacktestDrawdownP95
+	}
+	return 0
+}
+
+func (x *GraduationStatistics) GetDrawdownAvailable() bool {
+	if x != nil {
+		return x.DrawdownAvailable
+	}
+	return false
+}
+
+func (x *GraduationStatistics) GetModeledShortfallBps() float64 {
+	if x != nil {
+		return x.ModeledShortfallBps
+	}
+	return 0
+}
+
+func (x *GraduationStatistics) GetShortfallAvailable() bool {
+	if x != nil {
+		return x.ShortfallAvailable
+	}
+	return false
+}
+
+func (x *GraduationStatistics) GetDivergenceMatchRate() float64 {
+	if x != nil {
+		return x.DivergenceMatchRate
+	}
+	return 0
+}
+
+func (x *GraduationStatistics) GetDivergenceSessions() int32 {
+	if x != nil {
+		return x.DivergenceSessions
+	}
+	return 0
+}
+
+func (x *GraduationStatistics) GetDivergenceAvailable() bool {
+	if x != nil {
+		return x.DivergenceAvailable
+	}
+	return false
+}
+
+func (x *GraduationStatistics) GetComputedAt() int64 {
+	if x != nil {
+		return x.ComputedAt
+	}
+	return 0
+}
+
+type GetGraduationStatisticsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Statistics    *GraduationStatistics  `protobuf:"bytes,1,opt,name=statistics,proto3" json:"statistics,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetGraduationStatisticsResponse) Reset() {
+	*x = GetGraduationStatisticsResponse{}
+	mi := &file_tb_optimizer_v1_optimizer_proto_msgTypes[107]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetGraduationStatisticsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetGraduationStatisticsResponse) ProtoMessage() {}
+
+func (x *GetGraduationStatisticsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_optimizer_v1_optimizer_proto_msgTypes[107]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetGraduationStatisticsResponse.ProtoReflect.Descriptor instead.
+func (*GetGraduationStatisticsResponse) Descriptor() ([]byte, []int) {
+	return file_tb_optimizer_v1_optimizer_proto_rawDescGZIP(), []int{107}
+}
+
+func (x *GetGraduationStatisticsResponse) GetStatistics() *GraduationStatistics {
+	if x != nil {
+		return x.Statistics
+	}
+	return nil
+}
+
 var File_tb_optimizer_v1_optimizer_proto protoreflect.FileDescriptor
 
 const file_tb_optimizer_v1_optimizer_proto_rawDesc = "" +
@@ -7760,7 +8031,36 @@ const file_tb_optimizer_v1_optimizer_proto_rawDesc = "" +
 	"\x06caller\x18\x04 \x01(\v2\x17.tb.ml.v1.CallerContextR\x06caller\"p\n" +
 	"\x1bSetDeploymentLimitsResponse\x129\n" +
 	"\x06limits\x18\x01 \x01(\v2!.tb.optimizer.v1.DeploymentLimitsR\x06limits\x12\x16\n" +
-	"\x06raised\x18\x02 \x01(\bR\x06raised*s\n" +
+	"\x06raised\x18\x02 \x01(\bR\x06raised\"\x8f\x01\n" +
+	"\x1eGetGraduationStatisticsRequest\x12\x1f\n" +
+	"\vstrategy_id\x18\x01 \x01(\tR\n" +
+	"strategyId\x122\n" +
+	"\x15paper_session_returns\x18\x02 \x03(\x01R\x13paperSessionReturns\x12\x18\n" +
+	"\ahorizon\x18\x03 \x01(\tR\ahorizon\"\x92\x05\n" +
+	"\x14GraduationStatistics\x12\x1f\n" +
+	"\vstrategy_id\x18\x01 \x01(\tR\n" +
+	"strategyId\x12!\n" +
+	"\fcandidate_id\x18\x02 \x01(\tR\vcandidateId\x12%\n" +
+	"\x0eregistry_stage\x18\x03 \x01(\tR\rregistryStage\x12!\n" +
+	"\fdsr_combined\x18\x04 \x01(\x01R\vdsrCombined\x12\x1f\n" +
+	"\vn_effective\x18\x05 \x01(\x01R\n" +
+	"nEffective\x12%\n" +
+	"\x0en_observations\x18\x06 \x01(\x05R\rnObservations\x12#\n" +
+	"\rdsr_available\x18\a \x01(\bR\fdsrAvailable\x122\n" +
+	"\x15backtest_drawdown_p95\x18\b \x01(\x01R\x13backtestDrawdownP95\x12-\n" +
+	"\x12drawdown_available\x18\t \x01(\bR\x11drawdownAvailable\x122\n" +
+	"\x15modeled_shortfall_bps\x18\n" +
+	" \x01(\x01R\x13modeledShortfallBps\x12/\n" +
+	"\x13shortfall_available\x18\v \x01(\bR\x12shortfallAvailable\x122\n" +
+	"\x15divergence_match_rate\x18\f \x01(\x01R\x13divergenceMatchRate\x12/\n" +
+	"\x13divergence_sessions\x18\r \x01(\x05R\x12divergenceSessions\x121\n" +
+	"\x14divergence_available\x18\x0e \x01(\bR\x13divergenceAvailable\x12\x1f\n" +
+	"\vcomputed_at\x18\x0f \x01(\x03R\n" +
+	"computedAt\"h\n" +
+	"\x1fGetGraduationStatisticsResponse\x12E\n" +
+	"\n" +
+	"statistics\x18\x01 \x01(\v2%.tb.optimizer.v1.GraduationStatisticsR\n" +
+	"statistics*s\n" +
 	"\vCycleStatus\x12\x1c\n" +
 	"\x18CYCLE_STATUS_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11CYCLE_STATUS_OPEN\x10\x01\x12\x16\n" +
@@ -7780,7 +8080,7 @@ const file_tb_optimizer_v1_optimizer_proto_rawDesc = "" +
 	"\x15TRIAL_STATUS_COMPLETE\x10\x02\x12\x17\n" +
 	"\x13TRIAL_STATUS_PRUNED\x10\x03\x12\x17\n" +
 	"\x13TRIAL_STATUS_FAILED\x10\x04\x12\x1a\n" +
-	"\x16TRIAL_STATUS_ABANDONED\x10\x052\xfb\x1b\n" +
+	"\x16TRIAL_STATUS_ABANDONED\x10\x052\xf9\x1c\n" +
 	"\x10OptimizerService\x12^\n" +
 	"\rCreateLineage\x12%.tb.optimizer.v1.CreateLineageRequest\x1a&.tb.optimizer.v1.CreateLineageResponse\x12U\n" +
 	"\n" +
@@ -7820,7 +8120,8 @@ const file_tb_optimizer_v1_optimizer_proto_rawDesc = "" +
 	"\x13SetRetrainingPolicy\x12+.tb.optimizer.v1.SetRetrainingPolicyRequest\x1a,.tb.optimizer.v1.SetRetrainingPolicyResponse\x12a\n" +
 	"\x0eTriggerRetrain\x12&.tb.optimizer.v1.TriggerRetrainRequest\x1a'.tb.optimizer.v1.TriggerRetrainResponse\x12p\n" +
 	"\x13GetDeploymentLimits\x12+.tb.optimizer.v1.GetDeploymentLimitsRequest\x1a,.tb.optimizer.v1.GetDeploymentLimitsResponse\x12p\n" +
-	"\x13SetDeploymentLimits\x12+.tb.optimizer.v1.SetDeploymentLimitsRequest\x1a,.tb.optimizer.v1.SetDeploymentLimitsResponseB\xd0\x01\n" +
+	"\x13SetDeploymentLimits\x12+.tb.optimizer.v1.SetDeploymentLimitsRequest\x1a,.tb.optimizer.v1.SetDeploymentLimitsResponse\x12|\n" +
+	"\x17GetGraduationStatistics\x12/.tb.optimizer.v1.GetGraduationStatisticsRequest\x1a0.tb.optimizer.v1.GetGraduationStatisticsResponseB\xd0\x01\n" +
 	"\x13com.tb.optimizer.v1B\x0eOptimizerProtoP\x01ZKgithub.com/illyanyc/strawberry/contracts/gen/go/tb/optimizer/v1;optimizerv1\xa2\x02\x03TOX\xaa\x02\x0fTb.Optimizer.V1\xca\x02\x0fTb\\Optimizer\\V1\xe2\x02\x1bTb\\Optimizer\\V1\\GPBMetadata\xea\x02\x11Tb::Optimizer::V1b\x06proto3"
 
 var (
@@ -7836,7 +8137,7 @@ func file_tb_optimizer_v1_optimizer_proto_rawDescGZIP() []byte {
 }
 
 var file_tb_optimizer_v1_optimizer_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_tb_optimizer_v1_optimizer_proto_msgTypes = make([]protoimpl.MessageInfo, 113)
+var file_tb_optimizer_v1_optimizer_proto_msgTypes = make([]protoimpl.MessageInfo, 116)
 var file_tb_optimizer_v1_optimizer_proto_goTypes = []any{
 	(CycleStatus)(0),                              // 0: tb.optimizer.v1.CycleStatus
 	(StudyStatus)(0),                              // 1: tb.optimizer.v1.StudyStatus
@@ -7946,237 +8247,243 @@ var file_tb_optimizer_v1_optimizer_proto_goTypes = []any{
 	(*GetDeploymentLimitsResponse)(nil),           // 105: tb.optimizer.v1.GetDeploymentLimitsResponse
 	(*SetDeploymentLimitsRequest)(nil),            // 106: tb.optimizer.v1.SetDeploymentLimitsRequest
 	(*SetDeploymentLimitsResponse)(nil),           // 107: tb.optimizer.v1.SetDeploymentLimitsResponse
-	nil,                                           // 108: tb.optimizer.v1.TrialLedger.BySourceEntry
-	nil,                                           // 109: tb.optimizer.v1.TrialLedger.ByDimensionEntry
-	nil,                                           // 110: tb.optimizer.v1.TrialLedger.ByStatusEntry
-	nil,                                           // 111: tb.optimizer.v1.ParetoPoint.ValuesEntry
-	nil,                                           // 112: tb.optimizer.v1.StudyDiagnostics.ParamImportanceEntry
-	nil,                                           // 113: tb.optimizer.v1.CostSensitivity.NetReturnEntry
-	nil,                                           // 114: tb.optimizer.v1.CostSensitivity.SharpeEntry
-	nil,                                           // 115: tb.optimizer.v1.GateReport.ThresholdsEntry
-	(*v1.CallerContext)(nil),                      // 116: tb.ml.v1.CallerContext
-	(*v1.Period)(nil),                             // 117: tb.ml.v1.Period
-	(*v1.SplitterSpec)(nil),                       // 118: tb.ml.v1.SplitterSpec
-	(*v1.FeatureSetRef)(nil),                      // 119: tb.ml.v1.FeatureSetRef
-	(*v1.LabelSpec)(nil),                          // 120: tb.ml.v1.LabelSpec
-	(*v1.UniverseSpec)(nil),                       // 121: tb.ml.v1.UniverseSpec
-	(*v1.TrainingConfig)(nil),                     // 122: tb.ml.v1.TrainingConfig
-	(*structpb.Struct)(nil),                       // 123: google.protobuf.Struct
-	(v1.Actor)(0),                                 // 124: tb.ml.v1.Actor
-	(*v1.ModelVersion)(nil),                       // 125: tb.ml.v1.ModelVersion
-	(v1.RegistryStage)(0),                         // 126: tb.ml.v1.RegistryStage
-	(*v11.RiskLimits)(nil),                        // 127: tb.orders.v1.RiskLimits
+	(*GetGraduationStatisticsRequest)(nil),        // 108: tb.optimizer.v1.GetGraduationStatisticsRequest
+	(*GraduationStatistics)(nil),                  // 109: tb.optimizer.v1.GraduationStatistics
+	(*GetGraduationStatisticsResponse)(nil),       // 110: tb.optimizer.v1.GetGraduationStatisticsResponse
+	nil,                                           // 111: tb.optimizer.v1.TrialLedger.BySourceEntry
+	nil,                                           // 112: tb.optimizer.v1.TrialLedger.ByDimensionEntry
+	nil,                                           // 113: tb.optimizer.v1.TrialLedger.ByStatusEntry
+	nil,                                           // 114: tb.optimizer.v1.ParetoPoint.ValuesEntry
+	nil,                                           // 115: tb.optimizer.v1.StudyDiagnostics.ParamImportanceEntry
+	nil,                                           // 116: tb.optimizer.v1.CostSensitivity.NetReturnEntry
+	nil,                                           // 117: tb.optimizer.v1.CostSensitivity.SharpeEntry
+	nil,                                           // 118: tb.optimizer.v1.GateReport.ThresholdsEntry
+	(*v1.CallerContext)(nil),                      // 119: tb.ml.v1.CallerContext
+	(*v1.Period)(nil),                             // 120: tb.ml.v1.Period
+	(*v1.SplitterSpec)(nil),                       // 121: tb.ml.v1.SplitterSpec
+	(*v1.FeatureSetRef)(nil),                      // 122: tb.ml.v1.FeatureSetRef
+	(*v1.LabelSpec)(nil),                          // 123: tb.ml.v1.LabelSpec
+	(*v1.UniverseSpec)(nil),                       // 124: tb.ml.v1.UniverseSpec
+	(*v1.TrainingConfig)(nil),                     // 125: tb.ml.v1.TrainingConfig
+	(*structpb.Struct)(nil),                       // 126: google.protobuf.Struct
+	(v1.Actor)(0),                                 // 127: tb.ml.v1.Actor
+	(*v1.ModelVersion)(nil),                       // 128: tb.ml.v1.ModelVersion
+	(v1.RegistryStage)(0),                         // 129: tb.ml.v1.RegistryStage
+	(*v11.RiskLimits)(nil),                        // 130: tb.orders.v1.RiskLimits
 }
 var file_tb_optimizer_v1_optimizer_proto_depIdxs = []int32{
 	3,   // 0: tb.optimizer.v1.Lineage.analyst_budget:type_name -> tb.optimizer.v1.Budget
 	4,   // 1: tb.optimizer.v1.Lineage.analyst_used:type_name -> tb.optimizer.v1.BudgetUsage
 	5,   // 2: tb.optimizer.v1.Lineage.promotion_limits:type_name -> tb.optimizer.v1.PromotionLimits
-	116, // 3: tb.optimizer.v1.ResearchCycle.opened_by:type_name -> tb.ml.v1.CallerContext
+	119, // 3: tb.optimizer.v1.ResearchCycle.opened_by:type_name -> tb.ml.v1.CallerContext
 	0,   // 4: tb.optimizer.v1.ResearchCycle.status:type_name -> tb.optimizer.v1.CycleStatus
-	117, // 5: tb.optimizer.v1.PreRegistration.period:type_name -> tb.ml.v1.Period
-	118, // 6: tb.optimizer.v1.NestedEvaluation.outer:type_name -> tb.ml.v1.SplitterSpec
-	118, // 7: tb.optimizer.v1.NestedEvaluation.inner:type_name -> tb.ml.v1.SplitterSpec
+	120, // 5: tb.optimizer.v1.PreRegistration.period:type_name -> tb.ml.v1.Period
+	121, // 6: tb.optimizer.v1.NestedEvaluation.outer:type_name -> tb.ml.v1.SplitterSpec
+	121, // 7: tb.optimizer.v1.NestedEvaluation.inner:type_name -> tb.ml.v1.SplitterSpec
 	9,   // 8: tb.optimizer.v1.StudySpec.search_space:type_name -> tb.optimizer.v1.ParamSpace
-	119, // 9: tb.optimizer.v1.StudySpec.feature_sets:type_name -> tb.ml.v1.FeatureSetRef
-	120, // 10: tb.optimizer.v1.StudySpec.label_specs:type_name -> tb.ml.v1.LabelSpec
-	121, // 11: tb.optimizer.v1.StudySpec.universe:type_name -> tb.ml.v1.UniverseSpec
-	117, // 12: tb.optimizer.v1.StudySpec.period:type_name -> tb.ml.v1.Period
+	122, // 9: tb.optimizer.v1.StudySpec.feature_sets:type_name -> tb.ml.v1.FeatureSetRef
+	123, // 10: tb.optimizer.v1.StudySpec.label_specs:type_name -> tb.ml.v1.LabelSpec
+	124, // 11: tb.optimizer.v1.StudySpec.universe:type_name -> tb.ml.v1.UniverseSpec
+	120, // 12: tb.optimizer.v1.StudySpec.period:type_name -> tb.ml.v1.Period
 	10,  // 13: tb.optimizer.v1.StudySpec.objective:type_name -> tb.optimizer.v1.Objective
 	11,  // 14: tb.optimizer.v1.StudySpec.evaluation:type_name -> tb.optimizer.v1.NestedEvaluation
 	3,   // 15: tb.optimizer.v1.StudySpec.budget:type_name -> tb.optimizer.v1.Budget
 	8,   // 16: tb.optimizer.v1.StudySpec.preregistration:type_name -> tb.optimizer.v1.PreRegistration
-	122, // 17: tb.optimizer.v1.StudySpec.base_config:type_name -> tb.ml.v1.TrainingConfig
-	123, // 18: tb.optimizer.v1.Trial.params:type_name -> google.protobuf.Struct
-	124, // 19: tb.optimizer.v1.Trial.source:type_name -> tb.ml.v1.Actor
+	125, // 17: tb.optimizer.v1.StudySpec.base_config:type_name -> tb.ml.v1.TrainingConfig
+	126, // 18: tb.optimizer.v1.Trial.params:type_name -> google.protobuf.Struct
+	127, // 19: tb.optimizer.v1.Trial.source:type_name -> tb.ml.v1.Actor
 	2,   // 20: tb.optimizer.v1.Trial.status:type_name -> tb.optimizer.v1.TrialStatus
-	123, // 21: tb.optimizer.v1.StudyBest.params:type_name -> google.protobuf.Struct
+	126, // 21: tb.optimizer.v1.StudyBest.params:type_name -> google.protobuf.Struct
 	12,  // 22: tb.optimizer.v1.Study.spec:type_name -> tb.optimizer.v1.StudySpec
 	1,   // 23: tb.optimizer.v1.Study.status:type_name -> tb.optimizer.v1.StudyStatus
 	4,   // 24: tb.optimizer.v1.Study.budget_used:type_name -> tb.optimizer.v1.BudgetUsage
 	14,  // 25: tb.optimizer.v1.Study.best_trials:type_name -> tb.optimizer.v1.StudyBest
 	15,  // 26: tb.optimizer.v1.Study.outer_estimate:type_name -> tb.optimizer.v1.OuterEstimate
-	116, // 27: tb.optimizer.v1.Study.created_by:type_name -> tb.ml.v1.CallerContext
+	119, // 27: tb.optimizer.v1.Study.created_by:type_name -> tb.ml.v1.CallerContext
 	1,   // 28: tb.optimizer.v1.StudyProgress.status:type_name -> tb.optimizer.v1.StudyStatus
 	13,  // 29: tb.optimizer.v1.StudyProgress.trial:type_name -> tb.optimizer.v1.Trial
-	108, // 30: tb.optimizer.v1.TrialLedger.by_source:type_name -> tb.optimizer.v1.TrialLedger.BySourceEntry
-	109, // 31: tb.optimizer.v1.TrialLedger.by_dimension:type_name -> tb.optimizer.v1.TrialLedger.ByDimensionEntry
-	110, // 32: tb.optimizer.v1.TrialLedger.by_status:type_name -> tb.optimizer.v1.TrialLedger.ByStatusEntry
+	111, // 30: tb.optimizer.v1.TrialLedger.by_source:type_name -> tb.optimizer.v1.TrialLedger.BySourceEntry
+	112, // 31: tb.optimizer.v1.TrialLedger.by_dimension:type_name -> tb.optimizer.v1.TrialLedger.ByDimensionEntry
+	113, // 32: tb.optimizer.v1.TrialLedger.by_status:type_name -> tb.optimizer.v1.TrialLedger.ByStatusEntry
 	7,   // 33: tb.optimizer.v1.TrialLedger.cycles:type_name -> tb.optimizer.v1.ResearchCycle
-	111, // 34: tb.optimizer.v1.ParetoPoint.values:type_name -> tb.optimizer.v1.ParetoPoint.ValuesEntry
+	114, // 34: tb.optimizer.v1.ParetoPoint.values:type_name -> tb.optimizer.v1.ParetoPoint.ValuesEntry
 	20,  // 35: tb.optimizer.v1.StudyDiagnostics.convergence:type_name -> tb.optimizer.v1.ConvergencePoint
-	112, // 36: tb.optimizer.v1.StudyDiagnostics.param_importance:type_name -> tb.optimizer.v1.StudyDiagnostics.ParamImportanceEntry
+	115, // 36: tb.optimizer.v1.StudyDiagnostics.param_importance:type_name -> tb.optimizer.v1.StudyDiagnostics.ParamImportanceEntry
 	21,  // 37: tb.optimizer.v1.StudyDiagnostics.param_stability:type_name -> tb.optimizer.v1.ParamStability
 	22,  // 38: tb.optimizer.v1.StudyDiagnostics.pareto_front:type_name -> tb.optimizer.v1.ParetoPoint
-	117, // 39: tb.optimizer.v1.FoldResult.test:type_name -> tb.ml.v1.Period
-	113, // 40: tb.optimizer.v1.CostSensitivity.net_return:type_name -> tb.optimizer.v1.CostSensitivity.NetReturnEntry
-	114, // 41: tb.optimizer.v1.CostSensitivity.sharpe:type_name -> tb.optimizer.v1.CostSensitivity.SharpeEntry
+	120, // 39: tb.optimizer.v1.FoldResult.test:type_name -> tb.ml.v1.Period
+	116, // 40: tb.optimizer.v1.CostSensitivity.net_return:type_name -> tb.optimizer.v1.CostSensitivity.NetReturnEntry
+	117, // 41: tb.optimizer.v1.CostSensitivity.sharpe:type_name -> tb.optimizer.v1.CostSensitivity.SharpeEntry
 	15,  // 42: tb.optimizer.v1.GateReport.outer:type_name -> tb.optimizer.v1.OuterEstimate
 	24,  // 43: tb.optimizer.v1.GateReport.walk_forward:type_name -> tb.optimizer.v1.FoldResult
 	25,  // 44: tb.optimizer.v1.GateReport.regimes:type_name -> tb.optimizer.v1.RegimeResult
 	26,  // 45: tb.optimizer.v1.GateReport.cost_sensitivity:type_name -> tb.optimizer.v1.CostSensitivity
 	21,  // 46: tb.optimizer.v1.GateReport.param_stability:type_name -> tb.optimizer.v1.ParamStability
-	115, // 47: tb.optimizer.v1.GateReport.thresholds:type_name -> tb.optimizer.v1.GateReport.ThresholdsEntry
+	118, // 47: tb.optimizer.v1.GateReport.thresholds:type_name -> tb.optimizer.v1.GateReport.ThresholdsEntry
 	103, // 48: tb.optimizer.v1.GateReport.deployment_limits:type_name -> tb.optimizer.v1.DeploymentLimits
-	125, // 49: tb.optimizer.v1.Candidate.model_version:type_name -> tb.ml.v1.ModelVersion
-	122, // 50: tb.optimizer.v1.Candidate.config:type_name -> tb.ml.v1.TrainingConfig
-	126, // 51: tb.optimizer.v1.Candidate.stage:type_name -> tb.ml.v1.RegistryStage
+	128, // 49: tb.optimizer.v1.Candidate.model_version:type_name -> tb.ml.v1.ModelVersion
+	125, // 50: tb.optimizer.v1.Candidate.config:type_name -> tb.ml.v1.TrainingConfig
+	129, // 51: tb.optimizer.v1.Candidate.stage:type_name -> tb.ml.v1.RegistryStage
 	31,  // 52: tb.optimizer.v1.LineageGraph.nodes:type_name -> tb.optimizer.v1.GraphNode
 	32,  // 53: tb.optimizer.v1.LineageGraph.edges:type_name -> tb.optimizer.v1.GraphEdge
 	1,   // 54: tb.optimizer.v1.StudyCompleted.status:type_name -> tb.optimizer.v1.StudyStatus
-	124, // 55: tb.optimizer.v1.StudyCompleted.launched_by:type_name -> tb.ml.v1.Actor
-	126, // 56: tb.optimizer.v1.StageChanged.from_stage:type_name -> tb.ml.v1.RegistryStage
-	126, // 57: tb.optimizer.v1.StageChanged.to_stage:type_name -> tb.ml.v1.RegistryStage
-	116, // 58: tb.optimizer.v1.StageChanged.caller:type_name -> tb.ml.v1.CallerContext
+	127, // 55: tb.optimizer.v1.StudyCompleted.launched_by:type_name -> tb.ml.v1.Actor
+	129, // 56: tb.optimizer.v1.StageChanged.from_stage:type_name -> tb.ml.v1.RegistryStage
+	129, // 57: tb.optimizer.v1.StageChanged.to_stage:type_name -> tb.ml.v1.RegistryStage
+	119, // 58: tb.optimizer.v1.StageChanged.caller:type_name -> tb.ml.v1.CallerContext
 	6,   // 59: tb.optimizer.v1.CreateLineageRequest.lineage:type_name -> tb.optimizer.v1.Lineage
-	116, // 60: tb.optimizer.v1.CreateLineageRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 60: tb.optimizer.v1.CreateLineageRequest.caller:type_name -> tb.ml.v1.CallerContext
 	6,   // 61: tb.optimizer.v1.CreateLineageResponse.lineage:type_name -> tb.optimizer.v1.Lineage
 	6,   // 62: tb.optimizer.v1.GetLineageResponse.lineage:type_name -> tb.optimizer.v1.Lineage
 	6,   // 63: tb.optimizer.v1.ListLineagesResponse.lineages:type_name -> tb.optimizer.v1.Lineage
 	3,   // 64: tb.optimizer.v1.SetLineageAutonomyRequest.analyst_budget:type_name -> tb.optimizer.v1.Budget
 	5,   // 65: tb.optimizer.v1.SetLineageAutonomyRequest.promotion_limits:type_name -> tb.optimizer.v1.PromotionLimits
-	116, // 66: tb.optimizer.v1.SetLineageAutonomyRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 66: tb.optimizer.v1.SetLineageAutonomyRequest.caller:type_name -> tb.ml.v1.CallerContext
 	6,   // 67: tb.optimizer.v1.SetLineageAutonomyResponse.lineage:type_name -> tb.optimizer.v1.Lineage
-	116, // 68: tb.optimizer.v1.OpenCycleRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 68: tb.optimizer.v1.OpenCycleRequest.caller:type_name -> tb.ml.v1.CallerContext
 	7,   // 69: tb.optimizer.v1.OpenCycleResponse.cycle:type_name -> tb.optimizer.v1.ResearchCycle
 	12,  // 70: tb.optimizer.v1.CreateStudyRequest.spec:type_name -> tb.optimizer.v1.StudySpec
-	116, // 71: tb.optimizer.v1.CreateStudyRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 71: tb.optimizer.v1.CreateStudyRequest.caller:type_name -> tb.ml.v1.CallerContext
 	16,  // 72: tb.optimizer.v1.CreateStudyResponse.study:type_name -> tb.optimizer.v1.Study
 	3,   // 73: tb.optimizer.v1.StartStudyRequest.budget:type_name -> tb.optimizer.v1.Budget
-	116, // 74: tb.optimizer.v1.StartStudyRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 74: tb.optimizer.v1.StartStudyRequest.caller:type_name -> tb.ml.v1.CallerContext
 	16,  // 75: tb.optimizer.v1.StartStudyResponse.study:type_name -> tb.optimizer.v1.Study
-	116, // 76: tb.optimizer.v1.PauseStudyRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 76: tb.optimizer.v1.PauseStudyRequest.caller:type_name -> tb.ml.v1.CallerContext
 	16,  // 77: tb.optimizer.v1.PauseStudyResponse.study:type_name -> tb.optimizer.v1.Study
-	116, // 78: tb.optimizer.v1.ResumeStudyRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 78: tb.optimizer.v1.ResumeStudyRequest.caller:type_name -> tb.ml.v1.CallerContext
 	16,  // 79: tb.optimizer.v1.ResumeStudyResponse.study:type_name -> tb.optimizer.v1.Study
-	116, // 80: tb.optimizer.v1.StopStudyRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 80: tb.optimizer.v1.StopStudyRequest.caller:type_name -> tb.ml.v1.CallerContext
 	16,  // 81: tb.optimizer.v1.StopStudyResponse.study:type_name -> tb.optimizer.v1.Study
 	16,  // 82: tb.optimizer.v1.GetStudyResponse.study:type_name -> tb.optimizer.v1.Study
 	16,  // 83: tb.optimizer.v1.ListStudiesResponse.studies:type_name -> tb.optimizer.v1.Study
 	17,  // 84: tb.optimizer.v1.StreamStudyProgressResponse.progress:type_name -> tb.optimizer.v1.StudyProgress
 	13,  // 85: tb.optimizer.v1.ListTrialsResponse.trials:type_name -> tb.optimizer.v1.Trial
 	13,  // 86: tb.optimizer.v1.RecordTrialRequest.trial:type_name -> tb.optimizer.v1.Trial
-	116, // 87: tb.optimizer.v1.RecordTrialRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 87: tb.optimizer.v1.RecordTrialRequest.caller:type_name -> tb.ml.v1.CallerContext
 	13,  // 88: tb.optimizer.v1.RecordTrialResponse.trial:type_name -> tb.optimizer.v1.Trial
-	116, // 89: tb.optimizer.v1.GetStudyDiagnosticsRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 89: tb.optimizer.v1.GetStudyDiagnosticsRequest.caller:type_name -> tb.ml.v1.CallerContext
 	23,  // 90: tb.optimizer.v1.GetStudyDiagnosticsResponse.diagnostics:type_name -> tb.optimizer.v1.StudyDiagnostics
-	116, // 91: tb.optimizer.v1.GetTrialLedgerRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 91: tb.optimizer.v1.GetTrialLedgerRequest.caller:type_name -> tb.ml.v1.CallerContext
 	18,  // 92: tb.optimizer.v1.GetTrialLedgerResponse.ledger:type_name -> tb.optimizer.v1.TrialLedger
-	116, // 93: tb.optimizer.v1.GetCumulativeOverfittingStatsRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 93: tb.optimizer.v1.GetCumulativeOverfittingStatsRequest.caller:type_name -> tb.ml.v1.CallerContext
 	19,  // 94: tb.optimizer.v1.GetCumulativeOverfittingStatsResponse.stats:type_name -> tb.optimizer.v1.CumulativeOverfittingStats
-	116, // 95: tb.optimizer.v1.GetGateReportRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 95: tb.optimizer.v1.GetGateReportRequest.caller:type_name -> tb.ml.v1.CallerContext
 	27,  // 96: tb.optimizer.v1.GetGateReportResponse.report:type_name -> tb.optimizer.v1.GateReport
-	116, // 97: tb.optimizer.v1.GetWalkForwardBreakdownRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 97: tb.optimizer.v1.GetWalkForwardBreakdownRequest.caller:type_name -> tb.ml.v1.CallerContext
 	24,  // 98: tb.optimizer.v1.GetWalkForwardBreakdownResponse.folds:type_name -> tb.optimizer.v1.FoldResult
-	116, // 99: tb.optimizer.v1.GetRegimeBreakdownRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 99: tb.optimizer.v1.GetRegimeBreakdownRequest.caller:type_name -> tb.ml.v1.CallerContext
 	25,  // 100: tb.optimizer.v1.GetRegimeBreakdownResponse.regimes:type_name -> tb.optimizer.v1.RegimeResult
-	116, // 101: tb.optimizer.v1.GetCostSensitivityRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 101: tb.optimizer.v1.GetCostSensitivityRequest.caller:type_name -> tb.ml.v1.CallerContext
 	26,  // 102: tb.optimizer.v1.GetCostSensitivityResponse.sensitivity:type_name -> tb.optimizer.v1.CostSensitivity
-	126, // 103: tb.optimizer.v1.ListCandidatesRequest.stage:type_name -> tb.ml.v1.RegistryStage
+	129, // 103: tb.optimizer.v1.ListCandidatesRequest.stage:type_name -> tb.ml.v1.RegistryStage
 	28,  // 104: tb.optimizer.v1.ListCandidatesResponse.candidates:type_name -> tb.optimizer.v1.Candidate
 	28,  // 105: tb.optimizer.v1.GetCandidateResponse.candidate:type_name -> tb.optimizer.v1.Candidate
-	126, // 106: tb.optimizer.v1.CheckTransitionRequest.to_stage:type_name -> tb.ml.v1.RegistryStage
-	116, // 107: tb.optimizer.v1.CheckTransitionRequest.caller:type_name -> tb.ml.v1.CallerContext
+	129, // 106: tb.optimizer.v1.CheckTransitionRequest.to_stage:type_name -> tb.ml.v1.RegistryStage
+	119, // 107: tb.optimizer.v1.CheckTransitionRequest.caller:type_name -> tb.ml.v1.CallerContext
 	29,  // 108: tb.optimizer.v1.CheckTransitionResponse.decision:type_name -> tb.optimizer.v1.PermissionDecision
-	126, // 109: tb.optimizer.v1.PromoteCandidateRequest.to_stage:type_name -> tb.ml.v1.RegistryStage
-	116, // 110: tb.optimizer.v1.PromoteCandidateRequest.caller:type_name -> tb.ml.v1.CallerContext
+	129, // 109: tb.optimizer.v1.PromoteCandidateRequest.to_stage:type_name -> tb.ml.v1.RegistryStage
+	119, // 110: tb.optimizer.v1.PromoteCandidateRequest.caller:type_name -> tb.ml.v1.CallerContext
 	28,  // 111: tb.optimizer.v1.PromoteCandidateResponse.candidate:type_name -> tb.optimizer.v1.Candidate
 	29,  // 112: tb.optimizer.v1.PromoteCandidateResponse.decision:type_name -> tb.optimizer.v1.PermissionDecision
-	116, // 113: tb.optimizer.v1.DeployChallengerShadowRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 113: tb.optimizer.v1.DeployChallengerShadowRequest.caller:type_name -> tb.ml.v1.CallerContext
 	28,  // 114: tb.optimizer.v1.DeployChallengerShadowResponse.candidate:type_name -> tb.optimizer.v1.Candidate
 	29,  // 115: tb.optimizer.v1.DeployChallengerShadowResponse.decision:type_name -> tb.optimizer.v1.PermissionDecision
-	116, // 116: tb.optimizer.v1.NominateLiveEligibleRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 116: tb.optimizer.v1.NominateLiveEligibleRequest.caller:type_name -> tb.ml.v1.CallerContext
 	29,  // 117: tb.optimizer.v1.NominateLiveEligibleResponse.decision:type_name -> tb.optimizer.v1.PermissionDecision
-	126, // 118: tb.optimizer.v1.DemoteCandidateRequest.to_stage:type_name -> tb.ml.v1.RegistryStage
-	116, // 119: tb.optimizer.v1.DemoteCandidateRequest.caller:type_name -> tb.ml.v1.CallerContext
+	129, // 118: tb.optimizer.v1.DemoteCandidateRequest.to_stage:type_name -> tb.ml.v1.RegistryStage
+	119, // 119: tb.optimizer.v1.DemoteCandidateRequest.caller:type_name -> tb.ml.v1.CallerContext
 	28,  // 120: tb.optimizer.v1.DemoteCandidateResponse.candidate:type_name -> tb.optimizer.v1.Candidate
 	30,  // 121: tb.optimizer.v1.GetEvidencePackResponse.pack:type_name -> tb.optimizer.v1.EvidencePack
 	33,  // 122: tb.optimizer.v1.GetLineageGraphResponse.graph:type_name -> tb.optimizer.v1.LineageGraph
 	34,  // 123: tb.optimizer.v1.SetRetrainingPolicyRequest.policy:type_name -> tb.optimizer.v1.RetrainingPolicy
-	116, // 124: tb.optimizer.v1.SetRetrainingPolicyRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 124: tb.optimizer.v1.SetRetrainingPolicyRequest.caller:type_name -> tb.ml.v1.CallerContext
 	34,  // 125: tb.optimizer.v1.SetRetrainingPolicyResponse.policy:type_name -> tb.optimizer.v1.RetrainingPolicy
-	116, // 126: tb.optimizer.v1.TriggerRetrainRequest.caller:type_name -> tb.ml.v1.CallerContext
+	119, // 126: tb.optimizer.v1.TriggerRetrainRequest.caller:type_name -> tb.ml.v1.CallerContext
 	16,  // 127: tb.optimizer.v1.TriggerRetrainResponse.study:type_name -> tb.optimizer.v1.Study
-	127, // 128: tb.optimizer.v1.DeploymentLimits.limits:type_name -> tb.orders.v1.RiskLimits
+	130, // 128: tb.optimizer.v1.DeploymentLimits.limits:type_name -> tb.orders.v1.RiskLimits
 	103, // 129: tb.optimizer.v1.GetDeploymentLimitsResponse.limits:type_name -> tb.optimizer.v1.DeploymentLimits
 	103, // 130: tb.optimizer.v1.GetDeploymentLimitsResponse.profile:type_name -> tb.optimizer.v1.DeploymentLimits
-	127, // 131: tb.optimizer.v1.SetDeploymentLimitsRequest.limits:type_name -> tb.orders.v1.RiskLimits
-	116, // 132: tb.optimizer.v1.SetDeploymentLimitsRequest.caller:type_name -> tb.ml.v1.CallerContext
+	130, // 131: tb.optimizer.v1.SetDeploymentLimitsRequest.limits:type_name -> tb.orders.v1.RiskLimits
+	119, // 132: tb.optimizer.v1.SetDeploymentLimitsRequest.caller:type_name -> tb.ml.v1.CallerContext
 	103, // 133: tb.optimizer.v1.SetDeploymentLimitsResponse.limits:type_name -> tb.optimizer.v1.DeploymentLimits
-	37,  // 134: tb.optimizer.v1.OptimizerService.CreateLineage:input_type -> tb.optimizer.v1.CreateLineageRequest
-	39,  // 135: tb.optimizer.v1.OptimizerService.GetLineage:input_type -> tb.optimizer.v1.GetLineageRequest
-	41,  // 136: tb.optimizer.v1.OptimizerService.ListLineages:input_type -> tb.optimizer.v1.ListLineagesRequest
-	43,  // 137: tb.optimizer.v1.OptimizerService.SetLineageAutonomy:input_type -> tb.optimizer.v1.SetLineageAutonomyRequest
-	45,  // 138: tb.optimizer.v1.OptimizerService.OpenCycle:input_type -> tb.optimizer.v1.OpenCycleRequest
-	47,  // 139: tb.optimizer.v1.OptimizerService.CreateStudy:input_type -> tb.optimizer.v1.CreateStudyRequest
-	49,  // 140: tb.optimizer.v1.OptimizerService.StartStudy:input_type -> tb.optimizer.v1.StartStudyRequest
-	51,  // 141: tb.optimizer.v1.OptimizerService.PauseStudy:input_type -> tb.optimizer.v1.PauseStudyRequest
-	53,  // 142: tb.optimizer.v1.OptimizerService.ResumeStudy:input_type -> tb.optimizer.v1.ResumeStudyRequest
-	55,  // 143: tb.optimizer.v1.OptimizerService.StopStudy:input_type -> tb.optimizer.v1.StopStudyRequest
-	57,  // 144: tb.optimizer.v1.OptimizerService.GetStudy:input_type -> tb.optimizer.v1.GetStudyRequest
-	59,  // 145: tb.optimizer.v1.OptimizerService.ListStudies:input_type -> tb.optimizer.v1.ListStudiesRequest
-	61,  // 146: tb.optimizer.v1.OptimizerService.StreamStudyProgress:input_type -> tb.optimizer.v1.StreamStudyProgressRequest
-	63,  // 147: tb.optimizer.v1.OptimizerService.ListTrials:input_type -> tb.optimizer.v1.ListTrialsRequest
-	65,  // 148: tb.optimizer.v1.OptimizerService.RecordTrial:input_type -> tb.optimizer.v1.RecordTrialRequest
-	67,  // 149: tb.optimizer.v1.OptimizerService.GetStudyDiagnostics:input_type -> tb.optimizer.v1.GetStudyDiagnosticsRequest
-	69,  // 150: tb.optimizer.v1.OptimizerService.GetTrialLedger:input_type -> tb.optimizer.v1.GetTrialLedgerRequest
-	71,  // 151: tb.optimizer.v1.OptimizerService.GetCumulativeOverfittingStats:input_type -> tb.optimizer.v1.GetCumulativeOverfittingStatsRequest
-	73,  // 152: tb.optimizer.v1.OptimizerService.GetGateReport:input_type -> tb.optimizer.v1.GetGateReportRequest
-	75,  // 153: tb.optimizer.v1.OptimizerService.GetWalkForwardBreakdown:input_type -> tb.optimizer.v1.GetWalkForwardBreakdownRequest
-	77,  // 154: tb.optimizer.v1.OptimizerService.GetRegimeBreakdown:input_type -> tb.optimizer.v1.GetRegimeBreakdownRequest
-	79,  // 155: tb.optimizer.v1.OptimizerService.GetCostSensitivity:input_type -> tb.optimizer.v1.GetCostSensitivityRequest
-	81,  // 156: tb.optimizer.v1.OptimizerService.ListCandidates:input_type -> tb.optimizer.v1.ListCandidatesRequest
-	83,  // 157: tb.optimizer.v1.OptimizerService.GetCandidate:input_type -> tb.optimizer.v1.GetCandidateRequest
-	85,  // 158: tb.optimizer.v1.OptimizerService.CheckTransition:input_type -> tb.optimizer.v1.CheckTransitionRequest
-	87,  // 159: tb.optimizer.v1.OptimizerService.PromoteCandidate:input_type -> tb.optimizer.v1.PromoteCandidateRequest
-	89,  // 160: tb.optimizer.v1.OptimizerService.DeployChallengerShadow:input_type -> tb.optimizer.v1.DeployChallengerShadowRequest
-	91,  // 161: tb.optimizer.v1.OptimizerService.NominateLiveEligible:input_type -> tb.optimizer.v1.NominateLiveEligibleRequest
-	93,  // 162: tb.optimizer.v1.OptimizerService.DemoteCandidate:input_type -> tb.optimizer.v1.DemoteCandidateRequest
-	95,  // 163: tb.optimizer.v1.OptimizerService.GetEvidencePack:input_type -> tb.optimizer.v1.GetEvidencePackRequest
-	97,  // 164: tb.optimizer.v1.OptimizerService.GetLineageGraph:input_type -> tb.optimizer.v1.GetLineageGraphRequest
-	99,  // 165: tb.optimizer.v1.OptimizerService.SetRetrainingPolicy:input_type -> tb.optimizer.v1.SetRetrainingPolicyRequest
-	101, // 166: tb.optimizer.v1.OptimizerService.TriggerRetrain:input_type -> tb.optimizer.v1.TriggerRetrainRequest
-	104, // 167: tb.optimizer.v1.OptimizerService.GetDeploymentLimits:input_type -> tb.optimizer.v1.GetDeploymentLimitsRequest
-	106, // 168: tb.optimizer.v1.OptimizerService.SetDeploymentLimits:input_type -> tb.optimizer.v1.SetDeploymentLimitsRequest
-	38,  // 169: tb.optimizer.v1.OptimizerService.CreateLineage:output_type -> tb.optimizer.v1.CreateLineageResponse
-	40,  // 170: tb.optimizer.v1.OptimizerService.GetLineage:output_type -> tb.optimizer.v1.GetLineageResponse
-	42,  // 171: tb.optimizer.v1.OptimizerService.ListLineages:output_type -> tb.optimizer.v1.ListLineagesResponse
-	44,  // 172: tb.optimizer.v1.OptimizerService.SetLineageAutonomy:output_type -> tb.optimizer.v1.SetLineageAutonomyResponse
-	46,  // 173: tb.optimizer.v1.OptimizerService.OpenCycle:output_type -> tb.optimizer.v1.OpenCycleResponse
-	48,  // 174: tb.optimizer.v1.OptimizerService.CreateStudy:output_type -> tb.optimizer.v1.CreateStudyResponse
-	50,  // 175: tb.optimizer.v1.OptimizerService.StartStudy:output_type -> tb.optimizer.v1.StartStudyResponse
-	52,  // 176: tb.optimizer.v1.OptimizerService.PauseStudy:output_type -> tb.optimizer.v1.PauseStudyResponse
-	54,  // 177: tb.optimizer.v1.OptimizerService.ResumeStudy:output_type -> tb.optimizer.v1.ResumeStudyResponse
-	56,  // 178: tb.optimizer.v1.OptimizerService.StopStudy:output_type -> tb.optimizer.v1.StopStudyResponse
-	58,  // 179: tb.optimizer.v1.OptimizerService.GetStudy:output_type -> tb.optimizer.v1.GetStudyResponse
-	60,  // 180: tb.optimizer.v1.OptimizerService.ListStudies:output_type -> tb.optimizer.v1.ListStudiesResponse
-	62,  // 181: tb.optimizer.v1.OptimizerService.StreamStudyProgress:output_type -> tb.optimizer.v1.StreamStudyProgressResponse
-	64,  // 182: tb.optimizer.v1.OptimizerService.ListTrials:output_type -> tb.optimizer.v1.ListTrialsResponse
-	66,  // 183: tb.optimizer.v1.OptimizerService.RecordTrial:output_type -> tb.optimizer.v1.RecordTrialResponse
-	68,  // 184: tb.optimizer.v1.OptimizerService.GetStudyDiagnostics:output_type -> tb.optimizer.v1.GetStudyDiagnosticsResponse
-	70,  // 185: tb.optimizer.v1.OptimizerService.GetTrialLedger:output_type -> tb.optimizer.v1.GetTrialLedgerResponse
-	72,  // 186: tb.optimizer.v1.OptimizerService.GetCumulativeOverfittingStats:output_type -> tb.optimizer.v1.GetCumulativeOverfittingStatsResponse
-	74,  // 187: tb.optimizer.v1.OptimizerService.GetGateReport:output_type -> tb.optimizer.v1.GetGateReportResponse
-	76,  // 188: tb.optimizer.v1.OptimizerService.GetWalkForwardBreakdown:output_type -> tb.optimizer.v1.GetWalkForwardBreakdownResponse
-	78,  // 189: tb.optimizer.v1.OptimizerService.GetRegimeBreakdown:output_type -> tb.optimizer.v1.GetRegimeBreakdownResponse
-	80,  // 190: tb.optimizer.v1.OptimizerService.GetCostSensitivity:output_type -> tb.optimizer.v1.GetCostSensitivityResponse
-	82,  // 191: tb.optimizer.v1.OptimizerService.ListCandidates:output_type -> tb.optimizer.v1.ListCandidatesResponse
-	84,  // 192: tb.optimizer.v1.OptimizerService.GetCandidate:output_type -> tb.optimizer.v1.GetCandidateResponse
-	86,  // 193: tb.optimizer.v1.OptimizerService.CheckTransition:output_type -> tb.optimizer.v1.CheckTransitionResponse
-	88,  // 194: tb.optimizer.v1.OptimizerService.PromoteCandidate:output_type -> tb.optimizer.v1.PromoteCandidateResponse
-	90,  // 195: tb.optimizer.v1.OptimizerService.DeployChallengerShadow:output_type -> tb.optimizer.v1.DeployChallengerShadowResponse
-	92,  // 196: tb.optimizer.v1.OptimizerService.NominateLiveEligible:output_type -> tb.optimizer.v1.NominateLiveEligibleResponse
-	94,  // 197: tb.optimizer.v1.OptimizerService.DemoteCandidate:output_type -> tb.optimizer.v1.DemoteCandidateResponse
-	96,  // 198: tb.optimizer.v1.OptimizerService.GetEvidencePack:output_type -> tb.optimizer.v1.GetEvidencePackResponse
-	98,  // 199: tb.optimizer.v1.OptimizerService.GetLineageGraph:output_type -> tb.optimizer.v1.GetLineageGraphResponse
-	100, // 200: tb.optimizer.v1.OptimizerService.SetRetrainingPolicy:output_type -> tb.optimizer.v1.SetRetrainingPolicyResponse
-	102, // 201: tb.optimizer.v1.OptimizerService.TriggerRetrain:output_type -> tb.optimizer.v1.TriggerRetrainResponse
-	105, // 202: tb.optimizer.v1.OptimizerService.GetDeploymentLimits:output_type -> tb.optimizer.v1.GetDeploymentLimitsResponse
-	107, // 203: tb.optimizer.v1.OptimizerService.SetDeploymentLimits:output_type -> tb.optimizer.v1.SetDeploymentLimitsResponse
-	169, // [169:204] is the sub-list for method output_type
-	134, // [134:169] is the sub-list for method input_type
-	134, // [134:134] is the sub-list for extension type_name
-	134, // [134:134] is the sub-list for extension extendee
-	0,   // [0:134] is the sub-list for field type_name
+	109, // 134: tb.optimizer.v1.GetGraduationStatisticsResponse.statistics:type_name -> tb.optimizer.v1.GraduationStatistics
+	37,  // 135: tb.optimizer.v1.OptimizerService.CreateLineage:input_type -> tb.optimizer.v1.CreateLineageRequest
+	39,  // 136: tb.optimizer.v1.OptimizerService.GetLineage:input_type -> tb.optimizer.v1.GetLineageRequest
+	41,  // 137: tb.optimizer.v1.OptimizerService.ListLineages:input_type -> tb.optimizer.v1.ListLineagesRequest
+	43,  // 138: tb.optimizer.v1.OptimizerService.SetLineageAutonomy:input_type -> tb.optimizer.v1.SetLineageAutonomyRequest
+	45,  // 139: tb.optimizer.v1.OptimizerService.OpenCycle:input_type -> tb.optimizer.v1.OpenCycleRequest
+	47,  // 140: tb.optimizer.v1.OptimizerService.CreateStudy:input_type -> tb.optimizer.v1.CreateStudyRequest
+	49,  // 141: tb.optimizer.v1.OptimizerService.StartStudy:input_type -> tb.optimizer.v1.StartStudyRequest
+	51,  // 142: tb.optimizer.v1.OptimizerService.PauseStudy:input_type -> tb.optimizer.v1.PauseStudyRequest
+	53,  // 143: tb.optimizer.v1.OptimizerService.ResumeStudy:input_type -> tb.optimizer.v1.ResumeStudyRequest
+	55,  // 144: tb.optimizer.v1.OptimizerService.StopStudy:input_type -> tb.optimizer.v1.StopStudyRequest
+	57,  // 145: tb.optimizer.v1.OptimizerService.GetStudy:input_type -> tb.optimizer.v1.GetStudyRequest
+	59,  // 146: tb.optimizer.v1.OptimizerService.ListStudies:input_type -> tb.optimizer.v1.ListStudiesRequest
+	61,  // 147: tb.optimizer.v1.OptimizerService.StreamStudyProgress:input_type -> tb.optimizer.v1.StreamStudyProgressRequest
+	63,  // 148: tb.optimizer.v1.OptimizerService.ListTrials:input_type -> tb.optimizer.v1.ListTrialsRequest
+	65,  // 149: tb.optimizer.v1.OptimizerService.RecordTrial:input_type -> tb.optimizer.v1.RecordTrialRequest
+	67,  // 150: tb.optimizer.v1.OptimizerService.GetStudyDiagnostics:input_type -> tb.optimizer.v1.GetStudyDiagnosticsRequest
+	69,  // 151: tb.optimizer.v1.OptimizerService.GetTrialLedger:input_type -> tb.optimizer.v1.GetTrialLedgerRequest
+	71,  // 152: tb.optimizer.v1.OptimizerService.GetCumulativeOverfittingStats:input_type -> tb.optimizer.v1.GetCumulativeOverfittingStatsRequest
+	73,  // 153: tb.optimizer.v1.OptimizerService.GetGateReport:input_type -> tb.optimizer.v1.GetGateReportRequest
+	75,  // 154: tb.optimizer.v1.OptimizerService.GetWalkForwardBreakdown:input_type -> tb.optimizer.v1.GetWalkForwardBreakdownRequest
+	77,  // 155: tb.optimizer.v1.OptimizerService.GetRegimeBreakdown:input_type -> tb.optimizer.v1.GetRegimeBreakdownRequest
+	79,  // 156: tb.optimizer.v1.OptimizerService.GetCostSensitivity:input_type -> tb.optimizer.v1.GetCostSensitivityRequest
+	81,  // 157: tb.optimizer.v1.OptimizerService.ListCandidates:input_type -> tb.optimizer.v1.ListCandidatesRequest
+	83,  // 158: tb.optimizer.v1.OptimizerService.GetCandidate:input_type -> tb.optimizer.v1.GetCandidateRequest
+	85,  // 159: tb.optimizer.v1.OptimizerService.CheckTransition:input_type -> tb.optimizer.v1.CheckTransitionRequest
+	87,  // 160: tb.optimizer.v1.OptimizerService.PromoteCandidate:input_type -> tb.optimizer.v1.PromoteCandidateRequest
+	89,  // 161: tb.optimizer.v1.OptimizerService.DeployChallengerShadow:input_type -> tb.optimizer.v1.DeployChallengerShadowRequest
+	91,  // 162: tb.optimizer.v1.OptimizerService.NominateLiveEligible:input_type -> tb.optimizer.v1.NominateLiveEligibleRequest
+	93,  // 163: tb.optimizer.v1.OptimizerService.DemoteCandidate:input_type -> tb.optimizer.v1.DemoteCandidateRequest
+	95,  // 164: tb.optimizer.v1.OptimizerService.GetEvidencePack:input_type -> tb.optimizer.v1.GetEvidencePackRequest
+	97,  // 165: tb.optimizer.v1.OptimizerService.GetLineageGraph:input_type -> tb.optimizer.v1.GetLineageGraphRequest
+	99,  // 166: tb.optimizer.v1.OptimizerService.SetRetrainingPolicy:input_type -> tb.optimizer.v1.SetRetrainingPolicyRequest
+	101, // 167: tb.optimizer.v1.OptimizerService.TriggerRetrain:input_type -> tb.optimizer.v1.TriggerRetrainRequest
+	104, // 168: tb.optimizer.v1.OptimizerService.GetDeploymentLimits:input_type -> tb.optimizer.v1.GetDeploymentLimitsRequest
+	106, // 169: tb.optimizer.v1.OptimizerService.SetDeploymentLimits:input_type -> tb.optimizer.v1.SetDeploymentLimitsRequest
+	108, // 170: tb.optimizer.v1.OptimizerService.GetGraduationStatistics:input_type -> tb.optimizer.v1.GetGraduationStatisticsRequest
+	38,  // 171: tb.optimizer.v1.OptimizerService.CreateLineage:output_type -> tb.optimizer.v1.CreateLineageResponse
+	40,  // 172: tb.optimizer.v1.OptimizerService.GetLineage:output_type -> tb.optimizer.v1.GetLineageResponse
+	42,  // 173: tb.optimizer.v1.OptimizerService.ListLineages:output_type -> tb.optimizer.v1.ListLineagesResponse
+	44,  // 174: tb.optimizer.v1.OptimizerService.SetLineageAutonomy:output_type -> tb.optimizer.v1.SetLineageAutonomyResponse
+	46,  // 175: tb.optimizer.v1.OptimizerService.OpenCycle:output_type -> tb.optimizer.v1.OpenCycleResponse
+	48,  // 176: tb.optimizer.v1.OptimizerService.CreateStudy:output_type -> tb.optimizer.v1.CreateStudyResponse
+	50,  // 177: tb.optimizer.v1.OptimizerService.StartStudy:output_type -> tb.optimizer.v1.StartStudyResponse
+	52,  // 178: tb.optimizer.v1.OptimizerService.PauseStudy:output_type -> tb.optimizer.v1.PauseStudyResponse
+	54,  // 179: tb.optimizer.v1.OptimizerService.ResumeStudy:output_type -> tb.optimizer.v1.ResumeStudyResponse
+	56,  // 180: tb.optimizer.v1.OptimizerService.StopStudy:output_type -> tb.optimizer.v1.StopStudyResponse
+	58,  // 181: tb.optimizer.v1.OptimizerService.GetStudy:output_type -> tb.optimizer.v1.GetStudyResponse
+	60,  // 182: tb.optimizer.v1.OptimizerService.ListStudies:output_type -> tb.optimizer.v1.ListStudiesResponse
+	62,  // 183: tb.optimizer.v1.OptimizerService.StreamStudyProgress:output_type -> tb.optimizer.v1.StreamStudyProgressResponse
+	64,  // 184: tb.optimizer.v1.OptimizerService.ListTrials:output_type -> tb.optimizer.v1.ListTrialsResponse
+	66,  // 185: tb.optimizer.v1.OptimizerService.RecordTrial:output_type -> tb.optimizer.v1.RecordTrialResponse
+	68,  // 186: tb.optimizer.v1.OptimizerService.GetStudyDiagnostics:output_type -> tb.optimizer.v1.GetStudyDiagnosticsResponse
+	70,  // 187: tb.optimizer.v1.OptimizerService.GetTrialLedger:output_type -> tb.optimizer.v1.GetTrialLedgerResponse
+	72,  // 188: tb.optimizer.v1.OptimizerService.GetCumulativeOverfittingStats:output_type -> tb.optimizer.v1.GetCumulativeOverfittingStatsResponse
+	74,  // 189: tb.optimizer.v1.OptimizerService.GetGateReport:output_type -> tb.optimizer.v1.GetGateReportResponse
+	76,  // 190: tb.optimizer.v1.OptimizerService.GetWalkForwardBreakdown:output_type -> tb.optimizer.v1.GetWalkForwardBreakdownResponse
+	78,  // 191: tb.optimizer.v1.OptimizerService.GetRegimeBreakdown:output_type -> tb.optimizer.v1.GetRegimeBreakdownResponse
+	80,  // 192: tb.optimizer.v1.OptimizerService.GetCostSensitivity:output_type -> tb.optimizer.v1.GetCostSensitivityResponse
+	82,  // 193: tb.optimizer.v1.OptimizerService.ListCandidates:output_type -> tb.optimizer.v1.ListCandidatesResponse
+	84,  // 194: tb.optimizer.v1.OptimizerService.GetCandidate:output_type -> tb.optimizer.v1.GetCandidateResponse
+	86,  // 195: tb.optimizer.v1.OptimizerService.CheckTransition:output_type -> tb.optimizer.v1.CheckTransitionResponse
+	88,  // 196: tb.optimizer.v1.OptimizerService.PromoteCandidate:output_type -> tb.optimizer.v1.PromoteCandidateResponse
+	90,  // 197: tb.optimizer.v1.OptimizerService.DeployChallengerShadow:output_type -> tb.optimizer.v1.DeployChallengerShadowResponse
+	92,  // 198: tb.optimizer.v1.OptimizerService.NominateLiveEligible:output_type -> tb.optimizer.v1.NominateLiveEligibleResponse
+	94,  // 199: tb.optimizer.v1.OptimizerService.DemoteCandidate:output_type -> tb.optimizer.v1.DemoteCandidateResponse
+	96,  // 200: tb.optimizer.v1.OptimizerService.GetEvidencePack:output_type -> tb.optimizer.v1.GetEvidencePackResponse
+	98,  // 201: tb.optimizer.v1.OptimizerService.GetLineageGraph:output_type -> tb.optimizer.v1.GetLineageGraphResponse
+	100, // 202: tb.optimizer.v1.OptimizerService.SetRetrainingPolicy:output_type -> tb.optimizer.v1.SetRetrainingPolicyResponse
+	102, // 203: tb.optimizer.v1.OptimizerService.TriggerRetrain:output_type -> tb.optimizer.v1.TriggerRetrainResponse
+	105, // 204: tb.optimizer.v1.OptimizerService.GetDeploymentLimits:output_type -> tb.optimizer.v1.GetDeploymentLimitsResponse
+	107, // 205: tb.optimizer.v1.OptimizerService.SetDeploymentLimits:output_type -> tb.optimizer.v1.SetDeploymentLimitsResponse
+	110, // 206: tb.optimizer.v1.OptimizerService.GetGraduationStatistics:output_type -> tb.optimizer.v1.GetGraduationStatisticsResponse
+	171, // [171:207] is the sub-list for method output_type
+	135, // [135:171] is the sub-list for method input_type
+	135, // [135:135] is the sub-list for extension type_name
+	135, // [135:135] is the sub-list for extension extendee
+	0,   // [0:135] is the sub-list for field type_name
 }
 
 func init() { file_tb_optimizer_v1_optimizer_proto_init() }
@@ -8190,7 +8497,7 @@ func file_tb_optimizer_v1_optimizer_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tb_optimizer_v1_optimizer_proto_rawDesc), len(file_tb_optimizer_v1_optimizer_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   113,
+			NumMessages:   116,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

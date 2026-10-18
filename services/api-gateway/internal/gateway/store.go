@@ -480,7 +480,7 @@ func putSettingTx(ctx context.Context, tx pgx.Tx, ownerID, key string, value jso
 
 var errConflict = errors.New("version conflict")
 
-// ---- publications (UI-052) ----
+// ---- publications (UI-053) ----
 
 func (s *Store) insertPublication(ctx context.Context, p publication) error {
 	return pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
@@ -500,7 +500,7 @@ func (s *Store) insertPublication(ctx context.Context, p publication) error {
 }
 
 func (s *Store) listPublications(ctx context.Context, sortBy string) ([]publication, error) {
-	// UI-052: only these two orders exist. The query text is fixed; sortBy never enters SQL.
+	// UI-053: only these two orders exist. The query text is fixed; sortBy never enters SQL.
 	q := `SELECT id, owner_id, display_name, title, definition, window_start, window_end, bar_size, universe, published_at
 		FROM config.publications WHERE withdrawn_at IS NULL ORDER BY published_at DESC, id DESC`
 	if sortBy == "name" {

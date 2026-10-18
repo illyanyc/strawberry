@@ -219,7 +219,7 @@ func (s *Server) registerRoutes() {
 	s.registerPushRoutes(priv)
 	priv("GET", "/api/v1/signals", s.handleSignals)
 	priv("GET", "/api/v1/tradingview", s.handleTradingViewStatus)
-	// Strategy publications (UI-052): definition and backtest parameters only. No performance sort.
+	// Strategy publications (UI-053): definition and backtest parameters only. No performance sort.
 	priv("GET", "/api/v1/publications", s.handlePublicationsList)
 	priv("POST", "/api/v1/publications", s.handlePublicationCreate)
 	priv("GET", "/api/v1/publications/{id}", s.handlePublicationGet)

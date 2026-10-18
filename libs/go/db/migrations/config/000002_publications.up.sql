@@ -1,4 +1,4 @@
--- User-published strategy definitions (UI-052).
+-- User-published strategy definitions (UI-053).
 -- Columns are the definition and the non-performance parameters of a hypothetical backtest
 -- (window, bar size, universe description). There is no profit, return, rank, or signal column:
 -- a cross-user money-made board is not stored here.

@@ -11,7 +11,7 @@ import { Page, PageHeader } from "@/components/ui/layout";
 import { api, ApiError } from "@/lib/api";
 import { formatTime } from "@/lib/utils";
 
-/** One published strategy definition (UI-052). The server sends no profit, return, or rank. */
+/** One published strategy definition (UI-053). The server sends no profit, return, or rank. */
 export interface Publication {
   id: string;
   display_name: string;
@@ -35,7 +35,7 @@ export interface PublicationIndex {
 const BAR_SIZES = ["1m", "5m", "15m", "30m", "1h", "1d"] as const;
 
 /**
- * Publications (UI-052): an index of user-written strategy definitions and the window, bar size,
+ * Publications (UI-053): an index of user-written strategy definitions and the window, bar size,
  * and universe of a hypothetical backtest. It is not ranked by results and it cannot place an order.
  */
 export function PublicationsPage() {
@@ -111,7 +111,7 @@ export function PublicationsPage() {
   );
 }
 
-/** One publication. There is no control that deploys, copies, or orders it (UI-052). */
+/** One publication. There is no control that deploys, copies, or orders it (UI-053). */
 export function PublicationDetailPage() {
   const { publicationId } = useParams({ from: "/app/publications/$publicationId" });
   const queryClient = useQueryClient();

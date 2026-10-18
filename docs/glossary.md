@@ -87,6 +87,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **IBC** | The open-source tool that logs IB Gateway in and restarts it on schedule; archived 2026-09-01, pinned at 3.24.2 (D18, IB-073). |
 | **Implementation shortfall** | Fill price versus the intent's decision (reference) price, side-signed, plus fees, in bps (MN-033). |
 | **Intraday-margin guard** | Pre-trade check capping leverage and margin utilization per account so strategies cannot consume the manual book's buying power (RM-012). |
+| **Graduation report** | Section 15 pass/fail for one paper strategy: the monitor's paper evidence (sessions, trades, divergence, breaks, drawdown, shortfall) plus DSR ≥ 0.95 on that record and registry stage `live_eligible` (GL-001, GL-002). |
 | **Kill switch** | Scoped emergency control (global, broker account, strategy, instrument): freeze new orders, cancel open orders, optionally flatten strategy-owned quantity. |
 | **Kill switch latch** | A kill-switch engagement persisted until an owner releases it with a desktop passkey step-up; engaging needs no step-up (RM-006, RM-007). |
 | **Leak canary** | A unique fake secret pushed through a real flow so tests can assert it never appears in logs, responses, audit details, or plaintext storage (SE-012). |
@@ -167,7 +168,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Step-up auth** | Fresh re-authentication required for dangerous actions. |
 | **Strategy registry seed** | JSON file (`infra/compose/strategies.json`) shared by execution and the strategy runtime that registers strategies at startup; it never sets `live` and never changes an existing strategy's mode (SM-001). |
 | **Strategy runtime** | The Python service that runs `tbcore.strategy` strategies on final bars and publishes their intents on `ord.intent`; it sees only its strategies' own positions and never talks to brokers (ADR-0026, SM-014). |
-| **Strategy publication** | A user-written strategy definition plus the window, bar size, and universe description of a hypothetical backtest, indexed by time or name. It carries no profit, return, or rank, and it is not a signal or an order (UI-052). |
+| **Strategy publication** | A user-written strategy definition plus the window, bar size, and universe description of a hypothetical backtest, indexed by time or name. It carries no profit, return, or rank, and it is not a signal or an order (UI-053). |
 | **Syndicated duplicate** | A re-published copy of a news story (same or near-identical headline for the same instrument within 24 h); marked `duplicate_of` and counted once (CX-013). |
 | **Timing difference** | A broker vs ledger difference inside the reconciliation grace window (60 s, ≥ 2 snapshots); blocks only that instrument and becomes a break if it persists (VP-013). |
 | **Tool server** | The assistant component that executes every analyst read and write: forbidden-name denial, level check against the optimizer, budget check, holdout stripping, sanitization, audit (AN-060). |

@@ -20,6 +20,7 @@ SERVICE = mp.DESCRIPTOR.services_by_name["MonitorService"]
 GATEWAY, ASSISTANT = "api-gateway", "assistant"
 ALLOW: dict[str, list[str]] = {m.name: [GATEWAY] for m in SERVICE.methods}
 ALLOW["GetLiveFeedback"] = [GATEWAY, ASSISTANT]
+ALLOW["GetGraduationEvidence"] = [GATEWAY, "execution"]
 R = TypeVar("R")
 
 

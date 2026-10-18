@@ -207,16 +207,22 @@ class PostgresJournal:
 class PostgresLiveEnablement:
     """IB-007 / BR-013: accounts with an enabled ``broker.live_enablement`` row (audited owner action)."""
 
-    def __init__(self, enabled: set[str]) -> None:
+    def __init__(self, enabled: set[str], orders: set[str] | None = None) -> None:
         self._enabled = enabled
+        self._orders = enabled if orders is None else orders
 
     @classmethod
     async def load(cls, pool: asyncpg.Pool) -> PostgresLiveEnablement:
         async with pool.acquire() as conn:  # type: ignore[no-untyped-call]
             rows = await conn.fetch(
-                "SELECT broker_account_id FROM broker.live_enablement WHERE enabled AND audit_seq > 0"
+                "SELECT broker_account_id, orders_enabled FROM broker.live_enablement WHERE enabled AND audit_seq > 0"
             )
-        return cls({r["broker_account_id"] for r in rows})
+        enabled = {r["broker_account_id"] for r in rows}
+        orders = {r["broker_account_id"] for r in rows if r["orders_enabled"]}
+        return cls(enabled, orders)
 
     def is_live_enabled(self, broker_account_id: str) -> bool:
         return broker_account_id in self._enabled
+
+    def orders_enabled(self, broker_account_id: str) -> bool:
+        return broker_account_id in self._orders

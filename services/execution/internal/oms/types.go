@@ -92,7 +92,9 @@ type Config struct {
 	RejectStorm int
 	// FinalityDelay is added to two bar intervals for the freshness limit (MD-007).
 	FinalityDelay time.Duration
-	Now           func() time.Time
+	// LiveFlag is TB_TRADING_LIVE_ENABLED (GL-011). Default false: config alone never enables live.
+	LiveFlag bool
+	Now      func() time.Time
 	// Wall is the clock for heartbeats (dead-man ages are wall time even when Now is simulated).
 	Wall     func() time.Time
 	Calendar *calendar.Calendar

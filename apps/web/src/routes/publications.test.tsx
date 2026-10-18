@@ -42,7 +42,7 @@ function renderPublications(path: string) {
   );
 }
 
-describe("publications (UI-052)", () => {
+describe("publications (UI-053)", () => {
   it("labels user content and has no trade, deploy, or copy control", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation(async () => Response.json({ sort: "published_at", notice, publications: [sample] }));
     renderPublications("/publications");

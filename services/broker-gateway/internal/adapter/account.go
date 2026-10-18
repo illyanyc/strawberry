@@ -17,6 +17,7 @@ import (
 
 	alertsv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/alerts/v1"
 	brokerv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/broker/v1"
+	commonv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/common/v1"
 	ledgerv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/ledger/v1"
 	ordersv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/orders/v1"
 	"github.com/illyanyc/strawberry/libs/go/attribution"
@@ -151,6 +152,27 @@ func (a *Account) LastSnapshot() *ledgerv1.AccountSnapshot {
 }
 
 func (a *Account) isLive() bool { return a.info.Environment == brokerv1.Environment_ENVIRONMENT_LIVE }
+
+// modeGate enforces GL-012 and GL-052 before a request can reach the broker.
+func (a *Account) modeGate(ctx context.Context, req *brokerv1.BrokerOrderRequest) *RejectError {
+	live := a.isLive()
+	mode := req.GetMode()
+	switch {
+	case live && mode != commonv1.Mode_MODE_LIVE:
+		return Reject(brokerv1.RejectCode_REJECT_CODE_INVALID_ORDER, true, "", "live account accepts only live-mode orders")
+	case !live && mode == commonv1.Mode_MODE_LIVE:
+		return Reject(brokerv1.RejectCode_REJECT_CODE_INVALID_ORDER, true, "", "paper credential cannot place a live order")
+	case live:
+		ok, why := false, "live orders disabled: no gate"
+		if a.gate != nil {
+			ok, why = a.gate.OrdersAllowed(ctx, a.info.AccountID)
+		}
+		if !ok {
+			return Reject(brokerv1.RejectCode_REJECT_CODE_INVALID_ORDER, true, "", why)
+		}
+	}
+	return nil
+}
 
 // Run drives the session until ctx ends (BR-010..BR-013, BR-021).
 func (a *Account) Run(ctx context.Context) {
@@ -532,6 +554,14 @@ func (a *Account) Submit(ctx context.Context, req *brokerv1.BrokerOrderRequest, 
 		return nil, &UnavailableError{State: a.sess.State()}
 	}
 	coid := req.GetClientOrderId()
+	// GL-052: a paper account (paper credential) never accepts a live-mode order, and a live
+	// account never accepts anything else. Read-only live (enabled, orders not yet enabled)
+	// refuses every order (GL-012).
+	if rej := a.modeGate(ctx, req); rej != nil {
+		a.count("submit", "rejected_local")
+		_ = a.auditEvent(ctx, "broker.order.reject", coid, map[string]any{"client_order_id": coid, "code": rej.Reason.GetCode().String(), "local": true, "message": rej.Reason.GetMessage()})
+		return &brokerv1.SubmitOrderResponse{Outcome: brokerv1.SubmitOutcome_SUBMIT_OUTCOME_REJECTED, Reject: rej.Reason}, nil
+	}
 	if rej := Validate(req, a.info.Capabilities, fractionable); rej != nil {
 		a.count("submit", "rejected_local")
 		_ = a.auditEvent(ctx, "broker.order.reject", coid, map[string]any{"client_order_id": coid, "code": rej.Reason.GetCode().String(), "local": true, "message": rej.Reason.GetMessage()})
