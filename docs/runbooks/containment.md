@@ -38,3 +38,11 @@ The alert message names the component (drawdown, divergence, feature drift, pred
 - The strategy's mode is what you expect in Strategies and in `GET /api/v1/monitoring/strategies/{id}`.
 - Audit log: `execution.strategy.demote` (or `execution.killswitch.engage`) and `monitor.containment.*` with the same evidence ID.
 - No `Containment action failed` alert remains firing.
+
+## MonitorContainmentPending (critical)
+
+The monitor decided an action but could not execute it (execution unreachable or refusing). It retries every 15 s and pages. Engage the strategy kill switch yourself (UI → Strategies → strategy → Kill switch, or the server CLI in [kill switches](kill-switch.md)), then find out why execution refused (`make logs SERVICE=execution`; missing `svc_monitor_ed25519.pub` after an upgrade means `make secrets` was not run).
+
+## StrategyHealthBreach (warning)
+
+A health component is in breach. If the policy is enabled, containment already acted (see the containment alert); if the policy is disabled, only alerts are sent.

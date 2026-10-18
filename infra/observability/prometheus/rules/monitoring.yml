@@ -12,3 +12,35 @@ groups:
         annotations:
           summary: "Model scoring p99 for {{ $labels.strategy }} is {{ $value | humanizeDuration }} (ML-043 target 20 ms per batch)"
           runbook_url: docs/runbooks/model-monitoring.md
+
+      - alert: MonitorContainmentPending
+        expr: tb_monitor_containment_pending > 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: "{{ $value }} containment action(s) decided but not executed: engage the strategy kill switch by hand (MN-035)"
+          runbook_url: docs/runbooks/containment.md
+
+      - alert: StrategyHealthBreach
+        expr: tb_strategy_health_status >= 3 and tb_strategy_health_status < 5
+        for: 2m
+        labels: { severity: warning }
+        annotations:
+          summary: "Strategy {{ $labels.strategy }} health is in breach (containment applies its policy, MN-031)"
+          runbook_url: docs/runbooks/containment.md
+
+      - alert: MonitorRecorderStalled
+        expr: (time() - tb_monitor_recorder_last_write_seconds) > 300 and on() (hour() >= 14 and hour() < 20) and on() (day_of_week() >= 1 and day_of_week() <= 5)
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "The monitor's recorder has not written for {{ $value | humanizeDuration }} during US market hours (MN-045)"
+          runbook_url: docs/runbooks/model-monitoring.md
+
+      - alert: MonitorRecordingIncomplete
+        expr: tb_monitor_recorder_session_complete == 0
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "The last closed session's recording is incomplete: daily divergence is insufficient data (MN-037, MN-045)"
+          runbook_url: docs/runbooks/model-monitoring.md

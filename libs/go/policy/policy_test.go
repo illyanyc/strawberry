@@ -12,7 +12,7 @@ var mustRequirePasskeyStepUp = []Action{
 	ActKillSwitchDisable, ActBrokerCredWrite, ActBrokerCredDelete, ActBrokerCredStatus,
 	ActMobileOrderEnable, ActAssistantWriteEnable, ActDataExportPositions, ActAuthPasskeyDelete,
 	ActLedgerBreakResolve, ActResearchCycleOpen, ActHoldoutEvaluate, ActHoldoutSchedule,
-	ActUITradingViewWidget, ActStrategyRegister,
+	ActUITradingViewWidget, ActStrategyRegister, ActAlertSilence,
 }
 
 var recoveryActions = []Action{ActAuthPasskeyRegister, ActAuthTOTPEnroll, ActAuthRecoveryRegen}
@@ -114,6 +114,8 @@ func TestEX052ResearchStepUps(t *testing.T) {
 		{ActAnalystAutonomySet, Resource{Mode: "raise"}, true},
 		{ActDeploymentLimitsSet, Resource{Mode: "lower"}, false},
 		{ActDeploymentLimitsSet, Resource{Mode: "raise"}, true},
+		{ActContainmentSet, Resource{Mode: "lower"}, false},
+		{ActContainmentSet, Resource{Mode: "raise"}, true},
 	}
 	for _, c := range cases {
 		d := Authorize(plain, c.a, c.res, now)

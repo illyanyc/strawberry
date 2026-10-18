@@ -36,3 +36,12 @@ groups:
         annotations:
           summary: "IBKR {{ $labels.environment }} gateway is waiting for a login / 2FA approval"
           runbook_url: docs/runbooks/ibkr-weekly-2fa.md
+
+      # IB-014, MN-043: a login still pending during the US session blocks swing strategies; page.
+      - alert: IbkrReauthRequiredDuringSession
+        expr: max by (environment) (tb_ibkr_reauth_required) == 1 and on() (hour() >= 14 and hour() < 20) and on() (day_of_week() >= 1 and day_of_week() <= 5)
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "IBKR {{ $labels.environment }} still needs a login / 2FA approval during the US session; IBKR strategies are blocked"
+          runbook_url: docs/runbooks/ibkr-weekly-2fa.md

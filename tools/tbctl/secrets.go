@@ -53,8 +53,10 @@ var natsUsers = map[string]struct{ pub, sub []string }{
 	// The monitor forwards bus alerts to Alertmanager and builds daily reports from order-path and
 	// ledger events (section 13).
 	// Phase 4: live feedback and retraining triggers (monitor.>) and analyst autonomy lowering (ADR-0044).
+	// Phase 5: the recorder and full monitoring read bars, features, signals, and the whole order path
+	// (read-only; containment acts through ExecutionService, ADR-0045, ADR-0046).
 	"monitor": {pub: []string{"alert.>", "sys.health.monitor", "monitor.>", "analyst.autonomy.lower", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
-		sub: []string{"_INBOX.>", "alert.>", "sys.health.>", "recon.result.>", "ord.decision", "exec.>", "ledger.update.>"}},
+		sub: []string{"_INBOX.>", "alert.>", "sys.health.>", "recon.result.>", "ord.>", "exec.>", "ledger.update.>", "md.bar.>", "feat.>", "sig.>", "risk.kill"}},
 	// ML and optimizer workers publish run, study, backtest, and registry events for the analyst and
 	// the UI (ADR-0035); the optimizer reads monitoring retrain triggers (EX-040).
 	"ml":        {pub: []string{"ml.>", "backtest.>", "alert.>", "sys.health.ml"}, sub: []string{"_INBOX.>"}},

@@ -43,7 +43,7 @@ bootstrap: dirs secrets build ## First run on a clean clone: data dirs, secrets,
 
 .PHONY: dirs
 dirs:
-	@mkdir -p data/lake data/mlflow-artifacts data/ml-artifacts backups/metrics
+	@mkdir -p data/lake data/mlflow-artifacts data/ml-artifacts data/recordings backups/metrics
 
 .PHONY: secrets
 secrets: dirs ## Generate any missing secrets into .secrets/ (idempotent; never overwrites)

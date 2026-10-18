@@ -307,7 +307,7 @@ def test_ml044_training_reference_for_drift_monitoring(tmp_path: Path) -> None:
     ref = pl.read_parquet(tmp_path / "reference.parquet")
     assert 0 < ref.height <= runs.REFERENCE_ROWS
     assert ref.columns == ["instrument_id", "decision_time", *ds.features]
-    assert int(ref["decision_time"].max() or 0) <= int(ds.frame["decision_time"].max() or 0)  # training window only
+    assert ref["decision_time"].to_numpy().max() <= ds.frame["decision_time"].to_numpy().max()  # training window only
     ranks = json.loads((tmp_path / "importance.json").read_text())
     assert sorted(ranks) == sorted(ds.features) and sorted(ranks.values()) == list(range(1, len(ds.features) + 1))
     runs.write_monitoring_reference(res, diagnostics.build_report(res, "r1"), tmp_path / "again")

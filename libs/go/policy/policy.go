@@ -59,6 +59,12 @@ const (
 	// Candidate deployment limits (EX-062) and registering a promoted candidate with execution (SM-016).
 	ActDeploymentLimitsSet Action = "research.deployment_limits.set"
 	ActStrategyRegister    Action = "strategy.register"
+	// Monitoring (section 13 Phase 5, ADR-0045): views, alert acknowledgement and silencing,
+	// containment policies (loosening escalates, MN-036).
+	ActMonitorRead    Action = "monitor.read"
+	ActAlertAck       Action = "alerts.ack"
+	ActAlertSilence   Action = "alerts.silence"
+	ActContainmentSet Action = "monitor.containment.set"
 	// AI Research Analyst (section 12, AN-060..AN-063, AN-073, AN-080).
 	ActAnalystRead          Action = "analyst.read"
 	ActAnalystActionsReview Action = "analyst.actions.review"
@@ -133,6 +139,12 @@ var ownerActions = map[Action]stepUp{
 	// registering a candidate with execution sets its allocation and strategy-scope limits (RM-019).
 	ActDeploymentLimitsSet: noStepUp,
 	ActStrategyRegister:    stepUpPasskey,
+	// Monitoring views and acknowledgements need no step-up; silencing an alert and loosening a
+	// containment policy (escalated below) need a passkey (MN-036, MN-042).
+	ActMonitorRead:    noStepUp,
+	ActAlertAck:       noStepUp,
+	ActAlertSilence:   stepUpPasskey,
+	ActContainmentSet: noStepUp,
 	// Analyst views, pausing, reviewing proposals, and chat reduce or do not change risk; raising its
 	// autonomy is analyst.autonomy.set in raise mode (AN-061, escalated above).
 	ActAnalystRead:          noStepUp,
@@ -160,7 +172,7 @@ func escalated(action Action, res Resource) bool {
 		return strings.EqualFold(res.Mode, "live")
 	case ActModelPromote:
 		return res.Mode == "paper" || res.Mode == "live_eligible"
-	case ActAnalystAutonomySet, ActDeploymentLimitsSet:
+	case ActAnalystAutonomySet, ActDeploymentLimitsSet, ActContainmentSet:
 		return res.Mode == "raise"
 	}
 	return false
