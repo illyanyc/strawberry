@@ -32,7 +32,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file tb/backtest/v1/simcore.proto.
  */
 export const file_tb_backtest_v1_simcore: GenFile = /*@__PURE__*/
-  fileDesc("Chx0Yi9iYWNrdGVzdC92MS9zaW1jb3JlLnByb3RvEg50Yi5iYWNrdGVzdC52MSL1AgoKU2ltQWNjb3VudBIZChFicm9rZXJfYWNjb3VudF9pZBgBIAEoCRIkCgZicm9rZXIYAiABKA4yFC50Yi5jb21tb24udjEuQnJva2VyEiMKBGNhc2gYAyABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIYChBzdXBwb3J0c19icmFja2V0GAQgASgIEhsKE3N1cHBvcnRzX2ZyYWN0aW9uYWwYBSABKAgSLgoPbWFyZ2luX211bHRpcGxlGAYgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSLgoPbWFyZ2luX3V0aWxfY2FwGAcgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSEQoJcGR0X2d1YXJkGAggASgJEg8KB3BkdF9tYXgYCSABKAUSEwoLc2VncmVnYXRpb24YCiABKAgSMQoRb3BlbmluZ19wb3NpdGlvbnMYCyADKAsyFi50Yi5sZWRnZXIudjEuUG9zaXRpb24iTgoIU2ltUm91dGUSJgoHaG9yaXpvbhgBIAEoDjIVLnRiLmNvbW1vbi52MS5Ib3Jpem9uEhoKEmJyb2tlcl9hY2NvdW50X2lkcxgCIAMoCSJbCg1TaW1JbnN0cnVtZW50EhUKDWluc3RydW1lbnRfaWQYASABKAkSDgoGc3ltYm9sGAIgASgJEhAKCHRyYWRhYmxlGAMgASgIEhEKCXNob3J0YWJsZRgEIAEoCCLCAgoIU2ltU2V0dXASLAoIYWNjb3VudHMYASADKAsyGi50Yi5iYWNrdGVzdC52MS5TaW1BY2NvdW50EhUKDXJlZ2lzdHJ5X2pzb24YAiABKAwSKQoHcm91dGluZxgDIAMoCzIYLnRiLmJhY2t0ZXN0LnYxLlNpbVJvdXRlEi8KDWdsb2JhbF9saW1pdHMYBCABKAsyGC50Yi5vcmRlcnMudjEuUmlza0xpbWl0cxIyCgtpbnN0cnVtZW50cxgFIAMoCzIdLnRiLmJhY2t0ZXN0LnYxLlNpbUluc3RydW1lbnQSGAoQZW50cnlfY29sbGFyX2JwcxgGIAEoAxIXCg9leGl0X2NvbGxhcl9icHMYByABKAMSHwoXZmxhdHRlbl9iZWZvcmVfY2xvc2VfbnMYCCABKAMSDQoFc3RhcnQYCSABKAMibAoGU2ltQmFyEhUKDWluc3RydW1lbnRfaWQYASABKAkSJAoFY2xvc2UYAiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIQCgh0c19jbG9zZRgDIAEoAxITCgtpbnRlcnZhbF9ucxgEIAEoAyI/CgpTaW1BZHZhbmNlEgsKA25vdxgBIAEoAxIkCgRiYXJzGAIgAygLMhYudGIuYmFja3Rlc3QudjEuU2ltQmFyImkKCVNpbVN1Ym1pdBILCgNub3cYASABKAMSKQoGaW50ZW50GAIgASgLMhkudGIub3JkZXJzLnYxLk9yZGVySW50ZW50EiQKBGJhcnMYAyADKAsyFi50Yi5iYWNrdGVzdC52MS5TaW1CYXIiygEKB1NpbUZpbGwSCwoDbm93GAEgASgDEhkKEWJyb2tlcl9hY2NvdW50X2lkGAIgASgJEhcKD2Jyb2tlcl9vcmRlcl9pZBgDIAEoCRIiCgNxdHkYBCABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIkCgVwcmljZRgFIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiMKBGZlZXMYBiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIPCgdleGVjX2lkGAcgASgJIncKC1NpbU9yZGVyRW5kEgsKA25vdxgBIAEoAxIZChFicm9rZXJfYWNjb3VudF9pZBgCIAEoCRIXCg9icm9rZXJfb3JkZXJfaWQYAyABKAkSJwoFc3RhdGUYBCABKA4yGC50Yi5vcmRlcnMudjEuT3JkZXJTdGF0ZSLwAQoNU2ltTWFudWFsRmlsbBILCgNub3cYASABKAMSGQoRYnJva2VyX2FjY291bnRfaWQYAiABKAkSFQoNaW5zdHJ1bWVudF9pZBgDIAEoCRIgCgRzaWRlGAQgASgOMhIudGIuY29tbW9uLnYxLlNpZGUSIgoDcXR5GAUgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJAoFcHJpY2UYBiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIjCgRmZWVzGAcgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSDwoHZXhlY19pZBgIIAEoCSJ/ChJTaW1Db3Jwb3JhdGVBY3Rpb24SCwoDbm93GAEgASgDEhUKDWluc3RydW1lbnRfaWQYAiABKAkSDAoEa2luZBgDIAEoCRIkCgV2YWx1ZRgEIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEhEKCXNvdXJjZV9pZBgFIAEoCSI0CghTaW1RdWVyeRINCgVvd25lchgBIAEoCRIZChFicm9rZXJfYWNjb3VudF9pZBgCIAEoCSKXAwoKU2ltUmVxdWVzdBIpCgVzZXR1cBgBIAEoCzIYLnRiLmJhY2t0ZXN0LnYxLlNpbVNldHVwSAASLQoHYWR2YW5jZRgCIAEoCzIaLnRiLmJhY2t0ZXN0LnYxLlNpbUFkdmFuY2VIABIrCgZzdWJtaXQYAyABKAsyGS50Yi5iYWNrdGVzdC52MS5TaW1TdWJtaXRIABInCgRmaWxsGAQgASgLMhcudGIuYmFja3Rlc3QudjEuU2ltRmlsbEgAEjAKCW9yZGVyX2VuZBgFIAEoCzIbLnRiLmJhY2t0ZXN0LnYxLlNpbU9yZGVyRW5kSAASNAoLbWFudWFsX2ZpbGwYBiABKAsyHS50Yi5iYWNrdGVzdC52MS5TaW1NYW51YWxGaWxsSAASPgoQY29ycG9yYXRlX2FjdGlvbhgHIAEoCzIiLnRiLmJhY2t0ZXN0LnYxLlNpbUNvcnBvcmF0ZUFjdGlvbkgAEikKBXF1ZXJ5GAggASgLMhgudGIuYmFja3Rlc3QudjEuU2ltUXVlcnlIAEIGCgRib2R5ItUBCgtTaW1SZXNwb25zZRINCgVlcnJvchgBIAEoCRIpCgZvcmRlcnMYAiADKAsyGS50Yi5icm9rZXIudjEuQnJva2VyT3JkZXISLAoIZGVjaXNpb24YAyABKAsyGi50Yi5vcmRlcnMudjEuUmlza0RlY2lzaW9uEjIKDmxlZGdlcl91cGRhdGVzGAQgAygLMhoudGIubGVkZ2VyLnYxLkxlZGdlclVwZGF0ZRIqCglwb3J0Zm9saW8YBSABKAsyFy50Yi5sZWRnZXIudjEuT3duZXJWaWV3Im4KD1JlY29yZGVkTWVzc2FnZRIPCgdzdWJqZWN0GAEgASgJEgwKBGRhdGEYAiABKAwSDgoGbXNnX2lkGAMgASgJEhMKC3JlY29yZGVkX2F0GAQgASgDEhcKD3N0cmVhbV9zZXF1ZW5jZRgFIAEoBELHAQoSY29tLnRiLmJhY2t0ZXN0LnYxQgxTaW1jb3JlUHJvdG9QAVpJZ2l0aHViLmNvbS9pbGx5YW55Yy9zdHJhd2JlcnJ5L2NvbnRyYWN0cy9nZW4vZ28vdGIvYmFja3Rlc3QvdjE7YmFja3Rlc3R2MaICA1RCWKoCDlRiLkJhY2t0ZXN0LlYxygIOVGJcQmFja3Rlc3RcVjHiAhpUYlxCYWNrdGVzdFxWMVxHUEJNZXRhZGF0YeoCEFRiOjpCYWNrdGVzdDo6VjFiBnByb3RvMw", [file_tb_broker_v1_gateway, file_tb_common_v1_common, file_tb_ledger_v1_ledger, file_tb_ledger_v1_ledger_service, file_tb_orders_v1_execution, file_tb_orders_v1_orders]);
+  fileDesc("Chx0Yi9iYWNrdGVzdC92MS9zaW1jb3JlLnByb3RvEg50Yi5iYWNrdGVzdC52MSKIAwoKU2ltQWNjb3VudBIZChFicm9rZXJfYWNjb3VudF9pZBgBIAEoCRIkCgZicm9rZXIYAiABKA4yFC50Yi5jb21tb24udjEuQnJva2VyEiMKBGNhc2gYAyABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIYChBzdXBwb3J0c19icmFja2V0GAQgASgIEhsKE3N1cHBvcnRzX2ZyYWN0aW9uYWwYBSABKAgSLgoPbWFyZ2luX211bHRpcGxlGAYgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSLgoPbWFyZ2luX3V0aWxfY2FwGAcgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSEQoJcGR0X2d1YXJkGAggASgJEg8KB3BkdF9tYXgYCSABKAUSEwoLc2VncmVnYXRpb24YCiABKAgSMQoRb3BlbmluZ19wb3NpdGlvbnMYCyADKAsyFi50Yi5sZWRnZXIudjEuUG9zaXRpb24SEQoJZGVkaWNhdGVkGAwgASgIIk4KCFNpbVJvdXRlEiYKB2hvcml6b24YASABKA4yFS50Yi5jb21tb24udjEuSG9yaXpvbhIaChJicm9rZXJfYWNjb3VudF9pZHMYAiADKAkiWwoNU2ltSW5zdHJ1bWVudBIVCg1pbnN0cnVtZW50X2lkGAEgASgJEg4KBnN5bWJvbBgCIAEoCRIQCgh0cmFkYWJsZRgDIAEoCBIRCglzaG9ydGFibGUYBCABKAgiwgIKCFNpbVNldHVwEiwKCGFjY291bnRzGAEgAygLMhoudGIuYmFja3Rlc3QudjEuU2ltQWNjb3VudBIVCg1yZWdpc3RyeV9qc29uGAIgASgMEikKB3JvdXRpbmcYAyADKAsyGC50Yi5iYWNrdGVzdC52MS5TaW1Sb3V0ZRIvCg1nbG9iYWxfbGltaXRzGAQgASgLMhgudGIub3JkZXJzLnYxLlJpc2tMaW1pdHMSMgoLaW5zdHJ1bWVudHMYBSADKAsyHS50Yi5iYWNrdGVzdC52MS5TaW1JbnN0cnVtZW50EhgKEGVudHJ5X2NvbGxhcl9icHMYBiABKAMSFwoPZXhpdF9jb2xsYXJfYnBzGAcgASgDEh8KF2ZsYXR0ZW5fYmVmb3JlX2Nsb3NlX25zGAggASgDEg0KBXN0YXJ0GAkgASgDImwKBlNpbUJhchIVCg1pbnN0cnVtZW50X2lkGAEgASgJEiQKBWNsb3NlGAIgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSEAoIdHNfY2xvc2UYAyABKAMSEwoLaW50ZXJ2YWxfbnMYBCABKAMiPwoKU2ltQWR2YW5jZRILCgNub3cYASABKAMSJAoEYmFycxgCIAMoCzIWLnRiLmJhY2t0ZXN0LnYxLlNpbUJhciJpCglTaW1TdWJtaXQSCwoDbm93GAEgASgDEikKBmludGVudBgCIAEoCzIZLnRiLm9yZGVycy52MS5PcmRlckludGVudBIkCgRiYXJzGAMgAygLMhYudGIuYmFja3Rlc3QudjEuU2ltQmFyIsoBCgdTaW1GaWxsEgsKA25vdxgBIAEoAxIZChFicm9rZXJfYWNjb3VudF9pZBgCIAEoCRIXCg9icm9rZXJfb3JkZXJfaWQYAyABKAkSIgoDcXR5GAQgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJAoFcHJpY2UYBSABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIjCgRmZWVzGAYgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSDwoHZXhlY19pZBgHIAEoCSJ3CgtTaW1PcmRlckVuZBILCgNub3cYASABKAMSGQoRYnJva2VyX2FjY291bnRfaWQYAiABKAkSFwoPYnJva2VyX29yZGVyX2lkGAMgASgJEicKBXN0YXRlGAQgASgOMhgudGIub3JkZXJzLnYxLk9yZGVyU3RhdGUi8AEKDVNpbU1hbnVhbEZpbGwSCwoDbm93GAEgASgDEhkKEWJyb2tlcl9hY2NvdW50X2lkGAIgASgJEhUKDWluc3RydW1lbnRfaWQYAyABKAkSIAoEc2lkZRgEIAEoDjISLnRiLmNvbW1vbi52MS5TaWRlEiIKA3F0eRgFIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiQKBXByaWNlGAYgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSIwoEZmVlcxgHIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEg8KB2V4ZWNfaWQYCCABKAkifwoSU2ltQ29ycG9yYXRlQWN0aW9uEgsKA25vdxgBIAEoAxIVCg1pbnN0cnVtZW50X2lkGAIgASgJEgwKBGtpbmQYAyABKAkSJAoFdmFsdWUYBCABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIRCglzb3VyY2VfaWQYBSABKAkikAEKBlNpbUZlZRILCgNub3cYASABKAMSGQoRYnJva2VyX2FjY291bnRfaWQYAiABKAkSDQoFb3duZXIYAyABKAkSFQoNaW5zdHJ1bWVudF9pZBgEIAEoCRIlCgZhbW91bnQYBSABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIRCglzb3VyY2VfaWQYBiABKAkiNAoIU2ltUXVlcnkSDQoFb3duZXIYASABKAkSGQoRYnJva2VyX2FjY291bnRfaWQYAiABKAkivgMKClNpbVJlcXVlc3QSKQoFc2V0dXAYASABKAsyGC50Yi5iYWNrdGVzdC52MS5TaW1TZXR1cEgAEi0KB2FkdmFuY2UYAiABKAsyGi50Yi5iYWNrdGVzdC52MS5TaW1BZHZhbmNlSAASKwoGc3VibWl0GAMgASgLMhkudGIuYmFja3Rlc3QudjEuU2ltU3VibWl0SAASJwoEZmlsbBgEIAEoCzIXLnRiLmJhY2t0ZXN0LnYxLlNpbUZpbGxIABIwCglvcmRlcl9lbmQYBSABKAsyGy50Yi5iYWNrdGVzdC52MS5TaW1PcmRlckVuZEgAEjQKC21hbnVhbF9maWxsGAYgASgLMh0udGIuYmFja3Rlc3QudjEuU2ltTWFudWFsRmlsbEgAEj4KEGNvcnBvcmF0ZV9hY3Rpb24YByABKAsyIi50Yi5iYWNrdGVzdC52MS5TaW1Db3Jwb3JhdGVBY3Rpb25IABIpCgVxdWVyeRgIIAEoCzIYLnRiLmJhY2t0ZXN0LnYxLlNpbVF1ZXJ5SAASJQoDZmVlGAkgASgLMhYudGIuYmFja3Rlc3QudjEuU2ltRmVlSABCBgoEYm9keSLVAQoLU2ltUmVzcG9uc2USDQoFZXJyb3IYASABKAkSKQoGb3JkZXJzGAIgAygLMhkudGIuYnJva2VyLnYxLkJyb2tlck9yZGVyEiwKCGRlY2lzaW9uGAMgASgLMhoudGIub3JkZXJzLnYxLlJpc2tEZWNpc2lvbhIyCg5sZWRnZXJfdXBkYXRlcxgEIAMoCzIaLnRiLmxlZGdlci52MS5MZWRnZXJVcGRhdGUSKgoJcG9ydGZvbGlvGAUgASgLMhcudGIubGVkZ2VyLnYxLk93bmVyVmlldyJuCg9SZWNvcmRlZE1lc3NhZ2USDwoHc3ViamVjdBgBIAEoCRIMCgRkYXRhGAIgASgMEg4KBm1zZ19pZBgDIAEoCRITCgtyZWNvcmRlZF9hdBgEIAEoAxIXCg9zdHJlYW1fc2VxdWVuY2UYBSABKARCxwEKEmNvbS50Yi5iYWNrdGVzdC52MUIMU2ltY29yZVByb3RvUAFaSWdpdGh1Yi5jb20vaWxseWFueWMvc3RyYXdiZXJyeS9jb250cmFjdHMvZ2VuL2dvL3RiL2JhY2t0ZXN0L3YxO2JhY2t0ZXN0djGiAgNUQliqAg5UYi5CYWNrdGVzdC5WMcoCDlRiXEJhY2t0ZXN0XFYx4gIaVGJcQmFja3Rlc3RcVjFcR1BCTWV0YWRhdGHqAhBUYjo6QmFja3Rlc3Q6OlYxYgZwcm90bzM", [file_tb_broker_v1_gateway, file_tb_common_v1_common, file_tb_ledger_v1_ledger, file_tb_ledger_v1_ledger_service, file_tb_orders_v1_execution, file_tb_orders_v1_orders]);
 
 /**
  * @generated from message tb.backtest.v1.SimAccount
@@ -98,6 +98,14 @@ export type SimAccount = Message<"tb.backtest.v1.SimAccount"> & {
    * @generated from field: repeated tb.ledger.v1.Position opening_positions = 11;
    */
   openingPositions: Position[];
+
+  /**
+   * A dedicated strategy account (D19, IBKR bot account): owners registered here may short, subject
+   * to VP-005's "no other owner holds the symbol" rule. Needed to simulate short strategies (BT-014).
+   *
+   * @generated from field: bool dedicated = 12;
+   */
+  dedicated: boolean;
 };
 
 /**
@@ -164,6 +172,14 @@ export type SimAccountJson = {
    * @generated from field: repeated tb.ledger.v1.Position opening_positions = 11;
    */
   openingPositions?: PositionJson[];
+
+  /**
+   * A dedicated strategy account (D19, IBKR bot account): owners registered here may short, subject
+   * to VP-005's "no other owner holds the symbol" rule. Needed to simulate short strategies (BT-014).
+   *
+   * @generated from field: bool dedicated = 12;
+   */
+  dedicated?: boolean;
 };
 
 /**
@@ -815,14 +831,15 @@ export type SimCorporateAction = Message<"tb.backtest.v1.SimCorporateAction"> & 
   instrumentId: string;
 
   /**
-   * split | dividend
+   * split | dividend | delisting
    *
    * @generated from field: string kind = 3;
    */
   kind: string;
 
   /**
-   * Split ratio (new/old) or cash dividend per share.
+   * Split ratio (new/old), cash dividend per share, or the delisting close price (last traded price
+   * after the delisting haircut, BT-008).
    *
    * @generated from field: tb.common.v1.Decimal value = 4;
    */
@@ -851,14 +868,15 @@ export type SimCorporateActionJson = {
   instrumentId?: string;
 
   /**
-   * split | dividend
+   * split | dividend | delisting
    *
    * @generated from field: string kind = 3;
    */
   kind?: string;
 
   /**
-   * Split ratio (new/old) or cash dividend per share.
+   * Split ratio (new/old), cash dividend per share, or the delisting close price (last traded price
+   * after the delisting haircut, BT-008).
    *
    * @generated from field: tb.common.v1.Decimal value = 4;
    */
@@ -876,6 +894,89 @@ export type SimCorporateActionJson = {
  */
 export const SimCorporateActionSchema: GenMessage<SimCorporateAction, {jsonType: SimCorporateActionJson}> = /*@__PURE__*/
   messageDesc(file_tb_backtest_v1_simcore, 10);
+
+/**
+ * A charge to one owner outside a fill: short borrow for the calendar days a short is held over a
+ * session close (BT-014). Booked as realized loss and fees by the ledger core.
+ *
+ * @generated from message tb.backtest.v1.SimFee
+ */
+export type SimFee = Message<"tb.backtest.v1.SimFee"> & {
+  /**
+   * @generated from field: int64 now = 1;
+   */
+  now: bigint;
+
+  /**
+   * @generated from field: string broker_account_id = 2;
+   */
+  brokerAccountId: string;
+
+  /**
+   * @generated from field: string owner = 3;
+   */
+  owner: string;
+
+  /**
+   * @generated from field: string instrument_id = 4;
+   */
+  instrumentId: string;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal amount = 5;
+   */
+  amount?: Decimal | undefined;
+
+  /**
+   * @generated from field: string source_id = 6;
+   */
+  sourceId: string;
+};
+
+/**
+ * A charge to one owner outside a fill: short borrow for the calendar days a short is held over a
+ * session close (BT-014). Booked as realized loss and fees by the ledger core.
+ *
+ * @generated from message tb.backtest.v1.SimFee
+ */
+export type SimFeeJson = {
+  /**
+   * @generated from field: int64 now = 1;
+   */
+  now?: string;
+
+  /**
+   * @generated from field: string broker_account_id = 2;
+   */
+  brokerAccountId?: string;
+
+  /**
+   * @generated from field: string owner = 3;
+   */
+  owner?: string;
+
+  /**
+   * @generated from field: string instrument_id = 4;
+   */
+  instrumentId?: string;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal amount = 5;
+   */
+  amount?: DecimalJson;
+
+  /**
+   * @generated from field: string source_id = 6;
+   */
+  sourceId?: string;
+};
+
+/**
+ * Describes the message tb.backtest.v1.SimFee.
+ * Use `create(SimFeeSchema)` to create a new message.
+ */
+export const SimFeeSchema: GenMessage<SimFee, {jsonType: SimFeeJson}> = /*@__PURE__*/
+  messageDesc(file_tb_backtest_v1_simcore, 11);
 
 /**
  * @generated from message tb.backtest.v1.SimQuery
@@ -912,7 +1013,7 @@ export type SimQueryJson = {
  * Use `create(SimQuerySchema)` to create a new message.
  */
 export const SimQuerySchema: GenMessage<SimQuery, {jsonType: SimQueryJson}> = /*@__PURE__*/
-  messageDesc(file_tb_backtest_v1_simcore, 11);
+  messageDesc(file_tb_backtest_v1_simcore, 12);
 
 /**
  * @generated from message tb.backtest.v1.SimRequest
@@ -969,6 +1070,12 @@ export type SimRequest = Message<"tb.backtest.v1.SimRequest"> & {
      */
     value: SimQuery;
     case: "query";
+  } | {
+    /**
+     * @generated from field: tb.backtest.v1.SimFee fee = 9;
+     */
+    value: SimFee;
+    case: "fee";
   } | { case: undefined; value?: undefined };
 };
 
@@ -1015,6 +1122,11 @@ export type SimRequestJson = {
    * @generated from field: tb.backtest.v1.SimQuery query = 8;
    */
   query?: SimQueryJson;
+
+  /**
+   * @generated from field: tb.backtest.v1.SimFee fee = 9;
+   */
+  fee?: SimFeeJson;
 };
 
 /**
@@ -1022,7 +1134,7 @@ export type SimRequestJson = {
  * Use `create(SimRequestSchema)` to create a new message.
  */
 export const SimRequestSchema: GenMessage<SimRequest, {jsonType: SimRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_backtest_v1_simcore, 12);
+  messageDesc(file_tb_backtest_v1_simcore, 13);
 
 /**
  * @generated from message tb.backtest.v1.SimResponse
@@ -1113,7 +1225,7 @@ export type SimResponseJson = {
  * Use `create(SimResponseSchema)` to create a new message.
  */
 export const SimResponseSchema: GenMessage<SimResponse, {jsonType: SimResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_backtest_v1_simcore, 13);
+  messageDesc(file_tb_backtest_v1_simcore, 14);
 
 /**
  * One message captured from the bus (JetStream) for replay: the input format of event-driven
@@ -1194,5 +1306,5 @@ export type RecordedMessageJson = {
  * Use `create(RecordedMessageSchema)` to create a new message.
  */
 export const RecordedMessageSchema: GenMessage<RecordedMessage, {jsonType: RecordedMessageJson}> = /*@__PURE__*/
-  messageDesc(file_tb_backtest_v1_simcore, 14);
+  messageDesc(file_tb_backtest_v1_simcore, 15);
 

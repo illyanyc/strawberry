@@ -5,8 +5,11 @@ bar, N2) and exits at the open of bar ``t+1+horizon``; intraday trades (``cap_at
 at the session's last bar close instead when the horizon would cross it, swing trades hold across
 sessions. One open trade per instrument; trades decided at the same bar share the allocation equally,
 with at most ``1/min_names`` per trade. Slippage and fees come from the shared cost model
-(``tbcore.backtest.costs``, BT-010..BT-016); P&L is booked to the session of the exit. Protective stops
-are not simulated here (known difference); the event-driven tier runs them before any gate.
+(``tbcore.backtest.costs``, BT-010..BT-016); P&L is booked to the session of the exit. Shorts held over
+session closes pay borrow for the calendar days held (BT-014). A trade whose instrument never trades again
+(delisted) exits at its last close times (1 - ``delisting_haircut``) instead of being dropped (BT-008); a
+missing exit bar on an instrument that trades later exits at its next open. Protective stops are not
+simulated here (known difference); the event-driven tier runs them before any gate.
 """
 
 from __future__ import annotations
@@ -19,7 +22,7 @@ import numpy as np
 import polars as pl
 from numpy.typing import NDArray
 
-from tbcore.backtest.costs import CostModelConfig, apply_slippage, fees, slippage_bps
+from tbcore.backtest.costs import CostModelConfig, apply_slippage, borrow_cost, fees, slippage_bps
 from tbcore.backtest.vectorized import VectorData
 
 NS = 1_000_000_000
@@ -32,6 +35,7 @@ class SignalEvalConfig:
     cap_at_session_close: bool = True
     allocation: float = 100_000.0
     min_names: int = 5
+    delisting_haircut: float = 0.0
 
 
 @dataclass
@@ -93,7 +97,16 @@ def evaluate_decisions(
         ),
         np.zeros(n_sess),
         days,
-        {"trades": 0.0, "net_return": 0.0, "sharpe": math.nan, "turnover": 0.0, "cost_drag": 0.0, "hit_rate": math.nan},
+        {
+            "trades": 0.0,
+            "net_return": 0.0,
+            "sharpe": math.nan,
+            "turnover": 0.0,
+            "cost_drag": 0.0,
+            "hit_rate": math.nan,
+            "borrow_cost": 0.0,
+            "delisted_trades": 0.0,
+        },
     )
     if len(decision_ts_open) == 0:
         return empty
@@ -122,8 +135,21 @@ def evaluate_decisions(
         t_idx, n_idx, sd, e0, x, at_close = t_idx[keep], n_idx[keep], sd[keep], e0[keep], x[keep], at_close[keep]
     entry_raw = d.open[e0, n_idx]
     exit_raw = np.where(at_close, d.close[x, n_idx], d.open[x, n_idx])
+    delisted = np.zeros(x.shape[0], dtype=bool)
+    for j in (int(v) for v in np.flatnonzero(np.isfinite(entry_raw) & ~np.isfinite(exit_raw))):
+        n, k = int(n_idx[j]), int(x[j])
+        later = np.flatnonzero(np.isfinite(d.open[k:, n]))
+        if later.size:  # a gap or halt: swing trades are held until the instrument trades again
+            if not cfg.cap_at_session_close:
+                x[j] = k + int(later[0])
+                exit_raw[j] = d.open[x[j], n]
+            continue
+        before = np.flatnonzero(np.isfinite(d.close[: k + 1, n]))
+        if before.size and int(before[-1]) >= int(e0[j]):  # BT-008: delisted while held
+            exit_raw[j] = d.close[int(before[-1]), n] * (1.0 - cfg.delisting_haircut)
+            delisted[j] = True
     fin = np.isfinite(entry_raw) & np.isfinite(exit_raw) & (entry_raw > 0)
-    t_idx, n_idx, sd, e0, x, entry_raw, exit_raw = (
+    t_idx, n_idx, sd, e0, x, entry_raw, exit_raw, delisted = (
         t_idx[fin],
         n_idx[fin],
         sd[fin],
@@ -131,10 +157,13 @@ def evaluate_decisions(
         x[fin],
         entry_raw[fin],
         exit_raw[fin],
+        delisted[fin],
     )
     # One open trade per instrument, in decision order.
     order = np.lexsort((n_idx, t_idx))
-    t_idx, n_idx, sd, e0, x, entry_raw, exit_raw = (a[order] for a in (t_idx, n_idx, sd, e0, x, entry_raw, exit_raw))
+    t_idx, n_idx, sd, e0, x, entry_raw, exit_raw, delisted = (
+        a[order] for a in (t_idx, n_idx, sd, e0, x, entry_raw, exit_raw, delisted)
+    )
     keep = np.ones(t_idx.shape[0], dtype=bool)
     busy: dict[int, int] = {}
     for i in range(t_idx.shape[0]):
@@ -143,23 +172,27 @@ def evaluate_decisions(
             keep[i] = False
             continue
         busy[n] = int(x[i])
-    t_idx, n_idx, sd, e0, x, entry_raw, exit_raw = (a[keep] for a in (t_idx, n_idx, sd, e0, x, entry_raw, exit_raw))
+    t_idx, n_idx, sd, e0, x, entry_raw, exit_raw, delisted = (
+        a[keep] for a in (t_idx, n_idx, sd, e0, x, entry_raw, exit_raw, delisted)
+    )
     if t_idx.size == 0:
         return empty
     _, inv, counts = np.unique(t_idx, return_inverse=True, return_counts=True)
     weight = 1.0 / np.maximum(counts[inv], cfg.min_names)
     qty = np.floor(cfg.allocation * weight / entry_raw)
     keep = qty > 0
-    t_idx, n_idx, sd, e0, x, entry_raw, exit_raw, qty = (
-        a[keep] for a in (t_idx, n_idx, sd, e0, x, entry_raw, exit_raw, qty)
+    t_idx, n_idx, sd, e0, x, entry_raw, exit_raw, qty, delisted = (
+        a[keep] for a in (t_idx, n_idx, sd, e0, x, entry_raw, exit_raw, qty, delisted)
     )
     if t_idx.size == 0:
         return empty
     slip_in = slippage_bps(cost, qty, d.minute_of_session[e0], d.adv[e0, n_idx], d.daily_vol[e0, n_idx])
     slip_out = slippage_bps(cost, qty, d.minute_of_session[x], d.adv[x, n_idx], d.daily_vol[x, n_idx])
     entry_px = apply_slippage(entry_raw, sd, slip_in)
-    exit_px = apply_slippage(exit_raw, -sd, slip_out)
-    fee = fees(cost, sd, qty, entry_px, d.ts_open[e0]) + fees(cost, -sd, qty, exit_px, d.ts_open[x])
+    exit_px = np.where(delisted, exit_raw, apply_slippage(exit_raw, -sd, slip_out))
+    held_days = days[d.session[x]] - days[d.session[e0]]
+    borrow = np.where((sd < 0) & (held_days > 0), borrow_cost(cost, qty * entry_raw, held_days), 0.0)
+    fee = fees(cost, sd, qty, entry_px, d.ts_open[e0]) + fees(cost, -sd, qty, exit_px, d.ts_open[x]) + borrow
     gross = sd * qty * (exit_raw - entry_raw)
     pnl = sd * qty * (exit_px - entry_px) - fee
     sess = d.session[x]
@@ -190,5 +223,7 @@ def evaluate_decisions(
         "turnover": 2.0 * notional / cfg.allocation / max(n_sess, 1),
         "cost_drag": float((gross.sum() - pnl.sum()) / cfg.allocation),
         "hit_rate": float(np.mean(pnl > 0)),
+        "borrow_cost": float(borrow.sum()),
+        "delisted_trades": float(delisted.sum()),
     }
     return SignalEvalResult(trades, rets, days, metrics)

@@ -33,6 +33,9 @@ message SimAccount {
   bool segregation = 10;
   // Opening positions; they belong to the `manual` owner (VP-015, BT-007).
   repeated tb.ledger.v1.Position opening_positions = 11;
+  // A dedicated strategy account (D19, IBKR bot account): owners registered here may short, subject
+  // to VP-005's "no other owner holds the symbol" rule. Needed to simulate short strategies (BT-014).
+  bool dedicated = 12;
 }
 
 message SimRoute {
@@ -121,11 +124,23 @@ message SimManualFill {
 message SimCorporateAction {
   int64 now = 1;
   string instrument_id = 2;
-  // split | dividend
+  // split | dividend | delisting
   string kind = 3;
-  // Split ratio (new/old) or cash dividend per share.
+  // Split ratio (new/old), cash dividend per share, or the delisting close price (last traded price
+  // after the delisting haircut, BT-008).
   tb.common.v1.Decimal value = 4;
   string source_id = 5;
+}
+
+// A charge to one owner outside a fill: short borrow for the calendar days a short is held over a
+// session close (BT-014). Booked as realized loss and fees by the ledger core.
+message SimFee {
+  int64 now = 1;
+  string broker_account_id = 2;
+  string owner = 3;
+  string instrument_id = 4;
+  tb.common.v1.Decimal amount = 5;
+  string source_id = 6;
 }
 
 message SimQuery {
@@ -143,6 +158,7 @@ message SimRequest {
     SimManualFill manual_fill = 6;
     SimCorporateAction corporate_action = 7;
     SimQuery query = 8;
+    SimFee fee = 9;
   }
 }
 

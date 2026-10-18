@@ -29,7 +29,7 @@ Owns the full real account per broker, split into per-strategy virtual portfolio
 |---|---|
 | `cmd/ledger/` | Entrypoint (config, Postgres, NATS, relay, gRPC with the svcauth allowlist) |
 | `app/` | Public wiring: engine + consumers + tick loop + gRPC registration; memory and Postgres stores (used by `tests/paper`) |
-| `book/` | Pure accounting core: owners, lots, shadow ledger, events, breaks, reservations, reconciliation, capital. Public so the backtest simcore (`services/execution/cmd/tb-simcore`) books simulated fills with the same code (BT-003); keep it free of I/O |
+| `book/` | Pure accounting core: owners, lots, shadow ledger, events, breaks, reservations, reconciliation, capital. Public so the backtest simcore (`services/execution/cmd/tb-simcore`) books simulated fills with the same code (BT-003); keep it free of I/O Event kinds `fee` and `delisting` exist for the simcore only (BT-014, BT-008, ADR-0048); the live engine never produces them. |
 | `internal/engine/` | Serialized engine, persistence batches, Postgres and memory stores, refdata resolver, views |
 | `internal/server/` | `LedgerService` implementation and caller allowlist |
 

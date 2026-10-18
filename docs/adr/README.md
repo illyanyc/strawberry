@@ -63,6 +63,7 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0045](0045-full-monitoring-and-automatic-containment.md) | Full monitoring, health score, and automatic containment (section 13 Phase 5) | Accepted | 2026-10-18 |
 | [0046](0046-jetstream-recorder-for-live-and-paper-streams.md) | JetStream recorder for live and paper streams | Accepted | 2026-10-18 |
 | [0047](0047-candidate-deployment-limits-and-execution-registration.md) | Candidate deployment limits, monitoring expectations, and execution registration | Accepted | 2026-10-18 |
+| [0048](0048-backtest-borrow-accrual-and-delisting-closes.md) | Short borrow accrual and delisting closes in the backtest engines | Accepted | 2026-10-18 |
 | [0049](0049-full-ui-shell-design-system-and-performance.md) | Full UI: one shell and navigation registry, a shared design system, keyboard-first desktop, route-level code splitting, in-app tearsheets | Accepted | 2026-10-18 |
 | [0050](0050-signals-on-the-bus-and-chart-overlays.md) | Signals keyed by strategy and instrument on the bus, served to charts as overlays | Accepted | 2026-10-18 |
 | [0051](0051-tradingview-webhook-strategies-and-chart-embedding.md) | TradingView: opt-in `tv-<name>` webhook strategies behind Cloudflare Access, and chart embedding where licensing allows | Accepted | 2026-10-18 |
