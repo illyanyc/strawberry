@@ -35,6 +35,7 @@ var Schemas = []Schema{
 	{Name: "refdata", Owner: "refdata_owner"},
 	{Name: "marketdata", Owner: "marketdata_owner"},
 	{Name: "broker_ibkr", Owner: "broker_ibkr_owner"},
+	{Name: "ledger", Owner: "ledger_owner"},
 }
 
 // LoginRoles are the service roles that may log in to the platform database. Their passwords are

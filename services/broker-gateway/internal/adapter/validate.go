@@ -8,7 +8,7 @@ import (
 	brokerv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/broker/v1"
 	commonv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/common/v1"
 	ordersv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/orders/v1"
-	"github.com/illyanyc/strawberry/services/broker-gateway/internal/attribution"
+	"github.com/illyanyc/strawberry/libs/go/attribution"
 )
 
 // Dec parses a contract decimal; empty means "unset" (ok=false).

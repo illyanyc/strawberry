@@ -111,8 +111,9 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0019-alpaca-adapter-and-simulator.md` | Exists | ADR (D37): hand-written Alpaca adapter, in-process simulator, single market-data socket, credential-free test fake |
 | `docs/adr/0023-ibkr-adapter-gateway-and-sessions.md` | Exists | ADR (D41, implements D18): pinned IB Gateway, per-environment `ib_async` adapter, credential custody, network isolation, maintenance-aware supervision, V1 interim |
 | `docs/adr/0018-broker-gateway-interface.md` | Exists | ADR (D36): one gRPC broker interface for every adapter, typed error model, canonical execution IDs, outbox-backed events |
+| `docs/adr/0024-virtual-ledgers-and-reconciliation.md` | Exists | ADR (D42, implements D19): event-sourced virtual ledgers, FIFO lots, broker-lot shadow ledger, reservations, reconciliation with a break taxonomy |
 | `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2): NATS JetStream, `sync_interval: always`, stream layout, outbox |
-| `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, IBKR weekly 2FA / manual VNC login / gateway outages (`ibkr-weekly-2fa.md`), broker outage, market data (stale, slow, gaps, reconciliation breaches, corporate-action disputes) (later: kill switch, ledger reconciliation break) |
+| `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, IBKR weekly 2FA / manual VNC login / gateway outages (`ibkr-weekly-2fa.md`), broker outage, market data (stale, slow, gaps, reconciliation breaches, corporate-action disputes), IBKR weekly 2FA, ledger reconciliation break (later: kill switch) |
 | `docs/threat-model.md` | Exists | Assets, actors, entry points, STRIDE table mapped to SE-/OP- rules, residual risks |
 
 ## Contracts: `contracts/`
@@ -137,7 +138,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 
 | Path | Status | Purpose |
 |---|---|---|
-| `libs/go/` | Exists | Go module: config, logging/redaction, secrets, ops, telemetry, svc template, svcauth, policy, audit, db (+ embedded migrations), bus, clock, resilience (backoff, priority rate limiter, circuit breaker), outbox (transactional outbox + relay), calendar (embedded XNYS sessions), cache (Valkey key layout), webauthntest (software passkey authenticator for tests). Internal layout in [`libs/go/AGENTS.md`](../libs/go/AGENTS.md) |
+| `libs/go/` | Exists | Go module: config, logging/redaction, secrets, ops, telemetry, svc template, svcauth, policy, audit, db (+ embedded migrations), bus, clock, resilience (backoff, priority rate limiter, circuit breaker), outbox (transactional outbox + relay), calendar (embedded XNYS sessions), cache (Valkey key layout), attribution (attribution ID parser shared by broker-gateway, ledger, execution; VP-002), bus consumers (`bus.Consume`), webauthntest (software passkey authenticator for tests). Internal layout in [`libs/go/AGENTS.md`](../libs/go/AGENTS.md) |
 | `libs/py/tbcore/` | Exists | Python package: service template, JSON logging with redaction, secrets, lake query layer (`tbcore.data`: point-in-time bars, adjustments, as-of joins, universes, calendar), data quality (`tbcore.dq`), feature store (`tbcore.features`) (later: labels, strategy API). Layout in [`libs/py/tbcore/AGENTS.md`](../libs/py/tbcore/AGENTS.md) |
 
 ## Services: `services/`
@@ -149,7 +150,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `services/marketdata/` | Exists | Go: single lake writer (Parquet staging/compaction/revisions, manifest), reference data (`refdata`) and its daily sync, data-quality checks, resumable backfill, live bar pipeline (finality, resampling, gap repair, bus/cache/lake sinks), FMP client, cross-source reconciliation, scheduler, `MarketDataService`, spike harnesses (V2, V3, V4). [`AGENTS.md`](../services/marketdata/AGENTS.md) |
 | `services/broker-gateway-ibkr/` | Exists | Python (`ib_async`): IBKR adapter serving `BrokerGatewayService` per environment; session supervision across IB Gateway daily/weekly resets, orders with attribution in `orderRef`, executions + commissions, snapshots, pacing; fake gateways, recorded-format fixtures, opt-in paper suite. Layout in [`services/broker-gateway-ibkr/AGENTS.md`](../services/broker-gateway-ibkr/AGENTS.md) |
 | `services/execution/` | Exists (placeholder) | Go: ops surface + NATS + clock-skew check; `tb_trading_enabled=0` until Phase 2. [`AGENTS.md`](../services/execution/AGENTS.md) |
-| `services/ledger/` | Exists (placeholder) | Go: ops surface + NATS; ledgers in Phase 2. [`AGENTS.md`](../services/ledger/AGENTS.md) |
+| `services/ledger/` | Exists | Go: event-sourced real-account and per-strategy virtual ledgers, `manual` bucket, FIFO lots, broker-lot shadow ledger, reservations, allocations, reconciliation and breaks, corporate actions, equity curves, wash-sale flags; `LedgerService` gRPC; public wiring package `app/` (used by the paper harness). Layout in [`services/ledger/AGENTS.md`](../services/ledger/AGENTS.md) |
 | `services/context-data/` | Exists (placeholder) | Python on `tbcore`: ops surface; context data in Phase 3 |
 | `services/monitor/` | Exists (placeholder) | Python on `tbcore`: ops surface; monitoring in Phases 2/5 |
 | `services/assistant/` | Exists (placeholder) | Python on `tbcore`: ops surface; assistant in Phase 4 |

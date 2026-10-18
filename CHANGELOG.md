@@ -4,12 +4,10 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 
 ## [Unreleased]
 
-### Removed
-
-- Untracked two accidentally committed Go build outputs (`services/ledger/ledger`, `services/execution/execution`); `.gitignore` already excludes them.
-
 ### Added
 
+- Ledger (section 06, [ADR-0024](docs/adr/0024-virtual-ledgers-and-reconciliation.md), D42, implements D19; VP-001..VP-025): event-sourced engine with schema `ledger` (append-only `events`, materialized `positions`, `breaks`, `reservations`, `recon_reports`, `equity_points`, `wash_sales`, `snapshots`, `pending_actions`, `outbox`); opening balances to `manual`; owner attribution from `tb1-` IDs; signed FIFO lots per owner and a FIFO broker-lot shadow ledger; encroachment, oversell, unknown-execution, missing-execution, corporate-action, and cash breaks with timing grace and owner resolutions (`accept`, `transfer_to_manual`, `book_to_manual`, `rebaseline_cash`); atomic reservations; allocations with a reserve; splits, dividends, symbol changes on the ex-date; wash-sale flags; equity curves; `LedgerService` gRPC; durable consumers of `exec.*`, `acct.snapshot.*`, `recon.request.*`, `ref.corporate_action.*`; publishes `ledger.update.*`, `recon.result.*`, `alert.critical`. Tests: section 06 scenarios, 200-sequence invariant property test, rebuild (memory and Postgres), concurrency, performance targets. Runbook `docs/runbooks/reconciliation-break.md`; spike V8 desk research.
+- `libs/go/bus.Consume` (durable pull consumers with ack/nak/poison handling and `tb_bus_consumed_total`).
 - Phase 2 contracts (sections 06/07): `tb.ledger.v1.LedgerService` (account view by owner, ownership constraints, reservations, allocations, reconcile, breaks, equity curve, owner and broker-shadow lots, wash-sale flags, reconciliation reports), `Break`/`BreakType`/`BreakStatus`, `LedgerUpdate`, `ReconciliationResult` breaks and halted pairs, `RECONCILIATION_STATUS_PENDING`; `tb.orders.v1.ExecutionService` (intents, preview, orders, fills, trace, strategy registry and modes, risk limits, kill switches, trading status), `StrategyMode`, `RiskLimits`, `KillSwitch`, `Halt`; `OrderIntent` horizon/kind/protective spec/source/decision time, `Order` role/attempt/parent, latched `KillSwitchEvent` and `DEMOTE_TO_PAPER`; `tb.common.v1.Horizon`; `MarketDataService.GetBars` for charts. Bus subject `ord.order.<acct>` for OMS order state. All additions are wire-compatible (`buf breaking` clean).
 - Market data ingestion (section 05, [ADR-0022](docs/adr/0022-market-data-ingestion.md), D40, MD-001..MD-012): `MarketDataService` (backfill jobs and status, universe, feed status, `IsFresh`); resumable checkpointed backfill (`internal/ingest`, tables `marketdata.backfill_jobs/backfill_chunks/gaps`) with gap repair and deterministic startup history (`TB_MD_HISTORY_START`) and catch-up (`TB_MD_CATCHUP_DAYS`) jobs; live pipeline (`internal/live`: 60 s finality window, partial and correction subjects, session-aligned 5m/15m/30m/1h building, reconnect repair, fail-closed freshness, concurrent JetStream publish with `Nats-Msg-Id` dedupe, Valkey and buffered lake sinks); FMP `/stable` client (`internal/fmp`: rate limit, bandwidth budget, `Retry-After`, breaker, key redaction); nightly Alpaca vs FMP EOD reconciliation with quarantine (`internal/recon`, `marketdata.recon_results/quarantine`, `ref/quarantine.parquet`); daily reference sync (`internal/refsync`: assets, symbol changes, delistings, corporate actions cross-checked between sources, owner resolutions `confirmed`/`rejected`); calendar-aware scheduler (`internal/sched`); embedded dev universe (`internal/universe`); `REF` JetStream stream (`ref.corporate_action.*`); `SourceHealth` on `sys.health.<source>`.
 - `tbcore.data.Lake.quarantine()` / `drop_quarantined()` and `bars(exclude_quarantined=...)`; `materialize` excludes quarantined symbol-days by default (MD-010); `apply_adjustment` ignores owner-`rejected` corporate actions (MD-012).
@@ -67,6 +65,7 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 
 ### Changed
 
+- The attribution parser moved from `services/broker-gateway/internal/attribution` → `libs/go/attribution` so broker-gateway, ledger, and execution share one implementation (VP-002).
 - broker-gateway: Alpaca historical bar requests carry `asof` = the window's last day so recycled tickers return the right company's history (spike V2, MD-001). `libs/go/bus` gains `NewMsg` and the `REF` stream; the ledger NATS user may subscribe to `ref.>`. `make up` now creates secrets added since the last run (e.g. `fmp_api_key`, initialized to `unset`). Compose wires marketdata to broker-gateway, Valkey, and the FMP secret, with the section 05 settings in `infra/compose/env.example`.
 - tbcore depends on DuckDB 1.5.6, Polars 1.44.2, PyArrow 26, NumPy 2.5 (pinned majors per D4); dev group adds hypothesis and exchange-calendars. `libs/go` depends on the contracts module and go-redis. Postgres schemas `refdata` and `marketdata` (owners `refdata_owner`, `marketdata_owner`; group `refdata_reader` for ledger, execution, api-gateway, broker-gateway).
 - Compose: broker-gateway joins the bus (`broker_gateway` user), verifies service tokens from execution, ledger, and marketdata, and gets Alpaca/simulator account settings (`infra/compose/env.example`); `.golangci.yml` ignores the broker term "marginable" in misspell.
@@ -94,4 +93,5 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 
 ### Removed
 
+- Untracked two accidentally committed Go build outputs (`services/ledger/ledger`, `services/execution/execution`); `.gitignore` already excludes them.
 - `about.txt` (one-line placeholder description; superseded by `README.md`).

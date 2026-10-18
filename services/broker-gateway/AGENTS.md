@@ -19,6 +19,7 @@ Custodian of broker credentials and home of the Alpaca adapter, the broker simul
 | out | NATS | outbox relay → `ord.update.*`, `exec.*`, `acct.snapshot.*`, `recon.request.*`, `alert.*` (user `broker_gateway`) | ADR-0018 |
 
 ## Business rules enforced here
+- Attribution IDs are validated with the shared `libs/go/attribution` package (BR-003, VP-002).
 - `BR-001`..`BR-021` (brokers.md): contract suite, capabilities, attribution, error model, reject and status mapping, idempotent submit, canonical exec IDs, ordering, session state machine, resync, backoff, live gate, audit, single data socket, budgets, rounding, bracket legs, manual orders, no account-wide endpoints, margin events.
 - `OE-002`..`OE-011` (adapter side), `VP-001` (manual orders pass through untouched).
 - `SE-030`..`SE-033` credential custody; `SE-040` per-method caller allowlists (`internal/grpcsvc`, `internal/credsvc`); `SE-012` redaction of credential material in errors and logs; `SE-021` order requests audited before sending.
@@ -28,7 +29,6 @@ Custodian of broker credentials and home of the Alpaca adapter, the broker simul
 |---|---|
 | `cmd/broker-gateway/` | Entrypoint: config, credential cache, accounts, outbox relay, gRPC services; subcommands `rewrap-keys`, `healthcheck` |
 | `internal/credstore/`, `internal/credsvc/` | Credential store (envelope encryption, KEK ring) and the write-only gRPC service |
-| `internal/attribution/` | Attribution-ID parser/validator (BR-003) |
 | `internal/session/` | Session state machine (BR-010) |
 | `internal/adapter/` | `Broker` interface, `Account` engine (session loop, resync, idempotent submit, dedupe, audit, margin events), validation, tick rounding, fan-out |
 | `internal/execstore/` | Durable executions/order events + outbox (Postgres) and an in-memory store for tests |

@@ -305,11 +305,11 @@ services:
     profiles: [core]
     image: strawberry/ledger:${TB_VERSION:-dev}
     build: { <<: *go-build, args: { SERVICE: ledger, VERSION: "${TB_VERSION:-dev}" } }
-    environment: { <<: *common-env, TB_SERVICE: ledger, TB_NATS_USER: ledger }
-    secrets: [nats_ledger_password]
+    environment: { <<: *common-env, TB_SERVICE: ledger, TB_NATS_USER: ledger, TB_DB_USER: svc_ledger }
+    secrets: [nats_ledger_password, pg_svc_ledger_password, svc_api_gateway_ed25519.pub, svc_execution_ed25519.pub]
     networks: [backend]
     healthcheck: *go-healthcheck
-    depends_on: { bus-init: { condition: service_completed_successfully } }
+    depends_on: { db-init: { condition: service_completed_successfully }, bus-init: { condition: service_completed_successfully } }
     deploy: { resources: { limits: { memory: 256m } } }
 
   context-data:
