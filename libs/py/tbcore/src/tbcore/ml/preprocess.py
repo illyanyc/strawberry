@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 from typing import Any
 
@@ -24,7 +25,8 @@ class Pipeline:
     @classmethod
     def fit(cls, features: list[str], x: F64) -> Pipeline:
         """Fit on training rows only (never call with test rows, ML-006)."""
-        with np.errstate(all="ignore"):
+        with np.errstate(all="ignore"), warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)  # all-NaN columns (e.g. an unmapped sector) impute to 0
             lo = np.nanpercentile(x, 1, axis=0) if x.shape[0] else np.zeros(x.shape[1])
             hi = np.nanpercentile(x, 99, axis=0) if x.shape[0] else np.zeros(x.shape[1])
             med = np.nanmedian(x, axis=0) if x.shape[0] else np.zeros(x.shape[1])

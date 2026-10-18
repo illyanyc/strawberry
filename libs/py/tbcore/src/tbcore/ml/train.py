@@ -81,10 +81,12 @@ class TrainingResult:
     session_returns_2x: F64
     trades: pl.DataFrame
     oos_metrics: dict[str, float]
-    final: ModelBundle
+    final: ModelBundle | None
     size_curve: list[tuple[int, float, float]]
     repro: tp.Reproducibility
     primary_metrics: dict[str, float] = field(default_factory=dict)
+    # Tested-session returns at 1.5x costs (gate cost sensitivity, EX-024).
+    session_returns_15x: F64 = field(default_factory=lambda: np.zeros(0))
 
     def oof_frame(self) -> pl.DataFrame:
         f = self.dataset.frame
@@ -323,6 +325,8 @@ def train(
     should_stop: Callable[[], bool] | None = None,
     splits: list[Split] | None = None,
     size_curve: bool = True,
+    refit_final: bool = True,
+    explain: bool = True,
 ) -> TrainingResult:
     """Train and evaluate one resolved config on ``ds``."""
     started = time.time()
@@ -371,7 +375,7 @@ def train(
         in_fold = np.isin(ev.days, fold_days)
         fold_rets = ev.returns[in_fold] if ev.returns.size else ev.returns
         bt = {**_session_metrics(fold_rets), "trades": ev.metrics.get("trades", 0.0)}
-        ex = model.explain(zt[: min(zt.shape[0], 1000)])
+        ex = model.explain(zt[: min(zt.shape[0], 1000)]) if explain else None
         shap = ex.values if ex is not None else np.zeros((1, len(ds.features)))
         gain = model.gain_importance()
         tot = float(np.sum(np.abs(gain)))
@@ -392,10 +396,14 @@ def train(
                 curve_metric=model.curve_metric,
                 best_iteration=int(model.best_iteration),
                 gain=np.abs(gain) / tot if tot > 0 else np.zeros_like(gain),
-                permutation=_permutation(model, task, zt, yt, groups[s.test], int(cfg.seed) + k),
+                permutation=(
+                    _permutation(model, task, zt, yt, groups[s.test], int(cfg.seed) + k)
+                    if explain
+                    else np.zeros(len(ds.features))
+                ),
                 shap_abs=np.mean(np.abs(shap), axis=0),
-                shap_dir=_directions(zt[: shap.shape[0]], shap),
-                interactions=model.interactions(ds.features),
+                shap_dir=_directions(zt[: shap.shape[0]], shap) if explain else np.zeros(len(ds.features)),
+                interactions=model.interactions(ds.features) if explain else [],
             )
         )
         oof_sum[s.test] += pt
@@ -427,9 +435,10 @@ def train(
     pred_for_eval = np.where(adj >= 0, 1.0, np.where(low_adj <= 0, -1.0, 0.0))
     ev = evaluate(cfg, ds, vd, tested, pred_for_eval, 1.0, -1.0, cost)
     ev2 = evaluate(cfg, ds, vd, tested, pred_for_eval, 1.0, -1.0, cost.stressed(2.0))
+    ev15 = evaluate(cfg, ds, vd, tested, pred_for_eval, 1.0, -1.0, cost.stressed(1.5))
     test_days = np.unique(f["era"].to_numpy()[tested])
     mask = (ev.days >= test_days.min()) & (ev.days <= test_days.max()) if test_days.size else np.zeros(0, bool)
-    rets, rets2 = ev.returns[mask], ev2.returns[mask]
+    rets, rets2, rets15 = ev.returns[mask], ev2.returns[mask], ev15.returns[mask]
     days = ev.days[mask]
     all_m = _ml_metrics(task, oof[tested], f["y"].to_numpy()[tested], groups[tested], "oos_", buckets)
     oos = {**all_m, **{f"bt_{k}": v for k, v in _session_metrics(rets).items()}}
@@ -443,54 +452,13 @@ def train(
         primary = {f"primary_{k}": v for k, v in _session_metrics(base.returns[mask]).items()}
         primary["primary_trades"] = base.metrics.get("trades", 0.0)
         oos.update(primary)
-    emit({"phase": "final", "log": "refitting the final model on all rows"})
-    allrows = np.arange(n, dtype=np.int64)
-    pipe, model, core, _ = _fit(cfg, ds, allrows, task, hp, embargo)
-    xa, ya = _xy(ds, core)
-    thr_final = _threshold(cfg, task, _score(model, task, pipe.transform(xa)), float(np.mean(ya)) if ya.size else 0.5)
-    bundle = ModelBundle(
-        family=cfg.family,
-        kind=model.family,
-        hyperparams=hp,
-        seed=int(cfg.seed),
-        threads=int(cfg.resources.cpu_threads),
-        pipeline=pipe,
-        model=model,
-        feature_set_id=ds.feature_set.id,
-        feature_set_hash=ds.feature_set.hash,
-        features=list(ds.features),
-        timeframe=cfg.timeframe,
-        benchmark=ds.benchmark,
-        threshold=thr_final,
-        horizon=int(cfg.label.horizon),
-        label_kind=cfg.label.kind,
-        primary=to_dict(cfg.primary),
-    )
+    bundle: ModelBundle | None = None
+    if refit_final:
+        emit({"phase": "final", "log": "refitting the final model on all rows"})
+        bundle = _final_bundle(cfg, ds, task, hp, embargo)
     sc: list[tuple[int, float, float]] = []
     if size_curve and folds:
-        last = folds[-1]
-        half = last.train[last.train.size // 2 :]
-        if half.size >= 50:
-            p2, m2, c2, _ = _fit(cfg, ds, half, task, hp, embargo)
-            xh, yh = _xy(ds, c2)
-            xt, yt = _xy(ds, last.test)
-            sc.append(
-                (
-                    int(c2.size),
-                    skill(task, _ml_metrics(task, _score(m2, task, p2.transform(xh)), yh, groups[c2], "val_", buckets)),
-                    skill(
-                        task,
-                        _ml_metrics(task, _score(m2, task, p2.transform(xt)), yt, groups[last.test], "val_", buckets),
-                    ),
-                )
-            )
-        sc.append(
-            (
-                int(last.train.size),
-                skill(task, last.metrics, "train_"),
-                skill(task, last.metrics, "val_"),
-            )
-        )
+        sc = _size_curve(cfg, ds, folds[-1], task, hp, embargo, groups, buckets)
     emit({"phase": "done", "log": "training finished"})
     return TrainingResult(
         config=cfg,
@@ -508,4 +476,66 @@ def train(
         size_curve=sc,
         repro=_repro(cfg, started),
         primary_metrics=primary,
+        session_returns_15x=rets15,
     )
+
+
+def _final_bundle(cfg: tp.TrainingConfig, ds: Dataset, task: str, hp: dict[str, Any], embargo: int) -> ModelBundle:
+    allrows = np.arange(ds.frame.height, dtype=np.int64)
+    pipe, model, core, _ = _fit(cfg, ds, allrows, task, hp, embargo)
+    xa, ya = _xy(ds, core)
+    thr_final = _threshold(cfg, task, _score(model, task, pipe.transform(xa)), float(np.mean(ya)) if ya.size else 0.5)
+    return ModelBundle(
+        family=cfg.family,
+        kind=model.family,
+        hyperparams=hp,
+        seed=int(cfg.seed),
+        threads=int(cfg.resources.cpu_threads),
+        pipeline=pipe,
+        model=model,
+        feature_set_id=ds.feature_set.id,
+        feature_set_hash=ds.feature_set.hash,
+        features=list(ds.features),
+        timeframe=cfg.timeframe,
+        benchmark=ds.benchmark,
+        threshold=thr_final,
+        horizon=int(cfg.label.horizon),
+        label_kind=cfg.label.kind,
+        primary=to_dict(cfg.primary),
+    )
+
+
+def _size_curve(
+    cfg: tp.TrainingConfig,
+    ds: Dataset,
+    last: FoldResult,
+    task: str,
+    hp: dict[str, Any],
+    embargo: int,
+    groups: NDArray[Any],
+    buckets: int,
+) -> list[tuple[int, float, float]]:
+    sc: list[tuple[int, float, float]] = []
+    half = last.train[last.train.size // 2 :]
+    if half.size >= 50:
+        p2, m2, c2, _ = _fit(cfg, ds, half, task, hp, embargo)
+        xh, yh = _xy(ds, c2)
+        xt, yt = _xy(ds, last.test)
+        sc.append(
+            (
+                int(c2.size),
+                skill(task, _ml_metrics(task, _score(m2, task, p2.transform(xh)), yh, groups[c2], "val_", buckets)),
+                skill(
+                    task,
+                    _ml_metrics(task, _score(m2, task, p2.transform(xt)), yt, groups[last.test], "val_", buckets),
+                ),
+            )
+        )
+    sc.append(
+        (
+            int(last.train.size),
+            skill(task, last.metrics, "train_"),
+            skill(task, last.metrics, "val_"),
+        )
+    )
+    return sc

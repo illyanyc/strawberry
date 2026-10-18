@@ -156,6 +156,7 @@ def test_ml014_every_family_trains_and_round_trips(family: str, src: str, tf: st
     res = train.train(cfg, ds, size_curve=False)
     assert res.folds and np.isfinite(res.oof).any()
     b = res.final
+    assert b is not None
     b.save(tmp_path / "m")
     back = ModelBundle.load(tmp_path / "m")
     x = ds.frame.select(ds.features).to_numpy()[:200]

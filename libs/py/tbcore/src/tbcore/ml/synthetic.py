@@ -125,6 +125,8 @@ def generate(spec: SyntheticSpec) -> pl.DataFrame:
                     "low": np.round(low, 4),
                     "close": np.round(close, 4),
                     "volume": np.round(vol),
+                    "vwap": np.round((high + low + close) / 3.0, 4),
+                    "trade_count": np.round(vol / 100.0),
                 }
             )
         )

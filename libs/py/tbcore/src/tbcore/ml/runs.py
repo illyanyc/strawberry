@@ -168,6 +168,8 @@ def persist(
         {"session_day": res.session_days, "ret": res.session_returns, "ret_2x": res.session_returns_2x}
     ).write_parquet(d / "returns.parquet")
     res.trades.write_parquet(d / "trades.parquet")
+    if res.final is None:
+        raise ValueError("persist needs a run trained with refit_final=True")
     res.final.run_id = run_id
     res.final.save(d / "model")
     report = build_report(res, run_id)
