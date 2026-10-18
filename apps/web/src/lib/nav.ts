@@ -19,6 +19,7 @@ import {
   HeartPulse,
   KeyRound,
   LayoutDashboard,
+  Library,
   type LucideIcon,
   PieChart,
   Radio,
@@ -54,6 +55,7 @@ export type NavPath =
   | "/experiments"
   | "/backtests"
   | "/analyst"
+  | "/publications"
   | "/risk"
   | "/monitoring"
   | "/live"
@@ -91,6 +93,7 @@ export const NAV: readonly NavItem[] = [
   { to: "/experiments", label: "Experiments", short: "Research", icon: FlaskConical, section: "research", key: "e", keywords: "studies lineage optuna registry holdout" },
   { to: "/backtests", label: "Backtests & tearsheets", short: "Tearsheets", icon: Activity, section: "research", key: "b", keywords: "tearsheet runs compare backtest" },
   { to: "/analyst", label: "AI analyst", short: "Analyst", icon: Bot, section: "research", key: "a", keywords: "assistant journal chat" },
+  { to: "/publications", label: "Publications", short: "Published", icon: Library, section: "research", key: "u", keywords: "publish definition user content index" },
   { to: "/risk", label: "Risk & kill switches", short: "Risk", icon: ShieldAlert, section: "operations", key: "r", keywords: "kill switch halt limits freeze" },
   { to: "/monitoring", label: "Monitoring", short: "Monitor", icon: HeartPulse, section: "operations", key: "m", keywords: "health drift divergence shortfall containment alerts inbox daily report graduation" },
   { to: "/live", label: "Go live", short: "Go live", icon: Rocket, section: "operations", key: "l", keywords: "graduation live enable promote capital cap readiness checklist" },

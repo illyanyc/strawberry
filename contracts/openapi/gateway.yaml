@@ -338,6 +338,37 @@ paths:
     post: { description: Send a test notification to every subscribed device., responses: { '200': { description: '{"sent": int, "failed": int}' }, '503': { description: push_disabled } } }
   /api/v1/tradingview:
     get: { description: 'TradingView intake status (UI-048): enabled, public_url, access_jwt_required, allowed_ips, max_age_seconds, widget_enabled, tv-<name> strategies with their webhook path, recent deliveries from the audit log. Never a secret (SE-064).', responses: { '200': { description: JSON } } }
+  # ---- strategy publications (UI-053): definition and backtest parameters only; no performance fields ----
+  /api/v1/publications:
+    get:
+      description: 'Index of user-published strategy definitions (UI-053). Ordered by published_at (newest first) or name. Each item is user content, not a signal and not an instruction to trade. The response has no profit, return, or rank.'
+      parameters:
+        - { name: sort, in: query, schema: { enum: [published_at, name], default: published_at } }
+      responses:
+        { '200': { description: '{"sort", "notice", "publications": [Publication]}' }, '400': { description: bad_sort } }
+    post:
+      description: 'Publish a definition and the non-performance parameters of a hypothetical backtest. Unknown fields (including pnl, return, rank, signal, and order) are rejected. Policy research.launch. Audited publication.create.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [display_name, title, definition, window_start, window_end, bar_size, universe]
+              properties:
+                display_name: { type: string, maxLength: 40 }
+                title: { type: string, maxLength: 120 }
+                definition: { type: string, maxLength: 8000 }
+                window_start: { type: string, format: date }
+                window_end: { type: string, format: date }
+                bar_size: { type: string, enum: ['1m', '5m', '15m', '30m', '1h', '1d'] }
+                universe: { type: string, maxLength: 240 }
+      responses:
+        { '201': { description: '{"notice", "publication"}' }, '400': { description: bad_request or publication_limit } }
+  /api/v1/publications/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get: { description: 'One publication. Same fields as the index item. No deploy or order action.', responses: { '200': { description: '{"notice", "publication"}' }, '404': { description: not_found } } }
+    delete: { description: 'Withdraw the caller''s own publication (UI-053). Audited publication.withdraw. Does not place an order.', responses: { '204': { description: Removed from the index }, '404': { description: not_found } } }
   # ---- research (section 14 Phase 4 slice: training, experiments, tearsheets; ADR-0035) ----
   # Bodies and responses are the canonical protojson of tb.ml.v1 / tb.optimizer.v1 messages. The
   # gateway sets the caller (actor owner, step-up attestation only while a passkey step-up is fresh).

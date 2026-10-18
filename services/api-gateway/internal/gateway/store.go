@@ -479,3 +479,88 @@ func putSettingTx(ctx context.Context, tx pgx.Tx, ownerID, key string, value jso
 }
 
 var errConflict = errors.New("version conflict")
+
+// ---- publications (UI-053) ----
+
+func (s *Store) insertPublication(ctx context.Context, p publication) error {
+	return pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
+		var n int
+		if err := tx.QueryRow(ctx, `SELECT count(*) FROM config.publications WHERE owner_id=$1 AND withdrawn_at IS NULL`, p.OwnerID).Scan(&n); err != nil {
+			return err
+		}
+		if n >= publicationCap {
+			return errPublicationLimit
+		}
+		_, err := tx.Exec(ctx, `INSERT INTO config.publications
+			(id, owner_id, display_name, title, definition, window_start, window_end, bar_size, universe, published_at)
+			VALUES ($1,$2,$3,$4,$5,$6::date,$7::date,$8,$9,$10)`,
+			p.ID, p.OwnerID, p.DisplayName, p.Title, p.Definition, p.WindowStart, p.WindowEnd, p.BarSize, p.Universe, p.PublishedAt)
+		return err
+	})
+}
+
+func (s *Store) listPublications(ctx context.Context, sortBy string) ([]publication, error) {
+	// UI-053: only these two orders exist. The query text is fixed; sortBy never enters SQL.
+	q := `SELECT id, owner_id, display_name, title, definition, window_start, window_end, bar_size, universe, published_at
+		FROM config.publications WHERE withdrawn_at IS NULL ORDER BY published_at DESC, id DESC`
+	if sortBy == "name" {
+		q = `SELECT id, owner_id, display_name, title, definition, window_start, window_end, bar_size, universe, published_at
+		FROM config.publications WHERE withdrawn_at IS NULL ORDER BY lower(title) ASC, id ASC`
+	}
+	rows, err := s.pool.Query(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []publication
+	for rows.Next() {
+		p, err := scanPublication(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, p)
+	}
+	return out, rows.Err()
+}
+
+func (s *Store) publicationByID(ctx context.Context, id string) (publication, error) {
+	rows, err := s.pool.Query(ctx, `SELECT id, owner_id, display_name, title, definition, window_start, window_end, bar_size, universe, published_at
+		FROM config.publications WHERE id=$1 AND withdrawn_at IS NULL`, id)
+	if err != nil {
+		return publication{}, err
+	}
+	defer rows.Close()
+	if !rows.Next() {
+		if err := rows.Err(); err != nil {
+			return publication{}, err
+		}
+		return publication{}, errNotFound
+	}
+	return scanPublication(rows)
+}
+
+func (s *Store) withdrawPublication(ctx context.Context, id, ownerID string) error {
+	tag, err := s.pool.Exec(ctx, `UPDATE config.publications SET withdrawn_at=now() WHERE id=$1 AND owner_id=$2 AND withdrawn_at IS NULL`, id, ownerID)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return errNotFound
+	}
+	return nil
+}
+
+type publicationScanner interface {
+	Scan(dest ...any) error
+}
+
+func scanPublication(row publicationScanner) (publication, error) {
+	var p publication
+	var start, end time.Time
+	if err := row.Scan(&p.ID, &p.OwnerID, &p.DisplayName, &p.Title, &p.Definition, &start, &end, &p.BarSize, &p.Universe, &p.PublishedAt); err != nil {
+		return publication{}, err
+	}
+	p.WindowStart = start.UTC().Format(time.DateOnly)
+	p.WindowEnd = end.UTC().Format(time.DateOnly)
+	return p, nil
+}
