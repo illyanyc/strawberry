@@ -66,5 +66,9 @@ test("utility pages are noindex and absent from the sitemap", () => {
   assert.match(sitemap, /<loc>https:\/\/strwbrry\.ai\/pricing<\/loc>/);
   assert.match(read("pricing/index.html"), /OfferCatalog/);
   assert.match(read("index.html"), /Paper trade, then live trade, your own account/);
+  assert.match(read("index.html"), /Welcome, Ada/);
+  assert.equal(read("index.html").includes("Sample layout with fixture labels"), false);
+  assert.match(read("pricing/index.html"), /<table class="compare">/);
   assert.match(read("logo.svg"), /e23d4a/);
+  assert.match(read("logo.svg"), /id="wordmark"/);
 });

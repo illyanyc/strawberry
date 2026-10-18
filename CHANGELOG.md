@@ -6,6 +6,8 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 
 ### Changed
 
+- Marketing home shows the paper dashboard (sample session, live trading off) instead of an empty fixture. Pricing is a comparison table of the same four monthly plans. The mark in `brand/logo.svg` uses a heavier berry, calyx, and seed grid so it reads at favicon size, with the wordmark in the header lockup.
+
 - Publication notice (UI-053): the user-content label names Adwise Partners LLC as the operator of the service. The notice does not name any other firm.
 
 ### Added

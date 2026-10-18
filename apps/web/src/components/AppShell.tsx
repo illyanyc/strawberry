@@ -115,7 +115,7 @@ export function AppShell() {
           </Button>
           <Link to="/" className="flex items-center gap-2 font-semibold tracking-tight" aria-label="Strwbrry home">
             <BrandMark className="size-6" />
-            <span className="hidden text-sm sm:inline">Strwbrry</span>
+            <span className="wordmark hidden sm:inline">Strwbrry</span>
           </Link>
           <span
             className="flex items-center gap-1.5 text-xs"
