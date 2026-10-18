@@ -111,13 +111,13 @@ export function NotificationsPage() {
                 <li>
                   Tap <span className="font-medium text-fg">Share</span>, then <span className="font-medium text-fg">Add to Home Screen</span>.
                 </li>
-                <li>Open Strawberry from the Home Screen and sign in with your passkey.</li>
+                <li>Open Strwbrry from the Home Screen and sign in with your passkey.</li>
                 <li>Come back here and turn on push notifications.</li>
               </ol>
             ) : installable ? (
               <Button variant="secondary" size="sm" onClick={() => void promptInstall()}>
                 <Download />
-                Install Strawberry
+                Install Strwbrry
               </Button>
             ) : (
               <p className="text-muted">Use your browser's "Install app" or "Add to Home screen" menu item. It appears once the browser has seen the app over HTTPS (Tailscale or Cloudflare hostname) or on localhost.</p>
@@ -137,7 +137,7 @@ export function NotificationsPage() {
                 !c.enabled ? (
                   <Alert tone="warn">Web Push is not configured on the server (VAPID key missing). Run `make secrets` and restart api-gateway.</Alert>
                 ) : support === "needs-install" ? (
-                  <Alert tone="warn">On iPhone and iPad, push works only in the installed app. Add Strawberry to the Home Screen first.</Alert>
+                  <Alert tone="warn">On iPhone and iPad, push works only in the installed app. Add Strwbrry to the Home Screen first.</Alert>
                 ) : support === "unsupported" ? (
                   <Alert tone="warn">This browser does not support Web Push.</Alert>
                 ) : (

@@ -52,6 +52,9 @@ type Config struct {
 	MonitorAddr   string `env:"TB_MONITOR_ADDR" envDefault:"monitor:9090" json:"monitor_addr"`
 	// WebDir holds the static UI export (apps/web out/). Empty disables UI serving.
 	WebDir string `env:"TB_WEB_DIR" envDefault:"/app/web" json:"web_dir"`
+	// ClerkFrontendAPI is the hosted Clerk Frontend API origin. Empty keeps script-src 'self' (SE-065).
+	// A value that is not a single https origin is ignored (SE-066).
+	ClerkFrontendAPI string `env:"TB_CLERK_FRONTEND_API" json:"clerk_frontend_api"`
 	// OwnerID is the single owner's ID (U7: single owner today, owner_id on every row).
 	OwnerID string `env:"TB_OWNER_ID" envDefault:"owner" json:"owner_id"`
 

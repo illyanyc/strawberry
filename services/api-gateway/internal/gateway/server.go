@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"net/netip"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -37,6 +38,7 @@ type Server struct {
 	cfg      Config
 	store    *Store
 	pubs     publicationRepo
+	keyStore keyRepo
 	pool     *pgxpool.Pool
 	wa       *webauthn.WebAuthn
 	keys     keys
@@ -152,8 +154,10 @@ func New(cfg Config, d Deps) (*Server, error) {
 	s.access = d.AccessVerifier
 	if d.Pool != nil {
 		s.pubs = s.store
+		s.keyStore = s.store
 	} else {
 		s.pubs = newMemoryPublications()
+		s.keyStore = newMemoryKeys()
 	}
 	s.registerRoutes()
 	return s, nil
@@ -211,6 +215,11 @@ func (s *Server) registerRoutes() {
 	priv("GET", "/api/v1/broker/credentials", s.handleCredentialsList)
 	priv("PUT", "/api/v1/broker/credentials/{account}/{environment}", s.handleCredentialsPut)
 	priv("DELETE", "/api/v1/broker/credentials/{account}/{environment}", s.handleCredentialsDelete)
+	priv("GET", "/api/v1/keys", s.handleKeysList)
+	priv("PUT", "/api/v1/keys/{kind}", s.handleKeyPut)
+	priv("DELETE", "/api/v1/keys/{kind}", s.handleKeyDelete)
+	priv("GET", "/api/v1/risk-disclosure", s.handleDisclosureGet)
+	priv("POST", "/api/v1/risk-disclosure", s.handleDisclosurePost)
 	priv("GET", "/api/v1/system/status", s.handleSystemStatus)
 	priv("GET", "/api/v1/events", s.handleEvents)
 	s.registerTradingRoutes(priv)
@@ -335,7 +344,9 @@ func (s *Server) securityHeaders(next http.Handler) http.Handler {
 				csp = cspWidgetPolicy
 			}
 		}
-		h.Set("Content-Security-Policy", csp)
+		h.Set("Content-Security-Policy", withClerkCSP(csp, s.cfg.ClerkFrontendAPI))
+		// UI-054: the app origin is not a marketing site. A meta tag in the SPA is not enough.
+		h.Set("X-Robots-Tag", "noindex, nofollow")
 		if s.cfg.CookieSecure && !strings.HasPrefix(s.cfg.Origins[0], "http://") {
 			h.Set("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 		}
@@ -357,6 +368,25 @@ const cspPolicy = "default-src 'self'; script-src 'self'; style-src 'self'; img-
 const cspWidgetPolicy = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; " +
 	"font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; " +
 	"frame-src 'self' https://s.tradingview.com; frame-ancestors 'none'; manifest-src 'self'; worker-src 'self'"
+
+// withClerkCSP adds one https origin to script-src and connect-src for the hosted app (SE-066).
+// Empty or malformed values leave the Mac Mini policy unchanged (SE-065).
+func withClerkCSP(csp, origin string) string {
+	if origin == "" {
+		return csp
+	}
+	u, err := url.Parse(origin)
+	if err != nil || u.Scheme != "https" || u.Host == "" || u.User != nil || (u.Path != "" && u.Path != "/") || u.RawQuery != "" || u.Fragment != "" {
+		return csp
+	}
+	if strings.ContainsAny(u.Host, " ;'\"\\") {
+		return csp
+	}
+	host := "https://" + u.Host
+	csp = strings.Replace(csp, "script-src 'self'", "script-src 'self' "+host, 1)
+	csp = strings.Replace(csp, "connect-src 'self'", "connect-src 'self' "+host, 1)
+	return csp
+}
 
 // ---- CSRF (SE-006) ----
 

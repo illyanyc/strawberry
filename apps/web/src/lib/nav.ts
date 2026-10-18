@@ -12,13 +12,16 @@ import {
   BellRing,
   Bot,
   CandlestickChart,
+  Cable,
   ClipboardList,
+  CreditCard,
   Database,
   FlaskConical,
   Gauge,
   HeartPulse,
   KeyRound,
   LayoutDashboard,
+  ListChecks,
   Library,
   type LucideIcon,
   PieChart,
@@ -29,6 +32,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   Sigma,
+  UserRound,
   Workflow,
 } from "lucide-react";
 
@@ -62,7 +66,12 @@ export type NavPath =
   | "/settings/notifications"
   | "/settings/tradingview"
   | "/settings/security"
+  | "/onboarding"
+  | "/connections"
   | "/settings/brokers"
+  | "/settings/keys"
+  | "/settings/billing"
+  | "/settings/account"
   | "/settings/platform"
   | "/audit";
 
@@ -83,6 +92,7 @@ export interface NavItem {
 
 export const NAV: readonly NavItem[] = [
   { to: "/", label: "Dashboard", short: "Home", icon: LayoutDashboard, section: "overview", mobile: "primary", key: "d", keywords: "home summary" },
+  { to: "/onboarding", label: "Set up", short: "Setup", icon: ListChecks, section: "overview", key: "i", keywords: "onboarding disclosure mfa paper" },
   { to: "/overview", label: "Portfolio overview", short: "Overview", icon: PieChart, section: "overview", key: "v", keywords: "end of day eod manual strategy owners exposure" },
   { to: "/portfolio", label: "Portfolio", short: "Portfolio", icon: Gauge, section: "trading", mobile: "primary", key: "p", keywords: "positions ownership reconciliation breaks lots" },
   { to: "/strategies", label: "Strategies", short: "Strategies", icon: Workflow, section: "trading", mobile: "primary", key: "s", keywords: "mode allocation limits" },
@@ -100,6 +110,10 @@ export const NAV: readonly NavItem[] = [
   { to: "/settings/notifications", label: "Notifications", short: "Alerts", icon: BellRing, section: "settings", key: "n", keywords: "push pwa install pushover web push" },
   { to: "/settings/tradingview", label: "TradingView", short: "TradingView", icon: Radio, section: "settings", keywords: "webhook tv signals cloudflare" },
   { to: "/settings/security", label: "Security", short: "Security", icon: ShieldCheck, section: "settings", keywords: "passkey totp recovery sessions" },
+  { to: "/connections", label: "Connections", short: "Connect", icon: Cable, section: "settings", key: "k", keywords: "alpaca paper live account connection" },
+  { to: "/settings/keys", label: "API keys", short: "Keys", icon: KeyRound, section: "settings", keywords: "fmp fundamentals secret" },
+  { to: "/settings/billing", label: "Billing", short: "Billing", icon: CreditCard, section: "settings", key: "y", keywords: "plan pricing clerk trial" },
+  { to: "/settings/account", label: "Account", short: "Account", icon: UserRound, section: "settings", key: "h", keywords: "profile close delete" },
   { to: "/settings/brokers", label: "Broker connections", short: "Brokers", icon: KeyRound, section: "settings", keywords: "credentials alpaca ibkr" },
   { to: "/settings/platform", label: "Platform settings", short: "Settings", icon: Settings2, section: "settings", keywords: "flags live mobile order entry" },
   { to: "/audit", label: "Audit log", short: "Audit", icon: ScrollText, section: "settings", keywords: "audit chain verify" },

@@ -9,49 +9,50 @@
  * tokens meet WCAG AA (≥ 4.5:1) on the panels in both themes.
  */
 @theme {
-  --font-sans: "Inter var", Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Segoe UI", ui-sans-serif, system-ui, Inter, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --color-bg: #090c11;
-  --color-panel: #0f141b;
-  --color-panel-2: #151b24;
-  --color-panel-3: #1b2330;
-  --color-border: #222b38;
-  --color-border-strong: #2f3a4a;
-  --color-fg: #e6edf3;
-  --color-muted: #8b98a9;
-  --color-subtle: #7a879a;
-  --color-accent: #c93b40;
-  --color-info: #5b9cf6;
-  --color-ok: #3fb27f;
-  --color-warn: #f5a524;
-  --color-paper: #5b9cf6;
-  --color-live: #ff2d55;
+  /* Editor surfaces (UI-040): dark chrome, one berry accent, blue for information. */
+  --color-bg: #1e1e1e;
+  --color-panel: #252526;
+  --color-panel-2: #2d2d2d;
+  --color-panel-3: #333333;
+  --color-border: #3c3c3c;
+  --color-border-strong: #4e4e4e;
+  --color-fg: #d4d4d4;
+  --color-muted: #a3a3a3;
+  --color-subtle: #8f8f8f;
+  --color-accent: #c42736;
+  --color-info: #3794ff;
+  --color-ok: #3fa266;
+  --color-warn: #d7ba7d;
+  --color-paper: #3794ff;
+  --color-live: #f14c4c;
   /* Solid LIVE/danger backgrounds: white text stays at ≥ 4.5:1 (accessibility). */
-  --color-live-bg: #c8102e;
-  --color-chart-1: #5b9cf6;
+  --color-live-bg: #a31515;
+  --color-chart-1: #3794ff;
   --color-chart-2: #c084fc;
-  --color-chart-3: #f5a524;
+  --color-chart-3: #d7ba7d;
   --color-chart-4: #2dd4bf;
-  --shadow-panel: 0 1px 0 0 rgb(255 255 255 / 0.03) inset, 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-panel: 0 1px 0 0 rgb(255 255 255 / 0.04) inset;
 }
 
 @layer base {
   html.light {
-    --color-bg: #f5f7fa;
+    --color-bg: #f3f3f3;
     --color-panel: #ffffff;
-    --color-panel-2: #f0f3f7;
-    --color-panel-3: #e6ebf1;
-    --color-border: #d9e0e8;
-    --color-border-strong: #c3ccd7;
-    --color-fg: #0f172a;
-    --color-muted: #536173;
-    --color-subtle: #5f6b7c;
+    --color-panel-2: #f3f3f3;
+    --color-panel-3: #e8e8e8;
+    --color-border: #d0d0d0;
+    --color-border-strong: #b0b0b0;
+    --color-fg: #1e1e1e;
+    --color-muted: #4a4a4a;
+    --color-subtle: #5f5f5f;
     --color-ok: #0f7a48;
-    --color-warn: #9a5b00;
-    --color-live: #d70f3c;
-    --color-paper: #1d5fd6;
-    --color-info: #1d5fd6;
-    --shadow-panel: 0 1px 2px 0 rgb(15 23 42 / 0.06);
+    --color-warn: #6b4f00;
+    --color-live: #a31515;
+    --color-paper: #0451a5;
+    --color-info: #0451a5;
+    --shadow-panel: 0 1px 2px 0 rgb(0 0 0 / 0.06);
   }
   html {
     color-scheme: dark;

@@ -30,6 +30,9 @@ export function DashboardPage() {
         description="Accounts, strategies, and trading state at a glance. Manual holdings and each strategy's virtual portfolio are shown separately."
         actions={
           <>
+            <Link to="/connections" className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium hover:bg-panel-2">
+              Connections
+            </Link>
             <Link to="/charts" className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium hover:bg-panel-2">
               <CandlestickChart className="size-4" aria-hidden />
               Charts

@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Keyboard, LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, Search, Sun } from "lucide-react";
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { CommandPalette, ShortcutHelp, type PaletteActions } from "@/components/CommandPalette";
 import { EnvironmentBanner } from "@/components/EnvironmentBanner";
@@ -93,6 +93,14 @@ export function AppShell() {
     return () => ro.disconnect();
   }, []);
 
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  useEffect(() => {
+    const match = NAV.filter((n) => (n.to === "/" ? pathname === "/" : pathname === n.to || pathname.startsWith(`${n.to}/`))).sort(
+      (a, b) => b.to.length - a.to.length,
+    )[0];
+    document.title = match ? `${match.label} · Strwbrry` : "Strwbrry";
+  }, [pathname]);
+
   const liveStatus = connected && !stale;
   return (
     <div className="flex min-h-full flex-col">
@@ -105,9 +113,9 @@ export function AppShell() {
           <Button variant="ghost" size="icon" className="hidden md:inline-flex" onClick={toggleSidebar} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} aria-pressed={!collapsed}>
             {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
           </Button>
-          <Link to="/" className="flex items-center gap-2 font-semibold tracking-tight" aria-label="Strawberry home">
+          <Link to="/" className="flex items-center gap-2 font-semibold tracking-tight" aria-label="Strwbrry home">
             <BrandMark className="size-6" />
-            <span className="hidden text-sm sm:inline">Strawberry</span>
+            <span className="hidden text-sm sm:inline">Strwbrry</span>
           </Link>
           <span
             className="flex items-center gap-1.5 text-xs"

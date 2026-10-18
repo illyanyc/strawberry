@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -142,6 +143,9 @@ export function BrokersPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <h1 className="text-2xl font-semibold tracking-tight">Broker connections</h1>
+      <p className="text-sm text-muted">
+        Hosted Alpaca slots, including the closed live slot, are on <Link to="/connections" className="underline">Connections</Link>. This page remains for the self-hosted owner, including IBKR. Hosted accounts do not get an IBKR connection.
+      </p>
       <Alert tone="warn">Credentials are write-only: they are encrypted by broker-gateway and can never be displayed again. Viewing or changing them needs a passkey.</Alert>
       {error && <Alert>{error}</Alert>}
       {saved && <Alert tone="ok">{saved}</Alert>}

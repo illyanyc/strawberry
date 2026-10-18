@@ -554,6 +554,60 @@ type publicationScanner interface {
 	Scan(dest ...any) error
 }
 
+func (s *Store) putAPIKey(ctx context.Context, rec apiKeyRecord) error {
+	_, err := s.pool.Exec(ctx, `INSERT INTO config.api_keys
+		(owner_id, kind, environment, key_hint, ciphertext, created_at, rotated_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7)
+		ON CONFLICT (owner_id, kind, environment)
+		DO UPDATE SET key_hint=$4, ciphertext=$5, rotated_at=$7`,
+		rec.OwnerID, rec.Kind, rec.Environment, rec.KeyHint, rec.Ciphertext, rec.CreatedAt, rec.RotatedAt)
+	return err
+}
+
+func (s *Store) listAPIKeys(ctx context.Context, ownerID string) ([]apiKeyRecord, error) {
+	rows, err := s.pool.Query(ctx, `SELECT owner_id, kind, environment, key_hint, ciphertext, created_at, rotated_at
+		FROM config.api_keys WHERE owner_id=$1 ORDER BY kind`, ownerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := make([]apiKeyRecord, 0)
+	for rows.Next() {
+		var rec apiKeyRecord
+		if err := rows.Scan(&rec.OwnerID, &rec.Kind, &rec.Environment, &rec.KeyHint, &rec.Ciphertext, &rec.CreatedAt, &rec.RotatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, rec)
+	}
+	return out, rows.Err()
+}
+
+func (s *Store) deleteAPIKey(ctx context.Context, ownerID, kind, environment string) error {
+	tag, err := s.pool.Exec(ctx, `DELETE FROM config.api_keys WHERE owner_id=$1 AND kind=$2 AND environment=$3`, ownerID, kind, environment)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return errKeyGone
+	}
+	return nil
+}
+
+func (s *Store) putDisclosure(ctx context.Context, rec disclosureRecord) error {
+	_, err := s.pool.Exec(ctx, `INSERT INTO config.risk_disclosures (owner_id, accepted_at) VALUES ($1,$2)
+		ON CONFLICT (owner_id) DO UPDATE SET accepted_at=$2`, rec.OwnerID, rec.AcceptedAt)
+	return err
+}
+
+func (s *Store) getDisclosure(ctx context.Context, ownerID string) (disclosureRecord, error) {
+	var rec disclosureRecord
+	err := s.pool.QueryRow(ctx, `SELECT owner_id, accepted_at FROM config.risk_disclosures WHERE owner_id=$1`, ownerID).Scan(&rec.OwnerID, &rec.AcceptedAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return disclosureRecord{}, errNotFound
+	}
+	return rec, err
+}
+
 func scanPublication(row publicationScanner) (publication, error) {
 	var p publication
 	var start, end time.Time

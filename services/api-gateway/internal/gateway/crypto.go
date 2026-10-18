@@ -18,9 +18,10 @@ import (
 
 // keys are derived from the gateway master key (secret gateway_auth_key) with HKDF, one per purpose.
 type keys struct {
-	totpEnc  []byte // AES-256-GCM key for TOTP secrets (SE-008)
-	codeHMAC []byte // HMAC key for recovery codes and setup tokens (SE-007, SE-009)
-	pushEnc  []byte // AES-256-GCM key for Web Push subscriptions (SE-061)
+	totpEnc   []byte // AES-256-GCM key for TOTP secrets (SE-008)
+	codeHMAC  []byte // HMAC key for recovery codes and setup tokens (SE-007, SE-009)
+	pushEnc   []byte // AES-256-GCM key for Web Push subscriptions (SE-061)
+	apiKeyEnc []byte // AES-256-GCM key for hosted API secrets such as FMP (SE-067)
 }
 
 func deriveKeys(master []byte) (keys, error) {
@@ -44,7 +45,11 @@ func deriveKeys(master []byte) (keys, error) {
 	if err != nil {
 		return keys{}, err
 	}
-	return keys{totpEnc: t, codeHMAC: h, pushEnc: p}, nil
+	a, err := derive("tb1/gateway/apikey-enc")
+	if err != nil {
+		return keys{}, err
+	}
+	return keys{totpEnc: t, codeHMAC: h, pushEnc: p, apiKeyEnc: a}, nil
 }
 
 // seal encrypts with AES-256-GCM under key, binding the ciphertext to aad.
