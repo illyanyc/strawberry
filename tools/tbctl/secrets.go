@@ -20,7 +20,9 @@ import (
 // natsUsers lists bus users and their subject permissions (least privilege; widened per phase).
 var natsUsers = map[string]struct{ pub, sub []string }{
 	"api_gateway": {pub: []string{"alert.>", "sys.health.api-gateway"}, sub: []string{"_INBOX.>", "md.bar.>", "exec.>"}},
-	"marketdata":  {pub: []string{"md.>", "ref.>", "alert.>", "sys.health.marketdata", "sys.health.alpaca.>", "sys.health.fmp"}, sub: []string{"_INBOX.>"}},
+	// marketdata also persists context events (ctx.>) to the lake as its only writer (ADR-0032).
+	"marketdata": {pub: []string{"md.>", "ref.>", "alert.>", "sys.health.marketdata", "sys.health.alpaca.>", "sys.health.fmp", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
+		sub: []string{"_INBOX.>", "ctx.>"}},
 	// JetStream pull consumers need the consumer API and ack subjects ($JS.API.CONSUMER.>,
 	// $JS.API.STREAM.INFO.>, $JS.ACK.>).
 	"execution": {pub: []string{"ord.>", "risk.kill", "alert.>", "sys.health.execution", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},

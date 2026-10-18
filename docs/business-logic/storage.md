@@ -27,6 +27,7 @@ How market and context data is physically stored and read: the Parquet lake (lay
 | ST-008 | Bars are retained indefinitely. Quote/trade partitions (`date=YYYY-MM-DD`) are deleted after `TB_LAKE_TICK_RETENTION` (default 90 days). | Implemented | `lake.PurgeOlderThan`; `TestST008RetentionNeverPurgesBars` |
 | ST-009 | Hot-cache keys and TTLs: `bar:last:{tf}:{id}` (7 d), `bar:ring:{tf}:{id}` (500 newest-first, 7 d), `quote:last:{id}` (1 h), `feat:{set}:{id}` (24 h), `md:watermark:{tf}` (hash per feed, no TTL); values are protobuf. `bar:last` never moves backwards in time; a correction of the newest bar replaces the ring head. Staleness is judged from `available_at`, never from key presence. | Implemented | `libs/go/cache`; `TestST009BarKeysRingAndCorrections`, `TestST009LatestBarReadLatency` |
 | ST-010 | Data-quality checks on bars: duplicates, OHLC consistency, non-positive prices, negative volume, timestamps off the session grid, non-monotonic input, volume spikes (> 20× trailing 20-bar median), and gaps (runs of missing expected bars per session vs the calendar). Go and Python implementations MUST agree on `tests/fixtures/dq`. | Implemented | `services/marketdata/internal/dq`, `tbcore.dq`; `TestST010DQFlagsInjectedDefects`, `test_dq_flags_injected_defects_same_as_go` |
+| ST-011 | The `context` dataset is written only by marketdata's context sink (`ctx.>`): one row per instrument (or one market-wide row), canonical payload JSON with its SHA-256, `record_key`, `event_id`. Compaction of a `context/kind=…/year=…/month=…` partition MUST keep every version whose payload differs from the previous kept version of the same `(kind, source, record_key, instrument_id)` in `available_at` order and drop the rest (redeliveries, unchanged re-fetches); it runs every `TB_MD_CONTEXT_COMPACT_EVERY` (default 10 min). Messages are acked only after their rows are durable; invalid events are terminated (CX-001). | Implemented | `services/marketdata/internal/lake/context.go`, `internal/ctxsink`; `TestCX003CompactionKeepsChangesDropsRepeats`, `TestCX003SinkPersistsContextFromBus`, `test_cx002_go_written_context_fixture_vintages_as_of` |
 
 ## Invariants
 
@@ -45,6 +46,8 @@ How market and context data is physically stored and read: the Parquet lake (lay
 | Crash between writing a new part file and deleting the old one | Both visible; readers and the next compaction deduplicate by key and revision | ST-002, ST-006 |
 | Reader lists a file that compaction deletes before it opens it | File-not-found, retried on the next listing; never partial data | ST-002 |
 | Correction arrives with an earlier `available_at` than the stored version | Clamped to the stored version's `available_at` | ST-005 |
+| A vendor flips a value A → B → A across fetches | Three context versions kept; reads as of each time return what was known | ST-011, CX-003 |
+| context-data republishes an unchanged snapshot after a restart | Deduplicated by `Nats-Msg-Id` inside 10 min, else dropped at compaction | ST-011 |
 | Bars older than the cache's newest bar | `bar:last` unchanged | ST-009 |
 
 ## Open questions

@@ -87,6 +87,10 @@ type ContextRow struct {
 	Vintage       string `parquet:"vintage"`
 	PayloadJSON   string `parquet:"payload_json"`
 	PayloadSHA256 string `parquet:"payload_sha256"`
+	// RecordKey identifies the logical record across snapshots (CX-002); readers fall back to
+	// event_time for rows written before it existed.
+	RecordKey string `parquet:"record_key"`
+	EventID   string `parquet:"event_id"`
 }
 
 // FileInfo describes one lake file (manifest row, ST-003).
