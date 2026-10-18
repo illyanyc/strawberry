@@ -1,7 +1,7 @@
 [project]
 name = "tbcore"
 version = "0.0.0"
-description = "Shared Python library: service template, logging with redaction, secrets, lake query layer (bars, as-of joins, universes, instruments, calendar), data quality, and the feature store."
+description = "Shared Python library: service template, logging with redaction, secrets, lake query layer, data quality, the feature store, labels, backtests, validation, and the ML model zoo."
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "fastapi==0.143.3",
@@ -17,6 +17,14 @@ dependencies = [
   "numpy==2.5.4",
   # Service-token signing for Python gRPC clients (tbcore.svcauth, SE-040).
   "cryptography==50.0.2",
+  # ML model zoo shared by training, backtests, and live inference (section 10, ADR-0036, D23).
+  "lightgbm==4.7.0",
+  # Generic gRPC handlers and clients built from proto descriptors (tbcore.rpc, ADR-0035).
+  "grpcio==1.84.0",
+  # Postgres stores for run summaries, the trial ledger, the registry, and audit (ADR-0037).
+  "psycopg[binary]==3.3.6",
+  # MLflow REST tracking client (ADR-0037).
+  "httpx==0.28.1",
 ]
 
 [build-system]

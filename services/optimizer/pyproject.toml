@@ -3,7 +3,7 @@ name = "optimizer"
 version = "0.0.0"
 description = "Studies, holdout discipline, champion/challenger (section 11, Phase 4)"
 requires-python = ">=3.12,<3.13"
-dependencies = ["tbcore"]
+dependencies = ["tbcore", "tbcontracts", "backtest", "optuna==5.0.0", "nats-py==2.16.0"]
 
 [project.scripts]
 optimizer = "tb_optimizer.__main__:main"
@@ -17,3 +17,5 @@ packages = ["src/tb_optimizer"]
 
 [tool.uv.sources]
 tbcore = { workspace = true }
+tbcontracts = { workspace = true }
+backtest = { workspace = true }

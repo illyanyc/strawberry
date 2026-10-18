@@ -3,7 +3,7 @@ name = "ml"
 version = "0.0.0"
 description = "Training and inference workers (section 10, Phase 4); native launchd on macOS (D29)"
 requires-python = ">=3.12,<3.13"
-dependencies = ["tbcore"]
+dependencies = ["tbcore", "tbcontracts", "nats-py==2.16.0"]
 
 [project.scripts]
 ml = "tb_ml.__main__:main"
@@ -17,3 +17,4 @@ packages = ["src/tb_ml"]
 
 [tool.uv.sources]
 tbcore = { workspace = true }
+tbcontracts = { workspace = true }

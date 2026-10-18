@@ -7,6 +7,8 @@
   and separate overnight and intraday legs for h = 1.
 * ``triple_barrier``: volatility-scaled profit-take / stop-loss barriers and a vertical barrier.
 * ``meta_labels``: 1 when a primary signal's side agreed with the triple-barrier outcome.
+* ``sample_weights`` (uniqueness, return attribution, time decay) and ``rank_relevance`` (LambdaRank
+  grades), section 10 (ML-001, ML-003).
 
 Every label carries ``t1`` (close of the last bar it uses; splitters purge on it) and
 ``label_available_at`` (when it becomes known). The volatility scaler uses bars up to and including
@@ -158,6 +160,61 @@ def triple_barrier(
             )
         )
     return pl.concat(frames).sort(["ts_open", "instrument_id"])
+
+
+def sample_weights(
+    instrument: np.ndarray,
+    start_bar: np.ndarray,
+    end_bar: np.ndarray,
+    method: str = "uniqueness",
+    returns: np.ndarray | None = None,
+    decay: float = 1.0,
+    normalize: bool = True,
+) -> np.ndarray:
+    """Sample weights for one fold's training rows (ML-003); pass only those rows.
+
+    Each row ``i`` uses bars ``(start_bar[i], end_bar[i]]`` of its instrument (bar indices within the
+    instrument). ``uniqueness`` is the mean of 1/concurrency over the span (López de Prado 2018, 4.4);
+    ``return`` scales uniqueness by |sum of one-bar ``returns`` over the span / concurrency|;
+    ``time_decay`` multiplies uniqueness by a linear ramp from ``decay`` (oldest) to 1 (newest).
+    Weights are normalized to mean 1. ``none`` returns ones.
+    """
+    n = instrument.shape[0]
+    if method == "none" or n == 0:
+        return np.ones(n)
+    if method not in ("uniqueness", "return", "time_decay"):
+        raise ValueError(f"unknown sample weighting {method!r}")
+    w = np.zeros(n)
+    for inst in np.unique(instrument):
+        rows = np.flatnonzero(instrument == inst)
+        s, e = start_bar[rows].astype(np.int64), end_bar[rows].astype(np.int64)
+        lo, hi = int(s.min()), int(e.max())
+        conc = np.zeros(hi - lo + 2)
+        np.add.at(conc, s - lo + 1, 1.0)
+        np.add.at(conc, e - lo + 1, -1.0)
+        conc = np.cumsum(conc)  # conc[b - lo] = labels covering bar b (spans are (s, e])
+        inv = np.where(conc > 0, 1.0 / np.maximum(conc, 1.0), 0.0)
+        cum = np.r_[0.0, np.cumsum(inv)]
+        span = np.maximum(e - s, 1)
+        uniq = (cum[e - lo + 1] - cum[s - lo + 1]) / span
+        if method == "return" and returns is not None:
+            r = returns[rows]
+            uniq = np.abs(r) * uniq
+        w[rows] = uniq
+    if method == "time_decay":
+        order = np.argsort(np.argsort(start_bar, kind="stable"), kind="stable")
+        ramp = decay + (1.0 - decay) * (order / max(n - 1, 1))
+        w = w * ramp
+    if not normalize:
+        return w
+    mean = float(w.mean())
+    return w / mean if mean > 0 else np.ones(n)
+
+
+def rank_relevance(rank: np.ndarray, buckets: int = 5) -> np.ndarray:
+    """Integer relevance grades 0..buckets-1 from per-date ranks in [0, 1] (LambdaRank target, ML-001)."""
+    r = np.nan_to_num(np.asarray(rank, dtype=np.float64), nan=0.0)
+    return np.minimum((r * buckets).astype(np.int64), buckets - 1)
 
 
 def meta_labels(primary: pl.DataFrame, barrier: pl.DataFrame) -> pl.DataFrame:
