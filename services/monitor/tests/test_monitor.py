@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import threading
 from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any
 
+import pytest
+import tb_monitor.__main__ as entry
 from tb_monitor.alerts import post, report_alert, to_alertmanager
 from tb_monitor.reports import Reports
 
@@ -119,3 +122,45 @@ def test_eod_summary_per_account_and_strategy() -> None:
     assert "sim-paper/orb: realized P&L today 42.5" in text
     assert "orb: 1 approved intents, rejects: symbol_segregation 1" in text
     assert "alerts: critical 1" in text
+
+
+class _FakeJS:
+    def __init__(self) -> None:
+        self.subs: list[tuple[str, Any]] = []
+
+    async def subscribe(self, subject: str, **kw: Any) -> None:
+        self.subs.append((subject, kw.get("stream")))
+
+
+class _FakeNC:
+    def __init__(self) -> None:
+        self.js = _FakeJS()
+
+    def jetstream(self) -> _FakeJS:
+        return self.js
+
+    async def subscribe(self, *_: Any, **__: Any) -> None:
+        return None
+
+    async def drain(self) -> None:
+        return None
+
+
+def test_every_jetstream_subscription_names_its_stream(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The monitor's NATS user may not look streams up ($JS.API.STREAM.NAMES); unnamed subscribes time out."""
+    nc = _FakeNC()
+
+    async def connect(**_: Any) -> _FakeNC:
+        return nc
+
+    monkeypatch.setattr(entry.nats, "connect", connect)
+    stop = asyncio.Event()
+    stop.set()
+    asyncio.run(entry.run(entry.Settings(service="monitor"), "pw", Reports(), {}, stop))
+    assert dict(nc.js.subs) == {
+        "alert.>": "ALERTS",
+        "recon.result.>": "LEDGER",
+        "ord.decision": "ORDERS",
+        "exec.>": "ORDERS",
+        "ledger.update.>": "LEDGER",
+    }

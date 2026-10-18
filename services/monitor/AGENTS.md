@@ -34,4 +34,5 @@ Phase 2 ops slice of section 13 ([ADR-0027](../../docs/adr/0027-monitoring-ops-s
 - Run: `make up`. Test: `uv run pytest services/monitor/tests tests/python/test_alert_rules.py`.
 
 ## Gotchas
+- Every JetStream subscribe passes `stream=`: the NATS user (least privilege) may not call `$JS.API.STREAM.NAMES`, and nats-py looks the stream up when it is missing, which times out after 5 s and kills startup. Tested by `test_every_jetstream_subscription_names_its_stream`.
 - Without the observability profile, bus alerts are retried until Alertmanager is reachable (by design, MN-002).

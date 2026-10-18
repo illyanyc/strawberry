@@ -40,4 +40,5 @@ Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes t
 - A restart replays the day's ledger updates to rebuild positions; replayed decisions produce the same intent IDs, which execution deduplicates.
 
 ## Gotchas
+- Every JetStream subscribe passes `stream=`: the NATS user (least privilege) may not call `$JS.API.STREAM.NAMES`, and nats-py looks the stream up when it is missing, which times out after 5 s and kills startup. Tested by `test_every_jetstream_subscription_names_its_stream`.
 - The compose seed lists no instruments: add instrument IDs (from `refdata.instruments`) to `runtime.instruments` to trade.

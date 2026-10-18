@@ -87,9 +87,12 @@ async def run(
         await beat()
 
     start = _session_start_ns()
+    # Streams are named explicitly: this user may not call $JS.API.STREAM.NAMES (least privilege),
+    # and an unnamed subscribe would time out on that lookup.
     for acct in runner.accounts():
         await js.subscribe(
             f"ledger.update.{acct}",
+            stream="LEDGER",
             cb=on_update,
             ordered_consumer=True,
             config=ConsumerConfig(
@@ -99,7 +102,11 @@ async def run(
         )
     for subj in runner.subjects():
         await js.subscribe(
-            subj, cb=on_bar, ordered_consumer=True, config=ConsumerConfig(deliver_policy=DeliverPolicy.NEW)
+            subj,
+            stream="MARKETDATA",
+            cb=on_bar,
+            ordered_consumer=True,
+            config=ConsumerConfig(deliver_policy=DeliverPolicy.NEW),
         )
     log.info(
         "strategy runtime started",

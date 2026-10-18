@@ -99,8 +99,11 @@ async def run(cfg: Settings, password: str, reports: Reports, latest: dict[str, 
     async def on_ledger(msg: Msg) -> None:
         reports.on_ledger_update(today(), parse(ledger_pb2.LedgerUpdate, msg.data))
 
+    # Every JetStream subscription names its stream: the stream lookup ($JS.API.STREAM.NAMES) is not
+    # in this user's permissions (least privilege), and without it the subscribe times out.
     await js.subscribe(
         "alert.>",
+        stream="ALERTS",
         durable="monitor-alerts",
         cb=on_alert,
         manual_ack=True,
@@ -108,13 +111,13 @@ async def run(cfg: Settings, password: str, reports: Reports, latest: dict[str, 
     )
     await nc.subscribe("sys.health.execution", cb=on_status)
     new = ConsumerConfig(deliver_policy=DeliverPolicy.NEW)
-    for subject, cb in (
-        ("recon.result.>", on_recon),
-        ("ord.decision", on_decision),
-        ("exec.>", on_exec),
-        ("ledger.update.>", on_ledger),
+    for subject, stream, cb in (
+        ("recon.result.>", "LEDGER", on_recon),
+        ("ord.decision", "ORDERS", on_decision),
+        ("exec.>", "ORDERS", on_exec),
+        ("ledger.update.>", "LEDGER", on_ledger),
     ):
-        await js.subscribe(subject, cb=cb, ordered_consumer=True, config=new)
+        await js.subscribe(subject, stream=stream, cb=cb, ordered_consumer=True, config=new)
     sent: set[str] = set()
     while not stop.is_set():
         now = datetime.now(tz=UTC)

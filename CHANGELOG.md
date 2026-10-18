@@ -92,6 +92,7 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 
 ### Fixed
 
+- `monitor` and `strategy-runtime` crashed at startup when a JetStream subscribe timed out on the stream lookup (`$JS.API.STREAM.NAMES` is outside their NATS permissions); every subscription now names its stream (ALERTS, LEDGER, ORDERS, MARKETDATA). Found when the stack smoke saw the monitor unhealthy.
 - `<Dialog>` used a fixed title ID, so a step-up dialog opened over another dialog took the wrong accessible name; titles now use `useId`. Execution's kill-switch release comment cited a nonexistent UI-012 (now UI-006).
 - Alert rule `HighHTTPErrorRate` had no runbook (now `service-down.md`).
 - Go service and ops images copy `tests/paper` so the `go.work` workspace resolves inside the image build.

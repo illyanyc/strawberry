@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 from datetime import date, timedelta
 from pathlib import Path
+from typing import Any
 
+import pytest
+import tb_strategy_runtime.__main__ as entry
 from tb_strategy_runtime.runner import Runner
 
 from tb.common.v1 import common_pb2
@@ -110,3 +114,39 @@ def test_runner_sees_only_its_own_positions_sm014(tmp_path: Path) -> None:
     )
     r.on_ledger_update(upd)
     assert r.hosted[0].ctx.position("I1") == 5
+
+
+class _FakeJS:
+    def __init__(self) -> None:
+        self.subs: list[tuple[str, Any]] = []
+
+    async def subscribe(self, subject: str, **kw: Any) -> None:
+        self.subs.append((subject, kw.get("stream")))
+
+
+class _FakeNC:
+    def __init__(self) -> None:
+        self.js = _FakeJS()
+
+    def jetstream(self) -> _FakeJS:
+        return self.js
+
+    async def publish(self, *_: Any, **__: Any) -> None:
+        return None
+
+    async def drain(self) -> None:
+        return None
+
+
+def test_every_jetstream_subscription_names_its_stream(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The runtime's NATS user may not look streams up ($JS.API.STREAM.NAMES); unnamed subscribes time out."""
+    nc = _FakeNC()
+
+    async def connect(**_: Any) -> _FakeNC:
+        return nc
+
+    monkeypatch.setattr(entry.nats, "connect", connect)
+    stop = asyncio.Event()
+    stop.set()
+    asyncio.run(entry.run(Runner.from_registry(registry(tmp_path)), "nats://x", "u", "p", "rt", 1.0, stop))
+    assert nc.js.subs == [("ledger.update.sim-paper", "LEDGER"), ("md.bar.15m.I1", "MARKETDATA")]
