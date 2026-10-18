@@ -148,8 +148,13 @@ test-ibkr-contract: ## Shared Go broker contract suite (BR-001) against the IBKR
 
 .PHONY: paper-gate
 paper-gate: ## Phase 2 gate: five simulated ORB sessions through runtime, OMS, simulators, ledger (writes paper-gate-evidence.json)
-	cd tests/paper && TB_PAPER_GATE_REQUIRED=1 TB_PAPER_EVIDENCE=$(CURDIR)/paper-gate-evidence.json \
+	cd tests/paper && TB_PAPER_GATE_REQUIRED=1 TB_PAPER_EVIDENCE=$(CURDIR)/paper-gate-evidence.json TB_PAPER_RECORDING=$(CURDIR)/paper-gate.tbrec \
 	  go test -count=1 -run 'TestGate2' -v -timeout 20m ./... 2>&1 | grep -E '^(=== RUN|--- |    gate_test|PASS|FAIL|ok)'
+
+.PHONY: parity-gate
+parity-gate: ## Gate 3 parity (BT-070/071): replay the paper-gate bus recording (run make paper-gate first) with recorded and modeled fills
+	uv run python -m tbcore.parity paper-gate.tbrec --config tests/fixtures/parity/orb-paper-gate.config.json --mode recorded --out parity-report-recorded.json
+	uv run python -m tbcore.parity paper-gate.tbrec --config tests/fixtures/parity/orb-paper-gate.config.json --mode model --out parity-report-model.json
 
 .PHONY: paper-ibkr
 paper-ibkr: ## D30 swing routing through the real IBKR adapter over its fake gateway (tests/paper)

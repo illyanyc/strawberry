@@ -81,6 +81,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Order intent** | A strategy's or user's request to trade, before risk checks. Becomes an order only after an approved risk decision. |
 | **Owner** | The strategy ID or `manual` that a position, lot, or order belongs to. |
 | **Ownership note** | The line in an order preview that says whose holdings the order affects: `manual` for UI orders, or only the named strategy's virtual portfolio (UI-015). |
+| **Parity report** | The comparison of a recorded paper or live period with its event-driven replay: matched, missed, and extra intents and legs, decision differences, per-leg slippage, and the realized P&L difference split into price, size, and fee effects (BT-070, BT-071). |
 | **Partial bar** | A not-yet-final bar published on `md.bar.partial.*` for the UI only; never stored or used for decisions (MD-002). |
 | **PBO** | Probability of backtest overfitting (combinatorially symmetric cross-validation). |
 | **PDT** | FINRA Pattern Day Trader rule; it limited day trades in margin accounts below $25k and was retired on 2026-06-04. The risk engine keeps an optional per-account `legacy` guard, off by default (RM-008, D30). |

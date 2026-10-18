@@ -1,0 +1,163 @@
+{
+  "strategies": [
+    {
+      "strategy_id": "orb-15m",
+      "short_id": "orb15aa",
+      "name": "ORB 15m",
+      "horizon": "intraday",
+      "broker_account_id": "sim-paper",
+      "allocation": "30000",
+      "allow_short": false,
+      "segregation_allowlist": [
+        "01JAAPL0000000000000000000"
+      ],
+      "version": "1",
+      "runtime_class": "orb",
+      "timeframe": "15m",
+      "instruments": [
+        "01JAAPL0000000000000000000",
+        "01JNVDA0000000000000000000",
+        "01JAMD00000000000000000000",
+        "01JXLK00000000000000000000",
+        "01JSPY00000000000000000000"
+      ],
+      "params": {
+        "opening_bars": 1,
+        "risk_per_trade": "0.005",
+        "target_r": "2",
+        "stop_buffer_bps": "5",
+        "exit_minutes_before_close": 15,
+        "max_trades_per_day": 1
+      },
+      "limits": {}
+    }
+  ],
+  "model_version": null,
+  "universe": {
+    "name": "paper-gate",
+    "instruments": [
+      "01JAAPL0000000000000000000",
+      "01JNVDA0000000000000000000",
+      "01JAMD00000000000000000000",
+      "01JXLK00000000000000000000",
+      "01JSPY00000000000000000000"
+    ],
+    "symbols": {
+      "01JAAPL0000000000000000000": "AAPL",
+      "01JNVDA0000000000000000000": "NVDA",
+      "01JAMD00000000000000000000": "AMD",
+      "01JXLK00000000000000000000": "XLK",
+      "01JSPY00000000000000000000": "SPY"
+    },
+    "point_in_time": true,
+    "survivorship": "unknown"
+  },
+  "timeframe": "15m",
+  "start": "2026-10-12T00:00:00Z",
+  "end": "2026-10-17T00:00:00Z",
+  "data_snapshot_id": "",
+  "cost_model": {
+    "broker": "alpaca",
+    "half_spread_bps": 1.5,
+    "open_close_half_spread_bps": 5.0,
+    "open_close_minutes": 30,
+    "spread_estimator": "fixed",
+    "min_half_spread_bps": 0.5,
+    "impact_k": 0.1,
+    "fallback_impact_bps": 10.0,
+    "borrow_fee_bps_annual": 30.0,
+    "ibkr_exchange_per_share": 0.003,
+    "ibkr_clearing_per_share": 0.0002,
+    "ibkr_passthrough_rate": 0.000735,
+    "cost_multiplier": 1.0,
+    "regulatory_fees": [
+      {
+        "effective_from": "2015-01-01",
+        "sec_per_million": 22.9,
+        "taf_per_share": 0.000166,
+        "taf_max": 8.3,
+        "cat_per_share": 0.0
+      },
+      {
+        "effective_from": "2023-05-22",
+        "sec_per_million": 8.0,
+        "taf_per_share": 0.000166,
+        "taf_max": 8.3,
+        "cat_per_share": 0.0
+      },
+      {
+        "effective_from": "2024-05-22",
+        "sec_per_million": 27.8,
+        "taf_per_share": 0.000166,
+        "taf_max": 8.3,
+        "cat_per_share": 0.0
+      },
+      {
+        "effective_from": "2025-05-14",
+        "sec_per_million": 0.0,
+        "taf_per_share": 0.000166,
+        "taf_max": 8.3,
+        "cat_per_share": 3e-6
+      },
+      {
+        "effective_from": "2026-01-01",
+        "sec_per_million": 0.0,
+        "taf_per_share": 0.000195,
+        "taf_max": 9.79,
+        "cat_per_share": 3e-6
+      },
+      {
+        "effective_from": "2026-04-04",
+        "sec_per_million": 20.6,
+        "taf_per_share": 0.000195,
+        "taf_max": 9.79,
+        "cat_per_share": 3e-6
+      },
+      {
+        "effective_from": "2026-10-01",
+        "sec_per_million": 20.6,
+        "taf_per_share": 0.0,
+        "taf_max": 0.0,
+        "cat_per_share": 3e-6
+      },
+      {
+        "effective_from": "2027-01-01",
+        "sec_per_million": 20.6,
+        "taf_per_share": 0.000195,
+        "taf_max": 9.79,
+        "cat_per_share": 3e-6
+      }
+    ]
+  },
+  "fill_model": {
+    "mode": "model",
+    "latency_ms": 250,
+    "fill_timeframe": null,
+    "participation_cap": 0.05,
+    "limit_through_ticks": 1,
+    "limit_queue_haircut": 0.5,
+    "tick": 0.01,
+    "allow_extended_hours": false,
+    "delisting_haircut": 0.0,
+    "impact_lookback_sessions": 20
+  },
+  "risk_limits": {},
+  "account": {
+    "broker_account_id": "sim-paper",
+    "broker": "simulator",
+    "cash": "60000",
+    "supports_bracket": true,
+    "margin_multiple": "1",
+    "margin_util_cap": "1",
+    "pdt_guard": "off",
+    "segregation": true,
+    "manual_positions": [],
+    "flatten_before_close_s": 600,
+    "shortable": [],
+    "borrow_fee_bps": {},
+    "halts": []
+  },
+  "seed": 0,
+  "min_trades": 10,
+  "code_commit": ""
+}

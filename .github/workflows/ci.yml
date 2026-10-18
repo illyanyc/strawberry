@@ -108,6 +108,12 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with: { name: paper-gate-evidence, path: paper-gate-evidence.json, if-no-files-found: ignore }
+      - name: Gate 3 parity - replay the fresh paper-gate recording (recorded and modeled fills)
+        run: make parity-gate
+      - name: Upload parity reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with: { name: parity-reports, path: "parity-report-*.json", if-no-files-found: ignore }
 
   web:
     name: web (tsc, eslint, vitest, build)

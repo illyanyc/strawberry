@@ -36,6 +36,7 @@ from tbcore.backtest.result import BacktestResult
 from tbcore.backtest.simcore import SimCore
 from tbcore.data.calendar import TIMEFRAMES, Session, xnys
 from tbcore.strategy.api import Bar
+from tbcore.strategy.host import TIMEFRAMES as TIMEFRAME_NAMES
 from tbcore.strategy.host import Runner
 
 NS = 1_000_000_000
@@ -617,6 +618,15 @@ class EventEngine:
         tso, tsc, av = b["ts_open"].to_numpy(), b["ts_close"].to_numpy(), b["available_at"].to_numpy()
         o, h, lo, c, v = (b[col].to_numpy() for col in ("open", "high", "low", "close", "volume"))
         do_, dh, dl, dc, dv = (_decimals(x) for x in (o, h, lo, c, v))
+        recorded = (
+            {
+                (x.instrument_id, x.ts_open): x
+                for x in self.recording.bars
+                if TIMEFRAME_NAMES.get(x.timeframe) == self.cfg.timeframe
+            }
+            if self.recording is not None
+            else {}
+        )
         tf = self.cfg.timeframe
         interval = int(TIMEFRAMES[tf].total_seconds() * NS)
         events = self._side_events()
@@ -682,19 +692,15 @@ class EventEngine:
             for k in range(i, j):
                 if int(av[k]) < int(tsc[k]) or int(av[k]) > now:
                     raise LeakageError(f"bar {inst[k]}@{int(tso[k])} dispatched at {now} (BT-004)")
-                bar = Bar(
-                    inst[k],
-                    tf,
-                    int(tso[k]),
-                    int(tsc[k]),
-                    int(av[k]),
-                    do_[k],
-                    dh[k],
-                    dl[k],
-                    dc[k],
-                    dv[k],
-                )
-                for it in self.runner.dispatch(bar):
+                pb = recorded.get((inst[k], int(tso[k])))
+                if pb is not None:
+                    # A recorded bus bar goes through the runtime's own path (on_bar), unchanged.
+                    intents = self.runner.on_bar(pb)
+                else:
+                    intents = self.runner.dispatch(
+                        Bar(inst[k], tf, int(tso[k]), int(tsc[k]), int(av[k]), do_[k], dh[k], dl[k], dc[k], dv[k])
+                    )
+                for it in intents:
                     self._submit(simcore, it, now, latency)
                 dispatched += 1
             self._record_equity(now)

@@ -73,7 +73,8 @@ Prerequisites: Docker (Colima on the Mac Mini, ADR-0013), `make`, `git`. Develop
 | `make test` | Go (`-race`), Python, and web unit tests |
 | `make test-integration` | Go tests including Postgres-backed integration tests (throwaway container) |
 | `make paper-ibkr` | D30 swing routing through the real IBKR adapter over its fake gateway (GTC protective stop, ledger booking) |
-| `make paper-gate` | Phase 2 gate: five simulated ORB sessions through the Python runtime, OMS, simulators, and ledger (writes `paper-gate-evidence.json`) |
+| `make paper-gate` | Phase 2 gate: five simulated ORB sessions through the Python runtime, OMS, simulators, and ledger (writes `paper-gate-evidence.json` and the bus recording `paper-gate.tbrec`) |
+| `make parity-gate` | Gate 3 parity: replays `paper-gate.tbrec` through the event-driven backtester with recorded and modeled fills (writes `parity-report-*.json`; run after `make paper-gate`) |
 | `cd tests/paper && go test ./...` | Phase 2 Gate 2 scenarios on the in-process paper harness (simulators, ledger, execution, embedded NATS) |
 | `make smoke` | Smoke test of the running stack (readiness, auth gate, ports, e2e passkey flow with leak canary, Prometheus, audit chain) |
 | `make e2e` / `make e2e-ui` | Go API e2e / Playwright browser e2e against a fresh running stack |

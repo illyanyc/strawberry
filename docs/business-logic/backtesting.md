@@ -60,10 +60,21 @@ How the platform simulates trading (fills, costs, the event-driven and vectorize
 | BT-063 | Every report MUST show the strategy's percentile in a random-entry baseline with the same number of trades and holding periods. | Specified | — |
 | BT-064 | Feature and generated feature code MUST pass the point-in-time lint (no negative shifts, centered windows, whole-history aggregates, backward fills, forward as-of joins, storage or clock access, `event_time` joins). | Specified | — |
 | BT-065 | The leakage suite (BT-060..BT-064) MUST run in CI for every strategy and feature change and MUST fail a deliberately leaky fixture. | Specified | — |
-| BT-070 | Replaying a recorded paper or live bus stream with the recorded fills MUST reproduce the same intents (IDs, quantities, prices), the same decisions, and realized P&L within $0.01 in total. | Specified | — |
-| BT-071 | Replaying with modeled fills MUST match trade-for-trade (same intent IDs and kinds); the P&L difference is attributed to price slippage, fees, and size, with an unexplained residual ≤ $0.01 per trade. | Specified | — |
+| BT-070 | Replaying a recorded paper or live bus stream with the recorded fills MUST reproduce the same intents (IDs, quantities, prices), the same decisions, and realized P&L within $0.01 in total. | Implemented | `tbcore.parity.compare_recording` (recorded mode), `EventEngine` recorded fills and recorded bars through `Runner.on_bar`; `test_bt070_*`, `make parity-gate` |
+| BT-071 | Replaying with modeled fills MUST match trade-for-trade (same intent IDs and kinds); the P&L difference is attributed to price slippage, fees, and size, with an unexplained residual ≤ $0.01 per trade. | Implemented | `tbcore.parity.compare_recording` (model mode); `test_bt071_*`, `make parity-gate` |
 | BT-080 | The scorer verdict (D31 rule 7) passes only if DSR ≥ 0.95, PBO ≤ 0.2, SPA (or Romano–Wolf) p ≤ 0.05 against the champion when one exists, net P&L > 0 at 2× costs, and at least `min_trades` trades; the analyst sees only pass/fail and DSR. | Specified | — |
 | BT-081 | Evaluator code (backtester, cost and fill models, splitters, statistics, scorer) MUST be listed in the evaluator manifest; assistant and analyst code MUST NOT import it, and the scorer lives outside `tbcore` (D31 rule 9). | Specified | — |
+
+## Gate 3 parity evidence
+
+The Phase 2 paper gate (five ORB sessions through the real runtime, OMS, simulator, and ledger) recorded 2,717 bus messages. Replaying them (`make parity-gate`, `test_parity.py`):
+
+| Mode | Intents | Realized P&L (paper / backtest) | Attribution |
+|---|---|---|---|
+| Recorded fills (BT-070) | 25 / 25 matched (19 entries, 6 strategy exits), decisions identical, quantities identical | 1,300.20 / 1,300.20 | difference 0 |
+| Modeled fills (BT-071) | 25 / 25 matched, every leg matched by intent and role | 1,300.20 / 1,041.49 | 258.71 = price 250.63 + size 5.04 + fees 3.04; unexplained 0.00 |
+
+The modeled run is more pessimistic than the paper simulator, which fills at the signal bar's close (the price when the order arrives in its world) and fills take-profits at the crossing price; the backtest fills at the next bar's open plus slippage and take-profits at the limit (BT-020, BT-021). A changed strategy version (target 3R instead of 2R) fails parity.
 
 ## Performance targets (measured)
 
@@ -95,6 +106,7 @@ Reference: the 4-vCPU Linux VM that runs CI-class work (the Mac Mini, U4, is exp
 | Exit intent at 15:46 on 15m bars | The exit fills in the 15:45–16:00 bar, which is matched before the 16:00 session close expires DAY orders | BT-020, BT-023 |
 | A partial override of the global limits (e.g. only `max_positions`) | Other fields keep the OMS defaults (merged, not replaced) | BT-003 |
 | Strategy flips long to short in one fill | Not modeled as two trades: the trade list records flat-to-flat episodes only (ORB is long only) | BT-051 |
+| A recorded bar carries `406`, the lake float `406.0` | A replay dispatches the recorded protobuf bar through `Runner.on_bar`, unchanged; parity compares numbers as decimals | BT-070 |
 | Walk-forward with `step < test_len` | Splits are produced; stitching refuses overlapping windows | BT-034 |
 | Era-wise splits with eras of unequal size | Folds are built over eras, never splitting one | BT-030 |
 
