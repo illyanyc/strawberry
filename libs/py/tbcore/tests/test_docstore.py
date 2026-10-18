@@ -35,6 +35,7 @@ def pg_dsn() -> Iterator[str]:
             "holdout_owner",
             "audit_owner",
             "audit_writer",
+            "audit_reader",
         ):
             exists = admin.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (role,)).fetchone()
             login = "LOGIN PASSWORD 'pw'" if role.startswith("svc_") else "NOLOGIN"
