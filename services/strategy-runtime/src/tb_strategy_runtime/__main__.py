@@ -25,9 +25,12 @@ import uvicorn
 from nats.aio.msg import Msg
 from nats.js.api import ConsumerConfig, DeliverPolicy
 
+from tb.context.v1 import context_pb2
 from tb.ledger.v1 import ledger_pb2
 from tb.marketdata.v1 import marketdata_pb2
 from tb_strategy_runtime.runner import Runner
+from tbcore.context.store import ContextStore
+from tbcore.data.lake import Lake
 from tbcore.logging import configure
 from tbcore.secrets import SecretNotFoundError, get_secret
 from tbcore.service import ServiceSettings, create_ops_app
@@ -43,7 +46,14 @@ def _session_start_ns() -> int:
 
 
 async def run(
-    runner: Runner, url: str, user: str, password: str, runtime_id: str, interval: float, stop: asyncio.Event
+    runner: Runner,
+    url: str,
+    user: str,
+    password: str,
+    runtime_id: str,
+    interval: float,
+    stop: asyncio.Event,
+    lake_dir: str = "",
 ) -> None:
     opts: dict[str, object] = {"servers": [url], "name": runtime_id, "max_reconnect_attempts": -1}
     if user:
@@ -86,6 +96,21 @@ async def run(
             )
         await beat()
 
+    async def on_context(msg: Msg) -> None:
+        ev = context_pb2.ContextEvent()
+        ev.ParseFromString(msg.data)
+        async with lock:
+            runner.on_context_event(ev)
+
+    def load_events() -> None:
+        if not lake_dir:
+            return
+        try:
+            n = runner.load_events(ContextStore(Lake(lake_dir)), time.time_ns())
+            log.info("blackout events loaded", extra={"events": n})
+        except Exception as exc:  # the bus subscription still feeds new events
+            log.warning("blackout events not loaded from the lake", extra={"err": str(exc)[:200]})
+
     start = _session_start_ns()
     # Streams are named explicitly: this user may not call $JS.API.STREAM.NAMES (least privilege),
     # and an unnamed subscribe would time out on that lookup.
@@ -108,12 +133,28 @@ async def run(
             ordered_consumer=True,
             config=ConsumerConfig(deliver_policy=DeliverPolicy.NEW),
         )
+    if runner.uses_events():
+        # CX-016: scheduled events for EventBlackout; history from the lake, updates from the bus.
+        load_events()
+        for subj in ("ctx.calendar", "ctx.earnings"):
+            await js.subscribe(
+                subj,
+                stream="CONTEXT",
+                cb=on_context,
+                ordered_consumer=True,
+                config=ConsumerConfig(deliver_policy=DeliverPolicy.ALL),
+            )
     log.info(
         "strategy runtime started",
         extra={"strategies": [h.strategy_id for h in runner.hosted], "subjects": len(runner.subjects())},
     )
+    last_load = time.monotonic()
     while not stop.is_set():
         await beat()
+        if runner.uses_events() and time.monotonic() - last_load > 3600:
+            last_load = time.monotonic()
+            async with lock:
+                load_events()
         with contextlib.suppress(TimeoutError):
             await asyncio.wait_for(stop.wait(), timeout=interval)
     await nc.drain()
@@ -153,6 +194,7 @@ def main() -> None:
             os.environ.get("TB_RUNTIME_ID", "strategy-runtime"),
             float(os.environ.get("TB_HEARTBEAT_INTERVAL", "5")),
             stop,
+            os.environ.get("TB_LAKE_DIR", ""),
         )
     )
 

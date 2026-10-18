@@ -1,6 +1,6 @@
 # strategy-runtime
 
-Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes their order intents to execution over the bus (section 07, [ADR-0026](../../docs/adr/0026-strategy-runtime-and-orb-baseline.md), D44). Phase 2 hosts the ORB baseline. Rules: SM-011, SM-013, SM-014, RM-017.
+Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes their order intents to execution over the bus (section 07, [ADR-0026](../../docs/adr/0026-strategy-runtime-and-orb-baseline.md), D44). Phase 2 hosts the ORB baseline; Phase 3 adds event blackouts (CX-016). Rules: SM-011, SM-013, SM-014, RM-017, CX-016.
 
 **Status:** Phase 2 (paper)  ·  **Language/stack:** Python 3.12, `tbcore`, `nats-py` ([ADR-0004](../../docs/adr/0004-core-language-split.md), D1)
 
@@ -15,13 +15,15 @@ Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes t
 | out | NATS (JetStream) | `ord.intent` (`Nats-Msg-Id` = intent ID) | `tb.orders.v1.OrderIntent` |
 | out | NATS (core) | `sys.health.strategy-runtime` | `tb.signals.v1.RuntimeHeartbeat` |
 | in | file | registry seed (`TB_STRATEGY_REGISTRY`) shared with execution | `infra/compose/strategies.json` |
+| in | NATS (ordered consumers, stream `CONTEXT`) | `ctx.calendar`, `ctx.earnings` (only when a hosted strategy has `runtime.blackout`) | `tb.context.v1.ContextEvent`, CX-016 |
+| in | filesystem | lake (read-only): stored calendar and earnings versions at start and hourly (the bus keeps 7 days) | `tbcore.context.ContextStore`, CX-016 |
 
 ## Layout
 | Path | Purpose |
 |---|---|
-| `src/tb_strategy_runtime/runner.py` | Pure core: registry, dispatch, own positions, proto conversion (unit-tested) |
+| `src/tb_strategy_runtime/runner.py` | Pure core: registry, dispatch, own positions, proto conversion, event blackouts (`BlackoutStrategy` + `InMemoryEventSource`) (unit-tested) |
 | `src/tb_strategy_runtime/__main__.py` | NATS loop, heartbeat, ops listener |
-| `tests/` | Runner tests (SM-014 isolation, protected opens) |
+| `tests/` | Runner tests (SM-014 isolation, protected opens, CPI blackout in paper) |
 
 ## Configuration
 | Variable | Default | Notes |
@@ -29,6 +31,7 @@ Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes t
 | `TB_STRATEGY_REGISTRY` | `/etc/tb/strategies.json` | Strategies with a `runtime` block and mode paper/shadow/live are hosted |
 | `TB_NATS_URL` / `TB_NATS_USER` | `nats://nats:4222` / `strategy_runtime` | Password from secret `nats_strategy_runtime_password`; empty user = no auth (tests only) |
 | `TB_HEARTBEAT_INTERVAL` | `5` | Seconds |
+| `TB_LAKE_DIR` | empty (Compose: `/data/lake`, read-only, marketdata's UID) | Scheduled events for blackouts; without it only bus events are used |
 | `TB_OPS_DISABLED` | — | `1` skips the ops listener (paper harness) |
 
 ## Run and test
@@ -41,4 +44,5 @@ Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes t
 
 ## Gotchas
 - Every JetStream subscribe passes `stream=`: the NATS user (least privilege) may not call `$JS.API.STREAM.NAMES`, and nats-py looks the stream up when it is missing, which times out after 5 s and kills startup. Tested by `test_every_jetstream_subscription_names_its_stream`.
+- Blackouts: add `"blackout": {"kinds": ["CPI", "FOMC", "earnings"], "before_minutes": 5, "after_minutes": 30}` to a strategy's `runtime` block; only opening intents are dropped, and only for events known at the decision time (CX-016).
 - The compose seed lists no instruments: add instrument IDs (from `refdata.instruments`) to `runtime.instruments` to trade.

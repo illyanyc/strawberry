@@ -376,9 +376,12 @@ services:
     profiles: [core]
     image: strawberry/strategy-runtime:${TB_VERSION:-dev}
     build: { <<: *py-build, args: { SERVICE: strategy-runtime } }
-    environment: { <<: *common-env, TB_SERVICE: strategy-runtime, TB_NATS_URL: "nats://nats:4222", TB_NATS_USER: strategy_runtime, TB_STRATEGY_REGISTRY: /etc/tb/strategies.json }
+    # Same UID/GID as marketdata so the read-only lake (0640 files) is readable (CX-016 events).
+    user: "${TB_HOST_UID:-65532}:${TB_HOST_GID:-65532}"
+    environment: { <<: *common-env, TB_SERVICE: strategy-runtime, TB_NATS_URL: "nats://nats:4222", TB_NATS_USER: strategy_runtime, TB_STRATEGY_REGISTRY: /etc/tb/strategies.json, TB_LAKE_DIR: /data/lake }
     secrets: [nats_strategy_runtime_password]
-    volumes: ["./strategies.json:/etc/tb/strategies.json:ro"]
+    # Read-only lake: scheduled events for EventBlackout (CX-016).
+    volumes: ["./strategies.json:/etc/tb/strategies.json:ro", "${TB_LAKE_DIR:-../../data/lake}:/data/lake:ro"]
     networks: [backend]
     healthcheck: *py-healthcheck
     depends_on: { bus-init: { condition: service_completed_successfully } }

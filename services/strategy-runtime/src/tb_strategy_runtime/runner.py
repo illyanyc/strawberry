@@ -9,15 +9,22 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from datetime import date
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+from google.protobuf.json_format import MessageToDict
+
 from tb.common.v1 import common_pb2
+from tb.context.v1 import context_pb2
 from tb.ledger.v1 import ledger_pb2
 from tb.marketdata.v1 import marketdata_pb2
 from tb.orders.v1 import orders_pb2
 from tb.signals.v1 import signals_pb2
+from tbcore.context.availability import earnings_actual_available_at, parse_timing
+from tbcore.context.events import BlackoutStrategy, EventBlackout, InMemoryEventSource, ScheduledEvent
+from tbcore.context.store import ContextStore
 from tbcore.data.calendar import Calendar, xnys
 from tbcore.strategy import Bar, Intent, OpeningRangeBreakout, ORBParams, OwnPosition, Strategy, StrategyContext
 
@@ -54,10 +61,46 @@ class Hosted:
     ctx: StrategyContext
 
 
+def scheduled_events(ev: context_pb2.ContextEvent) -> list[ScheduledEvent]:
+    """Calendar and earnings context events as blackout events (CX-016); others yield nothing."""
+    p: dict[str, Any] = MessageToDict(ev.payload) if ev.HasField("payload") else {}
+    pv = ev.provenance
+    if ev.kind == context_pb2.CONTEXT_KIND_CALENDAR:
+        return [
+            ScheduledEvent(
+                "calendar",
+                str(p.get("event", "")),
+                at=pv.event_time,
+                available_at=pv.available_at,
+                category=str(p.get("category", "")),
+                impact=str(p.get("impact", "")),
+                country=str(p.get("country", "")),
+                record_key=ev.record_key,
+            )
+        ]
+    if ev.kind == context_pb2.CONTEXT_KIND_EARNINGS and p.get("report_date"):
+        at = earnings_actual_available_at(
+            date.fromisoformat(str(p["report_date"])), parse_timing(str(p.get("timing", "")))
+        )
+        return [
+            ScheduledEvent(
+                "earnings",
+                f"earnings {ev.record_key}",
+                at=at,
+                available_at=pv.available_at,
+                instrument_id=i,
+                record_key=f"{ev.record_key}|{i}",
+            )
+            for i in ev.instrument_ids
+        ]
+    return []
+
+
 @dataclass(slots=True)
 class Runner:
     calendar: Calendar
     hosted: list[Hosted] = field(default_factory=list)
+    events: InMemoryEventSource = field(default_factory=InMemoryEventSource)
     bars_processed: int = 0
     intents_published: int = 0
     last_bar_available_at: int = 0
@@ -75,7 +118,10 @@ class Runner:
             if make is None:
                 raise ValueError(f"strategy {e['strategy_id']}: unknown runtime class {rt.get('class')!r}")
             sid = e["strategy_id"]
-            impl = make(sid, rt.get("params", {}))
+            impl: Strategy = make(sid, rt.get("params", {}))
+            if rt.get("blackout"):
+                # CX-016: no new positions around scheduled events; the same wrapper runs in backtests.
+                impl = BlackoutStrategy(impl, EventBlackout.from_dict(rt["blackout"]), r.events)
             ctx = StrategyContext(
                 strategy_id=sid,
                 now=0,
@@ -98,6 +144,41 @@ class Runner:
                 )
             )
         return r
+
+    def uses_events(self) -> bool:
+        return any(isinstance(h.impl, BlackoutStrategy) for h in self.hosted)
+
+    def on_context_event(self, ev: context_pb2.ContextEvent) -> None:
+        self.events.extend(scheduled_events(ev))
+
+    def load_events(self, store: ContextStore, now_ns: int, horizon_days: int = 45) -> int:
+        """Seed the event source from the lake: every stored calendar/earnings version around now
+        (the bus keeps only 7 days, so schedules published weeks ahead come from here)."""
+        n = 0
+        lo, hi = now_ns - 2 * 86_400 * 10**9, now_ns + horizon_days * 86_400 * 10**9
+        insts = sorted({i for h in self.hosted for i in h.instruments})
+        for kind in ("calendar", "earnings"):
+            df = store.versions(kind, None, insts if kind == "earnings" else None)
+            for r in df.iter_rows(named=True):
+                ev = context_pb2.ContextEvent(
+                    kind=context_pb2.CONTEXT_KIND_CALENDAR if kind == "calendar" else context_pb2.CONTEXT_KIND_EARNINGS,
+                    record_key=r["record_key"],
+                    instrument_ids=[r["instrument_id"]] if r["instrument_id"] else [],
+                )
+                ev.provenance.event_time = int(r["event_time"].timestamp() * 1e6) * 1000
+                ev.provenance.available_at = int(r["available_at"].timestamp() * 1e6) * 1000
+                ev.payload.update(
+                    {
+                        k: r[k]
+                        for k in ("event", "category", "impact", "country", "report_date", "timing")
+                        if r.get(k) is not None
+                    }
+                )
+                for se in scheduled_events(ev):
+                    if lo <= se.at <= hi:
+                        self.events.add(se)
+                        n += 1
+        return n
 
     def subjects(self) -> list[str]:
         out = sorted({f"md.bar.{h.timeframe}.{i}" for h in self.hosted for i in h.instruments})
