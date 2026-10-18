@@ -63,6 +63,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Kill switch** | Scoped emergency control (global, broker account, strategy, instrument): freeze new orders, cancel open orders, optionally flatten strategy-owned quantity. |
 | **Kill switch latch** | A kill-switch engagement persisted until an owner releases it with a desktop passkey step-up; engaging needs no step-up (RM-006, RM-007). |
 | **Leak canary** | A unique fake secret pushed through a real flow so tests can assert it never appears in logs, responses, audit details, or plaintext storage (SE-012). |
+| **Leakage suite** | The checks that look for look-ahead in a strategy or pipeline: future shift, random walk, timestamp assertion, shuffled labels, plus the random-entry baseline and the point-in-time lint; it runs in CI and must fail a deliberately leaky fixture (BT-060..BT-065). |
 | **Lot** | A quantity of an instrument acquired at one time and price, owned by exactly one owner. |
 | **Manual bucket (`manual` owner)** | All holdings and orders not attributed to a strategy, including anything placed outside the platform. Automated logic never reduces it. |
 | **Market-data hub (fan-out)** | broker-gateway component that holds the single upstream market-data socket per feed and multiplexes every subscriber over it (BR-015). |
@@ -88,6 +89,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Backward adjustment (as of t)** | Multiplying raw prices before each corporate action's ex-date by the action's factor, using only actions known and effective by t (DF-005). |
 | **`permId`** | IBKR's permanent order ID; the durable `broker_order_id` for IBKR orders (IB-003). |
 | **Point-in-time (PIT)** | Data as it was knowable at a given moment, including universe membership and corporate actions. |
+| **Point-in-time lint** | Static checks on feature source (`python -m tbcore.features.lint`) for constructs that can read the future or outside the frame: negative shifts, centered windows, whole-history aggregates, backward fills, forward as-of joins, I/O and clock access (BT-064). |
 | **Pre-market checklist** | Daily report 15 minutes before the open: broker sessions, reconciliation, kill switches, halts, clock, active strategies; fails closed without execution's heartbeat (MN-005). |
 | **Protective order** | A broker-side stop (bracket/OTO leg, or a separate GTC stop at brokers without brackets) attached to every algorithmic entry so an outage never leaves naked risk (N5, OE-014). |
 | **Publication date (short interest)** | The date FINRA publishes short interest for a settlement date, about 7 sessions later; short interest is available from it, never from the settlement date (CX-005). |

@@ -69,7 +69,7 @@ Prerequisites: Docker (Colima on the Mac Mini, ADR-0013), `make`, `git`. Develop
 | `make ps`, `make logs SERVICE=x` | Status and logs; Grafana at http://localhost:3000 |
 | `make tools`, `make deps` | Pinned dev tools into `.tools/bin`; Go/uv/pnpm dependencies |
 | `make gen` / `make gen-check` | Regenerate contracts / fail if generated code is stale |
-| `make lint` | buf lint + breaking, golangci-lint, ruff + mypy, tsc + eslint, docs gate |
+| `make lint` | buf lint + breaking, golangci-lint, ruff + mypy + point-in-time feature lint, tsc + eslint, docs gate |
 | `make test` | Go (`-race`), Python, and web unit tests |
 | `make test-integration` | Go tests including Postgres-backed integration tests (throwaway container) |
 | `make paper-ibkr` | D30 swing routing through the real IBKR adapter over its fake gateway (GTC protective stop, ledger booking) |

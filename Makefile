@@ -199,10 +199,11 @@ lint-go: ## golangci-lint on every Go module
 	@for m in $(GO_MODULES); do echo "golangci-lint $$m"; (cd $$m && golangci-lint run ./...); done
 
 .PHONY: lint-py
-lint-py: ## ruff + mypy
+lint-py: ## ruff + mypy + point-in-time lint of feature code (BT-064)
 	uv run ruff check .
 	uv run ruff format --check .
 	uv run mypy
+	uv run python -m tbcore.features.lint
 
 .PHONY: lint-web
 lint-web: ## TypeScript type checks and web lint

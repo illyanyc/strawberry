@@ -14,10 +14,11 @@ import pytest
 
 from tbcore.backtest.costs import CostModelConfig
 from tbcore.backtest.event import run_event_backtest
+from tbcore.backtest.synthetic import random_walk_bars
 from tbcore.backtest.vectorized import EntrySignals, SignalFn, VectorData, VectorizedResult, VectorRules, run_vectorized
 from tbcore.strategy.orb_vector import orb_signals
 
-from .btkit import NS, ORB_PARAMS, gate_bars, iid, orb_config, random_walk_bars
+from .btkit import NS, ORB_PARAMS, gate_bars, iid, orb_config
 
 SYMS = ["AAPL", "NVDA", "AMD", "XLK", "SPY"]
 SCALES = {"AAPL": 1.0, "NVDA": 1.5, "AMD": 0.8, "XLK": 1.2, "SPY": 4.0}
