@@ -19,6 +19,7 @@ COPY contracts/gen/go/ contracts/gen/go/
 COPY libs/go/ libs/go/
 COPY tools/tbctl/ tools/tbctl/
 COPY tests/e2e/ tests/e2e/
+COPY tests/paper/ tests/paper/
 COPY services/api-gateway/ services/api-gateway/
 COPY services/broker-gateway/ services/broker-gateway/
 COPY services/execution/ services/execution/
@@ -39,6 +40,7 @@ COPY apps/web/package.json apps/web/
 COPY contracts/gen/ts/package.json contracts/gen/ts/
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --filter "@strawberry/web..."
+COPY contracts/gen/ts/src/ contracts/gen/ts/src/
 COPY apps/web/ apps/web/
 RUN pnpm --filter @strawberry/web build
 

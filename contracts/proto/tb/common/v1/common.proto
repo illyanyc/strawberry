@@ -38,6 +38,15 @@ enum Side {
   SIDE_SELL_SHORT = 3;
 }
 
+// Horizon is a strategy's holding horizon; it drives account routing (D30, rule RM-011).
+enum Horizon {
+  HORIZON_UNSPECIFIED = 0;
+  // Flat by the close; routed to Alpaca by default.
+  HORIZON_INTRADAY = 1;
+  // Holds overnight (1–10 days); routed to the IBKR bot account by default.
+  HORIZON_SWING = 2;
+}
+
 enum Broker {
   BROKER_UNSPECIFIED = 0;
   BROKER_ALPACA = 1;

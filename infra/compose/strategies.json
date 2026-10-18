@@ -1,0 +1,23 @@
+{
+  "strategies": [
+    {
+      "strategy_id": "orb-15m",
+      "short_id": "orb15aa",
+      "name": "Opening-range breakout, 15-minute bars (Phase 2 baseline)",
+      "horizon": "intraday",
+      "broker_account_id": "sim-paper",
+      "mode": "paper",
+      "allocation": "10000",
+      "allow_short": false,
+      "segregation_allowlist": [],
+      "version": "1",
+      "limits": { "max_positions": "3", "max_daily_loss": "300", "max_order_notional": "5000" },
+      "runtime": {
+        "class": "orb",
+        "timeframe": "15m",
+        "instruments": [],
+        "params": { "opening_bars": 1, "risk_per_trade": "0.005", "target_r": "2", "stop_buffer_bps": "5", "exit_minutes_before_close": 15, "max_trades_per_day": 1 }
+      }
+    }
+  ]
+}

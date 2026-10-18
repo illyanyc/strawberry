@@ -28,6 +28,7 @@ Stack choices are accepted per [`docs/decisions.md`](docs/decisions.md) (researc
 | Ledger | `services/ledger/` | Real account snapshots, virtual strategy ledgers, `manual` bucket, lots, reconciliation | Go (D1); IBKR bot account + Alpaca symbol segregation (D19) |
 | Execution | `services/execution/` | Strategy runtime / signal intake, OMS state machine, pre-trade risk, kill switches, routing and margin guard | Go (D1); routing per D30 |
 | Context data | `services/context-data/` | News, sentiment, macro, earnings, regime series | Python |
+| Strategy runtime | `services/strategy-runtime/` | Runs `tbcore.strategy` strategies on final bars and publishes intents on `ord.intent` (never talks to brokers) | Python (D1, D44) |
 | ML | `services/ml/` | Training jobs, model zoo, inference | Python; MLflow 3 (D8), Optuna 5 (D9), LightGBM (D23); native launchd workers on macOS (D29) |
 | Backtest | `services/backtest/` | Vectorized + event-driven backtests, validation stats | Python, custom two-tier on `tbcore` (D7) |
 | Optimizer | `services/optimizer/` | Studies, search spaces, holdout discipline, champion/challenger | Python; honest-optimization policy (D31) |
@@ -71,6 +72,9 @@ Prerequisites: Docker (Colima on the Mac Mini, ADR-0013), `make`, `git`. Develop
 | `make lint` | buf lint + breaking, golangci-lint, ruff + mypy, tsc + eslint, docs gate |
 | `make test` | Go (`-race`), Python, and web unit tests |
 | `make test-integration` | Go tests including Postgres-backed integration tests (throwaway container) |
+| `make paper-ibkr` | D30 swing routing through the real IBKR adapter over its fake gateway (GTC protective stop, ledger booking) |
+| `make paper-gate` | Phase 2 gate: five simulated ORB sessions through the Python runtime, OMS, simulators, and ledger (writes `paper-gate-evidence.json`) |
+| `cd tests/paper && go test ./...` | Phase 2 Gate 2 scenarios on the in-process paper harness (simulators, ledger, execution, embedded NATS) |
 | `make smoke` | Smoke test of the running stack (readiness, auth gate, ports, e2e passkey flow with leak canary, Prometheus, audit chain) |
 | `make e2e` / `make e2e-ui` | Go API e2e / Playwright browser e2e against a fresh running stack |
 | `make migrate` | Roles, databases, schemas, migrations |

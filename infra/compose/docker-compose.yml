@@ -94,6 +94,8 @@ secrets:
   nats_marketdata_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_marketdata_password" }
   nats_execution_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_execution_password" }
   nats_ledger_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_ledger_password" }
+  nats_monitor_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_monitor_password" }
+  nats_strategy_runtime_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_strategy_runtime_password" }
   nats_ops_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_ops_password" }
   valkey_users_acl: { file: "${TB_SECRETS_DIR:-../../.secrets}/valkey_users.acl" }
   valkey_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/valkey_password" }
@@ -101,6 +103,7 @@ secrets:
   broker_kek: { file: "${TB_SECRETS_DIR:-../../.secrets}/broker_kek" }
   svc_api_gateway_ed25519: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_api_gateway_ed25519" }
   svc_api_gateway_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_api_gateway_ed25519.pub" }
+  svc_execution_ed25519: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_execution_ed25519" }
   svc_execution_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_execution_ed25519.pub" }
   svc_ledger_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_ledger_ed25519.pub" }
   svc_marketdata_ed25519: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_marketdata_ed25519" }
@@ -248,6 +251,8 @@ services:
       TB_ALPACA_DATA_RATE_PER_MIN: ${TB_ALPACA_DATA_RATE_PER_MIN:-8000}
       TB_SIM_ACCOUNTS: ${TB_SIM_ACCOUNTS:-sim-paper}
       TB_TRADING_LIVE_ENABLED: ${TB_TRADING_LIVE_ENABLED:-false}
+      # RM-017: cancel working platform orders 30 s after the last execution heartbeat.
+      TB_DEADMAN_TIMEOUT: ${TB_DEADMAN_TIMEOUT:-30s}
     secrets: [pg_svc_broker_gateway_password, broker_kek, nats_broker_gateway_password, svc_api_gateway_ed25519.pub,
               svc_execution_ed25519.pub, svc_ledger_ed25519.pub, svc_marketdata_ed25519.pub]
     networks: [backend, edge]
@@ -293,11 +298,26 @@ services:
     profiles: [core]
     image: strawberry/execution:${TB_VERSION:-dev}
     build: { <<: *go-build, args: { SERVICE: execution, VERSION: "${TB_VERSION:-dev}" } }
-    environment: { <<: *common-env, TB_SERVICE: execution, TB_NATS_USER: execution }
-    secrets: [nats_execution_password]
+    environment:
+      <<: *common-env
+      TB_SERVICE: execution
+      TB_NATS_USER: execution
+      TB_DB_USER: svc_execution
+      # Section 07 / D30: adapters (add broker-gateway-ibkr=broker-gateway-ibkr-paper:9090 with the
+      # ibkr profile), routing table, account policies, strategy registry seed.
+      TB_BROKER_ENDPOINTS: ${TB_BROKER_ENDPOINTS:-broker-gateway=broker-gateway:9090}
+      TB_LEDGER_ADDR: ledger:9090
+      TB_ROUTING: ${TB_ROUTING:-intraday=alpaca-paper|sim-paper;swing=ibkr-paper-bot}
+      TB_STRATEGY_REGISTRY: /etc/tb/strategies.json
+    secrets: [nats_execution_password, pg_svc_execution_password, svc_execution_ed25519, svc_api_gateway_ed25519.pub]
+    volumes: ["./strategies.json:/etc/tb/strategies.json:ro"]
     networks: [backend, edge]
     healthcheck: *go-healthcheck
-    depends_on: { bus-init: { condition: service_completed_successfully } }
+    depends_on:
+      db-init: { condition: service_completed_successfully }
+      bus-init: { condition: service_completed_successfully }
+      ledger: { condition: service_healthy }
+      broker-gateway: { condition: service_healthy }
     deploy: { resources: { limits: { memory: 256m } } }
 
   ledger:
@@ -305,11 +325,11 @@ services:
     profiles: [core]
     image: strawberry/ledger:${TB_VERSION:-dev}
     build: { <<: *go-build, args: { SERVICE: ledger, VERSION: "${TB_VERSION:-dev}" } }
-    environment: { <<: *common-env, TB_SERVICE: ledger, TB_NATS_USER: ledger }
-    secrets: [nats_ledger_password]
+    environment: { <<: *common-env, TB_SERVICE: ledger, TB_NATS_USER: ledger, TB_DB_USER: svc_ledger }
+    secrets: [nats_ledger_password, pg_svc_ledger_password, svc_api_gateway_ed25519.pub, svc_execution_ed25519.pub]
     networks: [backend]
     healthcheck: *go-healthcheck
-    depends_on: { bus-init: { condition: service_completed_successfully } }
+    depends_on: { db-init: { condition: service_completed_successfully }, bus-init: { condition: service_completed_successfully } }
     deploy: { resources: { limits: { memory: 256m } } }
 
   context-data:
@@ -322,12 +342,29 @@ services:
     healthcheck: *py-healthcheck
     deploy: { resources: { limits: { memory: 256m } } }
 
+  # Section 07 (ADR-0026): runs tbcore.strategy strategies from the registry seed on final bars and
+  # publishes intents on ord.intent. It never talks to brokers.
+  strategy-runtime:
+    <<: *hardening
+    profiles: [core]
+    image: strawberry/strategy-runtime:${TB_VERSION:-dev}
+    build: { <<: *py-build, args: { SERVICE: strategy-runtime } }
+    environment: { <<: *common-env, TB_SERVICE: strategy-runtime, TB_NATS_URL: "nats://nats:4222", TB_NATS_USER: strategy_runtime, TB_STRATEGY_REGISTRY: /etc/tb/strategies.json }
+    secrets: [nats_strategy_runtime_password]
+    volumes: ["./strategies.json:/etc/tb/strategies.json:ro"]
+    networks: [backend]
+    healthcheck: *py-healthcheck
+    depends_on: { bus-init: { condition: service_completed_successfully } }
+    deploy: { resources: { limits: { memory: 256m } } }
+
   monitor:
     <<: *hardening
     profiles: [core]
     image: strawberry/monitor:${TB_VERSION:-dev}
     build: { <<: *py-build, args: { SERVICE: monitor } }
-    environment: { <<: *common-env, TB_SERVICE: monitor }
+    depends_on: { bus-init: { condition: service_completed_successfully } }
+    environment: { <<: *common-env, TB_SERVICE: monitor, TB_NATS_URL: "nats://nats:4222", TB_NATS_USER: monitor, TB_ALERTMANAGER_URL: "http://alertmanager:9093" }
+    secrets: [nats_monitor_password]
     networks: [backend]
     healthcheck: *py-healthcheck
     deploy: { resources: { limits: { memory: 256m } } }

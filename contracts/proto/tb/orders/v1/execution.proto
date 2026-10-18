@@ -1,0 +1,375 @@
+syntax = "proto3";
+
+// ExecutionService is served by `execution` (section 07, ADR-0025): the OMS, the pre-trade risk
+// gate, strategy registry and modes, kill switches, and trading status. Rules OE-*, RM-*, SM-* in
+// docs/business-logic/.
+//
+// Callers (service tokens, per-method allowlist SE-040): api-gateway (UI and owner actions),
+// strategy-runtime publishes intents on the bus subject ord.intent instead of calling this service.
+// Owner actions that need step-up (RM-007) are authorized by api-gateway through policy.Authorize;
+// execution re-checks the caller and records the actor and step-up method in the audit log.
+package tb.orders.v1;
+
+import "tb/common/v1/common.proto";
+import "tb/orders/v1/orders.proto";
+
+service ExecutionService {
+  // Runs the pre-trade gate and, when approved, submits through the OMS. Idempotent on intent_id:
+  // a repeated intent returns the first decision (OE-006).
+  rpc SubmitIntent(SubmitIntentRequest) returns (SubmitIntentResponse);
+  // Dry run of the gate for the UI order ticket: no reservation, no order, no decision record.
+  rpc PreviewIntent(PreviewIntentRequest) returns (PreviewIntentResponse);
+  // Cancels every open order of one intent (platform orders only).
+  rpc CancelIntent(CancelIntentRequest) returns (CancelIntentResponse);
+  rpc ListOrders(ListOrdersRequest) returns (ListOrdersResponse);
+  rpc ListIntents(ListIntentsRequest) returns (ListIntentsResponse);
+  rpc ListFills(ListFillsRequest) returns (ListFillsResponse);
+  // Signal → intent → decision → orders → fills for one correlation ID (UI trace view).
+  rpc GetTrace(GetTraceRequest) returns (GetTraceResponse);
+  rpc ListStrategies(ListStrategiesRequest) returns (ListStrategiesResponse);
+  // Creates or updates a registry entry. New strategies always start `disabled` or `paper` (N4).
+  rpc RegisterStrategy(RegisterStrategyRequest) returns (RegisterStrategyResponse);
+  // disabled | shadow | paper only; live is set by the section 15 go-live flow (SM-004).
+  rpc SetStrategyMode(SetStrategyModeRequest) returns (SetStrategyModeResponse);
+  rpc GetRiskLimits(GetRiskLimitsRequest) returns (GetRiskLimitsResponse);
+  // Raising any limit needs step-up (RM-007), enforced by api-gateway and recorded here.
+  rpc SetRiskLimits(SetRiskLimitsRequest) returns (SetRiskLimitsResponse);
+  // Engage needs no step-up; it latches (RM-006).
+  rpc TriggerKillSwitch(TriggerKillSwitchRequest) returns (TriggerKillSwitchResponse);
+  // Release needs desktop step-up (RM-007, UI-012).
+  rpc ReleaseKillSwitch(ReleaseKillSwitchRequest) returns (ReleaseKillSwitchResponse);
+  rpc ListKillSwitches(ListKillSwitchesRequest) returns (ListKillSwitchesResponse);
+  rpc GetTradingStatus(GetTradingStatusRequest) returns (GetTradingStatusResponse);
+}
+
+// StrategyMode is a strategy's trading mode (SM-012). `live` is only reachable through section 15.
+enum StrategyMode {
+  STRATEGY_MODE_UNSPECIFIED = 0;
+  STRATEGY_MODE_DISABLED = 1;
+  // Runs and records intents and decisions; never submits (SM-013).
+  STRATEGY_MODE_SHADOW = 2;
+  STRATEGY_MODE_PAPER = 3;
+  STRATEGY_MODE_LIVE = 4;
+  // Automatically or manually stopped; re-enabling is a manual owner action (N4).
+  STRATEGY_MODE_HALTED = 5;
+}
+
+// RiskLimits are the configurable pre-trade limits for one scope (RM-003). Unset fields inherit the
+// next wider scope (strategy → account → global); the tightest applicable limit wins.
+message RiskLimits {
+  tb.common.v1.Decimal max_order_notional = 1;
+  tb.common.v1.Decimal max_order_qty = 2;
+  tb.common.v1.Decimal max_position_notional = 3;
+  // Fraction of the strategy allocation, e.g. "0.5".
+  tb.common.v1.Decimal max_position_pct_allocation = 4;
+  tb.common.v1.Decimal max_gross_exposure = 5;
+  tb.common.v1.Decimal max_net_exposure = 6;
+  int32 max_positions = 7;
+  // Fraction of the strategy's gross exposure in one instrument.
+  tb.common.v1.Decimal max_concentration_pct = 8;
+  // Realized + unrealized − fees for the session (positive number = loss limit, RM-005).
+  tb.common.v1.Decimal max_daily_loss = 9;
+  // Drawdown from the strategy equity high-water mark.
+  tb.common.v1.Decimal max_drawdown = 10;
+  int32 max_orders_per_minute = 11;
+  int32 max_cancels_per_minute = 12;
+  int32 max_consecutive_losses = 13;
+  // Limit price band around the last trade, fraction (e.g. "0.02").
+  tb.common.v1.Decimal price_collar_pct = 14;
+  int32 duplicate_window_seconds = 15;
+  // Reject when qty > multiple × the strategy's median recent order size.
+  tb.common.v1.Decimal fat_finger_multiple = 16;
+  int32 max_open_orders = 17;
+}
+
+message Strategy {
+  string strategy_id = 1;
+  // 6–8 lowercase alphanumerics used in attribution IDs (VP-002); "manual" is reserved.
+  string short_id = 2;
+  string name = 3;
+  tb.common.v1.Horizon horizon = 4;
+  StrategyMode mode = 5;
+  string broker_account_id = 6;
+  string version = 7;
+  string code_commit = 8;
+  string params_hash = 9;
+  // Shorting is allowed only in a dedicated account with no other owners (VP-005).
+  bool allow_short = 10;
+  // Instruments exempt from Alpaca symbol segregation (RM-014).
+  repeated string segregation_allowlist = 11;
+  RiskLimits limits = 12;
+  string mode_reason = 13;
+  int64 updated_at = 14;
+  // Hosted by the strategy runtime (dead-man watched, RM-017); false for UI/webhook owners.
+  bool runtime_hosted = 15;
+}
+
+message KillSwitch {
+  string event_id = 1;
+  KillSwitchScope scope = 2;
+  string target = 3;
+  KillSwitchAction action = 4;
+  string engaged_by = 5;
+  string reason = 6;
+  int64 engaged_at = 7;
+  bool latched = 8;
+  int64 released_at = 9;
+  string released_by = 10;
+  // Time from engagement until the last platform cancel was acknowledged (RM-006 target 2 s).
+  int64 cancel_completed_ns = 11;
+}
+
+// Halt blocks new intents for a strategy (optionally one instrument) until cleared: unknown order
+// state (OE-005), reconciliation breaks (VP-008), margin events (RM-013), dead-man (RM-017).
+message Halt {
+  string halt_id = 1;
+  string broker_account_id = 2;
+  string strategy_id = 3;
+  string instrument_id = 4;
+  string reason = 5;
+  int64 since = 6;
+  int64 cleared_at = 7;
+  string source = 8;
+}
+
+message IntentRecord {
+  OrderIntent intent = 1;
+  RiskDecision decision = 2;
+  // received | rejected | approved | shadow | submitted | done | failed
+  string state = 3;
+  int64 received_at = 4;
+}
+
+message Fill {
+  string broker_account_id = 1;
+  string broker_exec_id = 2;
+  string order_id = 3;
+  string intent_id = 4;
+  string strategy_id = 5;
+  string instrument_id = 6;
+  tb.common.v1.Side side = 7;
+  tb.common.v1.Decimal qty = 8;
+  tb.common.v1.Decimal price = 9;
+  tb.common.v1.Decimal fees = 10;
+  int64 event_time = 11;
+  string correlation_id = 12;
+  string client_order_id = 13;
+}
+
+message AccountTradingStatus {
+  string broker_account_id = 1;
+  // SESSION_STATE_* name from tb.broker.v1.SessionState.
+  string session_state = 2;
+  // RECONCILIATION_STATUS_* name, and whether it is fresh after the last reconnect (OE-008).
+  string reconciliation_status = 3;
+  bool reconciliation_fresh = 4;
+  bool intraday_margin_deficit = 5;
+  bool margin_call = 6;
+  int32 day_trade_count = 7;
+  // off | legacy (RM-008).
+  string pdt_guard = 8;
+  bool accepting_intents = 9;
+  repeated string blocked_reasons = 10;
+  // paper | live
+  string environment = 11;
+  tb.common.v1.Decimal margin_utilization = 12;
+}
+
+message StrategyTradingStatus {
+  string strategy_id = 1;
+  StrategyMode mode = 2;
+  bool accepting_intents = 3;
+  repeated string blocked_reasons = 4;
+  int64 last_heartbeat = 5;
+}
+
+message TradingStatus {
+  // running | frozen
+  string global_state = 1;
+  repeated AccountTradingStatus accounts = 2;
+  repeated StrategyTradingStatus strategies = 3;
+  repeated KillSwitch active_kill_switches = 4;
+  repeated Halt active_halts = 5;
+  int64 as_of = 6;
+  bool clock_ok = 7;
+  // Open platform orders (all accounts).
+  int32 open_orders = 8;
+  int64 runtime_last_heartbeat = 9;
+}
+
+// Actor is the authenticated principal behind an owner action, as established by api-gateway.
+message Actor {
+  // "owner", "service:<name>", "cli:ops".
+  string name = 1;
+  // passkey | totp | recovery | "" (no step-up).
+  string step_up_method = 2;
+  // True when the request came from a mobile client (UI-012: releases are desktop-only).
+  bool mobile = 3;
+  string ip = 4;
+  string device = 5;
+}
+
+message SubmitIntentRequest {
+  OrderIntent intent = 1;
+  Actor actor = 2;
+}
+
+message SubmitIntentResponse {
+  RiskDecision decision = 1;
+  repeated Order orders = 2;
+  // True when this intent_id was already processed (idempotent replay).
+  bool duplicate = 3;
+}
+
+message PreviewIntentRequest {
+  OrderIntent intent = 1;
+}
+
+message PreviewIntentResponse {
+  RiskDecision decision = 1;
+  tb.common.v1.Decimal estimated_notional = 2;
+  tb.common.v1.Decimal estimated_price = 3;
+  // Human-readable ownership note, e.g. "this order affects manual holdings" (UI-016).
+  string ownership_note = 4;
+}
+
+message CancelIntentRequest {
+  string intent_id = 1;
+  Actor actor = 2;
+}
+
+message CancelIntentResponse {
+  int32 canceled = 1;
+}
+
+message ListOrdersRequest {
+  string broker_account_id = 1;
+  string strategy_id = 2;
+  bool open_only = 3;
+  int64 since = 4;
+  int32 limit = 5;
+}
+
+message ListOrdersResponse {
+  repeated Order orders = 1;
+}
+
+message ListIntentsRequest {
+  string strategy_id = 1;
+  bool rejected_only = 2;
+  int64 since = 3;
+  int32 limit = 4;
+}
+
+message ListIntentsResponse {
+  repeated IntentRecord intents = 1;
+}
+
+message ListFillsRequest {
+  string broker_account_id = 1;
+  string strategy_id = 2;
+  int64 since = 3;
+  int32 limit = 4;
+}
+
+message ListFillsResponse {
+  repeated Fill fills = 1;
+}
+
+message GetTraceRequest {
+  string correlation_id = 1;
+}
+
+message GetTraceResponse {
+  repeated IntentRecord intents = 1;
+  repeated Order orders = 2;
+  repeated Fill fills = 3;
+}
+
+message ListStrategiesRequest {}
+
+message ListStrategiesResponse {
+  repeated Strategy strategies = 1;
+}
+
+message RegisterStrategyRequest {
+  Strategy strategy = 1;
+  Actor actor = 2;
+}
+
+message RegisterStrategyResponse {
+  Strategy strategy = 1;
+}
+
+message SetStrategyModeRequest {
+  string strategy_id = 1;
+  StrategyMode mode = 2;
+  string reason = 3;
+  Actor actor = 4;
+}
+
+message SetStrategyModeResponse {
+  Strategy strategy = 1;
+}
+
+message GetRiskLimitsRequest {
+  // "global", "account:<id>", "strategy:<id>", or "manual".
+  string scope = 1;
+}
+
+message GetRiskLimitsResponse {
+  string scope = 1;
+  RiskLimits limits = 2;
+  // Effective limits after inheritance.
+  RiskLimits effective = 3;
+}
+
+message SetRiskLimitsRequest {
+  string scope = 1;
+  RiskLimits limits = 2;
+  Actor actor = 3;
+}
+
+message SetRiskLimitsResponse {
+  RiskLimits limits = 1;
+  // True when any value was loosened (needs step-up, RM-007).
+  bool raised = 2;
+}
+
+message TriggerKillSwitchRequest {
+  KillSwitchScope scope = 1;
+  string target = 2;
+  KillSwitchAction action = 3;
+  string reason = 4;
+  Actor actor = 5;
+}
+
+message TriggerKillSwitchResponse {
+  KillSwitch kill_switch = 1;
+  int32 orders_canceled = 2;
+  int32 flatten_intents = 3;
+}
+
+message ReleaseKillSwitchRequest {
+  string event_id = 1;
+  string reason = 2;
+  Actor actor = 3;
+}
+
+message ReleaseKillSwitchResponse {
+  KillSwitch kill_switch = 1;
+}
+
+message ListKillSwitchesRequest {
+  bool active_only = 1;
+}
+
+message ListKillSwitchesResponse {
+  repeated KillSwitch kill_switches = 1;
+}
+
+message GetTradingStatusRequest {}
+
+message GetTradingStatusResponse {
+  TradingStatus status = 1;
+}

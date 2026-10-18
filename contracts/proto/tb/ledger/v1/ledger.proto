@@ -71,6 +71,63 @@ enum ReconciliationStatus {
   RECONCILIATION_STATUS_OK = 1;
   RECONCILIATION_STATUS_BREAK = 2;
   RECONCILIATION_STATUS_STALE = 3;
+  // Differences inside the timing grace window (VP-013); diff instruments are blocked, nothing
+  // else is.
+  RECONCILIATION_STATUS_PENDING = 4;
+}
+
+// BreakType classifies reconciliation breaks (VP-014).
+enum BreakType {
+  BREAK_TYPE_UNSPECIFIED = 0;
+  // Broker and ledger differ while an execution is plausibly in flight; auto-resolves in grace.
+  BREAK_TYPE_TIMING = 1;
+  // A manual sell exceeded the manual quantity and ate strategy-attributed shares (VP-016).
+  BREAK_TYPE_ENCROACHMENT = 2;
+  // A tb1- execution whose strategy short ID is unknown (VP-017).
+  BREAK_TYPE_UNKNOWN_EXECUTION = 3;
+  // Broker quantity changed with no execution to explain it (VP-018).
+  BREAK_TYPE_MISSING_EXECUTION = 4;
+  BREAK_TYPE_CORPORATE_ACTION = 5;
+  BREAK_TYPE_CASH_MISMATCH = 6;
+  // Open at the broker with a tb1- ID, unknown to the OMS (OE-019).
+  BREAK_TYPE_ORPHAN_ORDER = 7;
+  // Open in the OMS, unknown to the broker (OE-019).
+  BREAK_TYPE_GHOST_ORDER = 8;
+  // A strategy sold more than it owned (should be impossible after the gate; VP-004).
+  BREAK_TYPE_OVERSELL = 9;
+  // A broker position or execution that cannot be mapped to an instrument_id (VP-010).
+  BREAK_TYPE_UNMAPPED_INSTRUMENT = 10;
+}
+
+enum BreakStatus {
+  BREAK_STATUS_UNSPECIFIED = 0;
+  BREAK_STATUS_OPEN = 1;
+  BREAK_STATUS_AUTO_RESOLVED = 2;
+  BREAK_STATUS_RESOLVED = 3;
+}
+
+message Break {
+  string break_id = 1;
+  string broker_account_id = 2;
+  BreakType type = 3;
+  BreakStatus status = 4;
+  string instrument_id = 5;
+  string symbol = 6;
+  tb.common.v1.Decimal broker_qty = 7;
+  tb.common.v1.Decimal ledger_qty = 8;
+  repeated OwnerQty owner_breakdown = 9;
+  // Strategies halted for the instrument while the break is open (VP-008).
+  repeated string affected_owners = 10;
+  string detail = 11;
+  int64 detected_at = 12;
+  int64 resolved_at = 13;
+  string resolved_by = 14;
+  string resolution = 15;
+  // Resolution kinds the owner may choose (VP-019): accept | transfer_to_manual | rebaseline_cash.
+  repeated string suggested_resolutions = 16;
+  // critical breaks halt; warning breaks alert only.
+  string severity = 17;
+  string source_id = 18;
 }
 
 message OwnerQty {
@@ -100,4 +157,28 @@ message ReconciliationResult {
   int64 as_of = 2;
   ReconciliationStatus status = 3;
   repeated ReconciliationDiff diffs = 4;
+  // Open breaks after this run (VP-014).
+  repeated Break breaks = 5;
+  string correlation_id = 6;
+  tb.common.v1.Decimal broker_cash = 7;
+  tb.common.v1.Decimal ledger_cash = 8;
+  // as_of of the broker snapshot this run compared against.
+  int64 snapshot_as_of = 9;
+  // Strategy×instrument pairs blocked by open breaks, "strategy_id|instrument_id" (VP-008).
+  repeated string halted = 10;
+  int32 positions_compared = 11;
+  // Trigger: snapshot | reconnect | session_open | session_close | on_demand.
+  string trigger = 12;
+}
+
+// LedgerUpdate is published on ledger.update.<broker_account_id> after every applied event with the
+// owner positions it changed. Strategy runtimes filter it to their own owner (SM-014).
+message LedgerUpdate {
+  string broker_account_id = 1;
+  string event_id = 2;
+  // Source of the change: broker_exec_id, corporate action ID, or adjustment ID (VP-I3).
+  string source_id = 3;
+  repeated StrategyPosition positions = 4;
+  int64 as_of = 5;
+  string correlation_id = 6;
 }

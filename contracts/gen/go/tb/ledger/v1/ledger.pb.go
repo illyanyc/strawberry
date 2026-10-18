@@ -31,6 +31,9 @@ const (
 	ReconciliationStatus_RECONCILIATION_STATUS_OK          ReconciliationStatus = 1
 	ReconciliationStatus_RECONCILIATION_STATUS_BREAK       ReconciliationStatus = 2
 	ReconciliationStatus_RECONCILIATION_STATUS_STALE       ReconciliationStatus = 3
+	// Differences inside the timing grace window (VP-013); diff instruments are blocked, nothing
+	// else is.
+	ReconciliationStatus_RECONCILIATION_STATUS_PENDING ReconciliationStatus = 4
 )
 
 // Enum value maps for ReconciliationStatus.
@@ -40,12 +43,14 @@ var (
 		1: "RECONCILIATION_STATUS_OK",
 		2: "RECONCILIATION_STATUS_BREAK",
 		3: "RECONCILIATION_STATUS_STALE",
+		4: "RECONCILIATION_STATUS_PENDING",
 	}
 	ReconciliationStatus_value = map[string]int32{
 		"RECONCILIATION_STATUS_UNSPECIFIED": 0,
 		"RECONCILIATION_STATUS_OK":          1,
 		"RECONCILIATION_STATUS_BREAK":       2,
 		"RECONCILIATION_STATUS_STALE":       3,
+		"RECONCILIATION_STATUS_PENDING":     4,
 	}
 )
 
@@ -74,6 +79,140 @@ func (x ReconciliationStatus) Number() protoreflect.EnumNumber {
 // Deprecated: Use ReconciliationStatus.Descriptor instead.
 func (ReconciliationStatus) EnumDescriptor() ([]byte, []int) {
 	return file_tb_ledger_v1_ledger_proto_rawDescGZIP(), []int{0}
+}
+
+// BreakType classifies reconciliation breaks (VP-014).
+type BreakType int32
+
+const (
+	BreakType_BREAK_TYPE_UNSPECIFIED BreakType = 0
+	// Broker and ledger differ while an execution is plausibly in flight; auto-resolves in grace.
+	BreakType_BREAK_TYPE_TIMING BreakType = 1
+	// A manual sell exceeded the manual quantity and ate strategy-attributed shares (VP-016).
+	BreakType_BREAK_TYPE_ENCROACHMENT BreakType = 2
+	// A tb1- execution whose strategy short ID is unknown (VP-017).
+	BreakType_BREAK_TYPE_UNKNOWN_EXECUTION BreakType = 3
+	// Broker quantity changed with no execution to explain it (VP-018).
+	BreakType_BREAK_TYPE_MISSING_EXECUTION BreakType = 4
+	BreakType_BREAK_TYPE_CORPORATE_ACTION  BreakType = 5
+	BreakType_BREAK_TYPE_CASH_MISMATCH     BreakType = 6
+	// Open at the broker with a tb1- ID, unknown to the OMS (OE-019).
+	BreakType_BREAK_TYPE_ORPHAN_ORDER BreakType = 7
+	// Open in the OMS, unknown to the broker (OE-019).
+	BreakType_BREAK_TYPE_GHOST_ORDER BreakType = 8
+	// A strategy sold more than it owned (should be impossible after the gate; VP-004).
+	BreakType_BREAK_TYPE_OVERSELL BreakType = 9
+	// A broker position or execution that cannot be mapped to an instrument_id (VP-010).
+	BreakType_BREAK_TYPE_UNMAPPED_INSTRUMENT BreakType = 10
+)
+
+// Enum value maps for BreakType.
+var (
+	BreakType_name = map[int32]string{
+		0:  "BREAK_TYPE_UNSPECIFIED",
+		1:  "BREAK_TYPE_TIMING",
+		2:  "BREAK_TYPE_ENCROACHMENT",
+		3:  "BREAK_TYPE_UNKNOWN_EXECUTION",
+		4:  "BREAK_TYPE_MISSING_EXECUTION",
+		5:  "BREAK_TYPE_CORPORATE_ACTION",
+		6:  "BREAK_TYPE_CASH_MISMATCH",
+		7:  "BREAK_TYPE_ORPHAN_ORDER",
+		8:  "BREAK_TYPE_GHOST_ORDER",
+		9:  "BREAK_TYPE_OVERSELL",
+		10: "BREAK_TYPE_UNMAPPED_INSTRUMENT",
+	}
+	BreakType_value = map[string]int32{
+		"BREAK_TYPE_UNSPECIFIED":         0,
+		"BREAK_TYPE_TIMING":              1,
+		"BREAK_TYPE_ENCROACHMENT":        2,
+		"BREAK_TYPE_UNKNOWN_EXECUTION":   3,
+		"BREAK_TYPE_MISSING_EXECUTION":   4,
+		"BREAK_TYPE_CORPORATE_ACTION":    5,
+		"BREAK_TYPE_CASH_MISMATCH":       6,
+		"BREAK_TYPE_ORPHAN_ORDER":        7,
+		"BREAK_TYPE_GHOST_ORDER":         8,
+		"BREAK_TYPE_OVERSELL":            9,
+		"BREAK_TYPE_UNMAPPED_INSTRUMENT": 10,
+	}
+)
+
+func (x BreakType) Enum() *BreakType {
+	p := new(BreakType)
+	*p = x
+	return p
+}
+
+func (x BreakType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (BreakType) Descriptor() protoreflect.EnumDescriptor {
+	return file_tb_ledger_v1_ledger_proto_enumTypes[1].Descriptor()
+}
+
+func (BreakType) Type() protoreflect.EnumType {
+	return &file_tb_ledger_v1_ledger_proto_enumTypes[1]
+}
+
+func (x BreakType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use BreakType.Descriptor instead.
+func (BreakType) EnumDescriptor() ([]byte, []int) {
+	return file_tb_ledger_v1_ledger_proto_rawDescGZIP(), []int{1}
+}
+
+type BreakStatus int32
+
+const (
+	BreakStatus_BREAK_STATUS_UNSPECIFIED   BreakStatus = 0
+	BreakStatus_BREAK_STATUS_OPEN          BreakStatus = 1
+	BreakStatus_BREAK_STATUS_AUTO_RESOLVED BreakStatus = 2
+	BreakStatus_BREAK_STATUS_RESOLVED      BreakStatus = 3
+)
+
+// Enum value maps for BreakStatus.
+var (
+	BreakStatus_name = map[int32]string{
+		0: "BREAK_STATUS_UNSPECIFIED",
+		1: "BREAK_STATUS_OPEN",
+		2: "BREAK_STATUS_AUTO_RESOLVED",
+		3: "BREAK_STATUS_RESOLVED",
+	}
+	BreakStatus_value = map[string]int32{
+		"BREAK_STATUS_UNSPECIFIED":   0,
+		"BREAK_STATUS_OPEN":          1,
+		"BREAK_STATUS_AUTO_RESOLVED": 2,
+		"BREAK_STATUS_RESOLVED":      3,
+	}
+)
+
+func (x BreakStatus) Enum() *BreakStatus {
+	p := new(BreakStatus)
+	*p = x
+	return p
+}
+
+func (x BreakStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (BreakStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_tb_ledger_v1_ledger_proto_enumTypes[2].Descriptor()
+}
+
+func (BreakStatus) Type() protoreflect.EnumType {
+	return &file_tb_ledger_v1_ledger_proto_enumTypes[2]
+}
+
+func (x BreakStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use BreakStatus.Descriptor instead.
+func (BreakStatus) EnumDescriptor() ([]byte, []int) {
+	return file_tb_ledger_v1_ledger_proto_rawDescGZIP(), []int{2}
 }
 
 type Position struct {
@@ -563,6 +702,189 @@ func (x *LedgerEntry) GetRecordedAt() int64 {
 	return 0
 }
 
+type Break struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	BreakId         string                 `protobuf:"bytes,1,opt,name=break_id,json=breakId,proto3" json:"break_id,omitempty"`
+	BrokerAccountId string                 `protobuf:"bytes,2,opt,name=broker_account_id,json=brokerAccountId,proto3" json:"broker_account_id,omitempty"`
+	Type            BreakType              `protobuf:"varint,3,opt,name=type,proto3,enum=tb.ledger.v1.BreakType" json:"type,omitempty"`
+	Status          BreakStatus            `protobuf:"varint,4,opt,name=status,proto3,enum=tb.ledger.v1.BreakStatus" json:"status,omitempty"`
+	InstrumentId    string                 `protobuf:"bytes,5,opt,name=instrument_id,json=instrumentId,proto3" json:"instrument_id,omitempty"`
+	Symbol          string                 `protobuf:"bytes,6,opt,name=symbol,proto3" json:"symbol,omitempty"`
+	BrokerQty       *v1.Decimal            `protobuf:"bytes,7,opt,name=broker_qty,json=brokerQty,proto3" json:"broker_qty,omitempty"`
+	LedgerQty       *v1.Decimal            `protobuf:"bytes,8,opt,name=ledger_qty,json=ledgerQty,proto3" json:"ledger_qty,omitempty"`
+	OwnerBreakdown  []*OwnerQty            `protobuf:"bytes,9,rep,name=owner_breakdown,json=ownerBreakdown,proto3" json:"owner_breakdown,omitempty"`
+	// Strategies halted for the instrument while the break is open (VP-008).
+	AffectedOwners []string `protobuf:"bytes,10,rep,name=affected_owners,json=affectedOwners,proto3" json:"affected_owners,omitempty"`
+	Detail         string   `protobuf:"bytes,11,opt,name=detail,proto3" json:"detail,omitempty"`
+	DetectedAt     int64    `protobuf:"varint,12,opt,name=detected_at,json=detectedAt,proto3" json:"detected_at,omitempty"`
+	ResolvedAt     int64    `protobuf:"varint,13,opt,name=resolved_at,json=resolvedAt,proto3" json:"resolved_at,omitempty"`
+	ResolvedBy     string   `protobuf:"bytes,14,opt,name=resolved_by,json=resolvedBy,proto3" json:"resolved_by,omitempty"`
+	Resolution     string   `protobuf:"bytes,15,opt,name=resolution,proto3" json:"resolution,omitempty"`
+	// Resolution kinds the owner may choose (VP-019): accept | transfer_to_manual | rebaseline_cash.
+	SuggestedResolutions []string `protobuf:"bytes,16,rep,name=suggested_resolutions,json=suggestedResolutions,proto3" json:"suggested_resolutions,omitempty"`
+	// critical breaks halt; warning breaks alert only.
+	Severity      string `protobuf:"bytes,17,opt,name=severity,proto3" json:"severity,omitempty"`
+	SourceId      string `protobuf:"bytes,18,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Break) Reset() {
+	*x = Break{}
+	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Break) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Break) ProtoMessage() {}
+
+func (x *Break) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Break.ProtoReflect.Descriptor instead.
+func (*Break) Descriptor() ([]byte, []int) {
+	return file_tb_ledger_v1_ledger_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Break) GetBreakId() string {
+	if x != nil {
+		return x.BreakId
+	}
+	return ""
+}
+
+func (x *Break) GetBrokerAccountId() string {
+	if x != nil {
+		return x.BrokerAccountId
+	}
+	return ""
+}
+
+func (x *Break) GetType() BreakType {
+	if x != nil {
+		return x.Type
+	}
+	return BreakType_BREAK_TYPE_UNSPECIFIED
+}
+
+func (x *Break) GetStatus() BreakStatus {
+	if x != nil {
+		return x.Status
+	}
+	return BreakStatus_BREAK_STATUS_UNSPECIFIED
+}
+
+func (x *Break) GetInstrumentId() string {
+	if x != nil {
+		return x.InstrumentId
+	}
+	return ""
+}
+
+func (x *Break) GetSymbol() string {
+	if x != nil {
+		return x.Symbol
+	}
+	return ""
+}
+
+func (x *Break) GetBrokerQty() *v1.Decimal {
+	if x != nil {
+		return x.BrokerQty
+	}
+	return nil
+}
+
+func (x *Break) GetLedgerQty() *v1.Decimal {
+	if x != nil {
+		return x.LedgerQty
+	}
+	return nil
+}
+
+func (x *Break) GetOwnerBreakdown() []*OwnerQty {
+	if x != nil {
+		return x.OwnerBreakdown
+	}
+	return nil
+}
+
+func (x *Break) GetAffectedOwners() []string {
+	if x != nil {
+		return x.AffectedOwners
+	}
+	return nil
+}
+
+func (x *Break) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
+func (x *Break) GetDetectedAt() int64 {
+	if x != nil {
+		return x.DetectedAt
+	}
+	return 0
+}
+
+func (x *Break) GetResolvedAt() int64 {
+	if x != nil {
+		return x.ResolvedAt
+	}
+	return 0
+}
+
+func (x *Break) GetResolvedBy() string {
+	if x != nil {
+		return x.ResolvedBy
+	}
+	return ""
+}
+
+func (x *Break) GetResolution() string {
+	if x != nil {
+		return x.Resolution
+	}
+	return ""
+}
+
+func (x *Break) GetSuggestedResolutions() []string {
+	if x != nil {
+		return x.SuggestedResolutions
+	}
+	return nil
+}
+
+func (x *Break) GetSeverity() string {
+	if x != nil {
+		return x.Severity
+	}
+	return ""
+}
+
+func (x *Break) GetSourceId() string {
+	if x != nil {
+		return x.SourceId
+	}
+	return ""
+}
+
 type OwnerQty struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Owner         string                 `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
@@ -573,7 +895,7 @@ type OwnerQty struct {
 
 func (x *OwnerQty) Reset() {
 	*x = OwnerQty{}
-	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[4]
+	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -585,7 +907,7 @@ func (x *OwnerQty) String() string {
 func (*OwnerQty) ProtoMessage() {}
 
 func (x *OwnerQty) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[4]
+	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -598,7 +920,7 @@ func (x *OwnerQty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OwnerQty.ProtoReflect.Descriptor instead.
 func (*OwnerQty) Descriptor() ([]byte, []int) {
-	return file_tb_ledger_v1_ledger_proto_rawDescGZIP(), []int{4}
+	return file_tb_ledger_v1_ledger_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *OwnerQty) GetOwner() string {
@@ -627,7 +949,7 @@ type ReconciliationDiff struct {
 
 func (x *ReconciliationDiff) Reset() {
 	*x = ReconciliationDiff{}
-	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[5]
+	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -639,7 +961,7 @@ func (x *ReconciliationDiff) String() string {
 func (*ReconciliationDiff) ProtoMessage() {}
 
 func (x *ReconciliationDiff) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[5]
+	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -652,7 +974,7 @@ func (x *ReconciliationDiff) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReconciliationDiff.ProtoReflect.Descriptor instead.
 func (*ReconciliationDiff) Descriptor() ([]byte, []int) {
-	return file_tb_ledger_v1_ledger_proto_rawDescGZIP(), []int{5}
+	return file_tb_ledger_v1_ledger_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ReconciliationDiff) GetInstrumentId() string {
@@ -698,7 +1020,7 @@ type ReconciliationRequest struct {
 
 func (x *ReconciliationRequest) Reset() {
 	*x = ReconciliationRequest{}
-	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[6]
+	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -710,7 +1032,7 @@ func (x *ReconciliationRequest) String() string {
 func (*ReconciliationRequest) ProtoMessage() {}
 
 func (x *ReconciliationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[6]
+	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -723,7 +1045,7 @@ func (x *ReconciliationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReconciliationRequest.ProtoReflect.Descriptor instead.
 func (*ReconciliationRequest) Descriptor() ([]byte, []int) {
-	return file_tb_ledger_v1_ledger_proto_rawDescGZIP(), []int{6}
+	return file_tb_ledger_v1_ledger_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ReconciliationRequest) GetBrokerAccountId() string {
@@ -760,13 +1082,25 @@ type ReconciliationResult struct {
 	AsOf            int64                  `protobuf:"varint,2,opt,name=as_of,json=asOf,proto3" json:"as_of,omitempty"`
 	Status          ReconciliationStatus   `protobuf:"varint,3,opt,name=status,proto3,enum=tb.ledger.v1.ReconciliationStatus" json:"status,omitempty"`
 	Diffs           []*ReconciliationDiff  `protobuf:"bytes,4,rep,name=diffs,proto3" json:"diffs,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// Open breaks after this run (VP-014).
+	Breaks        []*Break    `protobuf:"bytes,5,rep,name=breaks,proto3" json:"breaks,omitempty"`
+	CorrelationId string      `protobuf:"bytes,6,opt,name=correlation_id,json=correlationId,proto3" json:"correlation_id,omitempty"`
+	BrokerCash    *v1.Decimal `protobuf:"bytes,7,opt,name=broker_cash,json=brokerCash,proto3" json:"broker_cash,omitempty"`
+	LedgerCash    *v1.Decimal `protobuf:"bytes,8,opt,name=ledger_cash,json=ledgerCash,proto3" json:"ledger_cash,omitempty"`
+	// as_of of the broker snapshot this run compared against.
+	SnapshotAsOf int64 `protobuf:"varint,9,opt,name=snapshot_as_of,json=snapshotAsOf,proto3" json:"snapshot_as_of,omitempty"`
+	// Strategy×instrument pairs blocked by open breaks, "strategy_id|instrument_id" (VP-008).
+	Halted            []string `protobuf:"bytes,10,rep,name=halted,proto3" json:"halted,omitempty"`
+	PositionsCompared int32    `protobuf:"varint,11,opt,name=positions_compared,json=positionsCompared,proto3" json:"positions_compared,omitempty"`
+	// Trigger: snapshot | reconnect | session_open | session_close | on_demand.
+	Trigger       string `protobuf:"bytes,12,opt,name=trigger,proto3" json:"trigger,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ReconciliationResult) Reset() {
 	*x = ReconciliationResult{}
-	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[7]
+	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -778,7 +1112,7 @@ func (x *ReconciliationResult) String() string {
 func (*ReconciliationResult) ProtoMessage() {}
 
 func (x *ReconciliationResult) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[7]
+	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -791,7 +1125,7 @@ func (x *ReconciliationResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReconciliationResult.ProtoReflect.Descriptor instead.
 func (*ReconciliationResult) Descriptor() ([]byte, []int) {
-	return file_tb_ledger_v1_ledger_proto_rawDescGZIP(), []int{7}
+	return file_tb_ledger_v1_ledger_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ReconciliationResult) GetBrokerAccountId() string {
@@ -820,6 +1154,149 @@ func (x *ReconciliationResult) GetDiffs() []*ReconciliationDiff {
 		return x.Diffs
 	}
 	return nil
+}
+
+func (x *ReconciliationResult) GetBreaks() []*Break {
+	if x != nil {
+		return x.Breaks
+	}
+	return nil
+}
+
+func (x *ReconciliationResult) GetCorrelationId() string {
+	if x != nil {
+		return x.CorrelationId
+	}
+	return ""
+}
+
+func (x *ReconciliationResult) GetBrokerCash() *v1.Decimal {
+	if x != nil {
+		return x.BrokerCash
+	}
+	return nil
+}
+
+func (x *ReconciliationResult) GetLedgerCash() *v1.Decimal {
+	if x != nil {
+		return x.LedgerCash
+	}
+	return nil
+}
+
+func (x *ReconciliationResult) GetSnapshotAsOf() int64 {
+	if x != nil {
+		return x.SnapshotAsOf
+	}
+	return 0
+}
+
+func (x *ReconciliationResult) GetHalted() []string {
+	if x != nil {
+		return x.Halted
+	}
+	return nil
+}
+
+func (x *ReconciliationResult) GetPositionsCompared() int32 {
+	if x != nil {
+		return x.PositionsCompared
+	}
+	return 0
+}
+
+func (x *ReconciliationResult) GetTrigger() string {
+	if x != nil {
+		return x.Trigger
+	}
+	return ""
+}
+
+// LedgerUpdate is published on ledger.update.<broker_account_id> after every applied event with the
+// owner positions it changed. Strategy runtimes filter it to their own owner (SM-014).
+type LedgerUpdate struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	BrokerAccountId string                 `protobuf:"bytes,1,opt,name=broker_account_id,json=brokerAccountId,proto3" json:"broker_account_id,omitempty"`
+	EventId         string                 `protobuf:"bytes,2,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
+	// Source of the change: broker_exec_id, corporate action ID, or adjustment ID (VP-I3).
+	SourceId      string              `protobuf:"bytes,3,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
+	Positions     []*StrategyPosition `protobuf:"bytes,4,rep,name=positions,proto3" json:"positions,omitempty"`
+	AsOf          int64               `protobuf:"varint,5,opt,name=as_of,json=asOf,proto3" json:"as_of,omitempty"`
+	CorrelationId string              `protobuf:"bytes,6,opt,name=correlation_id,json=correlationId,proto3" json:"correlation_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LedgerUpdate) Reset() {
+	*x = LedgerUpdate{}
+	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LedgerUpdate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LedgerUpdate) ProtoMessage() {}
+
+func (x *LedgerUpdate) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_ledger_v1_ledger_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LedgerUpdate.ProtoReflect.Descriptor instead.
+func (*LedgerUpdate) Descriptor() ([]byte, []int) {
+	return file_tb_ledger_v1_ledger_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *LedgerUpdate) GetBrokerAccountId() string {
+	if x != nil {
+		return x.BrokerAccountId
+	}
+	return ""
+}
+
+func (x *LedgerUpdate) GetEventId() string {
+	if x != nil {
+		return x.EventId
+	}
+	return ""
+}
+
+func (x *LedgerUpdate) GetSourceId() string {
+	if x != nil {
+		return x.SourceId
+	}
+	return ""
+}
+
+func (x *LedgerUpdate) GetPositions() []*StrategyPosition {
+	if x != nil {
+		return x.Positions
+	}
+	return nil
+}
+
+func (x *LedgerUpdate) GetAsOf() int64 {
+	if x != nil {
+		return x.AsOf
+	}
+	return 0
+}
+
+func (x *LedgerUpdate) GetCorrelationId() string {
+	if x != nil {
+		return x.CorrelationId
+	}
+	return ""
 }
 
 var File_tb_ledger_v1_ledger_proto protoreflect.FileDescriptor
@@ -877,7 +1354,34 @@ const file_tb_ledger_v1_ledger_proto_rawDesc = "" +
 	"\x0esource_exec_id\x18\t \x01(\tR\fsourceExecId\x12\x1f\n" +
 	"\vrecorded_at\x18\n" +
 	" \x01(\x03R\n" +
-	"recordedAt\"I\n" +
+	"recordedAt\"\xca\x05\n" +
+	"\x05Break\x12\x19\n" +
+	"\bbreak_id\x18\x01 \x01(\tR\abreakId\x12*\n" +
+	"\x11broker_account_id\x18\x02 \x01(\tR\x0fbrokerAccountId\x12+\n" +
+	"\x04type\x18\x03 \x01(\x0e2\x17.tb.ledger.v1.BreakTypeR\x04type\x121\n" +
+	"\x06status\x18\x04 \x01(\x0e2\x19.tb.ledger.v1.BreakStatusR\x06status\x12#\n" +
+	"\rinstrument_id\x18\x05 \x01(\tR\finstrumentId\x12\x16\n" +
+	"\x06symbol\x18\x06 \x01(\tR\x06symbol\x124\n" +
+	"\n" +
+	"broker_qty\x18\a \x01(\v2\x15.tb.common.v1.DecimalR\tbrokerQty\x124\n" +
+	"\n" +
+	"ledger_qty\x18\b \x01(\v2\x15.tb.common.v1.DecimalR\tledgerQty\x12?\n" +
+	"\x0fowner_breakdown\x18\t \x03(\v2\x16.tb.ledger.v1.OwnerQtyR\x0eownerBreakdown\x12'\n" +
+	"\x0faffected_owners\x18\n" +
+	" \x03(\tR\x0eaffectedOwners\x12\x16\n" +
+	"\x06detail\x18\v \x01(\tR\x06detail\x12\x1f\n" +
+	"\vdetected_at\x18\f \x01(\x03R\n" +
+	"detectedAt\x12\x1f\n" +
+	"\vresolved_at\x18\r \x01(\x03R\n" +
+	"resolvedAt\x12\x1f\n" +
+	"\vresolved_by\x18\x0e \x01(\tR\n" +
+	"resolvedBy\x12\x1e\n" +
+	"\n" +
+	"resolution\x18\x0f \x01(\tR\n" +
+	"resolution\x123\n" +
+	"\x15suggested_resolutions\x18\x10 \x03(\tR\x14suggestedResolutions\x12\x1a\n" +
+	"\bseverity\x18\x11 \x01(\tR\bseverity\x12\x1b\n" +
+	"\tsource_id\x18\x12 \x01(\tR\bsourceId\"I\n" +
 	"\bOwnerQty\x12\x14\n" +
 	"\x05owner\x18\x01 \x01(\tR\x05owner\x12'\n" +
 	"\x03qty\x18\x02 \x01(\v2\x15.tb.common.v1.DecimalR\x03qty\"\xe6\x01\n" +
@@ -892,17 +1396,54 @@ const file_tb_ledger_v1_ledger_proto_rawDesc = "" +
 	"\x11broker_account_id\x18\x01 \x01(\tR\x0fbrokerAccountId\x12\x16\n" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\x12!\n" +
 	"\frequested_at\x18\x03 \x01(\x03R\vrequestedAt\x12%\n" +
-	"\x0ecorrelation_id\x18\x04 \x01(\tR\rcorrelationId\"\xcb\x01\n" +
+	"\x0ecorrelation_id\x18\x04 \x01(\tR\rcorrelationId\"\x96\x04\n" +
 	"\x14ReconciliationResult\x12*\n" +
 	"\x11broker_account_id\x18\x01 \x01(\tR\x0fbrokerAccountId\x12\x13\n" +
 	"\x05as_of\x18\x02 \x01(\x03R\x04asOf\x12:\n" +
 	"\x06status\x18\x03 \x01(\x0e2\".tb.ledger.v1.ReconciliationStatusR\x06status\x126\n" +
-	"\x05diffs\x18\x04 \x03(\v2 .tb.ledger.v1.ReconciliationDiffR\x05diffs*\x9d\x01\n" +
+	"\x05diffs\x18\x04 \x03(\v2 .tb.ledger.v1.ReconciliationDiffR\x05diffs\x12+\n" +
+	"\x06breaks\x18\x05 \x03(\v2\x13.tb.ledger.v1.BreakR\x06breaks\x12%\n" +
+	"\x0ecorrelation_id\x18\x06 \x01(\tR\rcorrelationId\x126\n" +
+	"\vbroker_cash\x18\a \x01(\v2\x15.tb.common.v1.DecimalR\n" +
+	"brokerCash\x126\n" +
+	"\vledger_cash\x18\b \x01(\v2\x15.tb.common.v1.DecimalR\n" +
+	"ledgerCash\x12$\n" +
+	"\x0esnapshot_as_of\x18\t \x01(\x03R\fsnapshotAsOf\x12\x16\n" +
+	"\x06halted\x18\n" +
+	" \x03(\tR\x06halted\x12-\n" +
+	"\x12positions_compared\x18\v \x01(\x05R\x11positionsCompared\x12\x18\n" +
+	"\atrigger\x18\f \x01(\tR\atrigger\"\xec\x01\n" +
+	"\fLedgerUpdate\x12*\n" +
+	"\x11broker_account_id\x18\x01 \x01(\tR\x0fbrokerAccountId\x12\x19\n" +
+	"\bevent_id\x18\x02 \x01(\tR\aeventId\x12\x1b\n" +
+	"\tsource_id\x18\x03 \x01(\tR\bsourceId\x12<\n" +
+	"\tpositions\x18\x04 \x03(\v2\x1e.tb.ledger.v1.StrategyPositionR\tpositions\x12\x13\n" +
+	"\x05as_of\x18\x05 \x01(\x03R\x04asOf\x12%\n" +
+	"\x0ecorrelation_id\x18\x06 \x01(\tR\rcorrelationId*\xc0\x01\n" +
 	"\x14ReconciliationStatus\x12%\n" +
 	"!RECONCILIATION_STATUS_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18RECONCILIATION_STATUS_OK\x10\x01\x12\x1f\n" +
 	"\x1bRECONCILIATION_STATUS_BREAK\x10\x02\x12\x1f\n" +
-	"\x1bRECONCILIATION_STATUS_STALE\x10\x03B\xb8\x01\n" +
+	"\x1bRECONCILIATION_STATUS_STALE\x10\x03\x12!\n" +
+	"\x1dRECONCILIATION_STATUS_PENDING\x10\x04*\xd4\x02\n" +
+	"\tBreakType\x12\x1a\n" +
+	"\x16BREAK_TYPE_UNSPECIFIED\x10\x00\x12\x15\n" +
+	"\x11BREAK_TYPE_TIMING\x10\x01\x12\x1b\n" +
+	"\x17BREAK_TYPE_ENCROACHMENT\x10\x02\x12 \n" +
+	"\x1cBREAK_TYPE_UNKNOWN_EXECUTION\x10\x03\x12 \n" +
+	"\x1cBREAK_TYPE_MISSING_EXECUTION\x10\x04\x12\x1f\n" +
+	"\x1bBREAK_TYPE_CORPORATE_ACTION\x10\x05\x12\x1c\n" +
+	"\x18BREAK_TYPE_CASH_MISMATCH\x10\x06\x12\x1b\n" +
+	"\x17BREAK_TYPE_ORPHAN_ORDER\x10\a\x12\x1a\n" +
+	"\x16BREAK_TYPE_GHOST_ORDER\x10\b\x12\x17\n" +
+	"\x13BREAK_TYPE_OVERSELL\x10\t\x12\"\n" +
+	"\x1eBREAK_TYPE_UNMAPPED_INSTRUMENT\x10\n" +
+	"*}\n" +
+	"\vBreakStatus\x12\x1c\n" +
+	"\x18BREAK_STATUS_UNSPECIFIED\x10\x00\x12\x15\n" +
+	"\x11BREAK_STATUS_OPEN\x10\x01\x12\x1e\n" +
+	"\x1aBREAK_STATUS_AUTO_RESOLVED\x10\x02\x12\x19\n" +
+	"\x15BREAK_STATUS_RESOLVED\x10\x03B\xb8\x01\n" +
 	"\x10com.tb.ledger.v1B\vLedgerProtoP\x01ZEgithub.com/illyanyc/strawberry/contracts/gen/go/tb/ledger/v1;ledgerv1\xa2\x02\x03TLX\xaa\x02\fTb.Ledger.V1\xca\x02\fTb\\Ledger\\V1\xe2\x02\x18Tb\\Ledger\\V1\\GPBMetadata\xea\x02\x0eTb::Ledger::V1b\x06proto3"
 
 var (
@@ -917,53 +1458,66 @@ func file_tb_ledger_v1_ledger_proto_rawDescGZIP() []byte {
 	return file_tb_ledger_v1_ledger_proto_rawDescData
 }
 
-var file_tb_ledger_v1_ledger_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_tb_ledger_v1_ledger_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_tb_ledger_v1_ledger_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_tb_ledger_v1_ledger_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_tb_ledger_v1_ledger_proto_goTypes = []any{
 	(ReconciliationStatus)(0),     // 0: tb.ledger.v1.ReconciliationStatus
-	(*Position)(nil),              // 1: tb.ledger.v1.Position
-	(*AccountSnapshot)(nil),       // 2: tb.ledger.v1.AccountSnapshot
-	(*StrategyPosition)(nil),      // 3: tb.ledger.v1.StrategyPosition
-	(*LedgerEntry)(nil),           // 4: tb.ledger.v1.LedgerEntry
-	(*OwnerQty)(nil),              // 5: tb.ledger.v1.OwnerQty
-	(*ReconciliationDiff)(nil),    // 6: tb.ledger.v1.ReconciliationDiff
-	(*ReconciliationRequest)(nil), // 7: tb.ledger.v1.ReconciliationRequest
-	(*ReconciliationResult)(nil),  // 8: tb.ledger.v1.ReconciliationResult
-	(*v1.Decimal)(nil),            // 9: tb.common.v1.Decimal
-	(v1.Broker)(0),                // 10: tb.common.v1.Broker
-	(v1.Mode)(0),                  // 11: tb.common.v1.Mode
+	(BreakType)(0),                // 1: tb.ledger.v1.BreakType
+	(BreakStatus)(0),              // 2: tb.ledger.v1.BreakStatus
+	(*Position)(nil),              // 3: tb.ledger.v1.Position
+	(*AccountSnapshot)(nil),       // 4: tb.ledger.v1.AccountSnapshot
+	(*StrategyPosition)(nil),      // 5: tb.ledger.v1.StrategyPosition
+	(*LedgerEntry)(nil),           // 6: tb.ledger.v1.LedgerEntry
+	(*Break)(nil),                 // 7: tb.ledger.v1.Break
+	(*OwnerQty)(nil),              // 8: tb.ledger.v1.OwnerQty
+	(*ReconciliationDiff)(nil),    // 9: tb.ledger.v1.ReconciliationDiff
+	(*ReconciliationRequest)(nil), // 10: tb.ledger.v1.ReconciliationRequest
+	(*ReconciliationResult)(nil),  // 11: tb.ledger.v1.ReconciliationResult
+	(*LedgerUpdate)(nil),          // 12: tb.ledger.v1.LedgerUpdate
+	(*v1.Decimal)(nil),            // 13: tb.common.v1.Decimal
+	(v1.Broker)(0),                // 14: tb.common.v1.Broker
+	(v1.Mode)(0),                  // 15: tb.common.v1.Mode
 }
 var file_tb_ledger_v1_ledger_proto_depIdxs = []int32{
-	9,  // 0: tb.ledger.v1.Position.qty:type_name -> tb.common.v1.Decimal
-	9,  // 1: tb.ledger.v1.Position.avg_cost:type_name -> tb.common.v1.Decimal
-	9,  // 2: tb.ledger.v1.Position.market_value:type_name -> tb.common.v1.Decimal
-	10, // 3: tb.ledger.v1.AccountSnapshot.broker:type_name -> tb.common.v1.Broker
-	11, // 4: tb.ledger.v1.AccountSnapshot.mode:type_name -> tb.common.v1.Mode
-	9,  // 5: tb.ledger.v1.AccountSnapshot.cash:type_name -> tb.common.v1.Decimal
-	9,  // 6: tb.ledger.v1.AccountSnapshot.buying_power:type_name -> tb.common.v1.Decimal
-	9,  // 7: tb.ledger.v1.AccountSnapshot.equity:type_name -> tb.common.v1.Decimal
-	1,  // 8: tb.ledger.v1.AccountSnapshot.positions:type_name -> tb.ledger.v1.Position
-	9,  // 9: tb.ledger.v1.AccountSnapshot.initial_margin:type_name -> tb.common.v1.Decimal
-	9,  // 10: tb.ledger.v1.AccountSnapshot.maintenance_margin:type_name -> tb.common.v1.Decimal
-	9,  // 11: tb.ledger.v1.AccountSnapshot.long_market_value:type_name -> tb.common.v1.Decimal
-	9,  // 12: tb.ledger.v1.AccountSnapshot.short_market_value:type_name -> tb.common.v1.Decimal
-	9,  // 13: tb.ledger.v1.StrategyPosition.qty:type_name -> tb.common.v1.Decimal
-	9,  // 14: tb.ledger.v1.StrategyPosition.cost_basis:type_name -> tb.common.v1.Decimal
-	9,  // 15: tb.ledger.v1.StrategyPosition.realized_pnl:type_name -> tb.common.v1.Decimal
-	9,  // 16: tb.ledger.v1.LedgerEntry.qty:type_name -> tb.common.v1.Decimal
-	9,  // 17: tb.ledger.v1.LedgerEntry.cost:type_name -> tb.common.v1.Decimal
-	9,  // 18: tb.ledger.v1.LedgerEntry.realized_pnl:type_name -> tb.common.v1.Decimal
-	9,  // 19: tb.ledger.v1.OwnerQty.qty:type_name -> tb.common.v1.Decimal
-	9,  // 20: tb.ledger.v1.ReconciliationDiff.broker_qty:type_name -> tb.common.v1.Decimal
-	9,  // 21: tb.ledger.v1.ReconciliationDiff.ledger_qty:type_name -> tb.common.v1.Decimal
-	5,  // 22: tb.ledger.v1.ReconciliationDiff.owner_breakdown:type_name -> tb.ledger.v1.OwnerQty
-	0,  // 23: tb.ledger.v1.ReconciliationResult.status:type_name -> tb.ledger.v1.ReconciliationStatus
-	6,  // 24: tb.ledger.v1.ReconciliationResult.diffs:type_name -> tb.ledger.v1.ReconciliationDiff
-	25, // [25:25] is the sub-list for method output_type
-	25, // [25:25] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	13, // 0: tb.ledger.v1.Position.qty:type_name -> tb.common.v1.Decimal
+	13, // 1: tb.ledger.v1.Position.avg_cost:type_name -> tb.common.v1.Decimal
+	13, // 2: tb.ledger.v1.Position.market_value:type_name -> tb.common.v1.Decimal
+	14, // 3: tb.ledger.v1.AccountSnapshot.broker:type_name -> tb.common.v1.Broker
+	15, // 4: tb.ledger.v1.AccountSnapshot.mode:type_name -> tb.common.v1.Mode
+	13, // 5: tb.ledger.v1.AccountSnapshot.cash:type_name -> tb.common.v1.Decimal
+	13, // 6: tb.ledger.v1.AccountSnapshot.buying_power:type_name -> tb.common.v1.Decimal
+	13, // 7: tb.ledger.v1.AccountSnapshot.equity:type_name -> tb.common.v1.Decimal
+	3,  // 8: tb.ledger.v1.AccountSnapshot.positions:type_name -> tb.ledger.v1.Position
+	13, // 9: tb.ledger.v1.AccountSnapshot.initial_margin:type_name -> tb.common.v1.Decimal
+	13, // 10: tb.ledger.v1.AccountSnapshot.maintenance_margin:type_name -> tb.common.v1.Decimal
+	13, // 11: tb.ledger.v1.AccountSnapshot.long_market_value:type_name -> tb.common.v1.Decimal
+	13, // 12: tb.ledger.v1.AccountSnapshot.short_market_value:type_name -> tb.common.v1.Decimal
+	13, // 13: tb.ledger.v1.StrategyPosition.qty:type_name -> tb.common.v1.Decimal
+	13, // 14: tb.ledger.v1.StrategyPosition.cost_basis:type_name -> tb.common.v1.Decimal
+	13, // 15: tb.ledger.v1.StrategyPosition.realized_pnl:type_name -> tb.common.v1.Decimal
+	13, // 16: tb.ledger.v1.LedgerEntry.qty:type_name -> tb.common.v1.Decimal
+	13, // 17: tb.ledger.v1.LedgerEntry.cost:type_name -> tb.common.v1.Decimal
+	13, // 18: tb.ledger.v1.LedgerEntry.realized_pnl:type_name -> tb.common.v1.Decimal
+	1,  // 19: tb.ledger.v1.Break.type:type_name -> tb.ledger.v1.BreakType
+	2,  // 20: tb.ledger.v1.Break.status:type_name -> tb.ledger.v1.BreakStatus
+	13, // 21: tb.ledger.v1.Break.broker_qty:type_name -> tb.common.v1.Decimal
+	13, // 22: tb.ledger.v1.Break.ledger_qty:type_name -> tb.common.v1.Decimal
+	8,  // 23: tb.ledger.v1.Break.owner_breakdown:type_name -> tb.ledger.v1.OwnerQty
+	13, // 24: tb.ledger.v1.OwnerQty.qty:type_name -> tb.common.v1.Decimal
+	13, // 25: tb.ledger.v1.ReconciliationDiff.broker_qty:type_name -> tb.common.v1.Decimal
+	13, // 26: tb.ledger.v1.ReconciliationDiff.ledger_qty:type_name -> tb.common.v1.Decimal
+	8,  // 27: tb.ledger.v1.ReconciliationDiff.owner_breakdown:type_name -> tb.ledger.v1.OwnerQty
+	0,  // 28: tb.ledger.v1.ReconciliationResult.status:type_name -> tb.ledger.v1.ReconciliationStatus
+	9,  // 29: tb.ledger.v1.ReconciliationResult.diffs:type_name -> tb.ledger.v1.ReconciliationDiff
+	7,  // 30: tb.ledger.v1.ReconciliationResult.breaks:type_name -> tb.ledger.v1.Break
+	13, // 31: tb.ledger.v1.ReconciliationResult.broker_cash:type_name -> tb.common.v1.Decimal
+	13, // 32: tb.ledger.v1.ReconciliationResult.ledger_cash:type_name -> tb.common.v1.Decimal
+	5,  // 33: tb.ledger.v1.LedgerUpdate.positions:type_name -> tb.ledger.v1.StrategyPosition
+	34, // [34:34] is the sub-list for method output_type
+	34, // [34:34] is the sub-list for method input_type
+	34, // [34:34] is the sub-list for extension type_name
+	34, // [34:34] is the sub-list for extension extendee
+	0,  // [0:34] is the sub-list for field type_name
 }
 
 func init() { file_tb_ledger_v1_ledger_proto_init() }
@@ -976,8 +1530,8 @@ func file_tb_ledger_v1_ledger_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tb_ledger_v1_ledger_proto_rawDesc), len(file_tb_ledger_v1_ledger_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   8,
+			NumEnums:      3,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

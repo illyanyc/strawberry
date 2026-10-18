@@ -146,6 +146,15 @@ ibkr-vnc-stop: ## Remove the on-demand VNC proxy (the gateway keeps running)
 test-ibkr-contract: ## Shared Go broker contract suite (BR-001) against the IBKR adapter over its fake gateway
 	scripts/ibkr-contract.sh
 
+.PHONY: paper-gate
+paper-gate: ## Phase 2 gate: five simulated ORB sessions through runtime, OMS, simulators, ledger (writes paper-gate-evidence.json)
+	cd tests/paper && TB_PAPER_GATE_REQUIRED=1 TB_PAPER_EVIDENCE=$(CURDIR)/paper-gate-evidence.json \
+	  go test -count=1 -run 'TestGate2' -v -timeout 20m ./... 2>&1 | grep -E '^(=== RUN|--- |    gate_test|PASS|FAIL|ok)'
+
+.PHONY: paper-ibkr
+paper-ibkr: ## D30 swing routing through the real IBKR adapter over its fake gateway (tests/paper)
+	scripts/paper-ibkr.sh
+
 .PHONY: test-ibkr-paper
 test-ibkr-paper: ## Opt-in tests against a real IB Gateway paper session, incl. spike V1 (TB_IBKR_PAPER_* env)
 	TB_IBKR_PAPER_TEST=1 uv run pytest services/broker-gateway-ibkr/ibkr_tests/paper -m ibkr_paper -v

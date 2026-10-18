@@ -20,12 +20,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 	"google.golang.org/grpc"
 
 	brokerv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/broker/v1"
 	"github.com/illyanyc/strawberry/libs/go/audit"
 	"github.com/illyanyc/strawberry/libs/go/bus"
+	"github.com/illyanyc/strawberry/libs/go/calendar"
 	"github.com/illyanyc/strawberry/libs/go/clock"
 	"github.com/illyanyc/strawberry/libs/go/config"
 	"github.com/illyanyc/strawberry/libs/go/db"
@@ -38,6 +40,7 @@ import (
 	"github.com/illyanyc/strawberry/services/broker-gateway/internal/alpaca"
 	"github.com/illyanyc/strawberry/services/broker-gateway/internal/credstore"
 	"github.com/illyanyc/strawberry/services/broker-gateway/internal/credsvc"
+	"github.com/illyanyc/strawberry/services/broker-gateway/internal/deadman"
 	"github.com/illyanyc/strawberry/services/broker-gateway/internal/execstore"
 	"github.com/illyanyc/strawberry/services/broker-gateway/internal/grpcsvc"
 	"github.com/illyanyc/strawberry/services/broker-gateway/internal/livegate"
@@ -68,6 +71,8 @@ type cfg struct {
 	TradingRatePerMin int           `env:"TB_ALPACA_TRADING_RATE_PER_MIN" envDefault:"160" json:"trading_rate_per_min"`
 	DataRatePerMin    int           `env:"TB_ALPACA_DATA_RATE_PER_MIN" envDefault:"8000" json:"data_rate_per_min"`
 	SnapshotInterval  time.Duration `env:"TB_ALPACA_SNAPSHOT_INTERVAL" envDefault:"15s" json:"snapshot_interval"`
+	// RM-017: cancel working platform orders when the execution heartbeat stops (0 disables).
+	DeadmanTimeout time.Duration `env:"TB_DEADMAN_TIMEOUT" envDefault:"30s" json:"deadman_timeout"`
 	// BR-013: global live flag (the per-account audited enablement lives in broker.live_enablement).
 	TradingLiveEnabled bool `env:"TB_TRADING_LIVE_ENABLED" envDefault:"false" json:"trading_live_enabled"`
 }
@@ -217,6 +222,18 @@ func main() {
 	}
 	for _, a := range accounts {
 		go a.Run(rt.Ctx)
+	}
+
+	if c.DeadmanTimeout > 0 {
+		das := make([]deadman.Account, 0, len(accounts))
+		for _, a := range accounts {
+			das = append(das, a)
+		}
+		watch := &deadman.Watch{Accounts: das, Timeout: c.DeadmanTimeout, Calendar: calendar.XNYS(), Now: time.Now, Log: rt.Log, Alert: events.Alert}
+		if _, err := nc.Subscribe("sys.health.execution", func(*nats.Msg) { watch.Beat() }); err != nil {
+			svc.Fatal(rt.Log, "deadman subscribe", err)
+		}
+		go watch.Run(rt.Ctx)
 	}
 
 	mds := &grpcsvc.MarketDataServer{}

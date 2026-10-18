@@ -13,6 +13,7 @@ COPY contracts/gen/go/ contracts/gen/go/
 COPY libs/go/ libs/go/
 COPY tools/tbctl/ tools/tbctl/
 COPY tests/e2e/ tests/e2e/
+COPY tests/paper/ tests/paper/
 COPY services/api-gateway/ services/api-gateway/
 COPY services/broker-gateway/ services/broker-gateway/
 COPY services/execution/ services/execution/

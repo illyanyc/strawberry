@@ -79,3 +79,4 @@ groups:
         labels: { severity: warning }
         annotations:
           summary: "{{ $labels.service }} returns more than 5% server errors"
+          runbook_url: docs/runbooks/service-down.md

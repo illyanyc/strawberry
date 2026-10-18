@@ -4,6 +4,7 @@ package api
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -23,6 +24,18 @@ var AllowedCallers = map[string][]string{
 	svc + "SetUniverse":       {"api-gateway"},
 	svc + "GetFeedStatus":     {"api-gateway", "execution"},
 	svc + "IsFresh":           {"execution", "api-gateway"},
+	svc + "GetBars":           {"api-gateway"},
+	svc + "ResolveSymbols":    {"api-gateway"},
+}
+
+// Symbols resolves current tickers to instrument IDs.
+type Symbols interface {
+	FromTickers(ctx context.Context, tickers []string, at time.Time) (ids []string, unknown []string)
+}
+
+// BarCache reads recent final bars (the Valkey ring, ST-009).
+type BarCache interface {
+	Ring(ctx context.Context, tf, instrumentID string, n int) ([]*mdv1.Bar, error)
 }
 
 // Universe resolves a named universe to instrument IDs and their current symbols.
@@ -41,6 +54,58 @@ type Server struct {
 	Universe   Universe
 	Feed       string
 	Now        func() time.Time
+	Bars       BarCache
+	Symbols    Symbols
+}
+
+// ResolveSymbols maps current tickers to instrument IDs, exact matches only (UI-011).
+func (s *Server) ResolveSymbols(ctx context.Context, r *mdv1.ResolveSymbolsRequest) (*mdv1.ResolveSymbolsResponse, error) {
+	if len(r.GetSymbols()) == 0 || len(r.GetSymbols()) > 100 {
+		return nil, status.Error(codes.InvalidArgument, "1-100 symbols are required")
+	}
+	if s.Symbols == nil {
+		return nil, status.Error(codes.Unavailable, "instrument master not configured")
+	}
+	now := s.Now()
+	out := &mdv1.ResolveSymbolsResponse{}
+	for _, sym := range r.GetSymbols() {
+		sym = strings.ToUpper(strings.TrimSpace(sym))
+		if ids, _ := s.Symbols.FromTickers(ctx, []string{sym}, now); len(ids) == 1 {
+			out.Matches = append(out.Matches, &mdv1.SymbolMatch{Symbol: sym, InstrumentId: ids[0]})
+			continue
+		}
+		out.Unknown = append(out.Unknown, sym)
+	}
+	return out, nil
+}
+
+var tfNames = map[mdv1.Timeframe]string{mdv1.Timeframe_TIMEFRAME_1M: "1m", mdv1.Timeframe_TIMEFRAME_5M: "5m", mdv1.Timeframe_TIMEFRAME_15M: "15m",
+	mdv1.Timeframe_TIMEFRAME_30M: "30m", mdv1.Timeframe_TIMEFRAME_1H: "1h", mdv1.Timeframe_TIMEFRAME_1D: "1d"}
+
+// GetBars serves recent final bars for charts from the hot-cache ring, oldest first (UI-010).
+func (s *Server) GetBars(ctx context.Context, r *mdv1.GetBarsRequest) (*mdv1.GetBarsResponse, error) {
+	tf, ok := tfNames[r.GetTimeframe()]
+	if r.GetInstrumentId() == "" || !ok {
+		return nil, status.Error(codes.InvalidArgument, "instrument_id and a timeframe are required")
+	}
+	if s.Bars == nil {
+		return nil, status.Error(codes.Unavailable, "bar cache not configured")
+	}
+	n := int(r.GetLimit())
+	if n <= 0 || n > 500 {
+		n = 500
+	}
+	bars, err := s.Bars.Ring(ctx, tf, r.GetInstrumentId(), n)
+	if err != nil {
+		return nil, status.Error(codes.Unavailable, "bar cache unavailable")
+	}
+	out := &mdv1.GetBarsResponse{Source: "cache"}
+	for _, b := range bars {
+		if (r.GetStart() == 0 || b.GetTsOpen() >= r.GetStart()) && (r.GetEnd() == 0 || b.GetTsOpen() <= r.GetEnd()) {
+			out.Bars = append(out.Bars, b)
+		}
+	}
+	return out, nil
 }
 
 // Backfill implements the RPC.

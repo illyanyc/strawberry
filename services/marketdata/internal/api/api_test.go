@@ -45,3 +45,53 @@ func TestMD007IsFreshFailsClosedAndAllowlist(t *testing.T) {
 		t.Fatalf("feed status %+v", fs)
 	}
 }
+
+type ringStub []*mdv1.Bar
+
+func (r ringStub) Ring(_ context.Context, tf, id string, n int) ([]*mdv1.Bar, error) {
+	if tf != "15m" || id != "I1" {
+		return nil, nil
+	}
+	return r, nil
+}
+
+// UI-010: chart history comes from the cache ring, filtered to the requested window.
+func TestUI010GetBarsFromCacheRing(t *testing.T) {
+	s := &Server{Bars: ringStub{{InstrumentId: "I1", TsOpen: 1}, {InstrumentId: "I1", TsOpen: 2}, {InstrumentId: "I1", TsOpen: 3}}}
+	r, err := s.GetBars(context.Background(), &mdv1.GetBarsRequest{InstrumentId: "I1", Timeframe: mdv1.Timeframe_TIMEFRAME_15M, Start: 2})
+	if err != nil || len(r.GetBars()) != 2 || r.GetSource() != "cache" {
+		t.Fatalf("GetBars = %v %v", r, err)
+	}
+	if _, err := s.GetBars(context.Background(), &mdv1.GetBarsRequest{InstrumentId: "I1"}); err == nil {
+		t.Fatal("timeframe is required")
+	}
+	if AllowedCallers["/tb.marketdata.v1.MarketDataService/GetBars"][0] != "api-gateway" {
+		t.Fatal("GetBars must be allowlisted for api-gateway")
+	}
+}
+
+type tickerStub map[string]string
+
+func (m tickerStub) FromTickers(_ context.Context, tickers []string, _ time.Time) (ids, unknown []string) {
+	for _, t := range tickers {
+		if id, ok := m[t]; ok {
+			ids = append(ids, id)
+		} else {
+			unknown = append(unknown, t)
+		}
+	}
+	return ids, unknown
+}
+
+// UI-011: tickers resolve to instrument IDs by exact, case-insensitive match; unknown ones are listed.
+func TestUI011ResolveSymbols(t *testing.T) {
+	s := &Server{Symbols: tickerStub{"AAPL": "I-AAPL"}, Now: time.Now}
+	r, err := s.ResolveSymbols(context.Background(), &mdv1.ResolveSymbolsRequest{Symbols: []string{" aapl", "ZZZZ"}})
+	if err != nil || len(r.GetMatches()) != 1 || r.GetMatches()[0].GetInstrumentId() != "I-AAPL" || r.GetMatches()[0].GetSymbol() != "AAPL" ||
+		len(r.GetUnknown()) != 1 || r.GetUnknown()[0] != "ZZZZ" {
+		t.Fatalf("ResolveSymbols = %v %v", r, err)
+	}
+	if _, err := s.ResolveSymbols(context.Background(), &mdv1.ResolveSymbolsRequest{}); err == nil {
+		t.Fatal("empty request must be rejected")
+	}
+}

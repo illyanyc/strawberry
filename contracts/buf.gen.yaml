@@ -23,4 +23,4 @@ plugins:
     out: gen/python/src
   - local: ["node", "gen/ts/node_modules/@bufbuild/protoc-gen-es/bin/protoc-gen-es"]
     out: gen/ts/src
-    opt: target=ts
+    opt: [target=ts, json_types=true]

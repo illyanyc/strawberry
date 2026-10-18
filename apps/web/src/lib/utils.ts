@@ -22,3 +22,9 @@ export function formatTime(value: string | number | null | undefined): string {
     timeZoneName: "short",
   });
 }
+
+/** Format a UTC-nanosecond int64 string (protojson) like formatTime; "0" or empty shows "—". */
+export function formatNs(ns: string | undefined): string {
+  if (!ns || ns === "0") return "—";
+  return formatTime(new Date(Number(BigInt(ns) / 1_000_000n)).toISOString());
+}

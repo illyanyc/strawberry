@@ -19,10 +19,10 @@ import (
 	brokerv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/broker/v1"
 	ledgerv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/ledger/v1"
 	ordersv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/orders/v1"
+	"github.com/illyanyc/strawberry/libs/go/attribution"
 	"github.com/illyanyc/strawberry/libs/go/audit"
 	"github.com/illyanyc/strawberry/libs/go/logging"
 	"github.com/illyanyc/strawberry/libs/go/resilience"
-	"github.com/illyanyc/strawberry/services/broker-gateway/internal/attribution"
 	"github.com/illyanyc/strawberry/services/broker-gateway/internal/session"
 )
 

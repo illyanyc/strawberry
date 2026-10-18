@@ -28,6 +28,12 @@ class Side(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     SIDE_SELL: _ClassVar[Side]
     SIDE_SELL_SHORT: _ClassVar[Side]
 
+class Horizon(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    HORIZON_UNSPECIFIED: _ClassVar[Horizon]
+    HORIZON_INTRADAY: _ClassVar[Horizon]
+    HORIZON_SWING: _ClassVar[Horizon]
+
 class Broker(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     BROKER_UNSPECIFIED: _ClassVar[Broker]
@@ -48,6 +54,9 @@ SIDE_UNSPECIFIED: Side
 SIDE_BUY: Side
 SIDE_SELL: Side
 SIDE_SELL_SHORT: Side
+HORIZON_UNSPECIFIED: Horizon
+HORIZON_INTRADAY: Horizon
+HORIZON_SWING: Horizon
 BROKER_UNSPECIFIED: Broker
 BROKER_ALPACA: Broker
 BROKER_IBKR: Broker

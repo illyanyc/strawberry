@@ -1,0 +1,104 @@
+# Phase 2 trading alert rules (section 13 ops slice; RM-006, RM-009, RM-017, VP-008, OE-005, OE-019).
+# Every rule has a runbook (tests/python/test_alert_rules.py). Critical → Pushover emergency (D13).
+groups:
+  - name: trading
+    rules:
+      - alert: LedgerReconciliationBroken
+        expr: tb_ledger_recon_status == 2
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: "Account {{ $labels.account }} reconciliation is BROKEN: affected strategies are halted"
+          runbook_url: docs/runbooks/reconciliation-break.md
+
+      - alert: LedgerReconciliationStale
+        expr: tb_ledger_recon_status == 3 or (time() - tb_ledger_recon_as_of_seconds) > 300
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "Account {{ $labels.account }} has no fresh reconciliation (no broker snapshot?)"
+          runbook_url: docs/runbooks/reconciliation-break.md
+
+      - alert: LedgerOpenBreaks
+        expr: tb_ledger_open_breaks > 0
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $value }} open reconciliation breaks on {{ $labels.account }} need an owner resolution"
+          runbook_url: docs/runbooks/reconciliation-break.md
+
+      - alert: KillSwitchEngaged
+        expr: tb_execution_kill_switches_active > 0
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $value }} kill switch(es) latched; new orders in scope are frozen"
+          runbook_url: docs/runbooks/kill-switch.md
+
+      - alert: StrategyHalted
+        expr: tb_execution_halts_active > 0
+        for: 2m
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $value }} strategy/instrument halt(s) active (unknown order, orphan, or missing protection)"
+          runbook_url: docs/runbooks/kill-switch.md
+
+      - alert: OrdersUnknownState
+        expr: tb_execution_unknown_orders > 0
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: "{{ $value }} order(s) in UNKNOWN state for 2 minutes (OE-005)"
+          runbook_url: docs/runbooks/kill-switch.md
+
+      - alert: OrdersStuck
+        expr: tb_execution_stuck_orders > 0
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $value }} working order(s) open for more than 5 minutes"
+          runbook_url: docs/runbooks/kill-switch.md
+
+      - alert: StrategyRuntimeHeartbeatLost
+        expr: tb_execution_runtime_heartbeat_age_seconds > 60
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: "Strategy runtime heartbeat is {{ $value }}s old; the dead-man cancels its working orders during the session"
+          runbook_url: docs/runbooks/kill-switch.md
+
+      - alert: TradingDisabled
+        expr: tb_trading_enabled == 0 and on() (hour() >= 14 and hour() < 20) and on() (day_of_week() >= 1 and day_of_week() <= 5)
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "Execution accepts no intents on any account during US market hours"
+          runbook_url: docs/runbooks/broker-outage.md
+
+      - alert: RiskRejectsSpike
+        expr: sum(delta(tb_execution_decisions{outcome!="approved"}[10m])) > 20
+        labels: { severity: warning }
+        annotations:
+          summary: "More than 20 rejected intents in 10 minutes"
+          runbook_url: docs/runbooks/kill-switch.md
+
+      - alert: DailyLossApproaching
+        expr: tb_execution_daily_loss_utilization >= 0.8
+        labels: { severity: warning }
+        annotations:
+          summary: "Strategy {{ $labels.strategy }} is at {{ $value | humanizePercentage }} of its daily loss limit"
+          runbook_url: docs/runbooks/kill-switch.md
+
+      - alert: DailyLossLimitReached
+        expr: tb_execution_daily_loss_utilization >= 1
+        labels: { severity: critical }
+        annotations:
+          summary: "Strategy {{ $labels.strategy }} reached its daily loss limit; new risk is blocked for the session (RM-005)"
+          runbook_url: docs/runbooks/kill-switch.md
+
+      - alert: MonitorPipelineDown
+        expr: absent(tb_monitor_last_forward_seconds) or (time() - tb_monitor_last_forward_seconds) > 900
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "The monitor has not forwarded a bus alert or heartbeat for 15 minutes"
+          runbook_url: docs/runbooks/service-down.md

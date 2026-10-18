@@ -39,3 +39,8 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0021](0021-feature-store.md) | Thin feature store in tbcore with one computation path, finite lookback, and scale invariance | Accepted | 2026-10-17 |
 | [0022](0022-market-data-ingestion.md) | Market data ingestion: Alpaca through broker-gateway, FMP `/stable`, finality window, resumable backfill, nightly reconciliation | Accepted | 2026-10-17 |
 | [0023](0023-ibkr-adapter-gateway-and-sessions.md) | IBKR adapter: pinned IB Gateway, per-environment `ib_async` process, maintenance-aware session supervision | Accepted | 2026-10-17 |
+| [0024](0024-virtual-ledgers-and-reconciliation.md) | Event-sourced virtual ledgers, broker-lot shadow ledger, and reconciliation with a break taxonomy | Accepted | 2026-10-18 |
+| [0025](0025-oms-risk-gate-and-kill-switches.md) | OMS, pre-trade gate, D30 routing and margin guard, latched kill switches, and dead-man checks | Accepted | 2026-10-18 |
+| [0026](0026-strategy-runtime-and-orb-baseline.md) | Python strategy runtime on `tbcore.strategy`, intents over the bus, and the ORB baseline | Accepted | 2026-10-18 |
+| [0027](0027-monitoring-ops-slice.md) | Monitoring ops slice: one alert router, bus alerts bridged by the monitor, daily reports as alerts | Accepted | 2026-10-18 |
+| [0028](0028-ui-trading-slice-charts-and-bff.md) | UI trading slice: Lightweight Charts under the strict CSP, protojson BFF resources, and an SSE chart stream | Accepted | 2026-10-18 |

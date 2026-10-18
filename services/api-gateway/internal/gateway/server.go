@@ -42,6 +42,8 @@ type Server struct {
 	log     *slog.Logger
 	alerts  AlertPublisher
 	creds   CredentialClient
+	trading *TradingClients
+	market  MarketBus
 	web     *webUI
 	now     func() time.Time
 	proxies []netip.Prefix
@@ -60,6 +62,8 @@ type Deps struct {
 	Log       *slog.Logger
 	Alerts    AlertPublisher
 	Creds     CredentialClient
+	Trading   *TradingClients
+	Market    MarketBus
 }
 
 type route struct {
@@ -108,7 +112,7 @@ func New(cfg Config, d Deps) (*Server, error) {
 	}
 	s := &Server{
 		cfg: cfg, store: &Store{pool: d.Pool}, pool: d.Pool, wa: wa, keys: k, audit: audit.NewWriter(d.Pool),
-		log: d.Log, alerts: d.Alerts, creds: d.Creds, now: time.Now, limiters: map[string]*rate.Limiter{},
+		log: d.Log, alerts: d.Alerts, creds: d.Creds, trading: d.Trading, market: d.Market, now: time.Now, limiters: map[string]*rate.Limiter{},
 		rateEvery: 200 * time.Millisecond, rateBurst: 30,
 	}
 	for _, p := range cfg.TrustedProxies {
@@ -175,6 +179,7 @@ func (s *Server) registerRoutes() {
 	priv("DELETE", "/api/v1/broker/credentials/{account}/{environment}", s.handleCredentialsDelete)
 	priv("GET", "/api/v1/system/status", s.handleSystemStatus)
 	priv("GET", "/api/v1/events", s.handleEvents)
+	s.registerTradingRoutes(priv)
 }
 
 // Handler returns the full HTTP handler (API + static UI).

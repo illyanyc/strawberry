@@ -1,16 +1,21 @@
 package gateway
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"time"
+
+	ordersv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/orders/v1"
 )
 
-// statusSnapshot is the trading-status payload shown by the UI's global status bar. In Phase 0 it
-// carries only what exists (environment, live flag, session expiry); later phases add broker
-// sessions, feed freshness, reconciliation, kill switches, and margin-guard state.
+// statusSnapshot is the trading-status payload shown by the UI's global status bar: environment,
+// live flag, session expiry, and execution's TradingStatus (per-account session, reconciliation,
+// margin and day-trade state, active kill switches and halts; UI-013). `trading` is null with
+// `trading_error` set when execution cannot be reached, so the UI shows "unknown", never "ok".
 func (s *Server) statusSnapshot(r *http.Request, rc *reqCtx) map[string]any {
 	live := false
 	if stored, err := s.store.settings(r.Context(), rc.session.OwnerID); err == nil {
@@ -18,13 +23,34 @@ func (s *Server) statusSnapshot(r *http.Request, rc *reqCtx) map[string]any {
 			_ = json.Unmarshal(row.Value, &live)
 		}
 	}
-	return map[string]any{
+	out := map[string]any{
 		"environment":     s.cfg.Environment,
 		"live_enabled":    live,
 		"mode":            map[bool]string{true: "live", false: "paper"}[live],
 		"server_time":     s.now().UTC(),
 		"session_expires": rc.session.IdleExpires,
+		"trading":         nil,
 	}
+	trading, err := s.tradingStatusJSON(r.Context())
+	if err != nil {
+		out["trading_error"] = "execution_unavailable"
+		return out
+	}
+	out["trading"] = trading
+	return out
+}
+
+func (s *Server) tradingStatusJSON(ctx context.Context) (json.RawMessage, error) {
+	if s.trading == nil || s.trading.Exec == nil {
+		return nil, errors.New("execution not configured")
+	}
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+	st, err := s.trading.Exec.GetTradingStatus(ctx, &ordersv1.GetTradingStatusRequest{})
+	if err != nil {
+		return nil, err
+	}
+	return pj.Marshal(st.GetStatus())
 }
 
 func (s *Server) handleSystemStatus(w http.ResponseWriter, r *http.Request, rc *reqCtx) {

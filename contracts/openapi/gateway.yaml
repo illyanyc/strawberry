@@ -7,6 +7,13 @@ info:
     except those tagged `public` (SE-004). State-changing requests require an allowed `Origin` and an
     `X-CSRF-Token` header equal to the `tb_csrf` cookie (SE-006). A 403 with `error: step_up_required`
     means the UI must run a step-up and retry (SE-003).
+
+    Trading resources (`/api/v1/trading`, `/accounts`, `/strategies`, `/risk-limits`, `/orders`,
+    `/intents`, `/fills`, `/trace`, `/kill-switches`, `/instruments`, `/bars`) return the canonical
+    protojson form of the named `tb.*` contract message (lowerCamelCase names, unpopulated fields
+    emitted, unset messages as null): decimals are `{ "value": "<decimal string>" }`, int64 timestamps
+    are UTC-nanosecond strings, enums are full names (ADR-0028). The web UI types them with the
+    generated `*Json` types from `contracts/gen/ts`. Upstream outages answer 503 `<service>_unavailable`.
 servers:
   - url: /
 components:
@@ -48,6 +55,21 @@ components:
       additionalProperties: false
       properties:
         code: { type: string }
+    ManualOrder:
+      type: object
+      required: [broker_account_id, instrument_id, side, quantity, order_type, tif]
+      additionalProperties: false
+      properties:
+        broker_account_id: { type: string }
+        instrument_id: { type: string }
+        side: { enum: [buy, sell, sell_short] }
+        quantity: { type: string, description: positive decimal string }
+        order_type: { enum: [market, limit] }
+        limit_price: { type: string, description: required for limit orders }
+        tif: { enum: [day, gtc] }
+        extended_hours: { type: boolean }
+        reason: { type: string, maxLength: 300 }
+        intent_id: { type: string, description: client ULID reused on retry (idempotent, OE-006) }
   responses:
     Unauthorized: { description: No valid session, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
     Forbidden:
@@ -145,8 +167,137 @@ paths:
       responses: { '200': { description: Stored (metadata returned) }, '403': { $ref: '#/components/responses/Forbidden' } }
     delete: { responses: { '204': { description: Deleted }, '403': { $ref: '#/components/responses/Forbidden' } } }
   /api/v1/system/status:
-    get: { responses: { '200': { description: Trading-status snapshot (environment, live flag, mode) } } }
+    get: { responses: { '200': { description: "Trading-status snapshot: environment, live flag, mode, session expiry, and `trading` (tb.orders.v1.TradingStatus, null with `trading_error` when execution is unreachable; UI-013)" } } }
   /api/v1/events:
     get:
       description: Server-sent events (D14). Events `trading-status` (JSON snapshot) and `session-ended`. Supports `Last-Event-ID`.
+      responses: { '200': { description: text/event-stream } }
+  /api/v1/trading/status:
+    get: { responses: { '200': { description: tb.orders.v1.GetTradingStatusResponse } } }
+  /api/v1/accounts:
+    get: { responses: { '200': { description: tb.ledger.v1.ListAccountsResponse (AccountView per broker account) } } }
+  /api/v1/accounts/{account}:
+    parameters: [{ name: account, in: path, required: true, schema: { type: string, pattern: '^[a-z0-9][a-z0-9_-]{1,63}$' } }]
+    get: { responses: { '200': { description: tb.ledger.v1.GetAccountViewResponse } } }
+  /api/v1/accounts/{account}/lots:
+    parameters:
+      - { name: account, in: path, required: true, schema: { type: string } }
+      - { name: owner, in: query, schema: { type: string, pattern: '^[A-Za-z0-9_-]{1,64}$' } }
+      - { name: instrument_id, in: query, schema: { type: string, pattern: '^[A-Za-z0-9_-]{1,64}$' } }
+    get: { responses: { '200': { description: tb.ledger.v1.ListLotsResponse } } }
+  /api/v1/accounts/{account}/breaks:
+    parameters:
+      - { name: account, in: path, required: true, schema: { type: string } }
+      - { name: open_only, in: query, schema: { type: boolean } }
+    get: { responses: { '200': { description: tb.ledger.v1.ListBreaksResponse } } }
+  /api/v1/accounts/{account}/breaks/{id}/resolve:
+    parameters:
+      - { name: account, in: path, required: true, schema: { type: string } }
+      - { name: id, in: path, required: true, schema: { type: string } }
+    post:
+      description: Owner break resolution (VP-019); action `ledger.break.resolve` needs a passkey step-up.
+      requestBody: { content: { application/json: { schema: { type: object, required: [resolution], additionalProperties: false, properties: { resolution: { enum: [accept, transfer_to_manual, book_to_manual, rebaseline_cash] }, from_owner: { type: string }, qty: { type: string }, note: { type: string, maxLength: 500 } } } } } }
+      responses: { '200': { description: tb.ledger.v1.ResolveBreakResponse }, '403': { $ref: '#/components/responses/Forbidden' } }
+  /api/v1/accounts/{account}/reconciliations:
+    parameters:
+      - { name: account, in: path, required: true, schema: { type: string } }
+      - { name: limit, in: query, schema: { type: integer, maximum: 200 } }
+    get: { responses: { '200': { description: tb.ledger.v1.ListReconciliationReportsResponse } } }
+  /api/v1/strategies:
+    get: { responses: { '200': { description: tb.orders.v1.ListStrategiesResponse } } }
+  /api/v1/strategies/{id}/portfolio:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get: { responses: { '200': { description: tb.ledger.v1.GetStrategyPortfolioResponse } } }
+  /api/v1/strategies/{id}/equity:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+      - { name: account, in: query, required: true, schema: { type: string } }
+    get: { responses: { '200': { description: tb.ledger.v1.GetEquityCurveResponse } } }
+  /api/v1/strategies/{id}/mode:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    put:
+      description: disabled, shadow, or paper only; live is rejected (go-live flow, SM-004, UI-014).
+      requestBody: { content: { application/json: { schema: { type: object, required: [mode], additionalProperties: false, properties: { mode: { enum: [disabled, shadow, paper] }, reason: { type: string, maxLength: 300 } } } } } }
+      responses: { '200': { description: tb.orders.v1.SetStrategyModeResponse } }
+  /api/v1/strategies/{id}/allocation:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    put:
+      description: Increases need a passkey step-up (`allocation.increase`, RM-007).
+      requestBody: { content: { application/json: { schema: { type: object, required: [amount], additionalProperties: false, properties: { amount: { type: string, pattern: '^\d{1,15}(\.\d{1,8})?$' } } } } } }
+      responses: { '200': { description: tb.ledger.v1.SetAllocationResponse }, '403': { $ref: '#/components/responses/Forbidden' } }
+  /api/v1/risk-limits/{scope}:
+    parameters: [{ name: scope, in: path, required: true, schema: { type: string, pattern: '^(global|manual|account:[a-z0-9_-]{1,64}|strategy:[A-Za-z0-9_-]{1,64})$' } }]
+    get: { responses: { '200': { description: tb.orders.v1.GetRiskLimitsResponse (scope limits and effective values) } } }
+    put:
+      description: Replaces the scope's limits with the tb.orders.v1.RiskLimits body (protojson). Loosening any field needs a passkey step-up (`risk.limits.raise`, RM-007).
+      responses: { '200': { description: tb.orders.v1.SetRiskLimitsResponse }, '403': { $ref: '#/components/responses/Forbidden' } }
+  /api/v1/orders:
+    get:
+      parameters:
+        - { name: account, in: query, schema: { type: string } }
+        - { name: strategy_id, in: query, schema: { type: string } }
+        - { name: open_only, in: query, schema: { type: boolean } }
+        - { name: limit, in: query, schema: { type: integer, maximum: 2000 } }
+      responses: { '200': { description: tb.orders.v1.ListOrdersResponse } }
+    post:
+      description: Manual order through the pre-trade gate (RM-001, UI-015). Live or unknown-environment accounts need a passkey step-up; phones need `mobile.order_entry_enabled`.
+      requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/ManualOrder' } } } }
+      responses: { '200': { description: tb.orders.v1.SubmitIntentResponse }, '403': { $ref: '#/components/responses/Forbidden' } }
+  /api/v1/orders/preview:
+    post:
+      description: Dry-run decision, estimated price and notional, and ownership note (no reservation, no order).
+      requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/ManualOrder' } } } }
+      responses: { '200': { description: tb.orders.v1.PreviewIntentResponse } }
+  /api/v1/intents:
+    get:
+      parameters:
+        - { name: strategy_id, in: query, schema: { type: string } }
+        - { name: rejected_only, in: query, schema: { type: boolean } }
+        - { name: limit, in: query, schema: { type: integer, maximum: 2000 } }
+      responses: { '200': { description: tb.orders.v1.ListIntentsResponse } }
+  /api/v1/intents/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    delete: { description: Cancel the intent's open orders (`orders.cancel`)., responses: { '200': { description: tb.orders.v1.CancelIntentResponse } } }
+  /api/v1/fills:
+    get:
+      parameters:
+        - { name: account, in: query, schema: { type: string } }
+        - { name: strategy_id, in: query, schema: { type: string } }
+        - { name: instrument_id, in: query, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, maximum: 2000 } }
+      responses: { '200': { description: tb.orders.v1.ListFillsResponse } }
+  /api/v1/trace/{id}:
+    parameters: [{ name: id, in: path, required: true, description: correlation ID, schema: { type: string } }]
+    get: { responses: { '200': { description: tb.orders.v1.GetTraceResponse } } }
+  /api/v1/kill-switches:
+    get:
+      parameters: [{ name: all, in: query, description: include released switches, schema: { type: boolean } }]
+      responses: { '200': { description: tb.orders.v1.ListKillSwitchesResponse } }
+    post:
+      description: Engage a latched kill switch (RM-006, UI-006); no step-up.
+      requestBody: { content: { application/json: { schema: { type: object, required: [scope], additionalProperties: false, properties: { scope: { enum: [global, account, strategy, instrument] }, target: { type: string }, action: { enum: [freeze, cancel_open, flatten], default: cancel_open }, reason: { type: string, maxLength: 300 } } } } } }
+      responses: { '200': { description: tb.orders.v1.TriggerKillSwitchResponse } }
+  /api/v1/kill-switches/{id}/release:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      description: Release needs a fresh passkey step-up from a desktop client (RM-007); phones get 403 `desktop_required`.
+      requestBody: { content: { application/json: { schema: { type: object, required: [reason], additionalProperties: false, properties: { reason: { type: string, maxLength: 300 } } } } } }
+      responses: { '200': { description: tb.orders.v1.ReleaseKillSwitchResponse }, '403': { $ref: '#/components/responses/Forbidden' } }
+  /api/v1/instruments/resolve:
+    get:
+      parameters: [{ name: symbols, in: query, required: true, description: 1-50 comma-separated tickers, schema: { type: string } }]
+      responses: { '200': { description: tb.marketdata.v1.ResolveSymbolsResponse (UI-011) } }
+  /api/v1/bars:
+    get:
+      parameters:
+        - { name: instrument_id, in: query, required: true, schema: { type: string, pattern: '^[A-Za-z0-9_-]{1,64}$' } }
+        - { name: timeframe, in: query, required: true, schema: { enum: ['1m', '5m', '15m', '30m', '1h', '1d'] } }
+        - { name: limit, in: query, schema: { type: integer, maximum: 500 } }
+      responses: { '200': { description: tb.marketdata.v1.GetBarsResponse (UI-010) } }
+  /api/v1/stream/market:
+    get:
+      description: "SSE chart stream (UI-012): `ready`, `bar` (final or corrected tb.marketdata.v1.Bar), `partial` (≤4 Hz), `fill` (tb.orders.v1.ExecutionReport in the instrument), `resync` (client fell behind; reload history), `session-ended`."
+      parameters:
+        - { name: instrument_id, in: query, required: true, schema: { type: string, pattern: '^[A-Za-z0-9_-]{1,64}$' } }
+        - { name: timeframe, in: query, required: true, schema: { enum: ['1m', '5m', '15m', '30m', '1h', '1d'] } }
       responses: { '200': { description: text/event-stream } }

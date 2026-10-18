@@ -39,6 +39,10 @@ type Config struct {
 	TrustedProxies []string `env:"TB_TRUSTED_PROXIES" envSeparator:"," json:"trusted_proxies"`
 	// BrokerGatewayAddr is the gRPC address of broker-gateway's CredentialService.
 	BrokerGatewayAddr string `env:"TB_BROKER_GATEWAY_ADDR" envDefault:"broker-gateway:9090" json:"broker_gateway_addr"`
+	// Trading services behind the portfolio, strategy, order, kill-switch, and chart pages.
+	ExecutionAddr  string `env:"TB_EXECUTION_ADDR" envDefault:"execution:9090" json:"execution_addr"`
+	LedgerAddr     string `env:"TB_LEDGER_ADDR" envDefault:"ledger:9090" json:"ledger_addr"`
+	MarketDataAddr string `env:"TB_MARKETDATA_ADDR" envDefault:"marketdata:9090" json:"marketdata_addr"`
 	// WebDir holds the static UI export (apps/web out/). Empty disables UI serving.
 	WebDir string `env:"TB_WEB_DIR" envDefault:"/app/web" json:"web_dir"`
 	// OwnerID is the single owner's ID (U7: single owner today, owner_id on every row).

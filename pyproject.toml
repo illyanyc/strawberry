@@ -30,6 +30,7 @@ members = [
   "services/ml",
   "services/monitor",
   "services/optimizer",
+  "services/strategy-runtime",
 ]
 
 [tool.uv.sources]
@@ -64,7 +65,7 @@ known-first-party = ["tbcore", "tb"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-mypy_path = "contracts/gen/python/src:libs/py/tbcore/src:services/assistant/src:services/backtest/src:services/broker-gateway-ibkr/src:services/broker-gateway-ibkr:services/context-data/src:services/ml/src:services/monitor/src:services/optimizer/src"
+mypy_path = "contracts/gen/python/src:libs/py/tbcore/src:services/assistant/src:services/backtest/src:services/broker-gateway-ibkr/src:services/broker-gateway-ibkr:services/context-data/src:services/ml/src:services/monitor/src:services/optimizer/src:services/strategy-runtime/src"
 explicit_package_bases = true
 files = ["libs/py/tbcore/src", "libs/py/tbcore/tests", "contracts/tests", "services/*/src", "services/broker-gateway-ibkr/ibkr_tests", "tests/python"]
 exclude = ["contracts/gen/"]

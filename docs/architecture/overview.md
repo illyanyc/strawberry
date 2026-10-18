@@ -78,7 +78,7 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 
 | Concern | Design | Decision |
 |---|---|---|
-| Contracts | All cross-service messages in `contracts/proto/tb/<domain>/v1/`; generated (committed) for Go, Python, TypeScript; `make gen-check` fails CI on stale code; internal RPC is gRPC, UI is REST + WebSocket ([contracts](#contracts)) | D3 ([ADR-0003](../adr/0003-contracts-protobuf-buf.md)) |
+| Contracts | All cross-service messages in `contracts/proto/tb/<domain>/v1/`; generated (committed) for Go, Python, TypeScript; `make gen-check` fails CI on stale code; internal RPC is gRPC, UI is REST + SSE (D14) ([contracts](#contracts)) | D3 ([ADR-0003](../adr/0003-contracts-protobuf-buf.md)) |
 | Messaging | Durable streams for order path (`ord.*`, `exec.*`, `risk.kill`), at-least-once, idempotent consumers | D2 |
 | Storage split | Market/context data in the Parquet lake: marketdata is the single writer (staging + compaction, revisions retained, temp + rename, Postgres manifest), Python reads with Polars point-in-time (`tbcore.data`); reference data in Postgres `refdata` mirrored to `ref/`; transactional state (orders, ledgers, users, audit) in Postgres; hot bars and online features in Valkey (`contracts/cache/README.md`) | D4–D6 ([ADR-0020](../adr/0020-lake-layout-write-path-and-query-layer.md)) |
 | Features | One feature library (`tbcore.features`) used offline (snapshots) and online (ring buffers) through the same `compute`; finite lookback, scale-invariant, parity-tested | D39 ([ADR-0021](../adr/0021-feature-store.md)) |
@@ -93,14 +93,16 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 
 | Package | Messages / services | Producer → consumers |
 |---|---|---|
-| `tb.common.v1` | `Decimal`, `Mode`, `AssetClass`, `Side`, `Broker`, `Instrument`, `Provenance` | shared |
+| `tb.common.v1` | `Decimal`, `Mode`, `AssetClass`, `Side`, `Horizon`, `Broker`, `Instrument`, `Provenance` | shared |
 | `tb.marketdata.v1` | `Bar`, `Quote`, `Trade`, `CorporateAction`, `SourceHealth` | marketdata → bus, lake, cache |
-| `tb.marketdata.v1` | `MarketDataService` (backfill jobs and status, universe, feed status, `IsFresh`) ([ADR-0022](../adr/0022-market-data-ingestion.md), [MD-](../business-logic/market-data.md)) | marketdata → api-gateway, execution |
+| `tb.marketdata.v1` | `MarketDataService` (backfill jobs and status, universe, feed status, `IsFresh`, `GetBars` for charts, `ResolveSymbols` for tickers) ([ADR-0022](../adr/0022-market-data-ingestion.md), [MD-](../business-logic/market-data.md)) | marketdata → api-gateway, execution |
 | `tb.context.v1` | `ContextEvent` | context-data → lake, bus |
 | `tb.features.v1` | `FeatureVector` | feature service → ml-infer |
-| `tb.signals.v1` | `Signal` | ml-infer / strategy → execution |
-| `tb.orders.v1` | `OrderIntent`, `RiskDecision`, `Order`, `ExecutionReport`, `KillSwitchEvent` | strategy/UI → execution → broker-gateway → ledger |
-| `tb.ledger.v1` | `AccountSnapshot`, `StrategyPosition`, `LedgerEntry`, `ReconciliationResult` | broker-gateway, ledger → UI, execution, monitor |
+| `tb.signals.v1` | `Signal`, `RuntimeHeartbeat` (dead-man, RM-017) | ml-infer / strategy runtime → execution |
+| `tb.orders.v1` | `OrderIntent` (horizon, kind, protective spec, source), `RiskDecision`, `Order` (role, attempt, parent), `ExecutionReport`, `KillSwitchEvent` (latched) | strategy/UI → execution → broker-gateway → ledger |
+| `tb.orders.v1` | `ExecutionService` (submit/preview intents, orders, intents, fills, trace, strategy registry and modes, risk limits, kill switches, trading status) ([ADR-0025](../adr/0025-oms-risk-gate-and-kill-switches.md), [OE-](../business-logic/orders-and-execution.md), [RM-](../business-logic/risk-management.md)) | execution → api-gateway |
+| `tb.ledger.v1` | `AccountSnapshot`, `StrategyPosition`, `LedgerEntry`, `LedgerUpdate`, `ReconciliationResult` (breaks, halted pairs), `Break` | broker-gateway, ledger → UI, execution, monitor, strategy-runtime |
+| `tb.ledger.v1` | `LedgerService` (account view by owner, strategy portfolio, ownership constraints, capital and reservations, owners and allocations, reconcile, breaks, equity curve, owner and broker-shadow lots, wash-sale flags, reconciliation reports) ([ADR-0024](../adr/0024-virtual-ledgers-and-reconciliation.md), [VP-](../business-logic/virtual-portfolios-and-attribution.md)) | ledger → execution, api-gateway |
 | `tb.ml.v1` | `ModelVersion`, `BacktestRun` | ml, backtest, optimizer → registry, UI |
 | `tb.alerts.v1` | `Alert` | any → monitor → channels |
 | `tb.audit.v1` | `AuditEvent` | all → audit store |
@@ -109,6 +111,8 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 | `tb.broker.v1` | `BrokerMarketDataService` (historical bars, bidirectional market-data stream over the single upstream socket, assets, corporate actions, feed status) | broker-gateway → marketdata |
 
 The UI ↔ gateway API (REST commands + SSE streams, D3/D14) is specified in [`contracts/openapi/gateway.yaml`](../../contracts/openapi/gateway.yaml). Only `/healthz` and the auth bootstrap endpoints are public (SE-004).
+
+Trading pages (ADR-0028): the gateway calls execution, ledger, and marketdata over signed gRPC and returns the canonical protojson of their `tb.*` responses; the UI types them with the generated `*Json` types. Owner actions are authorized in the gateway (`policy.Authorize`, step-up) and re-checked by the owning service (execution: limit loosening, kill release from a desktop passkey; ledger: allocation capacity). Charts use one SSE stream per chart: the gateway subscribes to `md.bar.<tf>.<id>` (final, correction, partial coalesced to ≤4 Hz) and `exec.>` (filtered to the instrument) on core NATS; history comes from `GetBars` (cache ring).
 
 ## Deployment topology (Phase 0, Mac Mini)
 
@@ -176,13 +180,13 @@ flowchart LR
 md.bar.<timeframe>.<instrument_id>   md.quote.<instrument_id>   md.trade.<instrument_id>
 md.bar.partial.<tf>.<instrument_id>  md.bar.correction.<tf>.<instrument_id>   ref.corporate_action.<instrument_id>
 ctx.<kind>                            feat.<feature_set>.<instrument_id>
-sig.<strategy_id>                     ord.intent   ord.decision   ord.update.<broker_account>
+sig.<strategy_id>                     ord.intent   ord.decision   ord.update.<broker_account>   ord.order.<broker_account>
 exec.<broker_account>                 acct.snapshot.<broker_account>
 ledger.update.<broker_account>        recon.result.<broker_account>   recon.request.<broker_account>
 risk.kill                             alert.<severity>           sys.health.<service>
 ```
 
-`ord.update.<acct>` carries the broker's view (`tb.broker.v1.BrokerOrderUpdate`) from the adapters; the OMS's own `Order` state will use a separate subject (section 07). Broker adapters publish `ord.update.*`, `exec.*`, `acct.snapshot.*`, and `recon.request.*` through a Postgres transactional outbox (schema `broker`), so a crash never loses or double-publishes an execution (ADR-0018). `recon.request.<acct>` follows every reconnect resync (OE-008).
+`ord.update.<acct>` carries the broker's view (`tb.broker.v1.BrokerOrderUpdate`) from the adapters; the OMS's own `Order` state is published by execution on `ord.order.<acct>`, risk decisions on `ord.decision`, and strategy intents arrive on `ord.intent` (section 07). Execution's and the strategy runtime's heartbeats on `sys.health.execution` / `sys.health.strategy-runtime` feed the dead-man checks (RM-017). The strategy runtime (ADR-0026) consumes `md.bar.*` and its own strategies' `ledger.update.*` and publishes intents on `ord.intent`; it never talks to brokers. Broker adapters publish `ord.update.*`, `exec.*`, `acct.snapshot.*`, and `recon.request.*` through a Postgres transactional outbox (schema `broker`), so a crash never loses or double-publishes an execution (ADR-0018). `recon.request.<acct>` follows every reconnect resync (OE-008).
 
 Final bars (`md.bar.*`) are published 60 s after the bar closes, deduplicated by `Nats-Msg-Id`; partial bars are UI-only and never stored; corrections of final bars carry a higher `revision` (MD-002, DF-007). `ref.corporate_action.*` lives in the durable `REF` stream for the ledger; `sys.health.<source>` carries `SourceHealth` for each data source (ADR-0022).
 

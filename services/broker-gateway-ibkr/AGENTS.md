@@ -39,7 +39,7 @@ IBKR adapter: supervises the IB Gateway API session (daily restart, weekly 2FA l
 | `src/tb_broker_ibkr/audit.py`, `bus.py`, `metrics.py`, `events.py` | Audit log, NATS publisher, Prometheus metrics, event sink fan-out |
 | `src/tb_broker_ibkr/journal.py`, `relay.py` | `Journal` protocol, Postgres journal (`broker_ibkr` + outbox), DB live enablement; outbox relay to JetStream |
 | `src/tb_broker_ibkr/cursor_store.py`, `pacing.py`, `backoff.py`, `clock.py`, `instruments.py` | File cursor (no-DB fallback journal), historical pacing + line budget, backoff, injectable clock, instrument map + IBKR contract resolver |
-| `src/tb_broker_ibkr/fakes/` | `gateway.py` (port-level fake), `wire.py` (socket-level TWS fake for real `ib_async`), `replay.py` (fixture format, replay, recorder), `serve.py` (gRPC over the fake gateway for the Go contract suite) |
+| `src/tb_broker_ibkr/fakes/` | `gateway.py` (port-level fake), `wire.py` (socket-level TWS fake for real `ib_async`), `replay.py` (fixture format, replay, recorder), `serve.py` (gRPC over the fake gateway for the Go contract suite; `--auto-fill` and `--instruments` for the cross-service swing test `make paper-ibkr`) |
 | `ibkr_tests/` | Unit/behavior tests (package name distinct from `libs/py/tbcore/tests`) on virtual time, wire tests, gRPC and entrypoint tests; `fixtures/*.jsonl` recorded-format messages; `paper/` opt-in real-gateway suite and spike V1 |
 
 ## Configuration

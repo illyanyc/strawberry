@@ -26,6 +26,8 @@ const (
 	MarketDataService_SetUniverse_FullMethodName       = "/tb.marketdata.v1.MarketDataService/SetUniverse"
 	MarketDataService_GetFeedStatus_FullMethodName     = "/tb.marketdata.v1.MarketDataService/GetFeedStatus"
 	MarketDataService_IsFresh_FullMethodName           = "/tb.marketdata.v1.MarketDataService/IsFresh"
+	MarketDataService_GetBars_FullMethodName           = "/tb.marketdata.v1.MarketDataService/GetBars"
+	MarketDataService_ResolveSymbols_FullMethodName    = "/tb.marketdata.v1.MarketDataService/ResolveSymbols"
 )
 
 // MarketDataServiceClient is the client API for MarketDataService service.
@@ -44,6 +46,12 @@ type MarketDataServiceClient interface {
 	// Whether the latest final bar is recent enough to trade on (MD-007). Fails closed: unknown
 	// instruments and stalled feeds are not fresh.
 	IsFresh(ctx context.Context, in *IsFreshRequest, opts ...grpc.CallOption) (*IsFreshResponse, error)
+	// Recent final bars for charts (UI-010), newest last, served from the hot-cache ring (ST-009:
+	// at most 500 bars per timeframe); lake-backed history is Planned.
+	GetBars(ctx context.Context, in *GetBarsRequest, opts ...grpc.CallOption) (*GetBarsResponse, error)
+	// Current tickers to instrument IDs from the instrument master (UI order ticket and charts,
+	// UI-011). Exact matches only; positions and orders are always keyed by instrument_id.
+	ResolveSymbols(ctx context.Context, in *ResolveSymbolsRequest, opts ...grpc.CallOption) (*ResolveSymbolsResponse, error)
 }
 
 type marketDataServiceClient struct {
@@ -104,6 +112,26 @@ func (c *marketDataServiceClient) IsFresh(ctx context.Context, in *IsFreshReques
 	return out, nil
 }
 
+func (c *marketDataServiceClient) GetBars(ctx context.Context, in *GetBarsRequest, opts ...grpc.CallOption) (*GetBarsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetBarsResponse)
+	err := c.cc.Invoke(ctx, MarketDataService_GetBars_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *marketDataServiceClient) ResolveSymbols(ctx context.Context, in *ResolveSymbolsRequest, opts ...grpc.CallOption) (*ResolveSymbolsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResolveSymbolsResponse)
+	err := c.cc.Invoke(ctx, MarketDataService_ResolveSymbols_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MarketDataServiceServer is the server API for MarketDataService service.
 // All implementations must embed UnimplementedMarketDataServiceServer
 // for forward compatibility.
@@ -120,6 +148,12 @@ type MarketDataServiceServer interface {
 	// Whether the latest final bar is recent enough to trade on (MD-007). Fails closed: unknown
 	// instruments and stalled feeds are not fresh.
 	IsFresh(context.Context, *IsFreshRequest) (*IsFreshResponse, error)
+	// Recent final bars for charts (UI-010), newest last, served from the hot-cache ring (ST-009:
+	// at most 500 bars per timeframe); lake-backed history is Planned.
+	GetBars(context.Context, *GetBarsRequest) (*GetBarsResponse, error)
+	// Current tickers to instrument IDs from the instrument master (UI order ticket and charts,
+	// UI-011). Exact matches only; positions and orders are always keyed by instrument_id.
+	ResolveSymbols(context.Context, *ResolveSymbolsRequest) (*ResolveSymbolsResponse, error)
 	mustEmbedUnimplementedMarketDataServiceServer()
 }
 
@@ -144,6 +178,12 @@ func (UnimplementedMarketDataServiceServer) GetFeedStatus(context.Context, *GetF
 }
 func (UnimplementedMarketDataServiceServer) IsFresh(context.Context, *IsFreshRequest) (*IsFreshResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method IsFresh not implemented")
+}
+func (UnimplementedMarketDataServiceServer) GetBars(context.Context, *GetBarsRequest) (*GetBarsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetBars not implemented")
+}
+func (UnimplementedMarketDataServiceServer) ResolveSymbols(context.Context, *ResolveSymbolsRequest) (*ResolveSymbolsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResolveSymbols not implemented")
 }
 func (UnimplementedMarketDataServiceServer) mustEmbedUnimplementedMarketDataServiceServer() {}
 func (UnimplementedMarketDataServiceServer) testEmbeddedByValue()                           {}
@@ -256,6 +296,42 @@ func _MarketDataService_IsFresh_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MarketDataService_GetBars_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBarsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MarketDataServiceServer).GetBars(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MarketDataService_GetBars_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MarketDataServiceServer).GetBars(ctx, req.(*GetBarsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MarketDataService_ResolveSymbols_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResolveSymbolsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MarketDataServiceServer).ResolveSymbols(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MarketDataService_ResolveSymbols_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MarketDataServiceServer).ResolveSymbols(ctx, req.(*ResolveSymbolsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MarketDataService_ServiceDesc is the grpc.ServiceDesc for MarketDataService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -282,6 +358,14 @@ var MarketDataService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IsFresh",
 			Handler:    _MarketDataService_IsFresh_Handler,
+		},
+		{
+			MethodName: "GetBars",
+			Handler:    _MarketDataService_GetBars_Handler,
+		},
+		{
+			MethodName: "ResolveSymbols",
+			Handler:    _MarketDataService_ResolveSymbols_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
