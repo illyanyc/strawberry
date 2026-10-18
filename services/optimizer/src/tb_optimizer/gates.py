@@ -8,10 +8,12 @@ Romano-Wolf compare against the paper champion's outer series on common sessions
 
 from __future__ import annotations
 
+import json
 import math
 import time
 from dataclasses import dataclass
 from decimal import Decimal
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -20,6 +22,7 @@ from tb_backtest.scorer import CandidateEvidence, GatePolicy, score
 
 from tb.ml.v1 import training_pb2 as tp
 from tb.optimizer.v1 import optimizer_pb2 as op
+from tb_optimizer import deployment
 from tb_optimizer.nested import NestedResult, OuterResult
 from tb_optimizer.stats import EffectiveN, Matrix, Series
 from tbcore.backtest.model_eval import evaluate_event, strategy_spec
@@ -55,8 +58,15 @@ def strategy_params(cfg: tp.TrainingConfig, benchmark: str) -> dict[str, Any]:
     return p
 
 
-def event_evidence(nested: NestedResult, ds: mldataset.Dataset, cfg: tp.TrainingConfig) -> EventEvidence | None:
-    """Rerun the outer folds' decisions event-driven (live strategy code + tb-simcore)."""
+def event_evidence(
+    nested: NestedResult,
+    ds: mldataset.Dataset,
+    cfg: tp.TrainingConfig,
+    limits: op.DeploymentLimits | None = None,
+) -> EventEvidence | None:
+    """Rerun the outer folds' decisions event-driven (live strategy code + tb-simcore) under the lineage's
+    deployment limits and allocation, applied in the strategy scope exactly as paper registration applies
+    them (EX-063, RM-019); without limits, the global paper defaults on 100,000."""
     frames = [o.decisions for o in nested.outer if o.decisions.height]
     if not frames:
         return None
@@ -70,8 +80,10 @@ def event_evidence(nested: NestedResult, ds: mldataset.Dataset, cfg: tp.Training
         uni,
         ds.benchmark,
         strategy_params(cfg, ds.benchmark),
-        Decimal(100_000),
+        Decimal(limits.allocation) if limits is not None and limits.allocation else Decimal(100_000),
     )
+    if limits is not None:
+        spec = spec.model_copy(update={"limits": deployment.to_dict(limits.limits)})
     ev = evaluate_event(dec, ds.bars, spec, start, end, snapshot_id=ds.snapshot_id)
     return EventEvidence(
         Series(ev.days, ev.rets),
@@ -306,4 +318,61 @@ def analyst_view(r: op.GateReport) -> op.GateReport:
     out.CopyFrom(r)
     del out.reasons[:]
     out.thresholds.clear()
+    return out
+
+
+def write_expectation(
+    path: Any,
+    cand: op.Candidate,
+    run: tp.TrainingRun,
+    rep: op.GateReport,
+    limits: op.DeploymentLimits,
+    event: EventEvidence | None,
+    outer: Series,
+) -> dict[str, Any]:
+    """The monitor's expectation for a deployed candidate (EX-064, MN-046): per-session returns in bps
+    of equity and per-trade returns in bps from the event-driven rerun under the deployment limits (the
+    vectorized outer series when the rerun failed), modeled slippage and implementation shortfall (fill
+    vs the intent's reference price, plus fees), and pointers to the training reference."""
+    sess = (event.series.rets if event is not None else outer.rets) * 1e4
+    trades: list[float] = []
+    slip = shortfall = 0.0
+    if event is not None and event.result is not None:
+        t = event.result.trades
+        if t.height:
+            notional = (t["qty"] * t["entry_price"]).to_numpy()
+            trades = [float(x) for x in (t["pnl"].to_numpy() / np.where(notional > 0, notional, np.nan) * 1e4)]
+        f = event.result.fills
+        if f.height:
+            slip = float(np.nanmean(f["slippage_bps"].to_numpy()))
+            it = event.result.intents.select("intent_id", "reference_price", "side")
+            j = f.join(it, on="intent_id", how="inner", suffix="_intent")
+            if j.height:
+                ref = j["reference_price"].cast(pl.Float64).to_numpy()
+                px, qty, fee = j["price"].to_numpy(), j["qty"].to_numpy(), j["fees"].to_numpy()
+                sign = np.where(j["side"].str.starts_with("buy").to_numpy(), 1.0, -1.0)
+                ok = ref > 0
+                fee_bps = fee / np.where(qty * px > 0, qty * px, np.nan) * 1e4
+                bps = sign * (px - ref) / np.where(ok, ref, np.nan) * 1e4 + fee_bps
+                shortfall = float(np.nanmean(bps[ok])) if ok.any() else 0.0
+    out = {
+        "version": 1,
+        "candidate_id": cand.candidate_id,
+        "lineage_id": cand.lineage_id,
+        "strategy_id": cand.strategy_id,
+        "model_version": cand.model_version.version,
+        "training_run_id": run.run_id,
+        "feature_set_id": cand.model_version.feature_set_id,
+        "backtest_report_id": rep.report_id,
+        "engine": "event" if event is not None else "vectorized",
+        "horizon": limits.horizon,
+        "timeframe": cand.config.timeframe,
+        "allocation": limits.allocation,
+        "session_returns_bps": [float(x) for x in sess if math.isfinite(float(x))],
+        "trade_returns_bps": [x for x in trades if math.isfinite(x)],
+        "slippage_bps_modeled": slip if math.isfinite(slip) else 0.0,
+        "shortfall_bps_modeled": shortfall if math.isfinite(shortfall) else 0.0,
+        "max_drawdown": float(rep.outer.max_drawdown) if rep.HasField("outer") else 0.0,
+    }
+    Path(path).write_text(json.dumps(out, sort_keys=True))
     return out

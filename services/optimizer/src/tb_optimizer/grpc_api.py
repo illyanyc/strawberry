@@ -110,6 +110,21 @@ class OptimizerServicer(_Base):
         cyc = self._do(ctx, "OpenCycle", c, lambda: self.core.open_cycle(req.lineage_id, req.target_sharpe, c))
         return op.OpenCycleResponse(cycle=cyc)
 
+    def GetDeploymentLimits(self, req: op.GetDeploymentLimitsRequest, ctx: grpc.ServicerContext) -> Any:
+        c = self._caller(None)
+        eff, prof = self._do(ctx, "GetDeploymentLimits", c, lambda: self.core.deployment_limits(req.lineage_id))
+        return op.GetDeploymentLimitsResponse(limits=eff, profile=prof)
+
+    def SetDeploymentLimits(self, req: op.SetDeploymentLimitsRequest, ctx: grpc.ServicerContext) -> Any:
+        c = self._caller(req.caller)
+        lim, up = self._do(
+            ctx,
+            "SetDeploymentLimits",
+            c,
+            lambda: self.core.set_deployment_limits(req.lineage_id, req.limits, req.allocation, c),
+        )
+        return op.SetDeploymentLimitsResponse(limits=lim, raised=up)
+
     def CreateStudy(self, req: op.CreateStudyRequest, ctx: grpc.ServicerContext) -> Any:
         c = self._caller(req.caller)
         return op.CreateStudyResponse(

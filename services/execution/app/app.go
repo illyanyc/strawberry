@@ -248,6 +248,22 @@ func setLimit(l *ordersv1.RiskLimits, k, v string) error {
 		l.MaxPositions = iv()
 	case "max_orders_per_minute":
 		l.MaxOrdersPerMinute = iv()
+	case "max_net_exposure":
+		l.MaxNetExposure = dv
+	case "max_concentration_pct":
+		l.MaxConcentrationPct = dv
+	case "price_collar_pct":
+		l.PriceCollarPct = dv
+	case "fat_finger_multiple":
+		l.FatFingerMultiple = dv
+	case "max_cancels_per_minute":
+		l.MaxCancelsPerMinute = iv()
+	case "max_consecutive_losses":
+		l.MaxConsecutiveLosses = iv()
+	case "duplicate_window_seconds":
+		l.DuplicateWindowSeconds = iv()
+	case "max_open_orders":
+		l.MaxOpenOrders = iv()
 	default:
 		return fmt.Errorf("unknown limit")
 	}

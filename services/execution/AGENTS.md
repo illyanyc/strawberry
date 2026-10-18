@@ -31,7 +31,7 @@ Owns the OMS, the pre-trade risk gate (D30 routing, intraday-margin guard, PDT g
 | `cmd/execution/` | Entrypoint (config, Postgres, NATS, relay, clients, registry seed, gRPC allowlist) |
 | `app/` | Public wiring: engine + consumers + tick loop, gRPC clients for adapters and the ledger, refdata instrument lookup, registry seed, metrics |
 | `internal/risk/` | Pure pre-trade checks and limits |
-| `internal/oms/` | OMS engine, stores (memory, Postgres), kill switches, reduce-only demotion (`demote.go`, RM-018), lifecycle, views |
+| `internal/oms/` | OMS engine, stores (memory, Postgres), limit merge (owner scope replaces global, account caps, RM-019), kill switches, reduce-only demotion (`demote.go`, RM-018), lifecycle, views |
 | `internal/server/` | `ExecutionService` and caller allowlist |
 | `internal/simcore/` | Backtest simcore ([ADR-0031](../../docs/adr/0031-two-tier-backtester-and-simcore.md)): the real OMS engine on the in-memory store, a passive simulated broker (held bracket legs, broker-side OCO), and an `oms.Ledger` adapter over `services/ledger/book`; served on stdio by `cmd/tb-simcore` |
 | `cmd/tb-simcore/` | `tb-simcore` binary for the event-driven backtester (tb.backtest.v1 simcore protocol on stdin/stdout; no sockets, no secrets) |

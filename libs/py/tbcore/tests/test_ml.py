@@ -3,6 +3,7 @@ DiagnosticsReport (section 10; ML-001..ML-016, ML-020..ML-023)."""
 
 from __future__ import annotations
 
+import json
 import math
 from collections.abc import Mapping
 from functools import lru_cache
@@ -17,7 +18,7 @@ from tbcore.backtest.costs import CostModelConfig
 from tbcore.backtest.signals import SignalEvalConfig, evaluate_decisions
 from tbcore.backtest.vectorized import VectorData
 from tbcore.labels import rank_relevance, sample_weights
-from tbcore.ml import config, dataset, diagnostics, models, schema, synthetic, train
+from tbcore.ml import config, dataset, diagnostics, models, runs, schema, synthetic, train
 from tbcore.ml.bundle import FeatureMismatchError, ModelBundle
 from tbcore.ml.preprocess import Pipeline
 from tbcore.ml.rules import residual_reversal_signals, residual_z
@@ -295,3 +296,19 @@ def test_bt008_vectorized_delisted_name_exits_at_last_close_less_haircut() -> No
     r = evaluate_decisions(vd, [inst], np.array([vd.ts_open[10]]), np.array([1]), cfg, CostModelConfig())
     assert r.trades.height == 1 and r.metrics["delisted_trades"] == 1.0  # never silently dropped (survivorship)
     assert r.trades["exit_price"][0] == pytest.approx(vd.close[k, 0] * 0.5)
+
+
+def test_ml044_training_reference_for_drift_monitoring(tmp_path: Path) -> None:
+    """ML-044, MN-038: a run stores a deterministic training-window feature sample and importance ranks."""
+    cfg = _cfg("lgbm_regression", "synthetic:intraday_small", "15m")
+    ds = _ds("lgbm_regression", "synthetic:intraday_small", "15m")
+    res = train.train(cfg, ds, size_curve=False, explain=False)
+    runs.write_monitoring_reference(res, diagnostics.build_report(res, "r1"), tmp_path)
+    ref = pl.read_parquet(tmp_path / "reference.parquet")
+    assert 0 < ref.height <= runs.REFERENCE_ROWS
+    assert ref.columns == ["instrument_id", "decision_time", *ds.features]
+    assert int(ref["decision_time"].max() or 0) <= int(ds.frame["decision_time"].max() or 0)  # training window only
+    ranks = json.loads((tmp_path / "importance.json").read_text())
+    assert sorted(ranks) == sorted(ds.features) and sorted(ranks.values()) == list(range(1, len(ds.features) + 1))
+    runs.write_monitoring_reference(res, diagnostics.build_report(res, "r1"), tmp_path / "again")
+    assert pl.read_parquet(tmp_path / "again" / "reference.parquet").equals(ref)  # deterministic

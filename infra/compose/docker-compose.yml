@@ -767,6 +767,8 @@ services:
       TB_HOLDOUT_DB_USER: svc_holdout
       TB_OPT_GRPC_ADDR: "0.0.0.0:9091"
       TB_OPT_DEPLOY_REGISTRY: /data/ml-artifacts/deploy/research-strategies.json
+      # Candidate deployment limit profiles (EX-062, ADR-0047): owner-edited, read at start.
+      TB_OPT_DEPLOYMENT_LIMITS: /etc/tb/deployment-limits.json
       TB_ML_ARTIFACTS_DIR: /data/ml-artifacts
       TB_LAKE_DIR: /data/lake
       TB_ML_MLFLOW_URL: ${TB_ML_MLFLOW_URL:-}
@@ -777,6 +779,7 @@ services:
     volumes:
       - "${TB_LAKE_DIR:-../../data/lake}:/data/lake:ro"
       - "${TB_ML_ARTIFACTS_DIR:-../../data/ml-artifacts}:/data/ml-artifacts"
+      - "./deployment-limits.json:/etc/tb/deployment-limits.json:ro"
     networks: [backend, research]
     healthcheck: *py-healthcheck
 

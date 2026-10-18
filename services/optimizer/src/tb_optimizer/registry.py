@@ -147,8 +147,17 @@ def decide(caller: tp.CallerContext, cand: op.Candidate, to: int, ctx: Context) 
     return _deny("not allowed")
 
 
-def registry_entry(cand: op.Candidate, mode: str, account_intraday: str, account_swing: str) -> dict[str, object]:
-    """Strategy registry entry (infra/compose/strategies.json format) for shadow/paper deployment (EX-056)."""
+def registry_entry(
+    cand: op.Candidate,
+    mode: str,
+    account_intraday: str,
+    account_swing: str,
+    limits: dict[str, str] | None = None,
+    allocation: str = "10000",
+    monitoring: dict[str, str] | None = None,
+) -> dict[str, object]:
+    """Strategy registry entry (infra/compose/strategies.json format) for shadow/paper deployment (EX-056):
+    the lineage's deployment limits and allocation (EX-064) and the monitor's expectation block (MN-046)."""
     cfg = cand.config
     swing = cfg.timeframe == "1d"
     fam_task = "rule_filter" if cfg.family in ("orb_meta", "residual_reversal_meta") else "model"
@@ -173,7 +182,7 @@ def registry_entry(cand: op.Candidate, mode: str, account_intraday: str, account
         "horizon": "swing" if swing else "intraday",
         "broker_account_id": account_swing if swing else account_intraday,
         "mode": mode,
-        "allocation": "10000",
+        "allocation": allocation,
         "allow_short": False,
         "segregation_allowlist": [],
         "version": cand.model_version.version or "1",
@@ -185,7 +194,8 @@ def registry_entry(cand: op.Candidate, mode: str, account_intraday: str, account
             "instruments": [*cfg.universe.instrument_ids, bench],
             "params": params,
         },
-        "limits": {},
+        "limits": dict(limits or {}),
+        **({"monitoring": dict(monitoring)} if monitoring else {}),
     }
 
 

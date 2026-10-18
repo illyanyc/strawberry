@@ -56,6 +56,9 @@ const (
 	ActHoldoutEvaluate    Action = "holdout.evaluate"
 	ActHoldoutSchedule    Action = "holdout.schedule"
 	ActAnalystAutonomySet Action = "analyst.autonomy.set"
+	// Candidate deployment limits (EX-062) and registering a promoted candidate with execution (SM-016).
+	ActDeploymentLimitsSet Action = "research.deployment_limits.set"
+	ActStrategyRegister    Action = "strategy.register"
 	// AI Research Analyst (section 12, AN-060..AN-063, AN-073, AN-080).
 	ActAnalystRead          Action = "analyst.read"
 	ActAnalystActionsReview Action = "analyst.actions.review"
@@ -126,6 +129,10 @@ var ownerActions = map[Action]stepUp{
 	ActHoldoutEvaluate:    stepUpPasskey,
 	ActHoldoutSchedule:    stepUpPasskey,
 	ActAnalystAutonomySet: noStepUp,
+	// Raising a lineage's deployment limits or allocation needs a passkey (RM-007, escalated below);
+	// registering a candidate with execution sets its allocation and strategy-scope limits (RM-019).
+	ActDeploymentLimitsSet: noStepUp,
+	ActStrategyRegister:    stepUpPasskey,
 	// Analyst views, pausing, reviewing proposals, and chat reduce or do not change risk; raising its
 	// autonomy is analyst.autonomy.set in raise mode (AN-061, escalated above).
 	ActAnalystRead:          noStepUp,
@@ -153,7 +160,7 @@ func escalated(action Action, res Resource) bool {
 		return strings.EqualFold(res.Mode, "live")
 	case ActModelPromote:
 		return res.Mode == "paper" || res.Mode == "live_eligible"
-	case ActAnalystAutonomySet:
+	case ActAnalystAutonomySet, ActDeploymentLimitsSet:
 		return res.Mode == "raise"
 	}
 	return false

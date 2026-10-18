@@ -243,3 +243,21 @@ def test_ml043_tree_inference_p99_under_20ms_for_an_intraday_universe() -> None:
         samples.append(time.perf_counter() - t0)
     p99 = float(np.percentile(samples, 99))
     assert p99 < 0.020, f"p99 {p99 * 1000:.2f} ms"
+
+
+def test_ex063_rm019_rerun_under_deployment_limits_replaces_the_global_defaults() -> None:
+    """The event-driven rerun applies the candidate's limits in the strategy scope: drawdown and daily-loss
+    limits looser than the global paper defaults (2,500 / 1,000) let the strategy keep trading where the
+    defaults latch."""
+    res, ds = _trained()
+    dec = _decisions(res).with_columns(pl.lit(True).alias("take"))
+    uni = sorted(set(ds.frame["instrument_id"].to_list()))
+    spec = strategy_spec("regression", "15m", uni, ds.benchmark, {"horizon": 4}, Decimal(100_000))
+    start, end = int(dec["decision_time"].min()), int(ds.bars["available_at"].max() or 0)  # type: ignore[arg-type]
+    latches = ["drawdown", "daily_loss", "consecutive_losses"]
+    default = evaluate_event(dec, ds.bars, spec, start, end)
+    limits = {"max_drawdown": "50000", "max_daily_loss": "50000", "max_consecutive_losses": "500"}
+    sized = evaluate_event(dec, ds.bars, spec.model_copy(update={"limits": limits}), start, end)
+    assert default.result.intents.filter(pl.col("first_failure").is_in(latches)).height > 0
+    assert sized.result.intents.filter(pl.col("first_failure").is_in(latches)).height == 0
+    assert sized.trades > default.trades
