@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file tb/ml/v1/ml.proto.
  */
 export const file_tb_ml_v1_ml: GenFile = /*@__PURE__*/
-  fileDesc("ChF0Yi9tbC92MS9tbC5wcm90bxIIdGIubWwudjEi6QIKDE1vZGVsVmVyc2lvbhIQCghtb2RlbF9pZBgBIAEoCRIPCgd2ZXJzaW9uGAIgASgJEg4KBmZhbWlseRgDIAEoCRIXCg90cmFpbmluZ19ydW5faWQYBCABKAkSGwoTZGF0YXNldF9zbmFwc2hvdF9pZBgFIAEoCRIWCg5mZWF0dXJlX3NldF9pZBgGIAEoCRI0CgdtZXRyaWNzGAcgAygLMiMudGIubWwudjEuTW9kZWxWZXJzaW9uLk1ldHJpY3NFbnRyeRIjCgVzdGFnZRgIIAEoDjIULnRiLm1sLnYxLk1vZGVsU3RhZ2USEwoLY29kZV9jb21taXQYCSABKAkSEwoLY29uZmlnX2hhc2gYCiABKAkSDAoEc2VlZBgLIAEoAxIVCg1lbnZfbG9ja19oYXNoGAwgASgJGi4KDE1ldHJpY3NFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAE6AjgBIo4CCgtCYWNrdGVzdFJ1bhIOCgZydW5faWQYASABKAkSHAoUc3RyYXRlZ3lfY29uZmlnX2hhc2gYAiABKAkSGAoQZGF0YV9zbmFwc2hvdF9pZBgDIAEoCRISCgpjb3N0X21vZGVsGAQgASgJEjMKB21ldHJpY3MYBSADKAsyIi50Yi5tbC52MS5CYWNrdGVzdFJ1bi5NZXRyaWNzRW50cnkSGwoTdHJhZGVzX2FydGlmYWN0X3VyaRgGIAEoCRITCgtjb2RlX2NvbW1pdBgHIAEoCRIMCgRzZWVkGAggASgDGi4KDE1ldHJpY3NFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAE6AjgBKpQBCgpNb2RlbFN0YWdlEhsKF01PREVMX1NUQUdFX1VOU1BFQ0lGSUVEEAASGQoVTU9ERUxfU1RBR0VfQ0FORElEQVRFEAESGgoWTU9ERUxfU1RBR0VfQ0hBTExFTkdFUhACEhgKFE1PREVMX1NUQUdFX0NIQU1QSU9OEAMSGAoUTU9ERUxfU1RBR0VfQVJDSElWRUQQBEKYAQoMY29tLnRiLm1sLnYxQgdNbFByb3RvUAFaPWdpdGh1Yi5jb20vaWxseWFueWMvc3RyYXdiZXJyeS9jb250cmFjdHMvZ2VuL2dvL3RiL21sL3YxO21sdjGiAgNUTViqAghUYi5NbC5WMcoCCFRiXE1sXFYx4gIUVGJcTWxcVjFcR1BCTWV0YWRhdGHqAgpUYjo6TWw6OlYxYgZwcm90bzM");
+  fileDesc("ChF0Yi9tbC92MS9tbC5wcm90bxIIdGIubWwudjEi6QIKDE1vZGVsVmVyc2lvbhIQCghtb2RlbF9pZBgBIAEoCRIPCgd2ZXJzaW9uGAIgASgJEg4KBmZhbWlseRgDIAEoCRIXCg90cmFpbmluZ19ydW5faWQYBCABKAkSGwoTZGF0YXNldF9zbmFwc2hvdF9pZBgFIAEoCRIWCg5mZWF0dXJlX3NldF9pZBgGIAEoCRI0CgdtZXRyaWNzGAcgAygLMiMudGIubWwudjEuTW9kZWxWZXJzaW9uLk1ldHJpY3NFbnRyeRIjCgVzdGFnZRgIIAEoDjIULnRiLm1sLnYxLk1vZGVsU3RhZ2USEwoLY29kZV9jb21taXQYCSABKAkSEwoLY29uZmlnX2hhc2gYCiABKAkSDAoEc2VlZBgLIAEoAxIVCg1lbnZfbG9ja19oYXNoGAwgASgJGi4KDE1ldHJpY3NFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAE6AjgBIuECCgtCYWNrdGVzdFJ1bhIOCgZydW5faWQYASABKAkSHAoUc3RyYXRlZ3lfY29uZmlnX2hhc2gYAiABKAkSGAoQZGF0YV9zbmFwc2hvdF9pZBgDIAEoCRISCgpjb3N0X21vZGVsGAQgASgJEjMKB21ldHJpY3MYBSADKAsyIi50Yi5tbC52MS5CYWNrdGVzdFJ1bi5NZXRyaWNzRW50cnkSGwoTdHJhZGVzX2FydGlmYWN0X3VyaRgGIAEoCRITCgtjb2RlX2NvbW1pdBgHIAEoCRIMCgRzZWVkGAggASgDEhsKE3N1cnZpdm9yc2hpcF9zdGF0dXMYCSABKAkSEAoId2FybmluZ3MYCiADKAkSDgoGZW5naW5lGAsgASgJEhIKCmZpbGxfbW9kZWwYDCABKAkaLgoMTWV0cmljc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoAToCOAEqlAEKCk1vZGVsU3RhZ2USGwoXTU9ERUxfU1RBR0VfVU5TUEVDSUZJRUQQABIZChVNT0RFTF9TVEFHRV9DQU5ESURBVEUQARIaChZNT0RFTF9TVEFHRV9DSEFMTEVOR0VSEAISGAoUTU9ERUxfU1RBR0VfQ0hBTVBJT04QAxIYChRNT0RFTF9TVEFHRV9BUkNISVZFRBAEQpgBCgxjb20udGIubWwudjFCB01sUHJvdG9QAVo9Z2l0aHViLmNvbS9pbGx5YW55Yy9zdHJhd2JlcnJ5L2NvbnRyYWN0cy9nZW4vZ28vdGIvbWwvdjE7bWx2MaICA1RNWKoCCFRiLk1sLlYxygIIVGJcTWxcVjHiAhRUYlxNbFxWMVxHUEJNZXRhZGF0YeoCClRiOjpNbDo6VjFiBnByb3RvMw");
 
 /**
  * @generated from message tb.ml.v1.ModelVersion
@@ -198,6 +198,32 @@ export type BacktestRun = Message<"tb.ml.v1.BacktestRun"> & {
    * @generated from field: int64 seed = 8;
    */
   seed: bigint;
+
+  /**
+   * complete | incomplete | unknown (U5, O3); anything but complete is warned (BT-005).
+   *
+   * @generated from field: string survivorship_status = 9;
+   */
+  survivorshipStatus: string;
+
+  /**
+   * Run warnings (coarse fills, low trade count, impact fallback, ...; BT-005).
+   *
+   * @generated from field: repeated string warnings = 10;
+   */
+  warnings: string[];
+
+  /**
+   * event | vectorized (vectorized runs are screening only, BT-006).
+   *
+   * @generated from field: string engine = 11;
+   */
+  engine: string;
+
+  /**
+   * @generated from field: string fill_model = 12;
+   */
+  fillModel: string;
 };
 
 /**
@@ -243,6 +269,32 @@ export type BacktestRunJson = {
    * @generated from field: int64 seed = 8;
    */
   seed?: string;
+
+  /**
+   * complete | incomplete | unknown (U5, O3); anything but complete is warned (BT-005).
+   *
+   * @generated from field: string survivorship_status = 9;
+   */
+  survivorshipStatus?: string;
+
+  /**
+   * Run warnings (coarse fills, low trade count, impact fallback, ...; BT-005).
+   *
+   * @generated from field: repeated string warnings = 10;
+   */
+  warnings?: string[];
+
+  /**
+   * event | vectorized (vectorized runs are screening only, BT-006).
+   *
+   * @generated from field: string engine = 11;
+   */
+  engine?: string;
+
+  /**
+   * @generated from field: string fill_model = 12;
+   */
+  fillModel?: string;
 };
 
 /**

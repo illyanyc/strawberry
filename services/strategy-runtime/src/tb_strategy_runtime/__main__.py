@@ -28,12 +28,12 @@ from nats.js.api import ConsumerConfig, DeliverPolicy
 from tb.context.v1 import context_pb2
 from tb.ledger.v1 import ledger_pb2
 from tb.marketdata.v1 import marketdata_pb2
-from tb_strategy_runtime.runner import Runner
 from tbcore.context.store import ContextStore
 from tbcore.data.lake import Lake
 from tbcore.logging import configure
 from tbcore.secrets import SecretNotFoundError, get_secret
 from tbcore.service import ServiceSettings, create_ops_app
+from tbcore.strategy.host import Runner
 
 log = logging.getLogger("strategy-runtime")
 

@@ -30,7 +30,7 @@ Stack choices are accepted per [`docs/decisions.md`](docs/decisions.md) (researc
 | Context data | `services/context-data/` | Point-in-time context: FMP calendars/earnings/statement snapshots, ALFRED vintages, FINRA short interest, EDGAR filings, Alpaca news (via broker-gateway) with quarantined sentiment, regimes; published on `ctx.<kind>`, written to the lake by marketdata | Python (ADR-0032, ADR-0033) |
 | Strategy runtime | `services/strategy-runtime/` | Runs `tbcore.strategy` strategies on final bars and publishes intents on `ord.intent` (never talks to brokers) | Python (D1, D44) |
 | ML | `services/ml/` | Training jobs, model zoo, inference | Python; MLflow 3 (D8), Optuna 5 (D9), LightGBM (D23); native launchd workers on macOS (D29) |
-| Backtest | `services/backtest/` | Vectorized + event-driven backtests, validation stats | Python, custom two-tier on `tbcore` (D7) |
+| Backtest | `services/backtest/` | Backtest runs (engines in `tbcore.backtest`), parity, leakage suite, D31 promotion scorer, evaluator manifest | Python, custom two-tier on `tbcore` with the live OMS in `tb-simcore` (D7, D49, D52) |
 | Optimizer | `services/optimizer/` | Studies, search spaces, holdout discipline, champion/challenger | Python; honest-optimization policy (D31) |
 | Assistant | `services/assistant/` | LLM agent with constrained tools | Python, Pydantic AI + MCP; hybrid API/local LLM (D26) |
 | Monitor | `services/monitor/` | Drift, divergence, health, alerts, auto-demotion | Python |
@@ -69,11 +69,12 @@ Prerequisites: Docker (Colima on the Mac Mini, ADR-0013), `make`, `git`. Develop
 | `make ps`, `make logs SERVICE=x` | Status and logs; Grafana at http://localhost:3000 |
 | `make tools`, `make deps` | Pinned dev tools into `.tools/bin`; Go/uv/pnpm dependencies |
 | `make gen` / `make gen-check` | Regenerate contracts / fail if generated code is stale |
-| `make lint` | buf lint + breaking, golangci-lint, ruff + mypy, tsc + eslint, docs gate |
+| `make lint` | buf lint + breaking, golangci-lint, ruff + mypy + point-in-time feature lint, tsc + eslint, docs gate |
 | `make test` | Go (`-race`), Python, and web unit tests |
 | `make test-integration` | Go tests including Postgres-backed integration tests (throwaway container) |
 | `make paper-ibkr` | D30 swing routing through the real IBKR adapter over its fake gateway (GTC protective stop, ledger booking) |
-| `make paper-gate` | Phase 2 gate: five simulated ORB sessions through the Python runtime, OMS, simulators, and ledger (writes `paper-gate-evidence.json`) |
+| `make paper-gate` | Phase 2 gate: five simulated ORB sessions through the Python runtime, OMS, simulators, and ledger (writes `paper-gate-evidence.json` and the bus recording `paper-gate.tbrec`) |
+| `make parity-gate` | Gate 3 parity: replays `paper-gate.tbrec` through the event-driven backtester with recorded and modeled fills (writes `parity-report-*.json`; run after `make paper-gate`) |
 | `cd tests/paper && go test ./...` | Phase 2 Gate 2 scenarios on the in-process paper harness (simulators, ledger, execution, embedded NATS) |
 | `make smoke` | Smoke test of the running stack (readiness, auth gate, ports, e2e passkey flow with leak canary, Prometheus, audit chain) |
 | `make e2e` / `make e2e-ui` | Go API e2e / Playwright browser e2e against a fresh running stack |
@@ -92,6 +93,8 @@ Prerequisites: Docker (Colima on the Mac Mini, ADR-0013), `make`, `git`. Develop
 | `make test-ctx-live` | Opt-in context-data tests against real APIs (FINRA, EDGAR; FRED/FMP with keys) |
 | `make spike-v6` | Verify-early V6: FMP earnings report timing in `/stable` (needs `.secrets/fmp_api_key`) |
 | `make perf` | Storage performance targets (lake load, as-of join) on this machine |
+| `make simcore` | Build `tb-simcore` (live OMS, gate, and ledger core for the event-driven backtester) into `.tools/bin`; native workers set `TB_SIMCORE_BIN` |
+| `make perf-backtest` | Backtest performance targets: event-driven 1 year × 100 symbols × 5m < 60 s, vectorized 1,000 parameter sets < 5 min |
 | `make spike-v4` | Verify-early V4: atomic rename across the lake bind mount (Mac Mini) |
 
 ## Non-negotiables (summary)

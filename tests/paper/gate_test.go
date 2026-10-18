@@ -148,6 +148,21 @@ func TestGate2FiveORBSessionsReconcileAndManualUntouched(t *testing.T) {
 	if err := execapp.Seed(ctx, h.Exec.Engine, seedReg); err != nil {
 		t.Fatal(err)
 	}
+	// Gate 3 parity (BT-070): optionally record the bus for the event-driven replay.
+	if path := os.Getenv("TB_PAPER_RECORDING"); path != "" {
+		rec, err := StartRecorder(h.NC, path, func() int64 { return h.Clock.Now().UnixNano() })
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer func() {
+			h.Quiesce()
+			n, err := rec.Close()
+			if err != nil {
+				t.Errorf("recording: %v", err)
+			}
+			t.Logf("recorded %d bus messages to %s", n, path)
+		}()
+	}
 	// Manual book: 100 AAPL (also traded by ORB) and 50 MSFT (not traded by ORB).
 	h.Fresh(map[string]string{"AAPL": "100", "MSFT": "200", "NVDA": "100", "AMD": "100", "SPY": "100", "XLK": "100"})
 	h.ManualFill(Alpaca, "AAPL", commonv1.Side_SIDE_BUY, 100)

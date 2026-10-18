@@ -74,7 +74,9 @@ Rules: [orders and execution](../business-logic/orders-and-execution.md), [risk]
 
 **Research loop (throughput-oriented, reproducible):**
 data snapshot → features + labels → train → backtest + validation → optimize → register → shadow/paper → live → monitor → retrain.
-Rules: [data and features](../business-logic/data-and-features.md), [strategies and model lifecycle](../business-logic/strategies-and-model-lifecycle.md).
+Rules: [data and features](../business-logic/data-and-features.md), [strategies and model lifecycle](../business-logic/strategies-and-model-lifecycle.md), [backtesting](../business-logic/backtesting.md).
+
+**Backtests reuse the trading path** ([ADR-0031](../adr/0031-two-tier-backtester-and-simcore.md)): the event-driven tier replays lake bars or a recorded bus stream (`RecordedMessage`) through the live runtime core (`tbcore.strategy.host`) and sends each `OrderIntent` to `tb-simcore`, a Go process that runs the production OMS engine and pre-trade gate with the ledger's accounting core behind a passive simulated broker; the backtester's fill and cost models (or recorded executions) decide fills. The vectorized tier screens signal matrices with the same cost model.
 
 ## Cross-cutting design
 
@@ -106,6 +108,7 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 | `tb.ledger.v1` | `AccountSnapshot`, `StrategyPosition`, `LedgerEntry`, `LedgerUpdate`, `ReconciliationResult` (breaks, halted pairs), `Break` | broker-gateway, ledger → UI, execution, monitor, strategy-runtime |
 | `tb.ledger.v1` | `LedgerService` (account view by owner, strategy portfolio, ownership constraints, capital and reservations, owners and allocations, reconcile, breaks, equity curve, owner and broker-shadow lots, wash-sale flags, reconciliation reports) ([ADR-0024](../adr/0024-virtual-ledgers-and-reconciliation.md), [VP-](../business-logic/virtual-portfolios-and-attribution.md)) | ledger → execution, api-gateway |
 | `tb.ml.v1` | `ModelVersion`, `BacktestRun` | ml, backtest, optimizer → registry, UI |
+| `tb.backtest.v1` | `SimRequest`/`SimResponse` (simcore protocol over stdio, length-delimited) and `RecordedMessage` (bus recordings for replay and parity) ([ADR-0031](../adr/0031-two-tier-backtester-and-simcore.md), [BT-](../business-logic/backtesting.md)) | `tbcore.backtest` ↔ `tb-simcore`; recorder → backtester |
 | `tb.alerts.v1` | `Alert` | any → monitor → channels |
 | `tb.audit.v1` | `AuditEvent` | all → audit store |
 | `tb.broker.v1` | `CredentialService` (gRPC: put, delete, list status; no plaintext read) | api-gateway → broker-gateway |

@@ -221,8 +221,15 @@ type BacktestRun struct {
 	TradesArtifactUri  string                 `protobuf:"bytes,6,opt,name=trades_artifact_uri,json=tradesArtifactUri,proto3" json:"trades_artifact_uri,omitempty"`
 	CodeCommit         string                 `protobuf:"bytes,7,opt,name=code_commit,json=codeCommit,proto3" json:"code_commit,omitempty"`
 	Seed               int64                  `protobuf:"varint,8,opt,name=seed,proto3" json:"seed,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// complete | incomplete | unknown (U5, O3); anything but complete is warned (BT-005).
+	SurvivorshipStatus string `protobuf:"bytes,9,opt,name=survivorship_status,json=survivorshipStatus,proto3" json:"survivorship_status,omitempty"`
+	// Run warnings (coarse fills, low trade count, impact fallback, ...; BT-005).
+	Warnings []string `protobuf:"bytes,10,rep,name=warnings,proto3" json:"warnings,omitempty"`
+	// event | vectorized (vectorized runs are screening only, BT-006).
+	Engine        string `protobuf:"bytes,11,opt,name=engine,proto3" json:"engine,omitempty"`
+	FillModel     string `protobuf:"bytes,12,opt,name=fill_model,json=fillModel,proto3" json:"fill_model,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *BacktestRun) Reset() {
@@ -311,6 +318,34 @@ func (x *BacktestRun) GetSeed() int64 {
 	return 0
 }
 
+func (x *BacktestRun) GetSurvivorshipStatus() string {
+	if x != nil {
+		return x.SurvivorshipStatus
+	}
+	return ""
+}
+
+func (x *BacktestRun) GetWarnings() []string {
+	if x != nil {
+		return x.Warnings
+	}
+	return nil
+}
+
+func (x *BacktestRun) GetEngine() string {
+	if x != nil {
+		return x.Engine
+	}
+	return ""
+}
+
+func (x *BacktestRun) GetFillModel() string {
+	if x != nil {
+		return x.FillModel
+	}
+	return ""
+}
+
 var File_tb_ml_v1_ml_proto protoreflect.FileDescriptor
 
 const file_tb_ml_v1_ml_proto_rawDesc = "" +
@@ -334,7 +369,7 @@ const file_tb_ml_v1_ml_proto_rawDesc = "" +
 	"\renv_lock_hash\x18\f \x01(\tR\venvLockHash\x1a:\n" +
 	"\fMetricsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x01\"\xfe\x02\n" +
+	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x01\"\x82\x04\n" +
 	"\vBacktestRun\x12\x15\n" +
 	"\x06run_id\x18\x01 \x01(\tR\x05runId\x120\n" +
 	"\x14strategy_config_hash\x18\x02 \x01(\tR\x12strategyConfigHash\x12(\n" +
@@ -345,7 +380,13 @@ const file_tb_ml_v1_ml_proto_rawDesc = "" +
 	"\x13trades_artifact_uri\x18\x06 \x01(\tR\x11tradesArtifactUri\x12\x1f\n" +
 	"\vcode_commit\x18\a \x01(\tR\n" +
 	"codeCommit\x12\x12\n" +
-	"\x04seed\x18\b \x01(\x03R\x04seed\x1a:\n" +
+	"\x04seed\x18\b \x01(\x03R\x04seed\x12/\n" +
+	"\x13survivorship_status\x18\t \x01(\tR\x12survivorshipStatus\x12\x1a\n" +
+	"\bwarnings\x18\n" +
+	" \x03(\tR\bwarnings\x12\x16\n" +
+	"\x06engine\x18\v \x01(\tR\x06engine\x12\x1d\n" +
+	"\n" +
+	"fill_model\x18\f \x01(\tR\tfillModel\x1a:\n" +
 	"\fMetricsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x01*\x94\x01\n" +

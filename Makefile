@@ -148,8 +148,13 @@ test-ibkr-contract: ## Shared Go broker contract suite (BR-001) against the IBKR
 
 .PHONY: paper-gate
 paper-gate: ## Phase 2 gate: five simulated ORB sessions through runtime, OMS, simulators, ledger (writes paper-gate-evidence.json)
-	cd tests/paper && TB_PAPER_GATE_REQUIRED=1 TB_PAPER_EVIDENCE=$(CURDIR)/paper-gate-evidence.json \
+	cd tests/paper && TB_PAPER_GATE_REQUIRED=1 TB_PAPER_EVIDENCE=$(CURDIR)/paper-gate-evidence.json TB_PAPER_RECORDING=$(CURDIR)/paper-gate.tbrec \
 	  go test -count=1 -run 'TestGate2' -v -timeout 20m ./... 2>&1 | grep -E '^(=== RUN|--- |    gate_test|PASS|FAIL|ok)'
+
+.PHONY: parity-gate
+parity-gate: ## Gate 3 parity (BT-070/071): replay the paper-gate bus recording (run make paper-gate first) with recorded and modeled fills
+	uv run python -m tbcore.parity paper-gate.tbrec --config tests/fixtures/parity/orb-paper-gate.config.json --mode recorded --out parity-report-recorded.json
+	uv run python -m tbcore.parity paper-gate.tbrec --config tests/fixtures/parity/orb-paper-gate.config.json --mode model --out parity-report-model.json
 
 .PHONY: paper-ibkr
 paper-ibkr: ## D30 swing routing through the real IBKR adapter over its fake gateway (tests/paper)
@@ -194,10 +199,11 @@ lint-go: ## golangci-lint on every Go module
 	@for m in $(GO_MODULES); do echo "golangci-lint $$m"; (cd $$m && golangci-lint run ./...); done
 
 .PHONY: lint-py
-lint-py: ## ruff + mypy
+lint-py: ## ruff + mypy + point-in-time lint of feature code (BT-064)
 	uv run ruff check .
 	uv run ruff format --check .
 	uv run mypy
+	uv run python -m tbcore.features.lint
 
 .PHONY: lint-web
 lint-web: ## TypeScript type checks and web lint
@@ -231,6 +237,14 @@ gen-calendar: ## Regenerate the shared XNYS session table (Go + Python copies) f
 perf: ## Performance targets on this machine: lake load, as-of join (section 03), bar finality-to-bus U8 (section 05)
 	TB_PERF=1 uv run pytest libs/py/tbcore/tests/test_features.py -k perf -s -q
 	cd services/marketdata && go test -count=1 -run TestU8BarFinalToBusLatency -v ./internal/live | grep -E "U8:|^(ok|FAIL|---)"
+
+.PHONY: simcore
+simcore: ## Build tb-simcore (live OMS + gate + ledger core for the event-driven backtester) into .tools/bin; point TB_SIMCORE_BIN at it
+	cd services/execution && go build -trimpath -o $(CURDIR)/.tools/bin/tb-simcore ./cmd/tb-simcore
+
+.PHONY: perf-backtest
+perf-backtest: ## Backtest performance targets (section 08): event-driven 1y x 100 x 5m < 60 s, vectorized 1000 sets < 5 min
+	TB_PERF=1 uv run pytest -s -q libs/py/tbcore/tests/test_backtest_event.py libs/py/tbcore/tests/test_backtest_vectorized.py -k perf | grep -E "BT-00[36] perf|passed|failed"
 
 .PHONY: lake-verify
 lake-verify: ## Re-hash every lake file against the manifest (ST-003); non-zero exit on corruption

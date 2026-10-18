@@ -1,5 +1,9 @@
-"""Pure core of the strategy runtime: registry, bar dispatch, own-portfolio tracking, and the
-conversion between tbcore.strategy objects and contract messages. No I/O (unit-testable).
+"""Strategy host: the pure core of the strategy runtime, shared with the event-driven backtester.
+
+Registry, bar dispatch, own-portfolio tracking, and the conversion between tbcore.strategy objects
+and contract messages. No I/O. The live runtime (``services/strategy-runtime``) and the backtester
+(``tbcore.backtest.event``) both dispatch through ``Runner``, so a backtest hosts strategies exactly
+as production does (BT-002).
 
 Rules: SM-011 (same strategy code as the backtester), SM-014 (a strategy sees only its own
 virtual portfolio and data available at its decision time), N5/OE-014 (opens carry a stop).
@@ -8,6 +12,7 @@ virtual portfolio and data available at its decision time), N5/OE-014 (opens car
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
@@ -39,7 +44,23 @@ TIMEFRAMES = {
 SIDES = {"buy": common_pb2.SIDE_BUY, "sell": common_pb2.SIDE_SELL, "sell_short": common_pb2.SIDE_SELL_SHORT}
 HORIZONS = {"intraday": common_pb2.HORIZON_INTRADAY, "swing": common_pb2.HORIZON_SWING}
 TIFS = {"day": orders_pb2.TIME_IN_FORCE_DAY, "gtc": orders_pb2.TIME_IN_FORCE_GTC}
-CLASSES = {"orb": lambda sid, params: OpeningRangeBreakout(sid, ORBParams.from_dict(params))}
+MODES = {
+    "live": common_pb2.MODE_LIVE,
+    "paper": common_pb2.MODE_PAPER,
+    "shadow": common_pb2.MODE_PAPER,
+    "backtest": common_pb2.MODE_BACKTEST,
+}
+StrategyFactory = Callable[[str, dict[str, object]], Strategy]
+CLASSES: dict[str, StrategyFactory] = {
+    "orb": lambda sid, params: OpeningRangeBreakout(sid, ORBParams.from_dict(params))
+}
+
+
+def register_class(name: str, factory: StrategyFactory) -> None:
+    """Register a runtime strategy class (the registry's ``runtime.class``)."""
+    if name in CLASSES and CLASSES[name] is not factory:
+        raise ValueError(f"runtime class {name!r} already registered")
+    CLASSES[name] = factory
 
 
 def dec(d: common_pb2.Decimal) -> Decimal:
@@ -104,12 +125,22 @@ class Runner:
     bars_processed: int = 0
     intents_published: int = 0
     last_bar_available_at: int = 0
+    # Mode stamped on intents; None = the strategy's registry mode (live -> LIVE, otherwise PAPER).
+    intent_mode: str | None = None
 
     @classmethod
     def from_registry(cls, path: str | Path, calendar: Calendar | None = None) -> Runner:
-        cal = calendar or xnys()
         data: dict[str, Any] = json.loads(Path(path).read_text(encoding="utf-8"))
-        r = cls(calendar=cal)
+        return cls.from_registry_data(data, calendar)
+
+    @classmethod
+    def from_registry_data(
+        cls, data: dict[str, Any], calendar: Calendar | None = None, intent_mode: str | None = None
+    ) -> Runner:
+        """Host the registry's runtime strategies in mode paper, shadow, or live (the seed format of
+        ``infra/compose/strategies.json``)."""
+        cal = calendar or xnys()
+        r = cls(calendar=cal, intent_mode=intent_mode)
         for e in data.get("strategies", []):
             rt = e.get("runtime")
             if not rt or e.get("mode") not in ("paper", "shadow", "live"):
@@ -200,38 +231,33 @@ class Runner:
                     )
 
     def on_bar(self, b: marketdata_pb2.Bar) -> list[orders_pb2.OrderIntent]:
-        """Dispatch one final bar; the decision time is the bar's available_at (DF-002)."""
+        """Dispatch one final bar from the bus; the decision time is the bar's available_at (DF-002)."""
         if not b.is_final:
             return []
-        tf = TIMEFRAMES.get(b.timeframe, "")
-        bar = Bar(
-            instrument_id=b.instrument_id,
-            timeframe=tf,
-            ts_open=b.ts_open,
-            ts_close=b.ts_close,
-            available_at=b.available_at,
-            open=dec(b.open),
-            high=dec(b.high),
-            low=dec(b.low),
-            close=dec(b.close),
-            volume=dec(b.volume),
-        )
+        return self.dispatch(bar_from_proto(b))
+
+    def dispatch(self, bar: Bar) -> list[orders_pb2.OrderIntent]:
+        """Run every hosted strategy on one final bar at its ``available_at`` (BT-002, SM-014)."""
         out: list[orders_pb2.OrderIntent] = []
         for h in self.hosted:
-            if tf != h.timeframe or b.instrument_id not in h.instruments:
+            if bar.timeframe != h.timeframe or bar.instrument_id not in h.instruments:
                 continue
-            h.ctx.now = b.available_at
+            h.ctx.now = bar.available_at
             for it in h.impl.on_bar(h.ctx, bar):
-                out.append(self.to_proto(h, it, b.available_at))
+                out.append(self.to_proto(h, it, bar.available_at))
         self.bars_processed += 1
-        self.last_bar_available_at = max(self.last_bar_available_at, b.available_at)
+        self.last_bar_available_at = max(self.last_bar_available_at, bar.available_at)
         self.intents_published += len(out)
         return out
 
     def to_proto(self, h: Hosted, it: Intent, decision_time: int) -> orders_pb2.OrderIntent:
         if it.kind == "open" and it.stop_loss is None:
             raise ValueError("open intents must carry a stop (N5)")
-        mode = common_pb2.MODE_LIVE if h.mode == "live" else common_pb2.MODE_PAPER
+        mode = (
+            MODES[self.intent_mode]
+            if self.intent_mode
+            else (common_pb2.MODE_LIVE if h.mode == "live" else common_pb2.MODE_PAPER)
+        )
         p = orders_pb2.OrderIntent(
             intent_id=it.intent_id,
             strategy_id=h.strategy_id,
@@ -268,3 +294,19 @@ class Runner:
             sent_at=now_ns,
             version=version,
         )
+
+
+def bar_from_proto(b: marketdata_pb2.Bar) -> Bar:
+    """Convert a bus bar into the strategy API bar (prices and volume as decimals)."""
+    return Bar(
+        instrument_id=b.instrument_id,
+        timeframe=TIMEFRAMES.get(b.timeframe, ""),
+        ts_open=b.ts_open,
+        ts_close=b.ts_close,
+        available_at=b.available_at,
+        open=dec(b.open),
+        high=dec(b.high),
+        low=dec(b.low),
+        close=dec(b.close),
+        volume=dec(b.volume),
+    )

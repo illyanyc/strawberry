@@ -2,7 +2,7 @@ from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from collections.abc import Mapping as _Mapping
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
 from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
@@ -56,7 +56,7 @@ class ModelVersion(_message.Message):
     def __init__(self, model_id: _Optional[str] = ..., version: _Optional[str] = ..., family: _Optional[str] = ..., training_run_id: _Optional[str] = ..., dataset_snapshot_id: _Optional[str] = ..., feature_set_id: _Optional[str] = ..., metrics: _Optional[_Mapping[str, float]] = ..., stage: _Optional[_Union[ModelStage, str]] = ..., code_commit: _Optional[str] = ..., config_hash: _Optional[str] = ..., seed: _Optional[int] = ..., env_lock_hash: _Optional[str] = ...) -> None: ...
 
 class BacktestRun(_message.Message):
-    __slots__ = ("run_id", "strategy_config_hash", "data_snapshot_id", "cost_model", "metrics", "trades_artifact_uri", "code_commit", "seed")
+    __slots__ = ("run_id", "strategy_config_hash", "data_snapshot_id", "cost_model", "metrics", "trades_artifact_uri", "code_commit", "seed", "survivorship_status", "warnings", "engine", "fill_model")
     class MetricsEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -72,6 +72,10 @@ class BacktestRun(_message.Message):
     TRADES_ARTIFACT_URI_FIELD_NUMBER: _ClassVar[int]
     CODE_COMMIT_FIELD_NUMBER: _ClassVar[int]
     SEED_FIELD_NUMBER: _ClassVar[int]
+    SURVIVORSHIP_STATUS_FIELD_NUMBER: _ClassVar[int]
+    WARNINGS_FIELD_NUMBER: _ClassVar[int]
+    ENGINE_FIELD_NUMBER: _ClassVar[int]
+    FILL_MODEL_FIELD_NUMBER: _ClassVar[int]
     run_id: str
     strategy_config_hash: str
     data_snapshot_id: str
@@ -80,4 +84,8 @@ class BacktestRun(_message.Message):
     trades_artifact_uri: str
     code_commit: str
     seed: int
-    def __init__(self, run_id: _Optional[str] = ..., strategy_config_hash: _Optional[str] = ..., data_snapshot_id: _Optional[str] = ..., cost_model: _Optional[str] = ..., metrics: _Optional[_Mapping[str, float]] = ..., trades_artifact_uri: _Optional[str] = ..., code_commit: _Optional[str] = ..., seed: _Optional[int] = ...) -> None: ...
+    survivorship_status: str
+    warnings: _containers.RepeatedScalarFieldContainer[str]
+    engine: str
+    fill_model: str
+    def __init__(self, run_id: _Optional[str] = ..., strategy_config_hash: _Optional[str] = ..., data_snapshot_id: _Optional[str] = ..., cost_model: _Optional[str] = ..., metrics: _Optional[_Mapping[str, float]] = ..., trades_artifact_uri: _Optional[str] = ..., code_commit: _Optional[str] = ..., seed: _Optional[int] = ..., survivorship_status: _Optional[str] = ..., warnings: _Optional[_Iterable[str]] = ..., engine: _Optional[str] = ..., fill_model: _Optional[str] = ...) -> None: ...

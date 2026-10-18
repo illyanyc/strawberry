@@ -7,7 +7,7 @@ import (
 	"github.com/shopspring/decimal"
 
 	ledgerv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/ledger/v1"
-	"github.com/illyanyc/strawberry/services/ledger/internal/book"
+	"github.com/illyanyc/strawberry/services/ledger/book"
 )
 
 var breakTypes = map[string]ledgerv1.BreakType{

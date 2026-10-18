@@ -819,7 +819,7 @@ func (e *Engine) buildInput(ctx context.Context, it *ordersv1.OrderIntent) (*ris
 		}
 	}
 	for _, o := range e.orders {
-		if o.GetBrokerAccountId() != acct || IsFinal(o.GetState()) || isProtective(o) || o.GetSide() != commonv1.Side_SIDE_BUY {
+		if IsFinal(o.GetState()) || o.GetBrokerAccountId() != acct || isProtective(o) || o.GetSide() != commonv1.Side_SIDE_BUY {
 			continue
 		}
 		n := pd(o.GetLimitPrice()).Mul(pd(o.GetQuantity()).Sub(pd(o.GetFilledQty())))
@@ -891,7 +891,7 @@ func (e *Engine) buildInput(ctx context.Context, it *ordersv1.OrderIntent) (*ris
 	}
 	cutoff := e.now() - int64(time.Minute)
 	for _, o := range e.orders {
-		if o.GetBrokerAccountId() != acct || IsFinal(o.GetState()) {
+		if IsFinal(o.GetState()) || o.GetBrokerAccountId() != acct {
 			continue
 		}
 		if o.GetStrategyId() == p.owner && !isProtective(o) {
@@ -968,8 +968,10 @@ func (e *Engine) dayTrades(acct string) int {
 	for _, s := range sessions {
 		valid[s.Date] = true
 	}
+	// The session lookup is the expensive step: skip fills older than the window first.
+	oldest := since.UnixNano()
 	for _, f := range e.fills {
-		if f.GetBrokerAccountId() != acct {
+		if f.GetEventTime() < oldest || f.GetBrokerAccountId() != acct {
 			continue
 		}
 		s, _, ok := e.cfg.Calendar.SessionAt(time.Unix(0, f.GetEventTime()))
@@ -1116,11 +1118,13 @@ func (e *Engine) submit(ctx context.Context, rec *ordersv1.IntentRecord, o *orde
 		Details: map[string]any{"state": o.GetState().String(), "reject": o.GetRejectReason(), "role": o.GetRole().String()}})
 	_ = e.commit(ctx, tx)
 	covered := e.killCovers(o)
+	// Read the state under the lock: a broker update may change it as soon as the lock is released.
+	state := o.GetState()
 	e.mu.Unlock()
-	if o.GetState() == ordersv1.OrderState_ORDER_STATE_REJECTED {
+	if state == ordersv1.OrderState_ORDER_STATE_REJECTED {
 		e.afterFinal(ctx, o)
 	}
-	if covered && !IsFinal(o.GetState()) && !isProtective(o) {
+	if covered && !IsFinal(state) && !isProtective(o) {
 		// A kill switch engaged while this order was in flight: cancel it now (RM-006).
 		e.cancelOrder(ctx, o)
 	}

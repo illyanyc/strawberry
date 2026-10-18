@@ -1,0 +1,22 @@
+{
+  "comment": "Evaluator code (D31 rule 9, BT-081): outside the AI analyst's writable tree and view. The analyst sandbox (section 12) must not mount these paths, and assistant code must not import these modules. tests/python/test_evaluator_isolation.py enforces the import rule and that every path exists.",
+  "paths": [
+    "libs/py/tbcore/src/tbcore/backtest/",
+    "libs/py/tbcore/src/tbcore/validation/",
+    "libs/py/tbcore/src/tbcore/parity.py",
+    "libs/py/tbcore/src/tbcore/features/lint.py",
+    "services/backtest/",
+    "services/execution/internal/simcore/",
+    "services/execution/cmd/tb-simcore/"
+  ],
+  "modules": [
+    "tbcore.backtest",
+    "tbcore.validation",
+    "tbcore.parity",
+    "tbcore.features.lint",
+    "tb_backtest"
+  ],
+  "restricted_importers": [
+    "services/assistant/"
+  ]
+}
