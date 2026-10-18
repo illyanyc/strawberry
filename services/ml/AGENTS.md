@@ -50,6 +50,7 @@ Training jobs, runs, diagnostics, ablations, model registration, and batch predi
 ## Run and test
 - Run: `make up PROFILES=core,ml,ml-workers` (Linux) or the launchd worker on macOS; one-off: `uv run python -m tb_ml train --config cfg.json`.
 - Test: `uv run pytest services/ml/tests libs/py/tbcore/tests/test_ml.py`.
+- Gate 4 end to end with the optimizer and holdout over gRPC: `make research-gate`.
 
 ## Operational notes
 Queued jobs live in memory; a restart drops them (resubmit). MLflow is a mirror: runs are complete without it. Synthetic data sources (`synthetic:<preset>`) are for dev and tests; their candidates are never live-eligible (EX-052).

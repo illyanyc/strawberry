@@ -38,7 +38,7 @@ tbcontracts = { workspace = true }
 tbcore = { workspace = true }
 
 [tool.pytest.ini_options]
-testpaths = ["contracts/tests", "libs/py/tbcore/tests", "services/backtest/tests", "services/ml/tests", "services/optimizer/tests", "services/broker-gateway-ibkr/ibkr_tests", "services/context-data/ctx_tests", "services/monitor/tests", "services/strategy-runtime/tests", "tests/python"]
+testpaths = ["contracts/tests", "libs/py/tbcore/tests", "services/backtest/tests", "services/ml/tests", "services/optimizer/tests", "services/broker-gateway-ibkr/ibkr_tests", "services/context-data/ctx_tests", "services/monitor/tests", "services/strategy-runtime/tests", "tests/python", "tests/research"]
 addopts = "-q -m 'not ibkr_paper and not ctx_live'"
 markers = [
   "perf: performance targets (opt-in with TB_PERF=1)",
@@ -68,7 +68,7 @@ python_version = "3.12"
 strict = true
 mypy_path = "contracts/gen/python/src:libs/py/tbcore/src:services/assistant/src:services/backtest/src:services/broker-gateway-ibkr/src:services/broker-gateway-ibkr:services/context-data:services/context-data/src:services/ml/src:services/monitor/src:services/optimizer/src:services/strategy-runtime/src"
 explicit_package_bases = true
-files = ["libs/py/tbcore/src", "libs/py/tbcore/tests", "services/backtest/tests", "services/ml/tests", "services/optimizer/tests", "contracts/tests", "services/*/src", "services/broker-gateway-ibkr/ibkr_tests", "services/context-data/ctx_tests", "tests/python"]
+files = ["libs/py/tbcore/src", "libs/py/tbcore/tests", "services/backtest/tests", "services/ml/tests", "services/optimizer/tests", "contracts/tests", "services/*/src", "services/broker-gateway-ibkr/ibkr_tests", "services/context-data/ctx_tests", "tests/python", "tests/research"]
 exclude = ["contracts/gen/"]
 
 [[tool.mypy.overrides]]
@@ -84,7 +84,7 @@ disable_error_code = ["type-arg", "no-any-return"]
 
 [[tool.mypy.overrides]]
 # grpcio's sync server and channel APIs are untyped (rpc helpers, ML and optimizer gRPC adapters, their tests).
-module = ["tbcore.rpc", "tb_ml.*", "tb_optimizer.*", "services.ml.tests.*", "services.optimizer.tests.*", "test_ml_service"]
+module = ["tbcore.rpc", "tb_ml.*", "tb_optimizer.*", "services.ml.tests.*", "services.optimizer.tests.*", "test_ml_service", "tests.research.*"]
 disallow_untyped_calls = false
 disable_error_code = ["type-arg", "no-any-return", "attr-defined"]
 

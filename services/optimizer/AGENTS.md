@@ -56,6 +56,7 @@ Studies, research lineages with one trial ledger, research cycles, gate reports,
 ## Run and test
 - Run: `make up PROFILES=core,ml,ml-workers` (Linux) or the launchd worker on macOS.
 - Test: `uv run pytest services/optimizer/tests` (about a minute: several small nested studies on synthetic data).
+- Gate 4 end to end with ml and the holdout service over gRPC: `make research-gate` (about two minutes; writes `research-gate-evidence.json`).
 
 ## Operational notes
 Studies run on worker threads of this process; a restart abandons running studies (their trials stay in the ledger). Lineages start at autonomy level 0; the owner opens a research cycle before any study can start.
