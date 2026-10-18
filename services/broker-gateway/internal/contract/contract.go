@@ -96,11 +96,16 @@ func waitFor(t *testing.T, d time.Duration, what string, cond func() bool) {
 
 func (tg Target) state(t *testing.T) brokerv1.SessionState {
 	t.Helper()
+	return tg.status(t).GetState()
+}
+
+func (tg Target) status(t *testing.T) *brokerv1.SessionStatus {
+	t.Helper()
 	r, err := tg.Client.GetSessionStatus(context.Background(), &brokerv1.GetSessionStatusRequest{BrokerAccountId: tg.Account})
 	if err != nil {
 		t.Fatalf("GetSessionStatus: %v", err)
 	}
-	return r.GetStatus().GetState()
+	return r.GetStatus()
 }
 
 func (tg Target) waitReady(t *testing.T) {
@@ -294,8 +299,13 @@ func Run(t *testing.T, tg Target) {
 			t.Fatalf("submit: %+v %v", r, err)
 		}
 		recon0 := h.ReconciliationRequests()
+		since0 := tg.status(t).GetStateSince()
 		h.DropStream()
-		waitFor(t, 10*time.Second, "session leaves READY", func() bool { return tg.state(t) != brokerv1.SessionState_SESSION_STATE_READY })
+		// A fast adapter may reconnect before the first poll; a newer state_since proves it left READY.
+		waitFor(t, 10*time.Second, "session leaves READY", func() bool {
+			st := tg.status(t)
+			return st.GetState() != brokerv1.SessionState_SESSION_STATE_READY || st.GetStateSince() > since0
+		})
 		_, err = tg.Client.SubmitOrder(ctx, &brokerv1.SubmitOrderRequest{Order: tg.limitBuy(NewClientOrderID())})
 		if status.Code(err) != codes.FailedPrecondition || !hasReason(err, "BROKER_UNAVAILABLE") {
 			// The session may already be back; only assert when it is still down.

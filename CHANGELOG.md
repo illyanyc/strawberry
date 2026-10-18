@@ -66,6 +66,7 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 
 ### Fixed
 
+- Flaky tests found by repeated non-race runs: the broker contract suite missed a disconnect when the adapter reconnected before the first poll (it now also accepts a newer `state_since`); backfill data-quality checks reported `non_monotonic` when a ticker change split a chunk into per-symbol requests returned in map order (bars are now sorted by instrument and time before the check, MD-001).
 - CI secret scan flagged an Alpaca page cursor in `tests/fixtures/alpaca/bars_1min.json` as a generic API key; the fixture now uses an obviously synthetic cursor and `.gitleaks.toml` allowlists JSON vendor fixtures under `tests/fixtures/` (history keeps the old cursor; it is not a secret).
 - Removed two accidentally committed build outputs (`services/marketdata/marketdata`, `tools/tbctl/tbctl`, ~50 MB of ELF binaries) and ignored per-module `go build` outputs in `.gitignore`.
 - Browser e2e: the credential-status assertion matched the success message as well as the list item (flaky strict-mode failure in CI); it now targets the list item.

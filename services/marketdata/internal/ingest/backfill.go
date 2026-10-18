@@ -1,13 +1,16 @@
 package ingest
 
 import (
+	"cmp"
 	"context"
 	"crypto/rand"
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -448,6 +451,10 @@ func (b *Backfiller) checkAndRepair(ctx context.Context, j *Job, src Source, c C
 			regular = append(regular, bar)
 		}
 	}
+	// Requests per symbol span (ticker changes) arrive in any order; DQ expects time order.
+	slices.SortFunc(regular, func(x, y *mdv1.Bar) int {
+		return cmp.Or(strings.Compare(x.GetInstrumentId(), y.GetInstrumentId()), cmp.Compare(x.GetTsOpen(), y.GetTsOpen()))
+	})
 	// Only instruments listed for the whole window are expected to have every bar.
 	var expected []string
 	for _, id := range c.Instruments {

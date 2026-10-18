@@ -161,7 +161,7 @@ func TestMD001BackfillIdempotentWithGapRepairAndTickerChange(t *testing.T) {
 		t.Fatalf("added %d (want %d), revised %d", r.GetRowsAdded(), wantAdded, r.GetRowsRevised())
 	}
 	if r.GetGapsRepaired() < 2 || r.GetGapsConfirmedMissing() < 2 || j.State != mdv1.JobState_JOB_STATE_SUCCEEDED {
-		t.Fatalf("gaps: found=%d repaired=%d missing=%d state=%s", r.GetGapsFound(), r.GetGapsRepaired(), r.GetGapsConfirmedMissing(), j.State)
+		t.Fatalf("gaps: found=%d repaired=%d missing=%d state=%s dq=%v", r.GetGapsFound(), r.GetGapsRepaired(), r.GetGapsConfirmedMissing(), j.State, r.GetDqFindings())
 	}
 	// Rerun of the same backfill adds zero rows (Gate 1).
 	id2, _ := b.Submit(ctx, &Job{Source: "alpaca.sip", Timeframes: tfs, Instruments: ids, Start: start, End: end})
