@@ -360,3 +360,20 @@ def test_unavailable_source_reports_without_alerting() -> None:
     assert (
         alerts == [] and eng.jobs[0].unavailable and pub.healths[-1][3] == "unavailable" and eng.jobs[0].failures == 0
     )
+
+
+def test_settings_accept_compose_blank_values(monkeypatch: Any) -> None:
+    """Compose sets unset optional values to "" (TB_CTX_LLM_TRAINING_CUTOFF etc.); startup must not fail."""
+    for k in (
+        "TB_CTX_LLM_TRAINING_CUTOFF",
+        "TB_CTX_HISTORY_START",
+        "TB_CTX_LLM_URL",
+        "TB_CTX_LLM_MODEL",
+        "TB_CTX_LLM_MODEL_VERSION",
+        "TB_CTX_SEC_USER_AGENT",
+    ):
+        monkeypatch.setenv(k, "")
+    s = Settings()
+    assert s.ctx_llm_training_cutoff is None and s.ctx_history_start is None and s.ctx_sec_user_agent == ""
+    monkeypatch.setenv("TB_CTX_LLM_TRAINING_CUTOFF", "2025-06-01")
+    assert Settings().ctx_llm_training_cutoff == date(2025, 6, 1)

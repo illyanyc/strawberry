@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import SettingsConfigDict
 
 from tbcore.context.availability import AvailabilityConfig
@@ -80,6 +80,12 @@ class Settings(ServiceSettings):
     ctx_finra_publish_time: str = Field(default="23:59", pattern=r"^\d\d:\d\d$")
     ctx_finra_fallback_sessions: int = 8
     ctx_macro_default_release_time: str = Field(default="23:59", pattern=r"^\d\d:\d\d$")
+
+    @field_validator("ctx_history_start", "ctx_llm_training_cutoff", mode="before")
+    @classmethod
+    def _blank_is_none(cls, v: object) -> object:
+        """Compose passes unset optional settings as empty strings."""
+        return None if v == "" else v
 
     def availability(self) -> AvailabilityConfig:
         return AvailabilityConfig(
