@@ -65,6 +65,7 @@ Secrets (files only, SE-010): `pg_svc_assistant_password`, `nats_assistant_passw
 ## Run and test
 - Run: `make up PROFILES=core,observability,ml,ml-workers` (assistant, `llm-egress`, `analyst-sandbox`, `candidate-checker`); locally `uv run python -m tb_assistant`.
 - Test: `uv run pytest services/assistant/tests tests/python/test_analyst_sandbox.py tests/python/test_evaluator_isolation.py`.
+- Postgres journal and audit sink against the real `analyst` and `audit` migrations: set `TB_TEST_PG_SUPER_DSN` (CI does) and run `uv run pytest services/assistant/tests/test_journal_pg.py`.
 - Gate 4 against the real ml and optimizer services: `uv run pytest tests/python/test_analyst_gate4.py` (about 2.5 minutes: noise ends in no edge, a level-1 loop runs pre-registered studies and stops, a gated challenger goes to shadow and no further, a live-feedback round trains a challenger, red-team probes).
 - Evaluation suite: `uv run python -m tb_assistant.eval [--json out.json]` (54 scenarios; fake planner by default; set `TB_LLM_PLANNER_PROVIDER` plus keys as mounted secrets and `TB_SECRETS_DIR` to score a real model; exits 1 below `TB_EVAL_THRESHOLD`, default 0.95).
 
