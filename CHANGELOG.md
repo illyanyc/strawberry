@@ -117,6 +117,7 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 
 ### Fixed
 
+- The pre-trade gate rejected every swing order at Monday's open and after market holidays as `data_fresh` failures: daily-bar freshness was measured in wall time (48 h), so Friday's final daily bar looked stale. Daily and longer bars now count trading sessions (RM-004); intraday bars keep the wall-clock bound. This also applied in `tb-simcore`, so event-driven reruns of swing model candidates (and their gate reports) were silently missing most trades.
 - A study whose search stopped before the final selection (for example because the research cycle budget was spent mid-study) reported `completed` with no candidate; it now ends `stopped` with the reason in its message (EX-027, EX-025, EX-060).
 - `tests/paper` `TestGate2EveryDecisionAudited` read the OMS memory store's audit slice while the engine's tick goroutine appended to it (data race under `-race`); it now reads `oms.Memory.AuditSnapshot()` under the store lock. The Postgres docstore test creates every role it grants.
 - `tbcore.validation.bootstrap_ci` raised `IndexError` when every resampled Sharpe was undefined (flat equity of a strategy that never traded); it now returns NaN bounds (BT-047).

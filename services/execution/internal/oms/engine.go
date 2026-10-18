@@ -25,6 +25,7 @@ import (
 	ordersv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/orders/v1"
 	"github.com/illyanyc/strawberry/libs/go/attribution"
 	"github.com/illyanyc/strawberry/libs/go/audit"
+	"github.com/illyanyc/strawberry/libs/go/calendar"
 	"github.com/illyanyc/strawberry/libs/go/outbox"
 	"github.com/illyanyc/strawberry/services/execution/internal/risk"
 )
@@ -458,6 +459,26 @@ func (e *Engine) OnBar(instr string, close decimal.Decimal, tsClose, interval in
 	}
 }
 
+// maxBarAge is the RM-004 freshness bound: two bar intervals plus the finality window. Daily (and
+// longer) bars count trading sessions, not wall time, so a weekend or holiday is not a missing bar:
+// the bar may be as old as the close of the session before the last closed one (one bar missing,
+// the same allowance as two intervals mid-week).
+func maxBarAge(cal *calendar.Calendar, now, interval, finality int64) int64 {
+	wall := 2*interval + finality
+	if interval < int64(24*time.Hour) || cal == nil {
+		return wall
+	}
+	last, ok := cal.PreviousSession(time.Unix(0, now-finality))
+	if !ok {
+		return wall
+	}
+	prev, ok := cal.PreviousSession(last.Close.Add(-time.Nanosecond))
+	if !ok {
+		return wall
+	}
+	return max(wall, now-prev.Close.UnixNano()+finality)
+}
+
 func (e *Engine) acct(id string) *acctState {
 	a := e.accts[id]
 	if a == nil {
@@ -753,7 +774,7 @@ func (e *Engine) buildInput(ctx context.Context, it *ordersv1.OrderIntent) (*ris
 	in.Qty, p.qty = qty, qty
 	if m := e.market[instr]; m != nil {
 		in.LastPrice, in.LastBarClose = m.last, m.close
-		in.MaxBarAge = 2*m.interval + int64(e.cfg.FinalityDelay)
+		in.MaxBarAge = maxBarAge(e.cfg.Calendar, in.Now, m.interval, int64(e.cfg.FinalityDelay))
 	}
 	// Order type and price (OE-013): marketable limit with a collar instead of a market order.
 	p.orderType, p.tif = ordersv1.OrderType_ORDER_TYPE_LIMIT, ordersv1.TimeInForce_TIME_IN_FORCE_DAY
