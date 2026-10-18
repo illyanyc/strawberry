@@ -185,7 +185,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 
 | Path | Status | Purpose |
 |---|---|---|
-| `apps/web/` | Exists | Vite + React 19 SPA: login/setup, dashboard (accounts, strategy cards), portfolio, strategies, orders blotter and trace, manual order ticket, charts (Lightweight Charts), risk and kill switches, security, broker connections, platform settings, audit log; step-up dialog; SSE status and chart streams. Layout in [`apps/web/AGENTS.md`](../apps/web/AGENTS.md) |
+| `apps/web/` | Exists | Vite + React 19 SPA: login/setup, dashboard (accounts, strategy cards), portfolio, strategies, orders blotter and trace, manual order ticket, charts (Lightweight Charts), risk and kill switches, training (schema-generated forms, job progress, run diagnostics), experiments (lineages, studies, candidates, holdout, champion vs challenger), security, broker connections, platform settings, audit log; step-up dialog; SSE status, chart, and research progress streams. Layout in [`apps/web/AGENTS.md`](../apps/web/AGENTS.md) |
 
 ## CI: `.github/`
 
