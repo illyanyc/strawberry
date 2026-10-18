@@ -140,6 +140,57 @@ func TestVP003SameTickerThroughEngine(t *testing.T) {
 	}
 }
 
+// RM-005, VP-024: allocation changes are capital flows, not P&L. Day P&L and the high-water mark
+// move only with trading results, including when the session start was captured before the first
+// allocation, and the adjusted session start survives a reload from the store.
+func TestRM005AllocationChangesAreNotDayPnL(t *testing.T) {
+	store := NewMemory()
+	h := newHarness(t, store)
+	ctx := context.Background()
+	if err := h.e.RegisterOwner(ctx, "late-1", "lateaaa", acct, false, false, "test"); err != nil {
+		t.Fatal(err)
+	}
+	h.clk.add(time.Minute)
+	h.snapshot()
+	dayPnL := func(owner string) string {
+		for _, o := range h.e.AccountView(acct).GetOwners() {
+			if o.GetOwner() == owner {
+				return o.GetDayPnl().GetValue()
+			}
+		}
+		return "missing"
+	}
+	if got := dayPnL("late-1"); got != "0" {
+		t.Fatalf("late-1 before allocation: day P&L %s", got)
+	}
+	steps := []struct{ owner, amount string }{{"late-1", "10000"}, {"orb-1", "25000"}, {"orb-1", "15000"}}
+	for _, s := range steps {
+		if _, _, err := h.e.SetAllocation(ctx, s.owner, acct, decimal.RequireFromString(s.amount), "owner", ""); err != nil {
+			t.Fatal(err)
+		}
+		h.clk.add(time.Minute)
+		h.snapshot()
+		if got := dayPnL(s.owner); got != "0" {
+			t.Fatalf("%s after allocation %s: day P&L %s, want 0", s.owner, s.amount, got)
+		}
+	}
+	h.exec("orbaaaa", "X", commonv1.Side_SIDE_BUY, "10", "50")
+	h.exec("orbaaaa", "X", commonv1.Side_SIDE_SELL, "10", "51")
+	h.clk.add(time.Minute)
+	h.snapshot()
+	if got := dayPnL("orb-1"); got != "10" {
+		t.Fatalf("orb-1 day P&L after a 10 gain: %s", got)
+	}
+	reloaded, err := New(ctx, h.e.cfg, store, StaticResolver{"X": "INSTX", "Y": "INSTY"}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.e = reloaded
+	if got, late := dayPnL("orb-1"), dayPnL("late-1"); got != "10" || late != "0" {
+		t.Fatalf("after reload: orb-1 %s, late-1 %s", got, late)
+	}
+}
+
 // Encroachment within one snapshot cycle, halt, and audited resolution (VP-016, VP-019).
 func TestVP016EncroachmentThroughEngine(t *testing.T) {
 	mem := NewMemory()

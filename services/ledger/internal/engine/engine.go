@@ -597,10 +597,28 @@ func (e *Engine) SetAllocation(ctx context.Context, owner, acct string, amount d
 	if err := e.applyAndCommit(ctx, ev, corr, func(b *Batch) {
 		b.Audit = append(b.Audit, audit.Event{Actor: actor, Action: "ledger.allocation.set", Target: acct + "/" + owner, CorrelationID: corr,
 			Details: map[string]any{"previous": prev.String(), "amount": amount.String()}})
+		e.shiftDayStart(acct, owner, amount.Sub(prev), ev.Time, b)
 	}); err != nil {
 		return book.Zero, book.Zero, err
 	}
 	return prev, book.Allocatable(e.snaps[acct], e.cfg.Capital).Sub(e.b.TotalAllocated(acct, "")), nil
+}
+
+// shiftDayStart moves an owner's session-start equity and high-water mark by an allocation change,
+// so capital flows never count as day P&L or drawdown (RM-005, VP-024). The adjusted values are
+// written in the allocation's own transaction, so a restart restores them.
+func (e *Engine) shiftDayStart(acct, owner string, delta decimal.Decimal, ts int64, b *Batch) {
+	st := e.equity[acct+"|"+owner]
+	if st == nil || delta.IsZero() {
+		return
+	}
+	st.dayStart, st.hwm = st.dayStart.Add(delta), st.hwm.Add(delta)
+	a := e.b.Accounts[acct]
+	o := a.Owner(owner)
+	v := a.Value(o)
+	b.Equity = append(b.Equity, EquityRow{Account: acct, Owner: owner, TS: ts, Date: st.dayDate, Equity: v.Equity,
+		Cash: o.Allocation.Add(o.Realized).Add(o.Dividends).Sub(o.Invested()), MarketValue: v.MarketValue, Realized: o.Realized,
+		Unrealized: v.Unrealized, Gross: v.Gross, DayStart: st.dayStart, HWM: st.hwm})
 }
 
 // ErrRejected marks a business rejection (not an infrastructure failure).
