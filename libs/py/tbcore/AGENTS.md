@@ -18,7 +18,7 @@ Shared Python library. It holds the code that MUST be shared by training, backte
 | `src/tbcore/features/core.py` | `@feature`, `FeatureDef`, `FeatureSet` (content hash), `compute` (the single computation path) | DF-003, DF-004, DF-013 |
 | `src/tbcore/features/library.py` | 16 MVP features, `mvp_feature_set` | DF-013 |
 | `src/tbcore/features/store.py` | `materialize` (snapshots, optional `context=` features), `gc_snapshots`, `OnlineFeatureEngine` (optional context store), `compare`, `parity_check` | DF-002, DF-004, DF-009, CX-018 |
-| `src/tbcore/strategy/` | Strategy API (`Strategy`, `StrategyContext`, `Bar`, `Intent`, deterministic `new_ulid`), `fixed_fractional_qty`, `OpeningRangeBreakout` (Phase 2 baseline) | SM-011, SM-014, DF-002, RM-010 |
+| `src/tbcore/strategy/` | Strategy API (`Strategy`, `StrategyContext`, `Bar`, `Intent`, deterministic `new_ulid`), `fixed_fractional_qty`, `OpeningRangeBreakout` (Phase 2 baseline), `host.py` (`Runner`: registry hosting, bar dispatch, event blackouts, own positions, proto conversion; used by the strategy runtime and the backtester) | SM-011, SM-014, DF-002, RM-010, BT-002 |
 | `src/tbcore/backtest/costs.py` | Cost model shared by both backtest tiers: spread regimes / EDGE estimator, square-root impact, broker commissions, dated regulatory fees, borrow, `cost_multiplier` | BT-010..BT-016 |
 | `src/tbcore/validation/` | `splitters.py` (purged k-fold, CPCV with paths, walk-forward, era-wise), `stats.py` (PSR, DSR, MinTRL, MinBTL, ONC effective N, PBO/CSCV, SPA, Romano–Wolf, bootstrap CIs) | BT-030..BT-047, SM-002 |
 | `tests/` | Unit, property, parity, leakage, perf (`TB_PERF=1`) tests; `lakekit.py` writes test lakes in the production layout | — |

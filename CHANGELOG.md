@@ -81,6 +81,7 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 
 ### Changed
 
+- `services/strategy-runtime/src/tb_strategy_runtime/runner.py` → `libs/py/tbcore/src/tbcore/strategy/host.py`: the runtime's pure core (`Runner`) moves to `tbcore` so the backtester hosts strategies exactly as production (BT-002); it gains `dispatch` for strategy-API bars, `from_registry_data`, `register_class`, and an intent mode override (`backtest`). pytest now also runs `services/strategy-runtime/tests`, and `services/monitor/tests` (they were outside `testpaths`).
 - `services/ledger/internal/book` → `services/ledger/book`: the ledger's pure accounting core is now a public package so the backtest simcore books simulated fills with the same code (BT-003; anticipated by ADR-0024). No behavior change.
 - api-gateway NATS user may subscribe to `md.bar.>` and `exec.>` for the chart stream (on an existing install run `make secrets` and restart `nats`); `TB_EXECUTION_ADDR`, `TB_LEDGER_ADDR`, `TB_MARKETDATA_ADDR` configure the trading clients. Mobile bottom navigation scrolls horizontally to fit the trading pages.
 - The ledger's session-open and session-close reconciliations wait for the first snapshot taken at or after the boundary, so the stored daily report never compares against a pre-close snapshot (VP-025).

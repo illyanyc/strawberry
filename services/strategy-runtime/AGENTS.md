@@ -6,7 +6,7 @@ Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes t
 
 ## Responsibilities
 - Owns: bar dispatch to strategies, own-portfolio tracking from `ledger.update.*`, intent publication, the runtime heartbeat.
-- Does not own: strategy logic (in `libs/py/tbcore/src/tbcore/strategy/`), risk, orders, brokers.
+- Does not own: strategy logic and the host core (in `libs/py/tbcore/src/tbcore/strategy/`, `host.py`), risk, orders, brokers.
 
 ## Interfaces
 | Direction | Kind | Name | Contract |
@@ -21,7 +21,7 @@ Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes t
 ## Layout
 | Path | Purpose |
 |---|---|
-| `src/tb_strategy_runtime/runner.py` | Pure core: registry, dispatch, own positions, proto conversion, event blackouts (`BlackoutStrategy` + `InMemoryEventSource`) (unit-tested) |
+| `src/tb_strategy_runtime/__main__.py` | NATS loop around `tbcore.strategy.host.Runner` (the pure core: registry, dispatch, own positions, proto conversion, event blackouts with `BlackoutStrategy` + `InMemoryEventSource`), shared with the backtester (BT-002) |
 | `src/tb_strategy_runtime/__main__.py` | NATS loop, heartbeat, ops listener |
 | `tests/` | Runner tests (SM-014 isolation, protected opens, CPI blackout in paper) |
 

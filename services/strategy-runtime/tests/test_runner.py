@@ -10,7 +10,6 @@ from typing import Any
 
 import pytest
 import tb_strategy_runtime.__main__ as entry
-from tb_strategy_runtime.runner import Runner
 
 from tb.common.v1 import common_pb2
 from tb.context.v1 import context_pb2
@@ -18,6 +17,7 @@ from tb.ledger.v1 import ledger_pb2
 from tb.marketdata.v1 import marketdata_pb2
 from tb.orders.v1 import orders_pb2
 from tbcore.data.calendar import xnys
+from tbcore.strategy.host import Runner
 
 NS = 1_000_000_000
 
