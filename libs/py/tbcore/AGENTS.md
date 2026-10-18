@@ -20,12 +20,13 @@ Shared Python library. It holds the code that MUST be shared by training, backte
 | `src/tbcore/features/store.py` | `materialize` (snapshots, optional `context=` features), `gc_snapshots`, `OnlineFeatureEngine` (optional context store), `compare`, `parity_check` | DF-002, DF-004, DF-009, CX-018 |
 | `src/tbcore/strategy/` | Strategy API (`Strategy`, `StrategyContext`, `Bar`, `Intent`, deterministic `new_ulid`), `fixed_fractional_qty`, `OpeningRangeBreakout` (Phase 2 baseline), `host.py` (`Runner`: registry hosting, bar dispatch, event blackouts, own positions, proto conversion; used by the strategy runtime and the backtester) | SM-011, SM-014, DF-002, RM-010, BT-002 |
 | `src/tbcore/backtest/config.py`, `event.py`, `fills.py`, `simcore.py`, `recording.py`, `result.py` | `BacktestConfig` (hash = run identity), event-driven engine on `strategy.host.Runner` + `tb-simcore`, fill model, simcore client (builds the binary on demand, `TB_SIMCORE_BIN`), bus recordings, results and artifacts | BT-001..BT-008, BT-020..BT-024 |
+| `src/tbcore/backtest/vectorized.py`, `src/tbcore/strategy/orb_vector.py` | Vectorized screening tier and the ORB signal function mirroring `orb.py` (screening only, BT-006) | BT-006, BT-025 |
 | `src/tbcore/backtest/costs.py` | Cost model shared by both backtest tiers: spread regimes / EDGE estimator, square-root impact, broker commissions, dated regulatory fees, borrow, `cost_multiplier` | BT-010..BT-016 |
 | `src/tbcore/validation/` | `splitters.py` (purged k-fold, CPCV with paths, walk-forward, era-wise), `stats.py` (PSR, DSR, MinTRL, MinBTL, ONC effective N, PBO/CSCV, SPA, Romano–Wolf, bootstrap CIs) | BT-030..BT-047, SM-002 |
 | `tests/` | Unit, property, parity, leakage, perf (`TB_PERF=1`) tests; `lakekit.py` writes test lakes in the production layout | — |
 
 ## Run and test
-- `uv run pytest libs/py/tbcore/tests`, `uv run ruff check .`, `uv run mypy` (repo root). Performance targets: `make perf`.
+- `uv run pytest libs/py/tbcore/tests`, `uv run ruff check .`, `uv run mypy` (repo root). Performance targets: `make perf`, `make perf-backtest`.
 - Regenerate the calendar after bumping `exchange-calendars`: `make gen-calendar` (also updates the Go copy).
 
 ## Gotchas

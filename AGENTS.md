@@ -92,6 +92,7 @@ Prerequisites: Docker (Colima on the Mac Mini, ADR-0013), `make`, `git`. Develop
 | `make test-ctx-live` | Opt-in context-data tests against real APIs (FINRA, EDGAR; FRED/FMP with keys) |
 | `make spike-v6` | Verify-early V6: FMP earnings report timing in `/stable` (needs `.secrets/fmp_api_key`) |
 | `make perf` | Storage performance targets (lake load, as-of join) on this machine |
+| `make perf-backtest` | Backtest performance targets: event-driven 1 year × 100 symbols × 5m < 60 s, vectorized 1,000 parameter sets < 5 min |
 | `make spike-v4` | Verify-early V4: atomic rename across the lake bind mount (Mac Mini) |
 
 ## Non-negotiables (summary)

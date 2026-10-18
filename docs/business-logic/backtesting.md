@@ -23,7 +23,7 @@ How the platform simulates trading (fills, costs, the event-driven and vectorize
 | BT-003 | The event-driven tier MUST evaluate every intent with the live pre-trade gate and book every fill with the ledger's accounting core (no Python re-implementation); rejected intents are kept with every failing check. | Implemented | `services/execution/internal/simcore` (real `oms.Engine` seeded by `app.Seed`, `oms.Ledger` over `services/ledger/book`); `TestBT003*`, `TestBT007*`, `TestBT004StaleBarFailsClosed` |
 | BT-004 | The event-driven engine MUST raise if any datum handed to a strategy has `available_at` after the decision time (timestamp assertion, DF-002). | Implemented | `normalize_bars` and the dispatch assertion in `tbcore.backtest.event`; `test_bt004_bars_available_before_close_are_rejected` |
 | BT-005 | Every result MUST carry warnings for: universe survivorship status not `complete` (U5/O3), coarse fills (BT-020), fewer than `min_trades` (default 30) trades, and impact computed with the fallback (BT-012). | Implemented | `EventEngine` warnings, `BacktestRun.warnings`/`survivorship_status`; `test_bt005_warnings_label_survivorship_and_coarse_fills` |
-| BT-006 | Vectorized results are screening only: a candidate from the vectorized tier MUST be rerun event-driven before any gate or promotion. | Specified | — |
+| BT-006 | Vectorized results are screening only: a candidate from the vectorized tier MUST be rerun event-driven before any gate or promotion. | Implemented | `VectorizedResult.known_differences`, `BacktestRun.engine`; `test_bt006_vectorized_orb_matches_the_event_driven_orb` |
 | BT-007 | Several strategies MAY share one simulated account with virtual ledgers and a simulated `manual` bucket; strategy sells never take the account below other owners' quantity (VP-003 through the gate and ledger core). | Implemented | simcore (live gate + ledger core), `stats.manual_positions`; `test_bt007_orb_sessions_flat_protected_and_manual_untouched`, `test_bt007_two_strategies_share_one_account`, `TestBT007*` |
 | BT-008 | Corporate actions MUST be applied to simulated positions by the ledger core on the ex-date (VP-010, VP-023); a delisting closes positions at the last available price × (1 − `fill_model.delisting_haircut`, default 0.0). | Implemented for splits and dividends (ledger core on the ex-date open); delistings Specified | `SimCorporateAction`; `test_bt008_split_applied_by_the_ledger_core` |
 | BT-010 | Every simulated fill MUST pay a modeled price concession (half-spread + impact) and fees; zero-cost runs exist only as an explicit `broker="none"` diagnostic and are labeled. | Implemented | `tbcore.backtest.costs`; `test_costs.py` |
@@ -38,7 +38,7 @@ How the platform simulates trading (fills, costs, the event-driven and vectorize
 | BT-022 | A stop triggers when the bar trades at or through it; a gap through the stop fills at the open (the worse price) minus slippage. When a stop and a target both trigger in one bar, the stop fills first unless the open is already beyond the target. | Implemented | `fills._priority`, `_match_one`; `test_bt022_*` |
 | BT-023 | Fills per instrument per fill bar MUST NOT exceed `participation_cap` (default 0.05) × bar volume; the remainder keeps working until filled or expired (DAY orders expire at the session close). | Implemented | `fills.match_bar`; `test_bt023_participation_cap_partial_fill` |
 | BT-024 | There MUST be no fills in halted intervals, in bars with zero volume, or outside the regular session unless the order allows extended hours. | Implemented | `fills.match_bar`, `AccountSimConfig.halts`; `test_bt024_*` |
-| BT-025 | The vectorized tier executes a signal from bar t at the open of the next fill bar with the same cost model; stops use bar high/low with the stop-first ordering of BT-022. Its documented differences from the event-driven tier (no gate, no ledger, no participation cap, no partial fills) are listed in the result. | Specified | — |
+| BT-025 | The vectorized tier executes a signal from bar t at the open of the next fill bar with the same cost model; stops use bar high/low with the stop-first ordering of BT-022. Its documented differences from the event-driven tier (no gate, no ledger, no participation cap, no partial fills) are listed in the result. | Implemented | `tbcore.backtest.vectorized.run_vectorized`, `tbcore.strategy.orb_vector`; `test_bt025_*` |
 | BT-030 | Every sample MUST carry a decision time and a label end time (`t1 >= t0`); splitters reject unsorted input and inverted windows; eras (`groups`) are contiguous and never split. | Implemented | `tbcore.validation.splitters`; `test_bt030_*` |
 | BT-031 | Training sets MUST exclude every sample whose label window overlaps a test block's span `[min t0, max t1]` (purging). | Implemented | `purge`; `test_bt031_bt033_*`, `test_bt033_*` |
 | BT-032 | Training sets MUST exclude samples whose decision time falls within `embargo` after a test block (embargo ≥ label horizon by convention); walk-forward uses it as a gap before the test block. | Implemented | `purge`, `WalkForward`; `test_bt034_*` |
@@ -64,6 +64,15 @@ How the platform simulates trading (fills, costs, the event-driven and vectorize
 | BT-071 | Replaying with modeled fills MUST match trade-for-trade (same intent IDs and kinds); the P&L difference is attributed to price slippage, fees, and size, with an unexplained residual ≤ $0.01 per trade. | Specified | — |
 | BT-080 | The scorer verdict (D31 rule 7) passes only if DSR ≥ 0.95, PBO ≤ 0.2, SPA (or Romano–Wolf) p ≤ 0.05 against the champion when one exists, net P&L > 0 at 2× costs, and at least `min_trades` trades; the analyst sees only pass/fail and DSR. | Specified | — |
 | BT-081 | Evaluator code (backtester, cost and fill models, splitters, statistics, scorer) MUST be listed in the evaluator manifest; assistant and analyst code MUST NOT import it, and the scorer lives outside `tbcore` (D31 rule 9). | Specified | — |
+
+## Performance targets (measured)
+
+Reference: the 4-vCPU Linux VM that runs CI-class work (the Mac Mini, U4, is expected to be faster single-threaded). `make perf-backtest` reruns both.
+
+| Target (section 08) | Measured | Test |
+|---|---|---|
+| Event-driven, 1 year × 100 symbols × 5-minute bars, one strategy, < 60 s | 1,954,800 bars, ORB, ~40,000 simcore requests, 7,134 trades in 32.9 s | `test_bt003_perf_event_driven_one_year_100_symbols_5m_under_60s` |
+| Vectorized, 1,000 parameter sets on the same data, < 5 min | 151.7–157.8 s on one core (≈ 0.15 s per set, ≈ 200× the event tier) | `test_bt006_perf_vectorized_1000_parameter_sets_under_5_minutes` |
 
 ## Invariants
 

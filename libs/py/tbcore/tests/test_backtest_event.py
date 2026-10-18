@@ -229,7 +229,6 @@ def test_bt003_perf_event_driven_one_year_100_symbols_5m_under_60s() -> None:
     t0 = time.perf_counter()
     r = run_event_backtest(cfg, bars)
     elapsed = time.perf_counter() - t0
-    print(
-        f"BT-003 perf: {bars.height:,} bars, {r.stats['simcore_requests']:,} simcore requests, {r.trades.height:,} trades in {elapsed:.1f} s"
-    )
+    reqs, trades = r.stats["simcore_requests"], r.trades.height
+    print(f"BT-003 perf: {bars.height:,} bars, {reqs:,} simcore requests, {trades:,} trades in {elapsed:.1f} s")
     assert elapsed < 60
