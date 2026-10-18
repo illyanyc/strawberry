@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -11,6 +12,7 @@ from google.protobuf.message import Message
 from tb.analyst.v1 import analyst_pb2
 from tb_assistant.audit import MemoryAudit
 from tb_assistant.budget import BudgetGuard, default_budget
+from tb_assistant.coder import Coder, SandboxClient
 from tb_assistant.eval.fake_research import FakeResearch, World
 from tb_assistant.guarded import GuardedLLM, SpendLedger
 from tb_assistant.journal import MemoryJournal
@@ -35,6 +37,18 @@ class MemoryPublisher:
 
     def subjects(self) -> list[str]:
         return [s for s, _ in self.messages]
+
+
+class PassingSandbox:
+    """Sandbox stand-in for loop tests; the real pipeline is tested in tests/python/test_analyst_sandbox.py."""
+
+    async def run(self, job_id: str, source: str, request: dict[str, Any]) -> dict[str, Any]:
+        return {"passed": True, "checks": [{"name": "future_shift", "passed": True, "messages": []}]}
+
+
+def _ids() -> Callable[[], str]:
+    n = iter(range(10**9))
+    return lambda: f"01ANALYST{next(n):017d}"
 
 
 class Clock:
@@ -122,6 +136,7 @@ def build(
     symbols: set[str] | None = None,
     budget: analyst_pb2.Budget | None = None,
     spend: SpendLedger | None = None,
+    sandbox: SandboxClient | None = None,
 ) -> Harness:
     clock = Clock()
     research = FakeResearch()
@@ -142,6 +157,8 @@ def build(
     tools = ToolServer(research, audit=audit, budget=bg, call_log=journal, clock=clock)
     s = settings or LoopSettings()
     s.default_budget.CopyFrom(budget or default_budget(max_trials_per_round=5, max_rounds=10))
+    ids = _ids()
+    coder = Coder(llm, sandbox or PassingSandbox(), journal, audit, ids=ids, clock=clock)
     loop = AnalystLoop(
         tools=tools,
         planner=Planner(llm),
@@ -153,5 +170,7 @@ def build(
         settings=s,
         symbols=StaticSymbols(symbols or {"AAPL", "MSFT", "NVDA"}, {"inst-aapl-0001"}),
         clock=clock,
+        ids=ids,
+        coder=coder.propose,
     )
     return Harness(research, journal, audit, pub, llm, prov, bg, tools, loop, clock)

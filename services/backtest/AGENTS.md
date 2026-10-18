@@ -12,19 +12,22 @@ Backtest runs, the D31 promotion scorer, and the evaluator boundary (section 08,
 | Direction | Kind | Name | Contract |
 |---|---|---|---|
 | in | HTTP (internal) | ops endpoints `:8081` (no arguments) | OP-010 |
-| in | CLI | `python -m tb_backtest run|parity|leakage` | `BacktestConfig` JSON, bus recordings (`tb.backtest.v1.RecordedMessage`) |
+| in | CLI | `python -m tb_backtest run|parity|leakage|candidates` | `BacktestConfig` JSON, bus recordings (`tb.backtest.v1.RecordedMessage`) |
 | out | files | run artifacts (`config.json`, `*.parquet`, `summary.json`, `report.json`, `tearsheet.html`, `run.binpb`) under `--out/<config hash>` | `tb.ml.v1.BacktestRun` |
+| in/out | files | analyst candidate jobs in the shared `analyst-jobs` volume: reads `request.json` + `candidate.py`, writes `inputs.npz`, `ready`, `verdict.json` (AN-071, AN-072, BT-082) | ADR-0043 |
 | out | Python API | `score(CandidateEvidence) -> Verdict`, `analyst_view(Verdict) -> AnalystView` | section 11 calls it; the analyst sees only `AnalystView` |
 
 ## Business rules enforced here
 - BT-080 → `src/tb_backtest/scorer/gate.py` (`tests/test_scorer.py`)
 - BT-081 → `evaluator_manifest.json` (`tests/python/test_evaluator_isolation.py`)
+- BT-082, AN-072 → `src/tb_backtest/candidates.py` (`tests/python/test_analyst_sandbox.py`)
 - BT-015, BT-065, BT-070, BT-071 through the CLI (`tests/test_cli.py`)
 
 ## Layout
 | Path | Purpose |
 |---|---|
 | `src/tb_backtest/__main__.py` | Ops service (no arguments) and the `run`, `parity`, `leakage` commands |
+| `src/tb_backtest/candidates.py` | Evaluator-side checks of analyst candidate features: synthetic inputs, PIT lint, determinism, future shift (`candidates watch|step JOBS_DIR`; Compose service `candidate-checker`) |
 | `src/tb_backtest/scorer/` | D31 promotion gate (`GatePolicy`, `score`, `analyst_view`) |
 | `evaluator_manifest.json` | Evaluator paths and modules the analyst may not see, write, or import |
 | `tests/` | Scorer and CLI tests |
@@ -37,7 +40,8 @@ Backtest runs, the D31 promotion scorer, and the evaluator boundary (section 08,
 
 ## Run and test
 - Run: `uv run python -m tb_backtest run --config cfg.json --bars bars.parquet --out runs/ --stress` (or `--lake ROOT`); parity: `uv run python -m tb_backtest parity paper-gate.tbrec --config tests/fixtures/parity/orb-paper-gate.config.json --mode model`.
-- Test: `uv run pytest services/backtest/tests tests/python/test_evaluator_isolation.py`; Gate 3 parity: `make paper-gate && make parity-gate`; performance: `make perf-backtest`.
+- Candidate checks: `uv run python -m tb_backtest candidates step /path/to/jobs` (one pass) or `watch` (service).
+- Test: `uv run pytest services/backtest/tests tests/python/test_evaluator_isolation.py tests/python/test_analyst_sandbox.py`; Gate 3 parity: `make paper-gate && make parity-gate`; performance: `make perf-backtest`.
 
 ## Operational notes
 On the Mac Mini, backtests run as native workers (D29) with `TB_SIMCORE_BIN` set; the Compose image does not include `tb-simcore` yet (Planned with the Prefect batch flow, section 11).

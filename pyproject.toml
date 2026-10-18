@@ -68,7 +68,7 @@ python_version = "3.12"
 strict = true
 mypy_path = "contracts/gen/python/src:libs/py/tbcore/src:services/assistant/src:services/backtest/src:services/broker-gateway-ibkr/src:services/broker-gateway-ibkr:services/context-data:services/context-data/src:services/ml/src:services/monitor/src:services/optimizer/src:services/strategy-runtime/src"
 explicit_package_bases = true
-files = ["libs/py/tbcore/src", "libs/py/tbcore/tests", "services/backtest/tests", "services/ml/tests", "services/optimizer/tests", "contracts/tests", "services/*/src", "services/broker-gateway-ibkr/ibkr_tests", "services/context-data/ctx_tests", "tests/python", "tests/research", "services/assistant/tests"]
+files = ["libs/py/tbcore/src", "libs/py/tbcore/tests", "services/backtest/tests", "services/ml/tests", "services/optimizer/tests", "contracts/tests", "services/*/src", "services/broker-gateway-ibkr/ibkr_tests", "services/context-data/ctx_tests", "tests/python", "tests/research", "services/assistant/tests", "services/assistant/sandbox"]
 exclude = ["contracts/gen/"]
 
 [[tool.mypy.overrides]]
