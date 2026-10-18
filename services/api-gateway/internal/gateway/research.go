@@ -331,12 +331,21 @@ func (s *Server) handleRunTearsheet(w http.ResponseWriter, r *http.Request, rc *
 		s.upstreamError(w, r, "ml", err)
 		return
 	}
-	w.Header().Set("Content-Security-Policy", tearsheetCSP)
+	csp := tearsheetCSP
+	if r.URL.Query().Get("embed") == "1" {
+		// UI-047: the in-app viewer frames the document from this origin only; the CSP sandbox
+		// (no scripts, opaque origin) and the viewer's <iframe sandbox=""> both still apply.
+		csp = tearsheetEmbedCSP
+		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+	}
+	w.Header().Set("Content-Security-Policy", csp)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(http.StatusOK)
 	_, _ = io.WriteString(w, resp.GetHtml())
 }
+
+const tearsheetEmbedCSP = "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox; frame-ancestors 'self'"
 
 func (s *Server) handleRunRegister(w http.ResponseWriter, r *http.Request, rc *reqCtx) {
 	id, ok := s.pathID(w, r)

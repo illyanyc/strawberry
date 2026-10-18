@@ -14,6 +14,14 @@ info:
     emitted, unset messages as null): decimals are `{ "value": "<decimal string>" }`, int64 timestamps
     are UTC-nanosecond strings, enums are full names (ADR-0028). The web UI types them with the
     generated `*Json` types from `contracts/gen/ts`. Upstream outages answer 503 `<service>_unavailable`.
+
+    Two more listeners are not part of this API and never share its address (ADR-0052, ADR-0053):
+    the internal listener (`TB_INTERNAL_HTTP_ADDR`, backend network only) serves
+    `POST /internal/alertmanager/webhook` (bearer token; Alertmanager v4 payload → Web Push, SE-063),
+    and the optional TradingView listener (`TB_TV_WEBHOOK_ADDR`, reached only through the dedicated
+    Cloudflare Access hostname) serves `POST /webhooks/tradingview/{name}` with the JSON alert body
+    `{secret, ticker, action: buy|sell|exit, time (RFC 3339), price?, alert_id?, comment?}` and turns
+    it into a `tb.signals.v1.Signal` for strategy `tv-{name}` (SE-064). Both also answer `GET /healthz`.
 servers:
   - url: /
 components:
@@ -167,7 +175,7 @@ paths:
       responses: { '200': { description: Stored (metadata returned) }, '403': { $ref: '#/components/responses/Forbidden' } }
     delete: { responses: { '204': { description: Deleted }, '403': { $ref: '#/components/responses/Forbidden' } } }
   /api/v1/system/status:
-    get: { responses: { '200': { description: "Trading-status snapshot: environment, live flag, mode, session expiry, and `trading` (tb.orders.v1.TradingStatus, null with `trading_error` when execution is unreachable; UI-013)" } } }
+    get: { responses: { '200': { description: "Trading-status snapshot: environment, live flag, mode, session expiry, `trading` (tb.orders.v1.TradingStatus, null with `trading_error` when execution is unreachable; UI-013), and `feeds` (tb.marketdata.v1.GetFeedStatusResponse, null with `feeds_error` when marketdata is unreachable)" } } }
   /api/v1/events:
     get:
       description: Server-sent events (D14). Events `trading-status` (JSON snapshot) and `session-ended`. Supports `Last-Event-ID`.
@@ -253,6 +261,7 @@ paths:
       parameters:
         - { name: strategy_id, in: query, schema: { type: string } }
         - { name: rejected_only, in: query, schema: { type: boolean } }
+        - { name: since, in: query, description: received at or after (UTC ns), schema: { type: integer, minimum: 0 } }
         - { name: limit, in: query, schema: { type: integer, maximum: 2000 } }
       responses: { '200': { description: tb.orders.v1.ListIntentsResponse } }
   /api/v1/intents/{id}:
@@ -264,6 +273,7 @@ paths:
         - { name: account, in: query, schema: { type: string } }
         - { name: strategy_id, in: query, schema: { type: string } }
         - { name: instrument_id, in: query, schema: { type: string } }
+        - { name: since, in: query, description: executed at or after (UTC ns), schema: { type: integer, minimum: 0 } }
         - { name: limit, in: query, schema: { type: integer, maximum: 2000 } }
       responses: { '200': { description: tb.orders.v1.ListFillsResponse } }
   /api/v1/trace/{id}:
@@ -274,7 +284,7 @@ paths:
       parameters: [{ name: all, in: query, description: include released switches, schema: { type: boolean } }]
       responses: { '200': { description: tb.orders.v1.ListKillSwitchesResponse } }
     post:
-      description: Engage a latched kill switch (RM-006, UI-006); no step-up.
+      description: Engage a latched kill switch (RM-006, UI-006). No step-up from a desktop; from a phone a fresh passkey step-up (RM-020, `step_up_required` with method `passkey`).
       requestBody: { content: { application/json: { schema: { type: object, required: [scope], additionalProperties: false, properties: { scope: { enum: [global, account, strategy, instrument] }, target: { type: string }, action: { enum: [freeze, cancel_open, flatten], default: cancel_open }, reason: { type: string, maxLength: 300 } } } } } }
       responses: { '200': { description: tb.orders.v1.TriggerKillSwitchResponse } }
   /api/v1/kill-switches/{id}/release:
@@ -296,11 +306,35 @@ paths:
       responses: { '200': { description: tb.marketdata.v1.GetBarsResponse (UI-010) } }
   /api/v1/stream/market:
     get:
-      description: "SSE chart stream (UI-012): `ready`, `bar` (final or corrected tb.marketdata.v1.Bar), `partial` (≤4 Hz), `fill` (tb.orders.v1.ExecutionReport in the instrument), `resync` (client fell behind; reload history), `session-ended`."
+      description: "SSE chart stream (UI-012, UI-049): `ready`, `bar` (final or corrected tb.marketdata.v1.Bar), `partial` (≤4 Hz), `fill` (tb.orders.v1.ExecutionReport in the instrument), `signal` (tb.signals.v1.Signal for the instrument), `resync` (client fell behind; reload history), `session-ended`."
       parameters:
         - { name: instrument_id, in: query, required: true, schema: { type: string, pattern: '^[A-Za-z0-9_-]{1,64}$' } }
         - { name: timeframe, in: query, required: true, schema: { enum: ['1m', '5m', '15m', '30m', '1h', '1d'] } }
       responses: { '200': { description: text/event-stream } }
+  # ---- section 14 Phase 5: signals, Web Push, TradingView (ADR-0051..ADR-0053) ----
+  /api/v1/signals:
+    get:
+      description: Recent model and webhook signals of one instrument for chart overlays (UI-049), from the JetStream SIGNALS stream (sig.<strategy_id>.<instrument_id>). Signals are never orders.
+      parameters:
+        - { name: instrument_id, in: query, required: true, schema: { type: string, pattern: '^[A-Za-z0-9_-]{1,64}$' } }
+        - { name: since, in: query, description: 'UTC ns; default now − 24 h, at most 30 days back', schema: { type: integer, minimum: 0 } }
+        - { name: limit, in: query, schema: { type: integer, maximum: 2000, default: 500 } }
+      responses: { '200': { description: '{"signals": [tb.signals.v1.Signal]} oldest first (the newest `limit`)' }, '503': { description: bus_unavailable } }
+  /api/v1/push/config:
+    get: { description: Web Push configuration (SE-060); `enabled` is false without a VAPID key., responses: { '200': { description: '{"enabled": bool, "vapid_public_key": base64url, "redact": bool}' } } }
+  /api/v1/push/subscriptions:
+    get: { description: 'Subscribed devices: id, label, service (push host), endpoint_hash, created_at, last_success_at, last_error, failures. Never the endpoint or keys (SE-061).', responses: { '200': { description: '{"subscriptions": [...]}' } } }
+    post:
+      description: Store this browser's PushSubscription (endpoint https on an allowed push service; p256dh 65-byte point; auth 16 bytes; sealed at rest; audited).
+      requestBody: { content: { application/json: { schema: { type: object, required: [endpoint, p256dh, auth], additionalProperties: false, properties: { endpoint: { type: string, maxLength: 1024 }, p256dh: { type: string }, auth: { type: string }, label: { type: string, maxLength: 60 } } } } } }
+      responses: { '200': { description: '{"id": ULID}' }, '400': { description: bad_endpoint or bad_request }, '503': { description: push_disabled } }
+  /api/v1/push/subscriptions/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    delete: { responses: { '204': { description: Removed (audited) }, '404': { description: not_found } } }
+  /api/v1/push/test:
+    post: { description: Send a test notification to every subscribed device., responses: { '200': { description: '{"sent": int, "failed": int}' }, '503': { description: push_disabled } } }
+  /api/v1/tradingview:
+    get: { description: 'TradingView intake status (UI-048): enabled, public_url, access_jwt_required, allowed_ips, max_age_seconds, widget_enabled, tv-<name> strategies with their webhook path, recent deliveries from the audit log. Never a secret (SE-064).', responses: { '200': { description: JSON } } }
   # ---- research (section 14 Phase 4 slice: training, experiments, tearsheets; ADR-0035) ----
   # Bodies and responses are the canonical protojson of tb.ml.v1 / tb.optimizer.v1 messages. The
   # gateway sets the caller (actor owner, step-up attestation only while a passkey step-up is fresh).

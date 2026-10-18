@@ -2,7 +2,8 @@
 // @generated from file tb/signals/v1/signals.proto (package tb.signals.v1, syntax proto3)
 /* eslint-disable */
 
-// Model or rule signals (bus subject sig.<strategy_id>). Signals are never orders.
+// Model, rule, or webhook signals (bus subject sig.<strategy_id>.<instrument_id>, stream SIGNALS).
+// Signals are never orders: a strategy turns them into intents that pass the pre-trade gate.
 
 import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";

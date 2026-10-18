@@ -9,7 +9,7 @@ Phase 2 ops slice of section 13: health and trading-operations alert rules, aler
 ## Concepts
 
 - **Two alert sources:** Prometheus rules on service metrics, and bus alerts (`alert.<severity>`) that services publish for events (breaks, halts, kill switches, dead-man). The monitor forwards bus alerts to Alertmanager, so one router handles both.
-- **Severities:** `info` (log only), `warning` (Pushover normal priority outside quiet hours), `critical` (Pushover emergency priority, repeats every 2 minutes until acknowledged, re-notified every 30 minutes while firing). `kind=report` alerts carry the daily reports (Pushover low priority).
+- **Severities:** `info` (log only), `warning` (Pushover normal priority outside quiet hours), `critical` (Pushover emergency priority, repeats every 2 minutes until acknowledged, re-notified every 30 minutes while firing). `kind=report` alerts carry the daily reports (Pushover low priority). Every notifying receiver also sends Web Push to the installed PWA through api-gateway (SE-063).
 
 ## Rules
 
@@ -44,5 +44,5 @@ Phase 2 ops slice of section 13: health and trading-operations alert rules, aler
 
 ## Open questions
 
-- Web Push to the PWA and an independent fallback channel (Phase 5, D13).
+- Web Push to the PWA: delivered by api-gateway from Alertmanager's receivers (SE-060..SE-063, [ADR-0053](../adr/0053-web-push-from-the-gateway-and-the-installed-pwa.md)); Pushover emergency remains the independent critical channel.
 - Strategy health score, drift and divergence dashboards, auto-demotion (Phase 5); expectations served from section 11 gate reports instead of a config file.

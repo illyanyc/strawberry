@@ -18,6 +18,7 @@ Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes t
 | in | file | research deployments (`TB_RESEARCH_REGISTRY`, written by the optimizer): shadow/paper model strategies, never live (EX-056) | same entry format, runtime classes `model_signal`/`meta_filter` (SM-015) |
 | in | NATS (ordered consumers, stream `CONTEXT`) | `ctx.calendar`, `ctx.earnings` (only when a hosted strategy has `runtime.blackout`) | `tb.context.v1.ContextEvent`, CX-016 |
 | in | filesystem | lake (read-only): stored calendar and earnings versions at start and hourly (the bus keeps 7 days) | `tbcore.context.ContextStore`, CX-016 |
+| in | NATS (ordered consumers, stream `SIGNALS`, new messages only) | `sig.<tv-strategy>.>` for hosted `tradingview` strategies (webhook signals from api-gateway) | `tb.signals.v1.Signal`, SM-020 |
 
 ## Layout
 | Path | Purpose |
@@ -48,3 +49,4 @@ Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes t
 - Every JetStream subscribe passes `stream=`: the NATS user (least privilege) may not call `$JS.API.STREAM.NAMES`, and nats-py looks the stream up when it is missing, which times out after 5 s and kills startup. Tested by `test_every_jetstream_subscription_names_its_stream`.
 - Blackouts: add `"blackout": {"kinds": ["CPI", "FOMC", "earnings"], "before_minutes": 5, "after_minutes": 30}` to a strategy's `runtime` block; only opening intents are dropped, and only for events known at the decision time (CX-016).
 - The compose seed lists no instruments: add instrument IDs (from `refdata.instruments`) to `runtime.instruments` to trade.
+- TradingView strategies (runtime class `tradingview`, SM-020) need a `tv-<name>` strategy ID and the instruments they may trade in `runtime.instruments`; the runtime also subscribes to their bars, because sizing and stops use the platform's own close. Setup: `docs/runbooks/tradingview-webhook.md`.

@@ -20,6 +20,7 @@ import (
 type keys struct {
 	totpEnc  []byte // AES-256-GCM key for TOTP secrets (SE-008)
 	codeHMAC []byte // HMAC key for recovery codes and setup tokens (SE-007, SE-009)
+	pushEnc  []byte // AES-256-GCM key for Web Push subscriptions (SE-061)
 }
 
 func deriveKeys(master []byte) (keys, error) {
@@ -39,7 +40,35 @@ func deriveKeys(master []byte) (keys, error) {
 	if err != nil {
 		return keys{}, err
 	}
-	return keys{totpEnc: t, codeHMAC: h}, nil
+	p, err := derive("tb1/gateway/push-enc")
+	if err != nil {
+		return keys{}, err
+	}
+	return keys{totpEnc: t, codeHMAC: h, pushEnc: p}, nil
+}
+
+// seal encrypts with AES-256-GCM under key, binding the ciphertext to aad.
+func seal(key, plain []byte, aad string) ([]byte, error) {
+	gcm, err := newGCM(key)
+	if err != nil {
+		return nil, err
+	}
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err := rand.Read(nonce); err != nil {
+		return nil, err
+	}
+	return gcm.Seal(nonce, nonce, plain, []byte(aad)), nil
+}
+
+func openSealed(key, sealed []byte, aad string) ([]byte, error) {
+	gcm, err := newGCM(key)
+	if err != nil {
+		return nil, err
+	}
+	if len(sealed) < gcm.NonceSize() {
+		return nil, errors.New("ciphertext too short")
+	}
+	return gcm.Open(nil, sealed[:gcm.NonceSize()], sealed[gcm.NonceSize():], []byte(aad))
 }
 
 func (k keys) sealTOTP(secret []byte, ownerID string) ([]byte, error) {

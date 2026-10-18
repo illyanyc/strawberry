@@ -12,7 +12,7 @@ A self-hosted platform for researching, training, backtesting, deploying, and mo
 - Runs each strategy in its own **virtual sub-portfolio** inside the real broker account. Strategies trade only their own positions and **never touch manual holdings**.
 - Desktop and mobile UI; local first (Docker Compose), later a remote server reachable only over a private network.
 
-**Status:** Phase 3 (research core) in progress; Phases 0–2 merged. Stack choices are accepted from the research report; see [`docs/decisions.md`](docs/decisions.md). Build prompts live in [`docs/prompts/`](docs/prompts/00-master-prompt.md) and the owner's inputs in [`docs/project-context.md`](docs/project-context.md).
+**Status:** Phase 5 (operations and full UI) in progress; Phases 0–4 merged. Stack choices are accepted from the research report; see [`docs/decisions.md`](docs/decisions.md). Build prompts live in [`docs/prompts/`](docs/prompts/00-master-prompt.md) and the owner's inputs in [`docs/project-context.md`](docs/project-context.md).
 
 ## System map
 
@@ -66,6 +66,7 @@ Prerequisites: Docker (Colima on the Mac Mini, ADR-0013), `make`, `git`. Develop
 | `make bootstrap` | First run: data dirs, generate `.secrets/` (`make secrets`), build images |
 | `make up` / `make down` / `make clean` | Start (profiles `core,observability`; `PROFILES=...` to change; `NATIVE_ML=1` for native macOS workers) / stop / stop and delete volumes |
 | `make setup-token` | One-time token for first-run owner setup at http://localhost:8080 |
+| `make tv-secret NAME=…` | Print the TradingView webhook secret of strategy `tv-NAME` on the terminal (never logged or shown in the UI; runbook `tradingview-webhook.md`) |
 | `make ps`, `make logs SERVICE=x` | Status and logs; Grafana at http://localhost:3000 |
 | `make tools`, `make deps` | Pinned dev tools into `.tools/bin`; Go/uv/pnpm dependencies |
 | `make gen` / `make gen-check` | Regenerate contracts / fail if generated code is stale |
@@ -78,7 +79,7 @@ Prerequisites: Docker (Colima on the Mac Mini, ADR-0013), `make`, `git`. Develop
 | `make parity-gate` | Gate 3 parity: replays `paper-gate.tbrec` through the event-driven backtester with recorded and modeled fills (writes `parity-report-*.json`; run after `make paper-gate`) |
 | `cd tests/paper && go test ./...` | Phase 2 Gate 2 scenarios on the in-process paper harness (simulators, ledger, execution, embedded NATS) |
 | `make smoke` | Smoke test of the running stack (readiness, auth gate, ports, e2e passkey flow with leak canary, Prometheus, audit chain) |
-| `make e2e` / `make e2e-ui` | Go API e2e / Playwright browser e2e against a fresh running stack |
+| `make e2e` / `make e2e-ui` | Go API e2e / Playwright browser e2e against a fresh running stack (Phase 0–5 journeys, desktop and phone viewports; screenshots in `apps/web/test-results/screens`) |
 | `make migrate` | Roles, databases, schemas, migrations |
 | `make audit-verify` | Recompute the audit hash chain |
 | `make backup` / `make restore BACKUP=...` / `make backup-drill` | Encrypted backup / verified restore / full drill |

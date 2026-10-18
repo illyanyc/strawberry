@@ -151,6 +151,16 @@ func qInt(r *http.Request, key string, def, maxV int) int32 {
 
 func qBool(r *http.Request, key string) bool { return r.URL.Query().Get(key) == "true" }
 
+// qNs reads an optional UTC-nanosecond timestamp; ok is false when it is present but malformed.
+func qNs(r *http.Request, key string) (int64, bool) {
+	v := r.URL.Query().Get(key)
+	if v == "" {
+		return 0, true
+	}
+	n, err := strconv.ParseInt(v, 10, 64)
+	return n, err == nil && n >= 0
+}
+
 // qID returns an optional identifier query parameter; ok is false when it is present but malformed.
 func qID(r *http.Request, key string) (string, bool) {
 	v := r.URL.Query().Get(key)
@@ -643,8 +653,9 @@ func (s *Server) handleOrders(w http.ResponseWriter, r *http.Request, rc *reqCtx
 
 func (s *Server) handleIntents(w http.ResponseWriter, r *http.Request, rc *reqCtx) {
 	sid, ok := qID(r, "strategy_id")
-	if !ok {
-		writeError(w, http.StatusBadRequest, "bad_request", "invalid strategy_id")
+	since, ok2 := qNs(r, "since")
+	if !ok || !ok2 {
+		writeError(w, http.StatusBadRequest, "bad_request", "invalid strategy_id or since")
 		return
 	}
 	if !s.readGuard(w, rc) || !s.needExec(w) {
@@ -652,7 +663,7 @@ func (s *Server) handleIntents(w http.ResponseWriter, r *http.Request, rc *reqCt
 	}
 	ctx, cancel := callCtx(r)
 	defer cancel()
-	resp, err := s.trading.Exec.ListIntents(ctx, &ordersv1.ListIntentsRequest{StrategyId: sid, RejectedOnly: qBool(r, "rejected_only"), Limit: qInt(r, "limit", 200, 2000)})
+	resp, err := s.trading.Exec.ListIntents(ctx, &ordersv1.ListIntentsRequest{StrategyId: sid, RejectedOnly: qBool(r, "rejected_only"), Since: since, Limit: qInt(r, "limit", 200, 2000)})
 	if err != nil {
 		s.upstreamError(w, r, "execution", err)
 		return
@@ -664,7 +675,8 @@ func (s *Server) handleFills(w http.ResponseWriter, r *http.Request, rc *reqCtx)
 	acct, ok1 := qID(r, "account")
 	sid, ok2 := qID(r, "strategy_id")
 	instr, ok3 := qID(r, "instrument_id")
-	if !ok1 || !ok2 || !ok3 {
+	since, ok4 := qNs(r, "since")
+	if !ok1 || !ok2 || !ok3 || !ok4 {
 		writeError(w, http.StatusBadRequest, "bad_request", "invalid filter")
 		return
 	}
@@ -673,7 +685,7 @@ func (s *Server) handleFills(w http.ResponseWriter, r *http.Request, rc *reqCtx)
 	}
 	ctx, cancel := callCtx(r)
 	defer cancel()
-	resp, err := s.trading.Exec.ListFills(ctx, &ordersv1.ListFillsRequest{BrokerAccountId: acct, StrategyId: sid, Limit: qInt(r, "limit", 200, 2000)})
+	resp, err := s.trading.Exec.ListFills(ctx, &ordersv1.ListFillsRequest{BrokerAccountId: acct, StrategyId: sid, Since: since, Limit: qInt(r, "limit", 200, 2000)})
 	if err != nil {
 		s.upstreamError(w, r, "execution", err)
 		return
@@ -912,8 +924,9 @@ var (
 		"flatten":     ordersv1.KillSwitchAction_KILL_SWITCH_ACTION_FLATTEN_STRATEGY_OWNED}
 )
 
-// handleKillEngage latches a kill switch (RM-006). Engaging needs no step-up so it is always one
-// confirmation away, on desktop and phone (UI-006).
+// handleKillEngage latches a kill switch (RM-006). From a desktop, engaging needs no step-up so it
+// is always one confirmation away (UI-006); from a phone it needs a fresh passkey assertion (RM-020,
+// UI-050), after which the UI retries automatically.
 func (s *Server) handleKillEngage(w http.ResponseWriter, r *http.Request, rc *reqCtx) {
 	var req killEngageReq
 	if err := decode(r, &req); err != nil {
@@ -929,7 +942,11 @@ func (s *Server) handleKillEngage(w http.ResponseWriter, r *http.Request, rc *re
 		writeError(w, http.StatusBadRequest, "bad_request", "scope global|account|strategy|instrument (target required unless global); action freeze|cancel_open|flatten")
 		return
 	}
-	if !s.authorize(w, rc, policy.ActKillSwitchEngage, policy.Resource{ID: req.Scope + ":" + req.Target}) || !s.needExec(w) {
+	res := policy.Resource{ID: req.Scope + ":" + req.Target}
+	if isMobile(r) {
+		res.Mode = "mobile"
+	}
+	if !s.authorize(w, rc, policy.ActKillSwitchEngage, res) || !s.needExec(w) {
 		return
 	}
 	reason := truncate(strings.TrimSpace(req.Reason), 300)

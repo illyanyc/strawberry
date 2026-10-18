@@ -24,6 +24,7 @@ import (
 	"github.com/illyanyc/strawberry/libs/go/audit"
 	"github.com/illyanyc/strawberry/libs/go/logging"
 	"github.com/illyanyc/strawberry/libs/go/policy"
+	"github.com/illyanyc/strawberry/services/api-gateway/internal/webpush"
 )
 
 // AlertPublisher publishes security alerts (alert.security, SE-041). Implementations must not block long.
@@ -46,6 +47,11 @@ type Server struct {
 	research *ResearchClients
 	analyst  *AnalystClients
 	market   MarketBus
+	signals  SignalBus
+	push     PushDeps
+	tv       *tvIntake
+	access   AccessVerifier
+	flags    flagCache
 	// appendAudit is the audit writer (tests substitute it; production is audit.Writer.Append).
 	appendAudit func(context.Context, audit.Event) (int64, string, error)
 	web         *webUI
@@ -70,6 +76,13 @@ type Deps struct {
 	Research  *ResearchClients
 	Analyst   *AnalystClients
 	Market    MarketBus
+	// Signals reads recent signals (JetStream SIGNALS) and publishes TradingView signals.
+	Signals SignalBus
+	Push    PushDeps
+	// TVKey derives the per-strategy TradingView webhook secrets (nil: intake disabled).
+	TVKey []byte
+	// AccessVerifier checks Cloudflare Access JWTs on the webhook listener (nil: not required).
+	AccessVerifier AccessVerifier
 }
 
 type route struct {
@@ -118,7 +131,8 @@ func New(cfg Config, d Deps) (*Server, error) {
 	}
 	s := &Server{
 		cfg: cfg, store: &Store{pool: d.Pool}, pool: d.Pool, wa: wa, keys: k, audit: audit.NewWriter(d.Pool),
-		log: d.Log, alerts: d.Alerts, creds: d.Creds, trading: d.Trading, research: d.Research, analyst: d.Analyst, market: d.Market, now: time.Now, limiters: map[string]*rate.Limiter{},
+		log: d.Log, alerts: d.Alerts, creds: d.Creds, trading: d.Trading, research: d.Research, analyst: d.Analyst, market: d.Market,
+		signals: d.Signals, push: d.Push, now: time.Now, limiters: map[string]*rate.Limiter{},
 		rateEvery: 200 * time.Millisecond, rateBurst: 30,
 	}
 	s.appendAudit = s.audit.Append
@@ -128,6 +142,11 @@ func New(cfg Config, d Deps) (*Server, error) {
 	if cfg.WebDir != "" {
 		s.web = newWebUI(cfg.WebDir, d.Log)
 	}
+	if len(s.push.Hosts) == 0 {
+		s.push.Hosts = webpush.DefaultAllowedHosts
+	}
+	s.tv = newTVIntake(cfg, d.TVKey, d.AccessVerifier)
+	s.access = d.AccessVerifier
 	s.registerRoutes()
 	return s, nil
 }
@@ -189,6 +208,9 @@ func (s *Server) registerRoutes() {
 	s.registerTradingRoutes(priv)
 	s.registerResearchRoutes(priv)
 	s.registerAnalystRoutes(priv)
+	s.registerPushRoutes(priv)
+	priv("GET", "/api/v1/signals", s.handleSignals)
+	priv("GET", "/api/v1/tradingview", s.handleTradingViewStatus)
 }
 
 // Handler returns the full HTTP handler (API + static UI).
@@ -214,7 +236,34 @@ func (s *Server) Handler(metrics func(http.Handler) http.Handler) http.Handler {
 	if metrics != nil {
 		h = metrics(h)
 	}
-	return s.securityHeaders(s.correlation(h))
+	return s.securityHeaders(s.correlation(s.accessGate(h)))
+}
+
+// accessGate requires a valid Cloudflare Access token on requests for the public UI hostnames
+// (SE-064), so traffic that reaches the origin through the tunnel without passing Access (and its
+// independent passkey MFA) is refused. Tailscale and localhost hostnames are unaffected.
+func (s *Server) accessGate(next http.Handler) http.Handler {
+	if s.cfg.CFAccessUIAud == "" || s.access == nil {
+		return next
+	}
+	hosts := map[string]bool{}
+	for _, h := range s.cfg.CFAccessUIHosts {
+		hosts[strings.ToLower(strings.TrimSpace(h))] = true
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		host := strings.ToLower(r.Host)
+		if h, _, err := net.SplitHostPort(host); err == nil {
+			host = h
+		}
+		if hosts[host] && r.URL.Path != "/healthz" {
+			if err := s.access.Verify(r.Context(), r.Header.Get("Cf-Access-Jwt-Assertion"), s.cfg.CFAccessUIAud); err != nil {
+				s.log.WarnContext(r.Context(), "cloudflare access token rejected", "host", host, "error", err)
+				writeError(w, http.StatusForbidden, "access_required", "this hostname requires Cloudflare Access")
+				return
+			}
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (s *Server) wrap(rt route) http.Handler {
@@ -265,7 +314,14 @@ func (s *Server) securityHeaders(next http.Handler) http.Handler {
 		h.Set("Cross-Origin-Opener-Policy", "same-origin")
 		h.Set("Cross-Origin-Resource-Policy", "same-origin")
 		h.Set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=(), publickey-credentials-get=(self), publickey-credentials-create=(self)")
-		h.Set("Content-Security-Policy", cspPolicy)
+		csp := cspPolicy
+		if !strings.HasPrefix(r.URL.Path, "/api/") && !strings.HasPrefix(r.URL.Path, "/auth/") {
+			// SE-065: the opt-in TradingView widget frames s.tradingview.com from the SPA document.
+			if widget, _ := s.ownerFlags(r.Context()); widget {
+				csp = cspWidgetPolicy
+			}
+		}
+		h.Set("Content-Security-Policy", csp)
 		if s.cfg.CookieSecure && !strings.HasPrefix(s.cfg.Origins[0], "http://") {
 			h.Set("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 		}
@@ -281,6 +337,12 @@ func (s *Server) securityHeaders(next http.Handler) http.Handler {
 const cspPolicy = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; " +
 	"font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; " +
 	"frame-ancestors 'none'; manifest-src 'self'; worker-src 'self'"
+
+// cspWidgetPolicy adds exactly one frame source for the opt-in TradingView widget (SE-065); the
+// widget runs in a sandboxed cross-origin frame and the SPA's own script and style rules are unchanged.
+const cspWidgetPolicy = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; " +
+	"font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; " +
+	"frame-src 'self' https://s.tradingview.com; frame-ancestors 'none'; manifest-src 'self'; worker-src 'self'"
 
 // ---- CSRF (SE-006) ----
 

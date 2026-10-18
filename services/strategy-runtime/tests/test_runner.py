@@ -16,6 +16,7 @@ from tb.context.v1 import context_pb2
 from tb.ledger.v1 import ledger_pb2
 from tb.marketdata.v1 import marketdata_pb2
 from tb.orders.v1 import orders_pb2
+from tb.signals.v1 import signals_pb2
 from tbcore.data.calendar import xnys
 from tbcore.strategy.host import Runner
 
@@ -233,3 +234,109 @@ def test_ex056_research_deployments_join_the_seed_but_never_live(tmp_path: Path)
     r = entry.load_runner(str(tmp_path / "seed.json"), str(tmp_path / "research.json"))
     assert {h.strategy_id: h.mode for h in r.hosted} == {"orb-15m": "paper", "ml-shadow": "shadow"}
     assert len(entry.load_runner(str(tmp_path / "seed.json"), str(tmp_path / "missing.json")).hosted) == 1
+
+
+def tv_registry() -> dict[str, Any]:
+    return {
+        "strategies": [
+            {
+                "strategy_id": "tv-breakout",
+                "short_id": "tvbrkaa",
+                "horizon": "intraday",
+                "broker_account_id": "sim-paper",
+                "mode": "paper",
+                "allocation": "10000",
+                "runtime": {
+                    "class": "tradingview",
+                    "timeframe": "15m",
+                    "instruments": ["I1"],
+                    "params": {"stop_bps": "100"},
+                },
+            },
+            {
+                "strategy_id": "orb",
+                "short_id": "orbaaaa",
+                "horizon": "intraday",
+                "broker_account_id": "sim-paper",
+                "mode": "paper",
+                "allocation": "10000",
+                "runtime": {"class": "orb", "timeframe": "15m", "instruments": ["I1"], "params": {}},
+            },
+        ]
+    }
+
+
+def tv_signal(
+    direction: int, as_of: int, strategy: str = "tv-breakout", instrument: str = "I1", sid: str = "S1"
+) -> signals_pb2.Signal:
+    return signals_pb2.Signal(
+        signal_id=sid,
+        strategy_id=strategy,
+        instrument_id=instrument,
+        direction=direction,
+        as_of=as_of,
+        model_version="tradingview",
+    )
+
+
+def test_sm020_webhook_signal_becomes_a_protected_intent_for_its_own_strategy_only() -> None:
+    r = Runner.from_registry_data(tv_registry())
+    assert r.signal_subjects() == ["sig.tv-breakout.>"]
+    b = bar(2, "100", "101", "99.5", "100")
+    assert r.on_bar(b) == []
+    now = b.available_at + 5 * NS
+    # Another strategy's ID never reaches tv-breakout (and orb has no on_signal).
+    assert r.on_signal(tv_signal(signals_pb2.DIRECTION_LONG, now, strategy="orb"), now) == []
+    out = r.on_signal(tv_signal(signals_pb2.DIRECTION_LONG, now), now)
+    assert len(out) == 1
+    it = out[0]
+    assert it.strategy_id == "tv-breakout" and it.side == common_pb2.SIDE_BUY and it.kind == orders_pb2.INTENT_KIND_OPEN
+    assert it.protective.stop_loss_price.value == "99.00"  # 100 bps below the platform close (N5)
+    assert it.reference_price.value == "100" and it.decision_time == now
+    # Redelivery yields the same intent ID (execution dedupes, OE-006).
+    again = Runner.from_registry_data(tv_registry())
+    again.on_bar(b)
+    assert again.on_signal(tv_signal(signals_pb2.DIRECTION_LONG, now), now)[0].intent_id == it.intent_id
+
+
+def test_sm020_webhook_signals_fail_closed() -> None:
+    r = Runner.from_registry_data(tv_registry())
+    b = bar(2, "100", "101", "99.5", "100")
+    now = b.available_at + 5 * NS
+    # No platform bar yet: no order.
+    assert r.on_signal(tv_signal(signals_pb2.DIRECTION_LONG, now), now) == []
+    r.on_bar(b)
+    # Instrument outside runtime.instruments, stale signal, shorts not allowed, flat with no position.
+    assert r.on_signal(tv_signal(signals_pb2.DIRECTION_LONG, now, instrument="I9"), now) == []
+    assert r.on_signal(tv_signal(signals_pb2.DIRECTION_LONG, now - 120 * NS, sid="S2"), now) == []
+    assert r.on_signal(tv_signal(signals_pb2.DIRECTION_SHORT, now, sid="S3"), now) == []
+    assert r.on_signal(tv_signal(signals_pb2.DIRECTION_FLAT, now, sid="S4"), now) == []
+    assert r.signals_dropped == 5
+
+
+def test_sm020_exit_closes_only_the_strategy_own_position() -> None:
+    r = Runner.from_registry_data(tv_registry())
+    b = bar(2, "100", "101", "99.5", "100")
+    r.on_bar(b)
+    now = b.available_at + 5 * NS
+    upd = ledger_pb2.LedgerUpdate()
+    # Manual and another strategy hold the same instrument; tv-breakout owns 7.
+    for owner, qty in (("manual", "50"), ("orb", "3"), ("tv-breakout", "7")):
+        p = upd.positions.add()
+        p.owner, p.broker_account_id, p.instrument_id = owner, "sim-paper", "I1"
+        p.qty.value = qty
+    r.on_ledger_update(upd)
+    out = r.on_signal(tv_signal(signals_pb2.DIRECTION_FLAT, now, sid="S9"), now)
+    assert len(out) == 1 and out[0].side == common_pb2.SIDE_SELL and out[0].quantity.value == "7"
+    assert out[0].kind == orders_pb2.INTENT_KIND_CLOSE
+    # A buy while long is ignored (no pyramiding); a sell closes the long instead of reversing.
+    assert r.on_signal(tv_signal(signals_pb2.DIRECTION_LONG, now, sid="S10"), now) == []
+    rev = r.on_signal(tv_signal(signals_pb2.DIRECTION_SHORT, now, sid="S11"), now)
+    assert len(rev) == 1 and rev[0].side == common_pb2.SIDE_SELL and rev[0].kind == orders_pb2.INTENT_KIND_CLOSE
+
+
+def test_sm020_tradingview_class_requires_a_tv_strategy_id() -> None:
+    data = tv_registry()
+    data["strategies"][0]["strategy_id"] = "breakout"
+    with pytest.raises(ValueError, match="tv-<name>"):
+        Runner.from_registry_data(data)

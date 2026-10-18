@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	mdv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/marketdata/v1"
 	ordersv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/orders/v1"
 )
 
@@ -30,14 +31,44 @@ func (s *Server) statusSnapshot(r *http.Request, rc *reqCtx) map[string]any {
 		"server_time":     s.now().UTC(),
 		"session_expires": rc.session.IdleExpires,
 		"trading":         nil,
+		"feeds":           nil,
 	}
+	// Feed freshness (UI-013): null with feeds_error when marketdata cannot be reached, never "ok".
+	// Fetched concurrently with execution's status so a slow service delays the snapshot only once.
+	type feedResult struct {
+		raw json.RawMessage
+		err error
+	}
+	feedCh := make(chan feedResult, 1)
+	go func() {
+		raw, err := s.feedStatusJSON(r.Context())
+		feedCh <- feedResult{raw, err}
+	}()
 	trading, err := s.tradingStatusJSON(r.Context())
+	if f := <-feedCh; f.err != nil {
+		out["feeds_error"] = "marketdata_unavailable"
+	} else {
+		out["feeds"] = f.raw
+	}
 	if err != nil {
 		out["trading_error"] = "execution_unavailable"
 		return out
 	}
 	out["trading"] = trading
 	return out
+}
+
+func (s *Server) feedStatusJSON(ctx context.Context) (json.RawMessage, error) {
+	if s.trading == nil || s.trading.MD == nil {
+		return nil, errors.New("marketdata not configured")
+	}
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	st, err := s.trading.MD.GetFeedStatus(ctx, &mdv1.GetFeedStatusRequest{})
+	if err != nil {
+		return nil, err
+	}
+	return pj.Marshal(st)
 }
 
 func (s *Server) tradingStatusJSON(ctx context.Context) (json.RawMessage, error) {

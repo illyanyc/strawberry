@@ -2,9 +2,12 @@ package gateway
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/illyanyc/strawberry/libs/go/audit"
 	"github.com/illyanyc/strawberry/libs/go/policy"
@@ -26,6 +29,8 @@ var settingSpecs = map[string]settingSpec{
 	"mobile.order_entry_enabled":    {kind: "bool", def: false, enableAction: policy.ActMobileOrderEnable},
 	"assistant.write_tools_enabled": {kind: "bool", def: false, enableAction: policy.ActAssistantWriteEnable},
 	"alerts.push_fills_enabled":     {kind: "bool", def: false},
+	// SE-065: TradingView's embeddable widget needs frame-src https://s.tradingview.com in the SPA's CSP.
+	"ui.tradingview_widget_enabled": {kind: "bool", def: false, enableAction: policy.ActUITradingViewWidget},
 }
 
 func (s *Server) handleSettingsGet(w http.ResponseWriter, r *http.Request, rc *reqCtx) {
@@ -101,7 +106,50 @@ func (s *Server) handleSettingsPut(w http.ResponseWriter, r *http.Request, rc *r
 		s.internalError(w, r, "put setting", err)
 		return
 	}
+	s.flags.invalidate()
 	writeJSON(w, http.StatusOK, map[string]any{"key": key, "value": val, "version": version})
+}
+
+// flagCache caches the two settings the gateway itself reads on hot paths (the widget CSP and fill
+// notifications) for a few seconds; a settings write invalidates it.
+type flagCache struct {
+	mu      sync.Mutex
+	at      time.Time
+	widget  bool
+	fills   bool
+	loading bool
+}
+
+func (c *flagCache) invalidate() {
+	c.mu.Lock()
+	c.at = time.Time{}
+	c.mu.Unlock()
+}
+
+// ownerFlags returns (widget enabled, fill pushes enabled) for the single owner.
+func (s *Server) ownerFlags(ctx context.Context) (bool, bool) {
+	c := &s.flags
+	c.mu.Lock()
+	if !c.at.IsZero() && s.now().Sub(c.at) < 15*time.Second || c.loading || s.store == nil || s.store.pool == nil {
+		w, f := c.widget, c.fills
+		c.mu.Unlock()
+		return w, f
+	}
+	c.loading = true
+	c.mu.Unlock()
+	widget, fills := false, false
+	if stored, err := s.store.settings(ctx, s.cfg.OwnerID); err == nil {
+		if row, ok := stored["ui.tradingview_widget_enabled"]; ok {
+			_ = json.Unmarshal(row.Value, &widget)
+		}
+		if row, ok := stored["alerts.push_fills_enabled"]; ok {
+			_ = json.Unmarshal(row.Value, &fills)
+		}
+	}
+	c.mu.Lock()
+	c.widget, c.fills, c.at, c.loading = widget, fills, s.now(), false
+	c.mu.Unlock()
+	return widget, fills
 }
 
 func validateSetting(spec settingSpec, raw json.RawMessage) (any, error) {

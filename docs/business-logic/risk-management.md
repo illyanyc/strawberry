@@ -36,6 +36,7 @@ Pre-trade checks, position and loss limits, kill switches, account routing, marg
 | RM-015 | Automatic actions only reduce risk: demotion moves `live` to `paper` (never upwards), halts and kill switches only block or cancel; re-enabling is manual. | Implemented | OMS `kill.go` |
 | RM-016 | `RejectStorm` (5) broker rejects for one strategy within a minute latch a strategy `freeze` kill switch and page. | Implemented | OMS `noteReject` |
 | RM-017 | Dead-man: if the strategy runtime heartbeat (`sys.health.strategy-runtime`) is older than `TB_DEADMAN_TIMEOUT` (30 s) during the regular session, execution latches a `cancel_open` kill switch for every runtime-hosted paper/live strategy and pages. If the execution heartbeat (`sys.health.execution`, every 5 s) is lost for 30 s during the session, broker-gateway cancels working `tb1-` orders (not manual, not protective stops or bracket legs) and pages. | Implemented | OMS `deadmanCheck`, broker-gateway `internal/deadman`; `TestRM017DeadmanCancelsWorkingOrdersKeepsProtection`, `TestGate2DeadmanRuntimeAndExecution` |
+| RM-020 | Engaging a kill switch from a phone (`Sec-CH-UA-Mobile` or a mobile user agent) MUST require a fresh **passkey** step-up (TOTP and recovery step-ups do not count); from a desktop it MUST need only the confirmation (RM-006, UI-006). Release stays desktop-only with a passkey (RM-007). | Implemented | `libs/go/policy` (`escalated`), api-gateway `handleKillEngage`; `TestRM020MobileKillEngageNeedsFreshPasskey`, `TestRM007KillSwitchEngageAndDesktopPasskeyRelease`, `phase5.test.tsx` (UI-050) |
 
 ## Default limits (scope `global`; `manual` scope in parentheses)
 
@@ -68,6 +69,7 @@ Scopes `global` → `account:<id>` → `strategy:<id>` (or `manual`) merge field
 | Risk-reducing order (closing own position) while daily loss limit breached | Allowed (does not increase risk) | RM-005 |
 | Kill switch triggered while orders are partially filled | Freeze; cancel remainders; fills that already occurred are booked | RM-006, OE-006 |
 | Limit config edited to a looser value from mobile | Step-up auth required; audited | RM-007 |
+| Owner taps the kill switch on the phone without a fresh passkey | Step-up dialog asks for the passkey, then the engagement is retried once; cancel leaves trading running and shows an error | RM-020, UI-050 |
 | Account with `pdt_guard: off` (default) makes a 5th day trade in 5 days | Allowed; count still recorded | RM-008 |
 | Account with `pdt_guard: legacy`, count at the limit; strategy wants to open and close same day | Reject the opening order if the close would be the extra day trade | RM-008 |
 | Intraday strategy sends an order to the IBKR bot account | Reject: horizon not routed to that account | RM-011 |

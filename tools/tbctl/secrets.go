@@ -1,9 +1,13 @@
 package main
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"os"
@@ -19,7 +23,12 @@ import (
 
 // natsUsers lists bus users and their subject permissions (least privilege; widened per phase).
 var natsUsers = map[string]struct{ pub, sub []string }{
-	"api_gateway": {pub: []string{"alert.>", "sys.health.api-gateway"}, sub: []string{"_INBOX.>", "md.bar.>", "exec.>"}},
+	// Phase 5 (ADR-0051, ADR-0052): reads recent signals from the SIGNALS stream for chart overlays
+	// (ordered consumers on that stream only), streams live sig.> to charts, and publishes
+	// TradingView signals (code limits them to sig.tv-<name>.<instrument>).
+	"api_gateway": {pub: []string{"alert.>", "sys.health.api-gateway", "sig.>", "$JS.API.INFO", "$JS.API.STREAM.INFO.SIGNALS",
+		"$JS.API.CONSUMER.*.SIGNALS", "$JS.API.CONSUMER.*.SIGNALS.>", "$JS.API.CONSUMER.MSG.NEXT.SIGNALS.>"},
+		sub: []string{"_INBOX.>", "md.bar.>", "exec.>", "sig.>"}},
 	// marketdata also persists context events (ctx.>) to the lake as its only writer (ADR-0032).
 	"marketdata": {pub: []string{"md.>", "ref.>", "alert.>", "sys.health.marketdata", "sys.health.alpaca.>", "sys.health.fmp", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
 		sub: []string{"_INBOX.>", "ctx.>"}},
@@ -37,8 +46,10 @@ var natsUsers = map[string]struct{ pub, sub []string }{
 	"broker_gateway_ibkr": {pub: []string{"ord.update.>", "exec.>", "acct.snapshot.>", "recon.request.>", "alert.>", "sys.health.broker-gateway-ibkr"}, sub: []string{"_INBOX.>"}},
 	// The strategy runtime only publishes intents and its heartbeat; it reads bars and its own
 	// strategies' ledger updates (ADR-0026).
-	"strategy_runtime": {pub: []string{"ord.intent", "sys.health.strategy-runtime", "alert.>", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
-		sub: []string{"_INBOX.>", "md.bar.>", "ledger.update.>", "ctx.calendar", "ctx.earnings"}},
+	// Phase 5: publishes model signals (sig.<strategy>.<instrument>) and consumes its tv-<name>
+	// strategies' webhook signals (D70).
+	"strategy_runtime": {pub: []string{"ord.intent", "sig.>", "sys.health.strategy-runtime", "alert.>", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
+		sub: []string{"_INBOX.>", "md.bar.>", "ledger.update.>", "ctx.calendar", "ctx.earnings", "sig.>"}},
 	// The monitor forwards bus alerts to Alertmanager and builds daily reports from order-path and
 	// ledger events (section 13).
 	// Phase 4: live feedback and retraining triggers (monitor.>) and analyst autonomy lowering (ADR-0044).
@@ -155,6 +166,17 @@ func initSecrets(dir string) error {
 	if err := put("grafana_admin_password", pw); err != nil {
 		return err
 	}
+	// Phase 5 Web Push (ADR-0053): the VAPID key pair and the token Alertmanager presents to the
+	// gateway's internal webhook; the TradingView webhook key derives per-strategy secrets (ADR-0052).
+	if err := put("webpush_vapid_key", vapidKey); err != nil {
+		return err
+	}
+	if err := put("alertmanager_webhook_token", func() (string, error) { return randomHex(32) }); err != nil {
+		return err
+	}
+	if err := put("tv_webhook_key", b64(32)); err != nil {
+		return err
+	}
 	if _, err := os.Stat(filepath.Join(dir, "backup_age_identity")); errors.Is(err, os.ErrNotExist) {
 		id, err := age.GenerateX25519Identity()
 		if err != nil {
@@ -223,6 +245,19 @@ func quoteList(xs []string) string {
 		q[i] = fmt.Sprintf("%q", x)
 	}
 	return "[" + strings.Join(q, ", ") + "]"
+}
+
+// vapidKey generates a P-256 private key in PEM PKCS#8 form (RFC 8292 VAPID).
+func vapidKey() (string, error) {
+	k, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		return "", err
+	}
+	der, err := x509.MarshalPKCS8PrivateKey(k)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: der}))), nil
 }
 
 func randomHex(n int) (string, error) {

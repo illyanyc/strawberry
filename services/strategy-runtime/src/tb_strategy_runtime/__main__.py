@@ -5,6 +5,10 @@ Consumes final bars (``md.bar.<tf>.<instrument>``) and the hosted strategies' le
 durable subject ``ord.intent`` with ``Nats-Msg-Id`` = intent ID (execution is idempotent on it,
 OE-006). It never talks to brokers. A heartbeat goes to ``sys.health.strategy-runtime`` every
 ``TB_HEARTBEAT_INTERVAL`` seconds and after each bar (dead-man, RM-017).
+
+Phase 5 (ADR-0052): ``tv-<name>`` strategies consume their webhook signals from
+``sig.tv-<name>.<instrument>`` (new messages only: a signal that arrived while the runtime was down is
+never acted on late, SM-020).
 """
 
 from __future__ import annotations
@@ -31,6 +35,8 @@ from nats.js.api import ConsumerConfig, DeliverPolicy
 from tb.context.v1 import context_pb2
 from tb.ledger.v1 import ledger_pb2
 from tb.marketdata.v1 import marketdata_pb2
+from tb.orders.v1 import orders_pb2
+from tb.signals.v1 import signals_pb2
 from tbcore.context.store import ContextStore
 from tbcore.data.lake import Lake
 from tbcore.logging import configure
@@ -77,11 +83,7 @@ async def run(
             runner.on_ledger_update(upd)
         await msg.ack()
 
-    async def on_bar(msg: Msg) -> None:
-        bar = marketdata_pb2.Bar()
-        bar.ParseFromString(msg.data)
-        async with lock:
-            intents = runner.on_bar(bar)
+    async def publish_intents(intents: list[orders_pb2.OrderIntent]) -> None:
         for it in intents:
             await js.publish(
                 "ord.intent",
@@ -97,7 +99,26 @@ async def run(
                     "qty": it.quantity.value,
                 },
             )
+
+    async def on_bar(msg: Msg) -> None:
+        bar = marketdata_pb2.Bar()
+        bar.ParseFromString(msg.data)
+        async with lock:
+            intents = runner.on_bar(bar)
+        await publish_intents(intents)
         await beat()
+
+    async def on_signal(msg: Msg) -> None:
+        sg = signals_pb2.Signal()
+        sg.ParseFromString(msg.data)
+        async with lock:
+            dropped = runner.signals_dropped
+            intents = runner.on_signal(sg, time.time_ns())
+            if runner.signals_dropped > dropped:
+                log.info(
+                    "webhook signal dropped", extra={"strategy": sg.strategy_id, "correlation_id": sg.correlation_id}
+                )
+        await publish_intents(intents)
 
     async def on_context(msg: Msg) -> None:
         ev = context_pb2.ContextEvent()
@@ -133,6 +154,14 @@ async def run(
             subj,
             stream="MARKETDATA",
             cb=on_bar,
+            ordered_consumer=True,
+            config=ConsumerConfig(deliver_policy=DeliverPolicy.NEW),
+        )
+    for subj in runner.signal_subjects():
+        await js.subscribe(
+            subj,
+            stream="SIGNALS",
+            cb=on_signal,
             ordered_consumer=True,
             config=ConsumerConfig(deliver_policy=DeliverPolicy.NEW),
         )

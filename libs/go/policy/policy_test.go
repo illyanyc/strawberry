@@ -12,6 +12,7 @@ var mustRequirePasskeyStepUp = []Action{
 	ActKillSwitchDisable, ActBrokerCredWrite, ActBrokerCredDelete, ActBrokerCredStatus,
 	ActMobileOrderEnable, ActAssistantWriteEnable, ActDataExportPositions, ActAuthPasskeyDelete,
 	ActLedgerBreakResolve, ActResearchCycleOpen, ActHoldoutEvaluate, ActHoldoutSchedule,
+	ActUITradingViewWidget,
 }
 
 var recoveryActions = []Action{ActAuthPasskeyRegister, ActAuthTOTPEnroll, ActAuthRecoveryRegen}
@@ -157,5 +158,32 @@ func TestStepUpListCoversSection02(t *testing.T) {
 		if !RequiresPasskeyStepUp(a, Resource{}) {
 			t.Errorf("%s must require passkey step-up", a)
 		}
+	}
+}
+
+// RM-020 / UI-050: engaging a kill switch from a phone needs a fresh passkey; from a desktop it needs
+// none (one confirmation). TOTP or recovery step-ups never satisfy the phone path.
+func TestRM020MobileKillEngageNeedsFreshPasskey(t *testing.T) {
+	now := time.Now()
+	plain := Actor{Kind: KindOwner}
+	fresh := Actor{Kind: KindOwner, StepUpMethod: StepUpPasskey, StepUpUntil: now.Add(time.Minute)}
+	stale := Actor{Kind: KindOwner, StepUpMethod: StepUpPasskey, StepUpUntil: now.Add(-time.Second)}
+	totp := Actor{Kind: KindOwner, StepUpMethod: StepUpTOTP, StepUpUntil: now.Add(time.Minute)}
+	if d := Authorize(plain, ActKillSwitchEngage, Resource{ID: "global:"}, now); d.Effect != Allow {
+		t.Fatalf("desktop engage: %v", d)
+	}
+	for name, a := range map[string]Actor{"no step-up": plain, "expired passkey": stale, "fresh totp": totp} {
+		if d := Authorize(a, ActKillSwitchEngage, Resource{Mode: "mobile", ID: "global:"}, now); d.Effect != RequireStepUp {
+			t.Errorf("phone engage with %s: %v", name, d)
+		}
+	}
+	if d := Authorize(fresh, ActKillSwitchEngage, Resource{Mode: "mobile", ID: "global:"}, now); d.Effect != Allow {
+		t.Fatalf("phone engage with a fresh passkey: %v", d)
+	}
+	if !RequiresPasskeyStepUp(ActKillSwitchEngage, Resource{Mode: "mobile"}) || RequiresPasskeyStepUp(ActKillSwitchEngage, Resource{}) {
+		t.Fatal("RequiresPasskeyStepUp must escalate only the phone path")
+	}
+	if d := Authorize(plain, ActNotificationsManage, Resource{}, now); d.Effect != Allow {
+		t.Fatalf("notifications.manage: %v", d)
 	}
 }
