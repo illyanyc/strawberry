@@ -1,0 +1,483 @@
+syntax = "proto3";
+
+// MonitorService is served by `monitor` (section 13 full, ADR-0045): strategy health, performance
+// against the backtest's distribution, drift, live-vs-backtest divergence, execution quality,
+// containment policies and the automatic actions they took, the alert inbox, daily reports, and
+// the paper graduation evidence that section 15 consumes. Rules MN-* in
+// docs/business-logic/monitoring.md.
+//
+// Callers (service tokens, SE-040): api-gateway (UI; owner actor and step-up attested by the
+// gateway), assistant (GetLiveFeedback only, read-only). Containment actions go out through
+// ExecutionService.DemoteStrategy / TriggerKillSwitch with the monitor's own service token.
+//
+// Bus (stream MONITOR): monitor.strategy.<strategy_id> (StrategyHealth),
+// monitor.report.drift|divergence|execution|performance.<strategy_id> (the reports below),
+// monitor.containment.<strategy_id> (ContainmentAction). The Phase 4 subjects
+// monitor.feedback.<strategy_id> and monitor.retrain_suggested|decay|drift|divergence.<lineage_id>
+// keep their feedback.proto payloads.
+package tb.monitor.v1;
+
+import "tb/alerts/v1/alerts.proto";
+import "tb/monitor/v1/feedback.proto";
+import "tb/orders/v1/execution.proto";
+
+service MonitorService {
+  rpc ListStrategyHealth(ListStrategyHealthRequest) returns (ListStrategyHealthResponse);
+  rpc GetStrategyHealth(GetStrategyHealthRequest) returns (GetStrategyHealthResponse);
+  // Rolling P&L, Sharpe, drawdown, hit rate, payoff, and turnover against horizon-matched
+  // percentile bands of the backtest (MN-030).
+  rpc GetPerformanceReport(GetPerformanceReportRequest) returns (GetPerformanceReportResponse);
+  rpc GetDriftReport(GetDriftReportRequest) returns (GetDriftReportResponse);
+  rpc GetDivergenceReport(GetDivergenceReportRequest) returns (GetDivergenceReportResponse);
+  rpc GetExecutionQuality(GetExecutionQualityRequest) returns (GetExecutionQualityResponse);
+  // Read-only; also an analyst tool (section 12).
+  rpc GetLiveFeedback(GetLiveFeedbackRequest) returns (GetLiveFeedbackResponse);
+  rpc ListAlerts(ListAlertsRequest) returns (ListAlertsResponse);
+  rpc AckAlert(AckAlertRequest) returns (AckAlertResponse);
+  // Creates an Alertmanager silence; needs a passkey step-up (MN-042).
+  rpc SilenceAlert(SilenceAlertRequest) returns (SilenceAlertResponse);
+  rpc GetDailyReport(GetDailyReportRequest) returns (GetDailyReportResponse);
+  rpc GetContainmentPolicy(GetContainmentPolicyRequest) returns (GetContainmentPolicyResponse);
+  // Tightening needs no step-up; loosening (any threshold more permissive, a weaker action, or
+  // disabling) needs a passkey step-up (MN-036). Every change is audited.
+  rpc SetContainmentPolicy(SetContainmentPolicyRequest) returns (SetContainmentPolicyResponse);
+  rpc ListContainmentActions(ListContainmentActionsRequest) returns (ListContainmentActionsResponse);
+  // Paper (and shadow) record per candidate for section 15: evidence, never a promotion (MN-040).
+  rpc GetGraduationEvidence(GetGraduationEvidenceRequest) returns (GetGraduationEvidenceResponse);
+}
+
+// Worst-first ordering is SEVERE > BREACH > WARNING > OK; INSUFFICIENT_DATA never triggers an
+// action (MN-024, MN-031).
+enum HealthStatus {
+  HEALTH_STATUS_UNSPECIFIED = 0;
+  HEALTH_STATUS_OK = 1;
+  HEALTH_STATUS_WARNING = 2;
+  HEALTH_STATUS_BREACH = 3;
+  HEALTH_STATUS_SEVERE = 4;
+  HEALTH_STATUS_INSUFFICIENT_DATA = 5;
+}
+
+// One monitored dimension of a strategy (MN-031).
+message HealthComponent {
+  // drawdown, performance, divergence, feature_drift, prediction_drift, execution_quality, decay.
+  string name = 1;
+  HealthStatus status = 2;
+  double value = 3;
+  double warning_threshold = 4;
+  double breach_threshold = 5;
+  // 0..100 (100 = as expected).
+  double score = 6;
+  string detail = 7;
+  // Report the value comes from (drift, divergence, execution, performance, or feedback report ID).
+  string evidence_id = 8;
+  int32 samples = 9;
+}
+
+message StrategyHealth {
+  string strategy_id = 1;
+  string lineage_id = 2;
+  string model_version = 3;
+  // shadow, paper, live, halted, disabled (execution's mode at the last evaluation).
+  string mode = 4;
+  // 0..100: the minimum component score (MN-031).
+  double score = 5;
+  HealthStatus status = 6;
+  repeated HealthComponent components = 7;
+  int32 sessions = 8;
+  int32 trades = 9;
+  int64 updated_at = 10;
+  // Last containment action taken for this strategy, if any.
+  string last_action_id = 11;
+  // intraday | swing
+  string horizon = 12;
+}
+
+// A live metric against the backtest's distribution over the same number of sessions.
+message PerformanceBand {
+  // return_pct (cumulative, % of allocation), sharpe (per-session), max_drawdown_pct, hit_rate,
+  // payoff (mean win / mean loss), turnover (round trips per session).
+  string metric = 1;
+  double live = 2;
+  double p05 = 3;
+  double p10 = 4;
+  double p50 = 5;
+  double p90 = 6;
+  double p95 = 7;
+  double p99 = 8;
+  // Percentile of `live` inside the distribution, 0..100.
+  double percentile = 9;
+  int32 horizon_sessions = 10;
+}
+
+message PerformanceReport {
+  string report_id = 1;
+  string strategy_id = 2;
+  int64 window_start = 3;
+  int64 window_end = 4;
+  int32 sessions = 5;
+  int32 trades = 6;
+  repeated PerformanceBand bands = 7;
+  // Per-session strategy return in basis points of allocation (oldest first).
+  repeated double session_returns_bps = 8;
+  // Current drawdown from the strategy's high-water mark, % of allocation (positive number).
+  double drawdown_pct = 9;
+  // Max drawdown since deployment, % of allocation.
+  double max_drawdown_pct = 10;
+  // Backtest p95 / p99 of the max drawdown over `sessions` sessions (MN-032).
+  double drawdown_p95_pct = 11;
+  double drawdown_p99_pct = 12;
+  string backtest_report_id = 13;
+  int64 generated_at = 14;
+}
+
+message FeatureMissing {
+  string feature = 1;
+  double rate = 2;
+}
+
+message DriftReport {
+  string report_id = 1;
+  string strategy_id = 2;
+  string model_version = 3;
+  int64 window_start = 4;
+  int64 window_end = 5;
+  // Every feature with a training reference, sorted by PSI descending.
+  repeated FeatureDrift features = 6;
+  FeatureDrift prediction_drift = 7;
+  repeated FeatureMissing missing = 8;
+  Calibration calibration = 9;
+  // Signals per session live vs in the reference window (signal frequency anomaly).
+  double signal_rate_live = 10;
+  double signal_rate_reference = 11;
+  // Rolling information coefficient on resolved predictions (Spearman of score vs realized label).
+  double rolling_ic = 12;
+  double reference_ic = 13;
+  int32 resolved = 14;
+  int32 live_samples = 15;
+  int32 reference_samples = 16;
+  // Training run the reference comes from (training window only, never the test or holdout period).
+  string reference_run_id = 17;
+  repeated TriggeredCondition conditions = 18;
+  int64 generated_at = 19;
+}
+
+message DivergenceReport {
+  string report_id = 1;
+  string strategy_id = 2;
+  // XNYS session date (YYYY-MM-DD) of the daily parity run.
+  string session_date = 3;
+  ParitySummary parity = 4;
+  int32 matched_intents = 5;
+  int32 missed_intents = 6;
+  int32 extra_intents = 7;
+  int32 decision_mismatches = 8;
+  // P&L in basis points of allocation (never currency, MN-021).
+  double pnl_live_bps = 9;
+  double pnl_replay_bps = 10;
+  double unexplained_bps = 11;
+  // Recording the replay ran on (MN-045) and whether it had no gaps.
+  string recording_uri = 12;
+  bool recording_complete = 13;
+  bool passed = 14;
+  repeated TriggeredCondition conditions = 15;
+  int64 generated_at = 16;
+}
+
+message LatencyStats {
+  double p50_ms = 1;
+  double p90_ms = 2;
+  double p99_ms = 3;
+  int32 count = 4;
+}
+
+message ExecutionQualityReport {
+  string report_id = 1;
+  string strategy_id = 2;
+  int64 window_start = 3;
+  int64 window_end = 4;
+  // Implementation shortfall per fill in bps of the decision price, positive = cost (MN-033).
+  double shortfall_bps = 5;
+  double shortfall_p90_bps = 6;
+  double modeled_shortfall_bps = 7;
+  // shortfall_bps / modeled_shortfall_bps (0 when nothing is modeled).
+  double shortfall_ratio = 8;
+  double limit_fill_rate = 9;
+  int32 limit_orders = 10;
+  LatencyStats decision_to_submit = 11;
+  LatencyStats submit_to_fill = 12;
+  LatencyStats decision_to_fill = 13;
+  int32 fills = 14;
+  repeated TriggeredCondition conditions = 15;
+  int64 generated_at = 16;
+}
+
+enum ContainmentActionKind {
+  CONTAINMENT_ACTION_KIND_UNSPECIFIED = 0;
+  // Alert only.
+  CONTAINMENT_ACTION_KIND_ALERT = 1;
+  // live → paper, shadow/paper → halted (ExecutionService.DemoteStrategy).
+  CONTAINMENT_ACTION_KIND_DEMOTE = 2;
+  // Demote plus a latched strategy kill switch with cancel_open.
+  CONTAINMENT_ACTION_KIND_KILL_CANCEL_OPEN = 3;
+  // Demote plus a latched strategy kill switch with flatten_strategy_owned (never manual holdings).
+  CONTAINMENT_ACTION_KIND_KILL_FLATTEN = 4;
+}
+
+// Per-strategy containment policy (MN-034). strategy_id "" is the default for every strategy
+// without its own policy. Safe defaults are documented in monitoring.md.
+message ContainmentPolicy {
+  string strategy_id = 1;
+  bool enabled = 2;
+  // Drawdown as a multiple of the backtest's p95 max drawdown over the same number of sessions.
+  double drawdown_warning_multiple = 3;
+  double drawdown_breach_multiple = 4;
+  double match_rate_warning = 5;
+  double match_rate_breach = 6;
+  double slippage_gap_warning_bps = 7;
+  double slippage_gap_breach_bps = 8;
+  double feature_psi_warning = 9;
+  double feature_psi_breach = 10;
+  // Feature drift counts only for the top-k training importance ranks.
+  int32 feature_psi_top_k = 11;
+  double prediction_psi_warning = 12;
+  double prediction_psi_breach = 13;
+  // Live implementation shortfall as a multiple of the modeled one.
+  double shortfall_warning_multiple = 14;
+  double shortfall_breach_multiple = 15;
+  // A shortfall breach also needs live − modeled above this many bps.
+  double shortfall_min_excess_bps = 16;
+  ContainmentActionKind breach_action = 17;
+  // Severe: a divergence breach together with drawdown beyond the backtest's p99.
+  ContainmentActionKind severe_action = 18;
+  // Minimum samples before a sample-based component can breach (MN-031).
+  int32 min_trades = 19;
+  int32 min_fills = 20;
+  int32 min_matched_intents = 21;
+  int32 min_drift_samples = 22;
+  int64 version = 23;
+  int64 updated_at = 24;
+  string updated_by = 25;
+}
+
+message ContainmentAction {
+  string action_id = 1;
+  string strategy_id = 2;
+  ContainmentActionKind kind = 3;
+  string from_mode = 4;
+  string to_mode = 5;
+  string reason = 6;
+  repeated HealthComponent evidence = 7;
+  string evidence_report_id = 8;
+  bool executed = 9;
+  string error = 10;
+  int64 decided_at = 11;
+  int64 executed_at = 12;
+  string kill_switch_event_id = 13;
+  int32 orders_canceled = 14;
+  string correlation_id = 15;
+}
+
+// The alert inbox: one record per dedupe key (MN-041).
+message AlertRecord {
+  tb.alerts.v1.Alert alert = 1;
+  // firing | resolved
+  string status = 2;
+  int64 first_seen = 3;
+  int64 last_seen = 4;
+  int32 count = 5;
+  string acked_by = 6;
+  int64 acked_at = 7;
+  string silence_id = 8;
+  int64 silenced_until = 9;
+  // bus | prometheus
+  string origin = 10;
+}
+
+message DailyReport {
+  // XNYS session date YYYY-MM-DD.
+  string date = 1;
+  bool premarket_ok = 2;
+  string premarket = 3;
+  string eod = 4;
+  int64 updated_at = 5;
+}
+
+message GraduationCriterion {
+  string name = 1;
+  string required = 2;
+  string actual = 3;
+  bool passed = 4;
+  // True when the monitor cannot decide it alone (e.g. DSR on the combined record, section 15).
+  bool evidence_only = 5;
+  string evidence_id = 6;
+}
+
+// Section 15 input: computed only from platform-recorded shadow/paper results (MN-040).
+message GraduationEvidence {
+  string strategy_id = 1;
+  string lineage_id = 2;
+  string model_version = 3;
+  string mode = 4;
+  string horizon = 5;
+  int64 paper_since = 6;
+  int32 sessions = 7;
+  int32 trades = 8;
+  double return_pct = 9;
+  double sharpe = 10;
+  double max_drawdown_pct = 11;
+  double drawdown_p95_pct = 12;
+  double match_rate = 13;
+  double slippage_gap_bps = 14;
+  double shortfall_bps = 15;
+  double modeled_shortfall_bps = 16;
+  int32 reconciliation_breaks = 17;
+  int32 critical_alerts = 18;
+  repeated double session_returns_bps = 19;
+  repeated GraduationCriterion criteria = 20;
+  bool criteria_met = 21;
+  repeated string divergence_report_ids = 22;
+  int64 generated_at = 23;
+}
+
+message ListStrategyHealthRequest {}
+
+message ListStrategyHealthResponse {
+  repeated StrategyHealth strategies = 1;
+}
+
+message GetStrategyHealthRequest {
+  string strategy_id = 1;
+}
+
+message GetStrategyHealthResponse {
+  StrategyHealth health = 1;
+}
+
+message GetPerformanceReportRequest {
+  string strategy_id = 1;
+}
+
+message GetPerformanceReportResponse {
+  PerformanceReport report = 1;
+}
+
+message GetDriftReportRequest {
+  string strategy_id = 1;
+}
+
+message GetDriftReportResponse {
+  DriftReport report = 1;
+}
+
+message GetDivergenceReportRequest {
+  string strategy_id = 1;
+  // Session date YYYY-MM-DD; empty = latest.
+  string session_date = 2;
+}
+
+message GetDivergenceReportResponse {
+  DivergenceReport report = 1;
+  // Recent daily reports, newest first (at most 30).
+  repeated DivergenceReport history = 2;
+}
+
+message GetExecutionQualityRequest {
+  string strategy_id = 1;
+}
+
+message GetExecutionQualityResponse {
+  ExecutionQualityReport report = 1;
+}
+
+message GetLiveFeedbackRequest {
+  string strategy_id = 1;
+}
+
+message GetLiveFeedbackResponse {
+  LiveFeedbackReport report = 1;
+}
+
+message ListAlertsRequest {
+  // info | warning | critical; empty = all.
+  string severity = 1;
+  // firing | resolved; empty = all.
+  string status = 2;
+  int64 since = 3;
+  int32 limit = 4;
+}
+
+message ListAlertsResponse {
+  repeated AlertRecord alerts = 1;
+}
+
+message AckAlertRequest {
+  string dedupe_key = 1;
+  tb.orders.v1.Actor actor = 2;
+  string note = 3;
+}
+
+message AckAlertResponse {
+  AlertRecord alert = 1;
+}
+
+message SilenceAlertRequest {
+  string dedupe_key = 1;
+  // At most 24 h (MN-042).
+  int64 duration_seconds = 2;
+  string reason = 3;
+  tb.orders.v1.Actor actor = 4;
+}
+
+message SilenceAlertResponse {
+  string silence_id = 1;
+  int64 ends_at = 2;
+}
+
+message GetDailyReportRequest {
+  // YYYY-MM-DD; empty = latest.
+  string date = 1;
+}
+
+message GetDailyReportResponse {
+  DailyReport report = 1;
+}
+
+message GetContainmentPolicyRequest {
+  // Empty = the default policy.
+  string strategy_id = 1;
+}
+
+message GetContainmentPolicyResponse {
+  ContainmentPolicy policy = 1;
+  // True when the strategy has no policy of its own and the default applies.
+  bool inherited = 2;
+}
+
+message SetContainmentPolicyRequest {
+  ContainmentPolicy policy = 1;
+  tb.orders.v1.Actor actor = 2;
+  string reason = 3;
+}
+
+message SetContainmentPolicyResponse {
+  ContainmentPolicy policy = 1;
+  // True when the change loosened the policy (and therefore needed step-up).
+  bool loosened = 2;
+}
+
+message ListContainmentActionsRequest {
+  string strategy_id = 1;
+  int32 limit = 2;
+}
+
+message ListContainmentActionsResponse {
+  repeated ContainmentAction actions = 1;
+}
+
+message GetGraduationEvidenceRequest {
+  string strategy_id = 1;
+}
+
+message GetGraduationEvidenceResponse {
+  GraduationEvidence evidence = 1;
+}

@@ -124,6 +124,8 @@ secrets:
   svc_ml_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_ml_ed25519.pub" }
   svc_optimizer_ed25519: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_optimizer_ed25519" }
   svc_optimizer_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_optimizer_ed25519.pub" }
+  svc_monitor_ed25519: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_monitor_ed25519" }
+  svc_monitor_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_monitor_ed25519.pub" }
   nats_broker_gateway_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_broker_gateway_password" }
   fmp_api_key: { file: "${TB_SECRETS_DIR:-../../.secrets}/fmp_api_key" }
   fred_api_key: { file: "${TB_SECRETS_DIR:-../../.secrets}/fred_api_key" }
@@ -147,6 +149,7 @@ secrets:
   pg_svc_broker_gateway_ibkr_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_svc_broker_gateway_ibkr_password" }
   pg_svc_ml_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_svc_ml_password" }
   pg_svc_assistant_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_svc_assistant_password" }
+  pg_svc_monitor_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_svc_monitor_password" }
   nats_assistant_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_assistant_password" }
   svc_assistant_ed25519: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_assistant_ed25519" }
   svc_assistant_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_assistant_ed25519.pub" }
@@ -225,7 +228,7 @@ services:
     secrets: [pg_superuser_password, pg_svc_api_gateway_password, pg_svc_broker_gateway_password, pg_svc_marketdata_password,
               pg_svc_execution_password, pg_svc_ledger_password, pg_svc_ops_password, pg_svc_metrics_password,
               pg_svc_broker_gateway_ibkr_password, pg_svc_ml_password, pg_svc_optimizer_password, pg_svc_holdout_password,
-              pg_svc_assistant_password, pg_mlflow_password, pg_prefect_password]
+              pg_svc_assistant_password, pg_svc_monitor_password, pg_mlflow_password, pg_prefect_password]
     networks: [backend]
     depends_on: { postgres: { condition: service_healthy } }
 
@@ -361,7 +364,12 @@ services:
       TB_LEDGER_ADDR: ledger:9090
       TB_ROUTING: ${TB_ROUTING:-intraday=alpaca-paper|sim-paper;swing=ibkr-paper-bot}
       TB_STRATEGY_REGISTRY: /etc/tb/strategies.json
-    secrets: [nats_execution_password, pg_svc_execution_password, svc_execution_ed25519, svc_api_gateway_ed25519.pub]
+      # Section 15: the deploy flag defaults off. Graduation evidence comes from the monitor;
+      # combined DSR from the optimizer when that profile is up (TB_OPTIMIZER_ADDR).
+      TB_TRADING_LIVE_ENABLED: ${TB_TRADING_LIVE_ENABLED:-false}
+      TB_MONITOR_ADDR: monitor:9090
+      TB_OPTIMIZER_ADDR: ${TB_OPTIMIZER_ADDR:-}
+    secrets: [nats_execution_password, pg_svc_execution_password, svc_execution_ed25519, svc_api_gateway_ed25519.pub, svc_monitor_ed25519.pub, svc_optimizer_ed25519.pub]
     volumes: ["./strategies.json:/etc/tb/strategies.json:ro"]
     networks: [backend, edge]
     healthcheck: *go-healthcheck
@@ -441,15 +449,36 @@ services:
     profiles: [core]
     image: strawberry/monitor:${TB_VERSION:-dev}
     build: { <<: *py-build, args: { SERVICE: monitor } }
-    depends_on: { bus-init: { condition: service_completed_successfully } }
-    environment: { <<: *common-env, TB_SERVICE: monitor, TB_NATS_URL: "nats://nats:4222", TB_NATS_USER: monitor, TB_ALERTMANAGER_URL: "http://alertmanager:9093",
-                   TB_MONITOR_FEEDBACK_CONFIG: /etc/tb/feedback.json }
-    # Live feedback expectations per strategy (MN-026, ADR-0044); an empty list disables reports.
-    volumes: ["./feedback.json:/etc/tb/feedback.json:ro"]
-    secrets: [nats_monitor_password]
+    # Writes the session recordings (ADR-0046) to the bind-mounted data directory as the host user.
+    user: "${TB_HOST_UID:-65532}:${TB_HOST_GID:-65532}"
+    depends_on:
+      bus-init: { condition: service_completed_successfully }
+      db-init: { condition: service_completed_successfully }
+    environment:
+      <<: *common-env
+      TB_SERVICE: monitor
+      TB_NATS_URL: "nats://nats:4222"
+      TB_NATS_USER: monitor
+      TB_ALERTMANAGER_URL: "http://alertmanager:9093"
+      TB_MONITOR_FEEDBACK_CONFIG: /etc/tb/feedback.json
+      # Full monitoring (ADR-0045): MonitorService for api-gateway, containment through execution.
+      TB_DB_USER: svc_monitor
+      TB_MONITOR_GRPC_ADDR: "0.0.0.0:9090"
+      TB_EXECUTION_ADDR: execution:9090
+      TB_STRATEGY_REGISTRY: /etc/tb/strategies.json
+      TB_RESEARCH_REGISTRY: /data/ml-artifacts/deploy/research-strategies.json
+      TB_RECORDINGS_DIR: /data/recordings
+    # Live feedback expectations (MN-026); strategy registry seed and research deployments with their
+    # expectations and training references (MN-046, read-only); session recordings (read-write).
+    volumes:
+      - "./feedback.json:/etc/tb/feedback.json:ro"
+      - "./strategies.json:/etc/tb/strategies.json:ro"
+      - "${TB_ML_ARTIFACTS_DIR:-../../data/ml-artifacts}:/data/ml-artifacts:ro"
+      - "${TB_RECORDINGS_DIR:-../../data/recordings}:/data/recordings"
+    secrets: [nats_monitor_password, pg_svc_monitor_password, svc_monitor_ed25519, svc_api_gateway_ed25519.pub, svc_assistant_ed25519.pub, svc_execution_ed25519.pub]
     networks: [backend]
     healthcheck: *py-healthcheck
-    deploy: { resources: { limits: { memory: 256m } } }
+    deploy: { resources: { limits: { memory: 1g } } }
 
   # ---------------------------------------------------------------- IBKR profiles (D18, ADR-0023)
   # IB Gateway + IBC 3.24.2, pinned to the gnzsnz `stable` build of 2026-10-17 (native arm64).
@@ -765,16 +794,19 @@ services:
       TB_HOLDOUT_DB_USER: svc_holdout
       TB_OPT_GRPC_ADDR: "0.0.0.0:9091"
       TB_OPT_DEPLOY_REGISTRY: /data/ml-artifacts/deploy/research-strategies.json
+      # Candidate deployment limit profiles (EX-062, ADR-0047): owner-edited, read at start.
+      TB_OPT_DEPLOYMENT_LIMITS: /etc/tb/deployment-limits.json
       TB_ML_ARTIFACTS_DIR: /data/ml-artifacts
       TB_LAKE_DIR: /data/lake
       TB_ML_MLFLOW_URL: ${TB_ML_MLFLOW_URL:-}
       TB_NATS_URL: "nats://nats:4222"
       TB_NATS_USER: optimizer
     secrets: [pg_svc_optimizer_password, pg_svc_holdout_password, nats_optimizer_password, svc_optimizer_ed25519,
-              svc_api_gateway_ed25519.pub, svc_ml_ed25519.pub, svc_assistant_ed25519.pub]
+              svc_api_gateway_ed25519.pub, svc_ml_ed25519.pub, svc_assistant_ed25519.pub, svc_execution_ed25519.pub]
     volumes:
       - "${TB_LAKE_DIR:-../../data/lake}:/data/lake:ro"
       - "${TB_ML_ARTIFACTS_DIR:-../../data/ml-artifacts}:/data/ml-artifacts"
+      - "./deployment-limits.json:/etc/tb/deployment-limits.json:ro"
     networks: [backend, research]
     healthcheck: *py-healthcheck
 
@@ -905,12 +937,13 @@ services:
     environment: { TB_DB_HOST: postgres, TB_NATS_URL: "nats://nats:4222" }
     secrets: [pg_superuser_password, pg_svc_api_gateway_password, pg_svc_broker_gateway_password, pg_svc_marketdata_password,
               pg_svc_execution_password, pg_svc_ledger_password, pg_svc_ops_password, pg_svc_metrics_password, pg_svc_broker_gateway_ibkr_password,
-              pg_svc_ml_password, pg_svc_optimizer_password, pg_svc_holdout_password, pg_svc_assistant_password,
+              pg_svc_ml_password, pg_svc_optimizer_password, pg_svc_holdout_password, pg_svc_assistant_password, pg_svc_monitor_password,
               pg_mlflow_password, pg_prefect_password, nats_ops_password, backup_age_recipient, backup_age_identity]
     volumes:
       - ${TB_BACKUP_DIR:-../../backups}:/backups
       - ${TB_LAKE_DIR:-../../data/lake}:/data/lake
       - ${TB_ARTIFACTS_DIR:-../../data/mlflow-artifacts}:/data/mlflow-artifacts
+      - ${TB_RECORDINGS_DIR:-../../data/recordings}:/data/recordings
     tmpfs: ["/tmp:size=2g"]
     networks: [backend]
 

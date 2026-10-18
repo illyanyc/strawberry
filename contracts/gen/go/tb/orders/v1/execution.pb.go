@@ -293,8 +293,22 @@ type Strategy struct {
 	UpdatedAt            int64       `protobuf:"varint,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	// Hosted by the strategy runtime (dead-man watched, RM-017); false for UI/webhook owners.
 	RuntimeHosted bool `protobuf:"varint,15,opt,name=runtime_hosted,json=runtimeHosted,proto3" json:"runtime_hosted,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// Section 15 (GL-020): the live capital cap and the allocation it was graduated for. Zero unless
+	// the strategy is or was live. The ledger allocation on the live account equals the cap.
+	LiveCapitalCap     *v1.Decimal `protobuf:"bytes,16,opt,name=live_capital_cap,json=liveCapitalCap,proto3" json:"live_capital_cap,omitempty"`
+	IntendedAllocation *v1.Decimal `protobuf:"bytes,17,opt,name=intended_allocation,json=intendedAllocation,proto3" json:"intended_allocation,omitempty"`
+	// Account the strategy traded paper on before promotion; demotion returns it there (GL-030).
+	PaperAccountId string `protobuf:"bytes,18,opt,name=paper_account_id,json=paperAccountId,proto3" json:"paper_account_id,omitempty"`
+	// Scaling ladder step (0 = initial cap) and when the current step started (GL-040).
+	LadderStep        int32 `protobuf:"varint,19,opt,name=ladder_step,json=ladderStep,proto3" json:"ladder_step,omitempty"`
+	LadderWindowStart int64 `protobuf:"varint,20,opt,name=ladder_window_start,json=ladderWindowStart,proto3" json:"ladder_window_start,omitempty"`
+	// Set on a paper twin registered by promotion: the live strategy it mirrors (GL-022).
+	PaperTwinOf    string `protobuf:"bytes,21,opt,name=paper_twin_of,json=paperTwinOf,proto3" json:"paper_twin_of,omitempty"`
+	LivePromotedAt int64  `protobuf:"varint,22,opt,name=live_promoted_at,json=livePromotedAt,proto3" json:"live_promoted_at,omitempty"`
+	// Hash of the graduation report and readiness record the promotion was approved on.
+	LiveEvidenceHash string `protobuf:"bytes,23,opt,name=live_evidence_hash,json=liveEvidenceHash,proto3" json:"live_evidence_hash,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *Strategy) Reset() {
@@ -432,6 +446,1752 @@ func (x *Strategy) GetRuntimeHosted() bool {
 	return false
 }
 
+func (x *Strategy) GetLiveCapitalCap() *v1.Decimal {
+	if x != nil {
+		return x.LiveCapitalCap
+	}
+	return nil
+}
+
+func (x *Strategy) GetIntendedAllocation() *v1.Decimal {
+	if x != nil {
+		return x.IntendedAllocation
+	}
+	return nil
+}
+
+func (x *Strategy) GetPaperAccountId() string {
+	if x != nil {
+		return x.PaperAccountId
+	}
+	return ""
+}
+
+func (x *Strategy) GetLadderStep() int32 {
+	if x != nil {
+		return x.LadderStep
+	}
+	return 0
+}
+
+func (x *Strategy) GetLadderWindowStart() int64 {
+	if x != nil {
+		return x.LadderWindowStart
+	}
+	return 0
+}
+
+func (x *Strategy) GetPaperTwinOf() string {
+	if x != nil {
+		return x.PaperTwinOf
+	}
+	return ""
+}
+
+func (x *Strategy) GetLivePromotedAt() int64 {
+	if x != nil {
+		return x.LivePromotedAt
+	}
+	return 0
+}
+
+func (x *Strategy) GetLiveEvidenceHash() string {
+	if x != nil {
+		return x.LiveEvidenceHash
+	}
+	return ""
+}
+
+// ReadinessItem is one entry of the pre-live readiness checklist (GL-010). Automated items are
+// evaluated on every read; attested items are marked by the owner. There is no waiver status.
+type ReadinessItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// security | operations | data | ledger | risk | monitoring | compliance | documentation
+	Section string `protobuf:"bytes,2,opt,name=section,proto3" json:"section,omitempty"`
+	Title   string `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	// pending | passed | failed
+	Status      string `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	Automated   bool   `protobuf:"varint,5,opt,name=automated,proto3" json:"automated,omitempty"`
+	CheckedBy   string `protobuf:"bytes,6,opt,name=checked_by,json=checkedBy,proto3" json:"checked_by,omitempty"`
+	CheckedAt   int64  `protobuf:"varint,7,opt,name=checked_at,json=checkedAt,proto3" json:"checked_at,omitempty"`
+	Note        string `protobuf:"bytes,8,opt,name=note,proto3" json:"note,omitempty"`
+	EvidenceUrl string `protobuf:"bytes,9,opt,name=evidence_url,json=evidenceUrl,proto3" json:"evidence_url,omitempty"`
+	// Explanation from the automated evaluation (why it failed), empty otherwise.
+	Detail        string `protobuf:"bytes,10,opt,name=detail,proto3" json:"detail,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReadinessItem) Reset() {
+	*x = ReadinessItem{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReadinessItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReadinessItem) ProtoMessage() {}
+
+func (x *ReadinessItem) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReadinessItem.ProtoReflect.Descriptor instead.
+func (*ReadinessItem) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ReadinessItem) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ReadinessItem) GetSection() string {
+	if x != nil {
+		return x.Section
+	}
+	return ""
+}
+
+func (x *ReadinessItem) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *ReadinessItem) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ReadinessItem) GetAutomated() bool {
+	if x != nil {
+		return x.Automated
+	}
+	return false
+}
+
+func (x *ReadinessItem) GetCheckedBy() string {
+	if x != nil {
+		return x.CheckedBy
+	}
+	return ""
+}
+
+func (x *ReadinessItem) GetCheckedAt() int64 {
+	if x != nil {
+		return x.CheckedAt
+	}
+	return 0
+}
+
+func (x *ReadinessItem) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+func (x *ReadinessItem) GetEvidenceUrl() string {
+	if x != nil {
+		return x.EvidenceUrl
+	}
+	return ""
+}
+
+func (x *ReadinessItem) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
+type LiveReadiness struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	BrokerAccountId string                 `protobuf:"bytes,1,opt,name=broker_account_id,json=brokerAccountId,proto3" json:"broker_account_id,omitempty"`
+	Items           []*ReadinessItem       `protobuf:"bytes,2,rep,name=items,proto3" json:"items,omitempty"`
+	// True only when every item is passed (GL-010).
+	Complete  bool  `protobuf:"varint,3,opt,name=complete,proto3" json:"complete,omitempty"`
+	UpdatedAt int64 `protobuf:"varint,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// SHA-256 of the canonical record; recorded in the enablement audit event.
+	RecordHash    string `protobuf:"bytes,5,opt,name=record_hash,json=recordHash,proto3" json:"record_hash,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LiveReadiness) Reset() {
+	*x = LiveReadiness{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LiveReadiness) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LiveReadiness) ProtoMessage() {}
+
+func (x *LiveReadiness) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LiveReadiness.ProtoReflect.Descriptor instead.
+func (*LiveReadiness) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *LiveReadiness) GetBrokerAccountId() string {
+	if x != nil {
+		return x.BrokerAccountId
+	}
+	return ""
+}
+
+func (x *LiveReadiness) GetItems() []*ReadinessItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+func (x *LiveReadiness) GetComplete() bool {
+	if x != nil {
+		return x.Complete
+	}
+	return false
+}
+
+func (x *LiveReadiness) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+func (x *LiveReadiness) GetRecordHash() string {
+	if x != nil {
+		return x.RecordHash
+	}
+	return ""
+}
+
+// GraduationCriterion is one paper-graduation test (GL-001..GL-003).
+type GraduationCriterion struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Name     string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Required string                 `protobuf:"bytes,2,opt,name=required,proto3" json:"required,omitempty"`
+	Actual   string                 `protobuf:"bytes,3,opt,name=actual,proto3" json:"actual,omitempty"`
+	Passed   bool                   `protobuf:"varint,4,opt,name=passed,proto3" json:"passed,omitempty"`
+	// execution | ledger | optimizer | monitor
+	Source        string `protobuf:"bytes,5,opt,name=source,proto3" json:"source,omitempty"`
+	Detail        string `protobuf:"bytes,6,opt,name=detail,proto3" json:"detail,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GraduationCriterion) Reset() {
+	*x = GraduationCriterion{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GraduationCriterion) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GraduationCriterion) ProtoMessage() {}
+
+func (x *GraduationCriterion) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GraduationCriterion.ProtoReflect.Descriptor instead.
+func (*GraduationCriterion) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GraduationCriterion) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *GraduationCriterion) GetRequired() string {
+	if x != nil {
+		return x.Required
+	}
+	return ""
+}
+
+func (x *GraduationCriterion) GetActual() string {
+	if x != nil {
+		return x.Actual
+	}
+	return ""
+}
+
+func (x *GraduationCriterion) GetPassed() bool {
+	if x != nil {
+		return x.Passed
+	}
+	return false
+}
+
+func (x *GraduationCriterion) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *GraduationCriterion) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
+type GraduationReport struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	StrategyId    string                 `protobuf:"bytes,1,opt,name=strategy_id,json=strategyId,proto3" json:"strategy_id,omitempty"`
+	Criteria      []*GraduationCriterion `protobuf:"bytes,2,rep,name=criteria,proto3" json:"criteria,omitempty"`
+	Overall       bool                   `protobuf:"varint,3,opt,name=overall,proto3" json:"overall,omitempty"`
+	ComputedAt    int64                  `protobuf:"varint,4,opt,name=computed_at,json=computedAt,proto3" json:"computed_at,omitempty"`
+	EvidenceLinks []string               `protobuf:"bytes,5,rep,name=evidence_links,json=evidenceLinks,proto3" json:"evidence_links,omitempty"`
+	// SHA-256 of the canonical report; PromoteToLive records it (GL-020).
+	ReportHash    string `protobuf:"bytes,6,opt,name=report_hash,json=reportHash,proto3" json:"report_hash,omitempty"`
+	PaperSessions int32  `protobuf:"varint,7,opt,name=paper_sessions,json=paperSessions,proto3" json:"paper_sessions,omitempty"`
+	PaperTrades   int32  `protobuf:"varint,8,opt,name=paper_trades,json=paperTrades,proto3" json:"paper_trades,omitempty"`
+	// Registry stage name of the strategy's candidate (tb.ml.v1.RegistryStage), empty when unknown.
+	RegistryStage string `protobuf:"bytes,9,opt,name=registry_stage,json=registryStage,proto3" json:"registry_stage,omitempty"`
+	// Per-session paper returns (fraction of allocation) the statistics were computed on.
+	PaperSessionReturns []float64 `protobuf:"fixed64,10,rep,packed,name=paper_session_returns,json=paperSessionReturns,proto3" json:"paper_session_returns,omitempty"`
+	// Window the report covers: first and last paper session (UTC ns).
+	WindowStart   int64 `protobuf:"varint,11,opt,name=window_start,json=windowStart,proto3" json:"window_start,omitempty"`
+	WindowEnd     int64 `protobuf:"varint,12,opt,name=window_end,json=windowEnd,proto3" json:"window_end,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GraduationReport) Reset() {
+	*x = GraduationReport{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GraduationReport) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GraduationReport) ProtoMessage() {}
+
+func (x *GraduationReport) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GraduationReport.ProtoReflect.Descriptor instead.
+func (*GraduationReport) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GraduationReport) GetStrategyId() string {
+	if x != nil {
+		return x.StrategyId
+	}
+	return ""
+}
+
+func (x *GraduationReport) GetCriteria() []*GraduationCriterion {
+	if x != nil {
+		return x.Criteria
+	}
+	return nil
+}
+
+func (x *GraduationReport) GetOverall() bool {
+	if x != nil {
+		return x.Overall
+	}
+	return false
+}
+
+func (x *GraduationReport) GetComputedAt() int64 {
+	if x != nil {
+		return x.ComputedAt
+	}
+	return 0
+}
+
+func (x *GraduationReport) GetEvidenceLinks() []string {
+	if x != nil {
+		return x.EvidenceLinks
+	}
+	return nil
+}
+
+func (x *GraduationReport) GetReportHash() string {
+	if x != nil {
+		return x.ReportHash
+	}
+	return ""
+}
+
+func (x *GraduationReport) GetPaperSessions() int32 {
+	if x != nil {
+		return x.PaperSessions
+	}
+	return 0
+}
+
+func (x *GraduationReport) GetPaperTrades() int32 {
+	if x != nil {
+		return x.PaperTrades
+	}
+	return 0
+}
+
+func (x *GraduationReport) GetRegistryStage() string {
+	if x != nil {
+		return x.RegistryStage
+	}
+	return ""
+}
+
+func (x *GraduationReport) GetPaperSessionReturns() []float64 {
+	if x != nil {
+		return x.PaperSessionReturns
+	}
+	return nil
+}
+
+func (x *GraduationReport) GetWindowStart() int64 {
+	if x != nil {
+		return x.WindowStart
+	}
+	return 0
+}
+
+func (x *GraduationReport) GetWindowEnd() int64 {
+	if x != nil {
+		return x.WindowEnd
+	}
+	return 0
+}
+
+// LiveAccountStatus is one live-environment account as the go-live flow sees it (GL-011).
+type LiveAccountStatus struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	BrokerAccountId string                 `protobuf:"bytes,1,opt,name=broker_account_id,json=brokerAccountId,proto3" json:"broker_account_id,omitempty"`
+	// Audited enablement row (broker.live_enablement): enabled, by whom, audit sequence.
+	Enabled   bool   `protobuf:"varint,2,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	EnabledBy string `protobuf:"bytes,3,opt,name=enabled_by,json=enabledBy,proto3" json:"enabled_by,omitempty"`
+	AuditSeq  int64  `protobuf:"varint,4,opt,name=audit_seq,json=auditSeq,proto3" json:"audit_seq,omitempty"`
+	UpdatedAt int64  `protobuf:"varint,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// Adapter session (SESSION_STATE_* name) and whether a live credential is stored.
+	SessionState      string `protobuf:"bytes,6,opt,name=session_state,json=sessionState,proto3" json:"session_state,omitempty"`
+	CredentialStored  bool   `protobuf:"varint,7,opt,name=credential_stored,json=credentialStored,proto3" json:"credential_stored,omitempty"`
+	ReadinessComplete bool   `protobuf:"varint,8,opt,name=readiness_complete,json=readinessComplete,proto3" json:"readiness_complete,omitempty"`
+	// Unexplained reconciliation breaks open on the account (ledger).
+	OpenBreaks int32 `protobuf:"varint,9,opt,name=open_breaks,json=openBreaks,proto3" json:"open_breaks,omitempty"`
+	// Live strategies registered to this account.
+	LiveStrategies []string `protobuf:"bytes,10,rep,name=live_strategies,json=liveStrategies,proto3" json:"live_strategies,omitempty"`
+	// Sessions the adapter has streamed read-only with clean reconciliation (GL-012 read-only day).
+	ReadOnlySessions int32 `protobuf:"varint,11,opt,name=read_only_sessions,json=readOnlySessions,proto3" json:"read_only_sessions,omitempty"`
+	// Orders allowed (stage trading); enabled alone is the read-only stage.
+	OrdersEnabled bool `protobuf:"varint,12,opt,name=orders_enabled,json=ordersEnabled,proto3" json:"orders_enabled,omitempty"`
+	// paper | live (adapter environment).
+	Environment   string `protobuf:"bytes,13,opt,name=environment,proto3" json:"environment,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LiveAccountStatus) Reset() {
+	*x = LiveAccountStatus{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LiveAccountStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LiveAccountStatus) ProtoMessage() {}
+
+func (x *LiveAccountStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LiveAccountStatus.ProtoReflect.Descriptor instead.
+func (*LiveAccountStatus) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *LiveAccountStatus) GetBrokerAccountId() string {
+	if x != nil {
+		return x.BrokerAccountId
+	}
+	return ""
+}
+
+func (x *LiveAccountStatus) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *LiveAccountStatus) GetEnabledBy() string {
+	if x != nil {
+		return x.EnabledBy
+	}
+	return ""
+}
+
+func (x *LiveAccountStatus) GetAuditSeq() int64 {
+	if x != nil {
+		return x.AuditSeq
+	}
+	return 0
+}
+
+func (x *LiveAccountStatus) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+func (x *LiveAccountStatus) GetSessionState() string {
+	if x != nil {
+		return x.SessionState
+	}
+	return ""
+}
+
+func (x *LiveAccountStatus) GetCredentialStored() bool {
+	if x != nil {
+		return x.CredentialStored
+	}
+	return false
+}
+
+func (x *LiveAccountStatus) GetReadinessComplete() bool {
+	if x != nil {
+		return x.ReadinessComplete
+	}
+	return false
+}
+
+func (x *LiveAccountStatus) GetOpenBreaks() int32 {
+	if x != nil {
+		return x.OpenBreaks
+	}
+	return 0
+}
+
+func (x *LiveAccountStatus) GetLiveStrategies() []string {
+	if x != nil {
+		return x.LiveStrategies
+	}
+	return nil
+}
+
+func (x *LiveAccountStatus) GetReadOnlySessions() int32 {
+	if x != nil {
+		return x.ReadOnlySessions
+	}
+	return 0
+}
+
+func (x *LiveAccountStatus) GetOrdersEnabled() bool {
+	if x != nil {
+		return x.OrdersEnabled
+	}
+	return false
+}
+
+func (x *LiveAccountStatus) GetEnvironment() string {
+	if x != nil {
+		return x.Environment
+	}
+	return ""
+}
+
+type LiveStatus struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// TB_TRADING_LIVE_ENABLED as seen by execution (deploy flag, GL-011).
+	FlagEnabled    bool                 `protobuf:"varint,1,opt,name=flag_enabled,json=flagEnabled,proto3" json:"flag_enabled,omitempty"`
+	Accounts       []*LiveAccountStatus `protobuf:"bytes,2,rep,name=accounts,proto3" json:"accounts,omitempty"`
+	LiveStrategies []*Strategy          `protobuf:"bytes,3,rep,name=live_strategies,json=liveStrategies,proto3" json:"live_strategies,omitempty"`
+	// Paper strategies that could graduate, with their latest report overall flag.
+	Candidates    []*GraduationReport `protobuf:"bytes,4,rep,name=candidates,proto3" json:"candidates,omitempty"`
+	AsOf          int64               `protobuf:"varint,5,opt,name=as_of,json=asOf,proto3" json:"as_of,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LiveStatus) Reset() {
+	*x = LiveStatus{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LiveStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LiveStatus) ProtoMessage() {}
+
+func (x *LiveStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LiveStatus.ProtoReflect.Descriptor instead.
+func (*LiveStatus) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *LiveStatus) GetFlagEnabled() bool {
+	if x != nil {
+		return x.FlagEnabled
+	}
+	return false
+}
+
+func (x *LiveStatus) GetAccounts() []*LiveAccountStatus {
+	if x != nil {
+		return x.Accounts
+	}
+	return nil
+}
+
+func (x *LiveStatus) GetLiveStrategies() []*Strategy {
+	if x != nil {
+		return x.LiveStrategies
+	}
+	return nil
+}
+
+func (x *LiveStatus) GetCandidates() []*GraduationReport {
+	if x != nil {
+		return x.Candidates
+	}
+	return nil
+}
+
+func (x *LiveStatus) GetAsOf() int64 {
+	if x != nil {
+		return x.AsOf
+	}
+	return 0
+}
+
+type GetLiveStatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetLiveStatusRequest) Reset() {
+	*x = GetLiveStatusRequest{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLiveStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLiveStatusRequest) ProtoMessage() {}
+
+func (x *GetLiveStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLiveStatusRequest.ProtoReflect.Descriptor instead.
+func (*GetLiveStatusRequest) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{8}
+}
+
+type GetLiveStatusResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Status        *LiveStatus            `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetLiveStatusResponse) Reset() {
+	*x = GetLiveStatusResponse{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLiveStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLiveStatusResponse) ProtoMessage() {}
+
+func (x *GetLiveStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLiveStatusResponse.ProtoReflect.Descriptor instead.
+func (*GetLiveStatusResponse) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetLiveStatusResponse) GetStatus() *LiveStatus {
+	if x != nil {
+		return x.Status
+	}
+	return nil
+}
+
+type GetLiveReadinessRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	BrokerAccountId string                 `protobuf:"bytes,1,opt,name=broker_account_id,json=brokerAccountId,proto3" json:"broker_account_id,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *GetLiveReadinessRequest) Reset() {
+	*x = GetLiveReadinessRequest{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLiveReadinessRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLiveReadinessRequest) ProtoMessage() {}
+
+func (x *GetLiveReadinessRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLiveReadinessRequest.ProtoReflect.Descriptor instead.
+func (*GetLiveReadinessRequest) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetLiveReadinessRequest) GetBrokerAccountId() string {
+	if x != nil {
+		return x.BrokerAccountId
+	}
+	return ""
+}
+
+type GetLiveReadinessResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Readiness     *LiveReadiness         `protobuf:"bytes,1,opt,name=readiness,proto3" json:"readiness,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetLiveReadinessResponse) Reset() {
+	*x = GetLiveReadinessResponse{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLiveReadinessResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLiveReadinessResponse) ProtoMessage() {}
+
+func (x *GetLiveReadinessResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLiveReadinessResponse.ProtoReflect.Descriptor instead.
+func (*GetLiveReadinessResponse) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *GetLiveReadinessResponse) GetReadiness() *LiveReadiness {
+	if x != nil {
+		return x.Readiness
+	}
+	return nil
+}
+
+type SetReadinessItemRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	BrokerAccountId string                 `protobuf:"bytes,1,opt,name=broker_account_id,json=brokerAccountId,proto3" json:"broker_account_id,omitempty"`
+	ItemId          string                 `protobuf:"bytes,2,opt,name=item_id,json=itemId,proto3" json:"item_id,omitempty"`
+	// passed | failed
+	Status        string `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	Note          string `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
+	EvidenceUrl   string `protobuf:"bytes,5,opt,name=evidence_url,json=evidenceUrl,proto3" json:"evidence_url,omitempty"`
+	Actor         *Actor `protobuf:"bytes,6,opt,name=actor,proto3" json:"actor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetReadinessItemRequest) Reset() {
+	*x = SetReadinessItemRequest{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetReadinessItemRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetReadinessItemRequest) ProtoMessage() {}
+
+func (x *SetReadinessItemRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetReadinessItemRequest.ProtoReflect.Descriptor instead.
+func (*SetReadinessItemRequest) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *SetReadinessItemRequest) GetBrokerAccountId() string {
+	if x != nil {
+		return x.BrokerAccountId
+	}
+	return ""
+}
+
+func (x *SetReadinessItemRequest) GetItemId() string {
+	if x != nil {
+		return x.ItemId
+	}
+	return ""
+}
+
+func (x *SetReadinessItemRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *SetReadinessItemRequest) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+func (x *SetReadinessItemRequest) GetEvidenceUrl() string {
+	if x != nil {
+		return x.EvidenceUrl
+	}
+	return ""
+}
+
+func (x *SetReadinessItemRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+type SetReadinessItemResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Readiness     *LiveReadiness         `protobuf:"bytes,1,opt,name=readiness,proto3" json:"readiness,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetReadinessItemResponse) Reset() {
+	*x = SetReadinessItemResponse{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetReadinessItemResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetReadinessItemResponse) ProtoMessage() {}
+
+func (x *SetReadinessItemResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetReadinessItemResponse.ProtoReflect.Descriptor instead.
+func (*SetReadinessItemResponse) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *SetReadinessItemResponse) GetReadiness() *LiveReadiness {
+	if x != nil {
+		return x.Readiness
+	}
+	return nil
+}
+
+type GetGraduationReportRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	StrategyId    string                 `protobuf:"bytes,1,opt,name=strategy_id,json=strategyId,proto3" json:"strategy_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetGraduationReportRequest) Reset() {
+	*x = GetGraduationReportRequest{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetGraduationReportRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetGraduationReportRequest) ProtoMessage() {}
+
+func (x *GetGraduationReportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetGraduationReportRequest.ProtoReflect.Descriptor instead.
+func (*GetGraduationReportRequest) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *GetGraduationReportRequest) GetStrategyId() string {
+	if x != nil {
+		return x.StrategyId
+	}
+	return ""
+}
+
+type GetGraduationReportResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Report        *GraduationReport      `protobuf:"bytes,1,opt,name=report,proto3" json:"report,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetGraduationReportResponse) Reset() {
+	*x = GetGraduationReportResponse{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetGraduationReportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetGraduationReportResponse) ProtoMessage() {}
+
+func (x *GetGraduationReportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetGraduationReportResponse.ProtoReflect.Descriptor instead.
+func (*GetGraduationReportResponse) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *GetGraduationReportResponse) GetReport() *GraduationReport {
+	if x != nil {
+		return x.Report
+	}
+	return nil
+}
+
+type EnableLiveAccountRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	BrokerAccountId string                 `protobuf:"bytes,1,opt,name=broker_account_id,json=brokerAccountId,proto3" json:"broker_account_id,omitempty"`
+	// Must equal broker_account_id (typed confirmation, GL-011).
+	Confirmation string `protobuf:"bytes,2,opt,name=confirmation,proto3" json:"confirmation,omitempty"`
+	Actor        *Actor `protobuf:"bytes,3,opt,name=actor,proto3" json:"actor,omitempty"`
+	// read_only: the live adapter connects, streams account data, and reconciles; orders stay
+	// refused (GL-012 live read-only day). trading: orders allowed; needs the complete readiness
+	// record, which includes a clean read-only session.
+	Stage         string `protobuf:"bytes,4,opt,name=stage,proto3" json:"stage,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EnableLiveAccountRequest) Reset() {
+	*x = EnableLiveAccountRequest{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EnableLiveAccountRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EnableLiveAccountRequest) ProtoMessage() {}
+
+func (x *EnableLiveAccountRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EnableLiveAccountRequest.ProtoReflect.Descriptor instead.
+func (*EnableLiveAccountRequest) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *EnableLiveAccountRequest) GetBrokerAccountId() string {
+	if x != nil {
+		return x.BrokerAccountId
+	}
+	return ""
+}
+
+func (x *EnableLiveAccountRequest) GetConfirmation() string {
+	if x != nil {
+		return x.Confirmation
+	}
+	return ""
+}
+
+func (x *EnableLiveAccountRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *EnableLiveAccountRequest) GetStage() string {
+	if x != nil {
+		return x.Stage
+	}
+	return ""
+}
+
+type EnableLiveAccountResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Account       *LiveAccountStatus     `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EnableLiveAccountResponse) Reset() {
+	*x = EnableLiveAccountResponse{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EnableLiveAccountResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EnableLiveAccountResponse) ProtoMessage() {}
+
+func (x *EnableLiveAccountResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EnableLiveAccountResponse.ProtoReflect.Descriptor instead.
+func (*EnableLiveAccountResponse) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *EnableLiveAccountResponse) GetAccount() *LiveAccountStatus {
+	if x != nil {
+		return x.Account
+	}
+	return nil
+}
+
+type DisableLiveAccountRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	BrokerAccountId string                 `protobuf:"bytes,1,opt,name=broker_account_id,json=brokerAccountId,proto3" json:"broker_account_id,omitempty"`
+	Reason          string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	Actor           *Actor                 `protobuf:"bytes,3,opt,name=actor,proto3" json:"actor,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *DisableLiveAccountRequest) Reset() {
+	*x = DisableLiveAccountRequest{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DisableLiveAccountRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DisableLiveAccountRequest) ProtoMessage() {}
+
+func (x *DisableLiveAccountRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DisableLiveAccountRequest.ProtoReflect.Descriptor instead.
+func (*DisableLiveAccountRequest) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *DisableLiveAccountRequest) GetBrokerAccountId() string {
+	if x != nil {
+		return x.BrokerAccountId
+	}
+	return ""
+}
+
+func (x *DisableLiveAccountRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *DisableLiveAccountRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+type DisableLiveAccountResponse struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Account           *LiveAccountStatus     `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
+	OrdersCanceled    int32                  `protobuf:"varint,2,opt,name=orders_canceled,json=ordersCanceled,proto3" json:"orders_canceled,omitempty"`
+	DemotedStrategies []string               `protobuf:"bytes,3,rep,name=demoted_strategies,json=demotedStrategies,proto3" json:"demoted_strategies,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *DisableLiveAccountResponse) Reset() {
+	*x = DisableLiveAccountResponse{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DisableLiveAccountResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DisableLiveAccountResponse) ProtoMessage() {}
+
+func (x *DisableLiveAccountResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DisableLiveAccountResponse.ProtoReflect.Descriptor instead.
+func (*DisableLiveAccountResponse) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *DisableLiveAccountResponse) GetAccount() *LiveAccountStatus {
+	if x != nil {
+		return x.Account
+	}
+	return nil
+}
+
+func (x *DisableLiveAccountResponse) GetOrdersCanceled() int32 {
+	if x != nil {
+		return x.OrdersCanceled
+	}
+	return 0
+}
+
+func (x *DisableLiveAccountResponse) GetDemotedStrategies() []string {
+	if x != nil {
+		return x.DemotedStrategies
+	}
+	return nil
+}
+
+type PromoteToLiveRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	StrategyId    string                 `protobuf:"bytes,1,opt,name=strategy_id,json=strategyId,proto3" json:"strategy_id,omitempty"`
+	LiveAccountId string                 `protobuf:"bytes,2,opt,name=live_account_id,json=liveAccountId,proto3" json:"live_account_id,omitempty"`
+	// 10–20 % of intended_allocation (GL-021); becomes the ledger allocation on the live account.
+	CapitalCap         *v1.Decimal `protobuf:"bytes,3,opt,name=capital_cap,json=capitalCap,proto3" json:"capital_cap,omitempty"`
+	IntendedAllocation *v1.Decimal `protobuf:"bytes,4,opt,name=intended_allocation,json=intendedAllocation,proto3" json:"intended_allocation,omitempty"`
+	// Optional overrides; every field must be at least as tight as the live profile (GL-023).
+	LimitOverrides *RiskLimits `protobuf:"bytes,5,opt,name=limit_overrides,json=limitOverrides,proto3" json:"limit_overrides,omitempty"`
+	// Must equal the strategy's name (typed confirmation).
+	Confirmation string `protobuf:"bytes,6,opt,name=confirmation,proto3" json:"confirmation,omitempty"`
+	// Keep a paper twin running on the paper account as the divergence reference (GL-022, default
+	// on: false here means "do not keep").
+	SkipPaperTwin bool   `protobuf:"varint,7,opt,name=skip_paper_twin,json=skipPaperTwin,proto3" json:"skip_paper_twin,omitempty"`
+	Actor         *Actor `protobuf:"bytes,8,opt,name=actor,proto3" json:"actor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PromoteToLiveRequest) Reset() {
+	*x = PromoteToLiveRequest{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PromoteToLiveRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PromoteToLiveRequest) ProtoMessage() {}
+
+func (x *PromoteToLiveRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PromoteToLiveRequest.ProtoReflect.Descriptor instead.
+func (*PromoteToLiveRequest) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *PromoteToLiveRequest) GetStrategyId() string {
+	if x != nil {
+		return x.StrategyId
+	}
+	return ""
+}
+
+func (x *PromoteToLiveRequest) GetLiveAccountId() string {
+	if x != nil {
+		return x.LiveAccountId
+	}
+	return ""
+}
+
+func (x *PromoteToLiveRequest) GetCapitalCap() *v1.Decimal {
+	if x != nil {
+		return x.CapitalCap
+	}
+	return nil
+}
+
+func (x *PromoteToLiveRequest) GetIntendedAllocation() *v1.Decimal {
+	if x != nil {
+		return x.IntendedAllocation
+	}
+	return nil
+}
+
+func (x *PromoteToLiveRequest) GetLimitOverrides() *RiskLimits {
+	if x != nil {
+		return x.LimitOverrides
+	}
+	return nil
+}
+
+func (x *PromoteToLiveRequest) GetConfirmation() string {
+	if x != nil {
+		return x.Confirmation
+	}
+	return ""
+}
+
+func (x *PromoteToLiveRequest) GetSkipPaperTwin() bool {
+	if x != nil {
+		return x.SkipPaperTwin
+	}
+	return false
+}
+
+func (x *PromoteToLiveRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+type PromoteToLiveResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Strategy      *Strategy              `protobuf:"bytes,1,opt,name=strategy,proto3" json:"strategy,omitempty"`
+	Report        *GraduationReport      `protobuf:"bytes,2,opt,name=report,proto3" json:"report,omitempty"`
+	LiveLimits    *RiskLimits            `protobuf:"bytes,3,opt,name=live_limits,json=liveLimits,proto3" json:"live_limits,omitempty"`
+	PaperTwin     *Strategy              `protobuf:"bytes,4,opt,name=paper_twin,json=paperTwin,proto3" json:"paper_twin,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PromoteToLiveResponse) Reset() {
+	*x = PromoteToLiveResponse{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PromoteToLiveResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PromoteToLiveResponse) ProtoMessage() {}
+
+func (x *PromoteToLiveResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PromoteToLiveResponse.ProtoReflect.Descriptor instead.
+func (*PromoteToLiveResponse) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *PromoteToLiveResponse) GetStrategy() *Strategy {
+	if x != nil {
+		return x.Strategy
+	}
+	return nil
+}
+
+func (x *PromoteToLiveResponse) GetReport() *GraduationReport {
+	if x != nil {
+		return x.Report
+	}
+	return nil
+}
+
+func (x *PromoteToLiveResponse) GetLiveLimits() *RiskLimits {
+	if x != nil {
+		return x.LiveLimits
+	}
+	return nil
+}
+
+func (x *PromoteToLiveResponse) GetPaperTwin() *Strategy {
+	if x != nil {
+		return x.PaperTwin
+	}
+	return nil
+}
+
+type DemoteFromLiveRequest struct {
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	StrategyId string                 `protobuf:"bytes,1,opt,name=strategy_id,json=strategyId,proto3" json:"strategy_id,omitempty"`
+	Reason     string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	// hold | flatten: what happens to strategy-owned live quantity (GL-030); never manual.
+	PositionPolicy string `protobuf:"bytes,3,opt,name=position_policy,json=positionPolicy,proto3" json:"position_policy,omitempty"`
+	Actor          *Actor `protobuf:"bytes,4,opt,name=actor,proto3" json:"actor,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *DemoteFromLiveRequest) Reset() {
+	*x = DemoteFromLiveRequest{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DemoteFromLiveRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DemoteFromLiveRequest) ProtoMessage() {}
+
+func (x *DemoteFromLiveRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DemoteFromLiveRequest.ProtoReflect.Descriptor instead.
+func (*DemoteFromLiveRequest) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *DemoteFromLiveRequest) GetStrategyId() string {
+	if x != nil {
+		return x.StrategyId
+	}
+	return ""
+}
+
+func (x *DemoteFromLiveRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *DemoteFromLiveRequest) GetPositionPolicy() string {
+	if x != nil {
+		return x.PositionPolicy
+	}
+	return ""
+}
+
+func (x *DemoteFromLiveRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+type DemoteFromLiveResponse struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Strategy       *Strategy              `protobuf:"bytes,1,opt,name=strategy,proto3" json:"strategy,omitempty"`
+	OrdersCanceled int32                  `protobuf:"varint,2,opt,name=orders_canceled,json=ordersCanceled,proto3" json:"orders_canceled,omitempty"`
+	FlattenIntents int32                  `protobuf:"varint,3,opt,name=flatten_intents,json=flattenIntents,proto3" json:"flatten_intents,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *DemoteFromLiveResponse) Reset() {
+	*x = DemoteFromLiveResponse{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DemoteFromLiveResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DemoteFromLiveResponse) ProtoMessage() {}
+
+func (x *DemoteFromLiveResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DemoteFromLiveResponse.ProtoReflect.Descriptor instead.
+func (*DemoteFromLiveResponse) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *DemoteFromLiveResponse) GetStrategy() *Strategy {
+	if x != nil {
+		return x.Strategy
+	}
+	return nil
+}
+
+func (x *DemoteFromLiveResponse) GetOrdersCanceled() int32 {
+	if x != nil {
+		return x.OrdersCanceled
+	}
+	return 0
+}
+
+func (x *DemoteFromLiveResponse) GetFlattenIntents() int32 {
+	if x != nil {
+		return x.FlattenIntents
+	}
+	return 0
+}
+
+type RaiseLiveCapRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	StrategyId    string                 `protobuf:"bytes,1,opt,name=strategy_id,json=strategyId,proto3" json:"strategy_id,omitempty"`
+	NewCap        *v1.Decimal            `protobuf:"bytes,2,opt,name=new_cap,json=newCap,proto3" json:"new_cap,omitempty"`
+	Confirmation  string                 `protobuf:"bytes,3,opt,name=confirmation,proto3" json:"confirmation,omitempty"`
+	Actor         *Actor                 `protobuf:"bytes,4,opt,name=actor,proto3" json:"actor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RaiseLiveCapRequest) Reset() {
+	*x = RaiseLiveCapRequest{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RaiseLiveCapRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RaiseLiveCapRequest) ProtoMessage() {}
+
+func (x *RaiseLiveCapRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RaiseLiveCapRequest.ProtoReflect.Descriptor instead.
+func (*RaiseLiveCapRequest) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *RaiseLiveCapRequest) GetStrategyId() string {
+	if x != nil {
+		return x.StrategyId
+	}
+	return ""
+}
+
+func (x *RaiseLiveCapRequest) GetNewCap() *v1.Decimal {
+	if x != nil {
+		return x.NewCap
+	}
+	return nil
+}
+
+func (x *RaiseLiveCapRequest) GetConfirmation() string {
+	if x != nil {
+		return x.Confirmation
+	}
+	return ""
+}
+
+func (x *RaiseLiveCapRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+type RaiseLiveCapResponse struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Strategy         *Strategy              `protobuf:"bytes,1,opt,name=strategy,proto3" json:"strategy,omitempty"`
+	LiveWindowReport *GraduationReport      `protobuf:"bytes,2,opt,name=live_window_report,json=liveWindowReport,proto3" json:"live_window_report,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *RaiseLiveCapResponse) Reset() {
+	*x = RaiseLiveCapResponse{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RaiseLiveCapResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RaiseLiveCapResponse) ProtoMessage() {}
+
+func (x *RaiseLiveCapResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RaiseLiveCapResponse.ProtoReflect.Descriptor instead.
+func (*RaiseLiveCapResponse) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *RaiseLiveCapResponse) GetStrategy() *Strategy {
+	if x != nil {
+		return x.Strategy
+	}
+	return nil
+}
+
+func (x *RaiseLiveCapResponse) GetLiveWindowReport() *GraduationReport {
+	if x != nil {
+		return x.LiveWindowReport
+	}
+	return nil
+}
+
 type KillSwitch struct {
 	state      protoimpl.MessageState `protogen:"open.v1"`
 	EventId    string                 `protobuf:"bytes,1,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
@@ -452,7 +2212,7 @@ type KillSwitch struct {
 
 func (x *KillSwitch) Reset() {
 	*x = KillSwitch{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[2]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -464,7 +2224,7 @@ func (x *KillSwitch) String() string {
 func (*KillSwitch) ProtoMessage() {}
 
 func (x *KillSwitch) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[2]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -477,7 +2237,7 @@ func (x *KillSwitch) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KillSwitch.ProtoReflect.Descriptor instead.
 func (*KillSwitch) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{2}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *KillSwitch) GetEventId() string {
@@ -575,7 +2335,7 @@ type Halt struct {
 
 func (x *Halt) Reset() {
 	*x = Halt{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[3]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -587,7 +2347,7 @@ func (x *Halt) String() string {
 func (*Halt) ProtoMessage() {}
 
 func (x *Halt) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[3]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -600,7 +2360,7 @@ func (x *Halt) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Halt.ProtoReflect.Descriptor instead.
 func (*Halt) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{3}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *Halt) GetHaltId() string {
@@ -672,7 +2432,7 @@ type IntentRecord struct {
 
 func (x *IntentRecord) Reset() {
 	*x = IntentRecord{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[4]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -684,7 +2444,7 @@ func (x *IntentRecord) String() string {
 func (*IntentRecord) ProtoMessage() {}
 
 func (x *IntentRecord) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[4]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -697,7 +2457,7 @@ func (x *IntentRecord) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IntentRecord.ProtoReflect.Descriptor instead.
 func (*IntentRecord) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{4}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *IntentRecord) GetIntent() *OrderIntent {
@@ -749,7 +2509,7 @@ type Fill struct {
 
 func (x *Fill) Reset() {
 	*x = Fill{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[5]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -761,7 +2521,7 @@ func (x *Fill) String() string {
 func (*Fill) ProtoMessage() {}
 
 func (x *Fill) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[5]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -774,7 +2534,7 @@ func (x *Fill) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Fill.ProtoReflect.Descriptor instead.
 func (*Fill) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{5}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *Fill) GetBrokerAccountId() string {
@@ -892,7 +2652,7 @@ type AccountTradingStatus struct {
 
 func (x *AccountTradingStatus) Reset() {
 	*x = AccountTradingStatus{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[6]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -904,7 +2664,7 @@ func (x *AccountTradingStatus) String() string {
 func (*AccountTradingStatus) ProtoMessage() {}
 
 func (x *AccountTradingStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[6]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -917,7 +2677,7 @@ func (x *AccountTradingStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AccountTradingStatus.ProtoReflect.Descriptor instead.
 func (*AccountTradingStatus) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{6}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *AccountTradingStatus) GetBrokerAccountId() string {
@@ -1017,7 +2777,7 @@ type StrategyTradingStatus struct {
 
 func (x *StrategyTradingStatus) Reset() {
 	*x = StrategyTradingStatus{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[7]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1029,7 +2789,7 @@ func (x *StrategyTradingStatus) String() string {
 func (*StrategyTradingStatus) ProtoMessage() {}
 
 func (x *StrategyTradingStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[7]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1042,7 +2802,7 @@ func (x *StrategyTradingStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StrategyTradingStatus.ProtoReflect.Descriptor instead.
 func (*StrategyTradingStatus) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{7}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *StrategyTradingStatus) GetStrategyId() string {
@@ -1099,7 +2859,7 @@ type TradingStatus struct {
 
 func (x *TradingStatus) Reset() {
 	*x = TradingStatus{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[8]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1111,7 +2871,7 @@ func (x *TradingStatus) String() string {
 func (*TradingStatus) ProtoMessage() {}
 
 func (x *TradingStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[8]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1124,7 +2884,7 @@ func (x *TradingStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TradingStatus.ProtoReflect.Descriptor instead.
 func (*TradingStatus) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{8}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *TradingStatus) GetGlobalState() string {
@@ -1207,7 +2967,7 @@ type Actor struct {
 
 func (x *Actor) Reset() {
 	*x = Actor{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[9]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1219,7 +2979,7 @@ func (x *Actor) String() string {
 func (*Actor) ProtoMessage() {}
 
 func (x *Actor) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[9]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1232,7 +2992,7 @@ func (x *Actor) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Actor.ProtoReflect.Descriptor instead.
 func (*Actor) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{9}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *Actor) GetName() string {
@@ -1280,7 +3040,7 @@ type SubmitIntentRequest struct {
 
 func (x *SubmitIntentRequest) Reset() {
 	*x = SubmitIntentRequest{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[10]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1292,7 +3052,7 @@ func (x *SubmitIntentRequest) String() string {
 func (*SubmitIntentRequest) ProtoMessage() {}
 
 func (x *SubmitIntentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[10]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1305,7 +3065,7 @@ func (x *SubmitIntentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitIntentRequest.ProtoReflect.Descriptor instead.
 func (*SubmitIntentRequest) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{10}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *SubmitIntentRequest) GetIntent() *OrderIntent {
@@ -1334,7 +3094,7 @@ type SubmitIntentResponse struct {
 
 func (x *SubmitIntentResponse) Reset() {
 	*x = SubmitIntentResponse{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[11]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1346,7 +3106,7 @@ func (x *SubmitIntentResponse) String() string {
 func (*SubmitIntentResponse) ProtoMessage() {}
 
 func (x *SubmitIntentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[11]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1359,7 +3119,7 @@ func (x *SubmitIntentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitIntentResponse.ProtoReflect.Descriptor instead.
 func (*SubmitIntentResponse) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{11}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *SubmitIntentResponse) GetDecision() *RiskDecision {
@@ -1392,7 +3152,7 @@ type PreviewIntentRequest struct {
 
 func (x *PreviewIntentRequest) Reset() {
 	*x = PreviewIntentRequest{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[12]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1404,7 +3164,7 @@ func (x *PreviewIntentRequest) String() string {
 func (*PreviewIntentRequest) ProtoMessage() {}
 
 func (x *PreviewIntentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[12]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1417,7 +3177,7 @@ func (x *PreviewIntentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewIntentRequest.ProtoReflect.Descriptor instead.
 func (*PreviewIntentRequest) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{12}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *PreviewIntentRequest) GetIntent() *OrderIntent {
@@ -1440,7 +3200,7 @@ type PreviewIntentResponse struct {
 
 func (x *PreviewIntentResponse) Reset() {
 	*x = PreviewIntentResponse{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[13]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1452,7 +3212,7 @@ func (x *PreviewIntentResponse) String() string {
 func (*PreviewIntentResponse) ProtoMessage() {}
 
 func (x *PreviewIntentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[13]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1465,7 +3225,7 @@ func (x *PreviewIntentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewIntentResponse.ProtoReflect.Descriptor instead.
 func (*PreviewIntentResponse) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{13}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *PreviewIntentResponse) GetDecision() *RiskDecision {
@@ -1506,7 +3266,7 @@ type CancelIntentRequest struct {
 
 func (x *CancelIntentRequest) Reset() {
 	*x = CancelIntentRequest{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[14]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1518,7 +3278,7 @@ func (x *CancelIntentRequest) String() string {
 func (*CancelIntentRequest) ProtoMessage() {}
 
 func (x *CancelIntentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[14]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1531,7 +3291,7 @@ func (x *CancelIntentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelIntentRequest.ProtoReflect.Descriptor instead.
 func (*CancelIntentRequest) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{14}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *CancelIntentRequest) GetIntentId() string {
@@ -1557,7 +3317,7 @@ type CancelIntentResponse struct {
 
 func (x *CancelIntentResponse) Reset() {
 	*x = CancelIntentResponse{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[15]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1569,7 +3329,7 @@ func (x *CancelIntentResponse) String() string {
 func (*CancelIntentResponse) ProtoMessage() {}
 
 func (x *CancelIntentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[15]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1582,7 +3342,7 @@ func (x *CancelIntentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelIntentResponse.ProtoReflect.Descriptor instead.
 func (*CancelIntentResponse) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{15}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *CancelIntentResponse) GetCanceled() int32 {
@@ -1605,7 +3365,7 @@ type ListOrdersRequest struct {
 
 func (x *ListOrdersRequest) Reset() {
 	*x = ListOrdersRequest{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[16]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1617,7 +3377,7 @@ func (x *ListOrdersRequest) String() string {
 func (*ListOrdersRequest) ProtoMessage() {}
 
 func (x *ListOrdersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[16]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1630,7 +3390,7 @@ func (x *ListOrdersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrdersRequest.ProtoReflect.Descriptor instead.
 func (*ListOrdersRequest) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{16}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *ListOrdersRequest) GetBrokerAccountId() string {
@@ -1677,7 +3437,7 @@ type ListOrdersResponse struct {
 
 func (x *ListOrdersResponse) Reset() {
 	*x = ListOrdersResponse{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[17]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1689,7 +3449,7 @@ func (x *ListOrdersResponse) String() string {
 func (*ListOrdersResponse) ProtoMessage() {}
 
 func (x *ListOrdersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[17]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1702,7 +3462,7 @@ func (x *ListOrdersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrdersResponse.ProtoReflect.Descriptor instead.
 func (*ListOrdersResponse) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{17}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *ListOrdersResponse) GetOrders() []*Order {
@@ -1724,7 +3484,7 @@ type ListIntentsRequest struct {
 
 func (x *ListIntentsRequest) Reset() {
 	*x = ListIntentsRequest{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[18]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1736,7 +3496,7 @@ func (x *ListIntentsRequest) String() string {
 func (*ListIntentsRequest) ProtoMessage() {}
 
 func (x *ListIntentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[18]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1749,7 +3509,7 @@ func (x *ListIntentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListIntentsRequest.ProtoReflect.Descriptor instead.
 func (*ListIntentsRequest) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{18}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *ListIntentsRequest) GetStrategyId() string {
@@ -1789,7 +3549,7 @@ type ListIntentsResponse struct {
 
 func (x *ListIntentsResponse) Reset() {
 	*x = ListIntentsResponse{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[19]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1801,7 +3561,7 @@ func (x *ListIntentsResponse) String() string {
 func (*ListIntentsResponse) ProtoMessage() {}
 
 func (x *ListIntentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[19]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1814,7 +3574,7 @@ func (x *ListIntentsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListIntentsResponse.ProtoReflect.Descriptor instead.
 func (*ListIntentsResponse) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{19}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ListIntentsResponse) GetIntents() []*IntentRecord {
@@ -1836,7 +3596,7 @@ type ListFillsRequest struct {
 
 func (x *ListFillsRequest) Reset() {
 	*x = ListFillsRequest{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[20]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1848,7 +3608,7 @@ func (x *ListFillsRequest) String() string {
 func (*ListFillsRequest) ProtoMessage() {}
 
 func (x *ListFillsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[20]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1861,7 +3621,7 @@ func (x *ListFillsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFillsRequest.ProtoReflect.Descriptor instead.
 func (*ListFillsRequest) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{20}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *ListFillsRequest) GetBrokerAccountId() string {
@@ -1901,7 +3661,7 @@ type ListFillsResponse struct {
 
 func (x *ListFillsResponse) Reset() {
 	*x = ListFillsResponse{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[21]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1913,7 +3673,7 @@ func (x *ListFillsResponse) String() string {
 func (*ListFillsResponse) ProtoMessage() {}
 
 func (x *ListFillsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[21]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1926,7 +3686,7 @@ func (x *ListFillsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFillsResponse.ProtoReflect.Descriptor instead.
 func (*ListFillsResponse) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{21}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *ListFillsResponse) GetFills() []*Fill {
@@ -1945,7 +3705,7 @@ type GetTraceRequest struct {
 
 func (x *GetTraceRequest) Reset() {
 	*x = GetTraceRequest{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[22]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1957,7 +3717,7 @@ func (x *GetTraceRequest) String() string {
 func (*GetTraceRequest) ProtoMessage() {}
 
 func (x *GetTraceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[22]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1970,7 +3730,7 @@ func (x *GetTraceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTraceRequest.ProtoReflect.Descriptor instead.
 func (*GetTraceRequest) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{22}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *GetTraceRequest) GetCorrelationId() string {
@@ -1991,7 +3751,7 @@ type GetTraceResponse struct {
 
 func (x *GetTraceResponse) Reset() {
 	*x = GetTraceResponse{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[23]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2003,7 +3763,7 @@ func (x *GetTraceResponse) String() string {
 func (*GetTraceResponse) ProtoMessage() {}
 
 func (x *GetTraceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[23]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2016,7 +3776,7 @@ func (x *GetTraceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTraceResponse.ProtoReflect.Descriptor instead.
 func (*GetTraceResponse) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{23}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *GetTraceResponse) GetIntents() []*IntentRecord {
@@ -2048,7 +3808,7 @@ type ListStrategiesRequest struct {
 
 func (x *ListStrategiesRequest) Reset() {
 	*x = ListStrategiesRequest{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[24]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2060,7 +3820,7 @@ func (x *ListStrategiesRequest) String() string {
 func (*ListStrategiesRequest) ProtoMessage() {}
 
 func (x *ListStrategiesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[24]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2073,7 +3833,7 @@ func (x *ListStrategiesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListStrategiesRequest.ProtoReflect.Descriptor instead.
 func (*ListStrategiesRequest) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{24}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{48}
 }
 
 type ListStrategiesResponse struct {
@@ -2085,7 +3845,7 @@ type ListStrategiesResponse struct {
 
 func (x *ListStrategiesResponse) Reset() {
 	*x = ListStrategiesResponse{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[25]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2097,7 +3857,7 @@ func (x *ListStrategiesResponse) String() string {
 func (*ListStrategiesResponse) ProtoMessage() {}
 
 func (x *ListStrategiesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[25]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2110,7 +3870,7 @@ func (x *ListStrategiesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListStrategiesResponse.ProtoReflect.Descriptor instead.
 func (*ListStrategiesResponse) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{25}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *ListStrategiesResponse) GetStrategies() []*Strategy {
@@ -2130,7 +3890,7 @@ type RegisterStrategyRequest struct {
 
 func (x *RegisterStrategyRequest) Reset() {
 	*x = RegisterStrategyRequest{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[26]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2142,7 +3902,7 @@ func (x *RegisterStrategyRequest) String() string {
 func (*RegisterStrategyRequest) ProtoMessage() {}
 
 func (x *RegisterStrategyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[26]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2155,7 +3915,7 @@ func (x *RegisterStrategyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterStrategyRequest.ProtoReflect.Descriptor instead.
 func (*RegisterStrategyRequest) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{26}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *RegisterStrategyRequest) GetStrategy() *Strategy {
@@ -2181,7 +3941,7 @@ type RegisterStrategyResponse struct {
 
 func (x *RegisterStrategyResponse) Reset() {
 	*x = RegisterStrategyResponse{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[27]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2193,7 +3953,7 @@ func (x *RegisterStrategyResponse) String() string {
 func (*RegisterStrategyResponse) ProtoMessage() {}
 
 func (x *RegisterStrategyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[27]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2206,7 +3966,7 @@ func (x *RegisterStrategyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterStrategyResponse.ProtoReflect.Descriptor instead.
 func (*RegisterStrategyResponse) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{27}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *RegisterStrategyResponse) GetStrategy() *Strategy {
@@ -2228,7 +3988,7 @@ type SetStrategyModeRequest struct {
 
 func (x *SetStrategyModeRequest) Reset() {
 	*x = SetStrategyModeRequest{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[28]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2240,7 +4000,7 @@ func (x *SetStrategyModeRequest) String() string {
 func (*SetStrategyModeRequest) ProtoMessage() {}
 
 func (x *SetStrategyModeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[28]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2253,7 +4013,7 @@ func (x *SetStrategyModeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetStrategyModeRequest.ProtoReflect.Descriptor instead.
 func (*SetStrategyModeRequest) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{28}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *SetStrategyModeRequest) GetStrategyId() string {
@@ -2293,7 +4053,7 @@ type SetStrategyModeResponse struct {
 
 func (x *SetStrategyModeResponse) Reset() {
 	*x = SetStrategyModeResponse{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[29]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2305,7 +4065,7 @@ func (x *SetStrategyModeResponse) String() string {
 func (*SetStrategyModeResponse) ProtoMessage() {}
 
 func (x *SetStrategyModeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[29]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2318,7 +4078,7 @@ func (x *SetStrategyModeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetStrategyModeResponse.ProtoReflect.Descriptor instead.
 func (*SetStrategyModeResponse) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{29}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *SetStrategyModeResponse) GetStrategy() *Strategy {
@@ -2326,6 +4086,161 @@ func (x *SetStrategyModeResponse) GetStrategy() *Strategy {
 		return x.Strategy
 	}
 	return nil
+}
+
+type DemoteStrategyRequest struct {
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	StrategyId string                 `protobuf:"bytes,1,opt,name=strategy_id,json=strategyId,proto3" json:"strategy_id,omitempty"`
+	Reason     string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	// Monitoring report or containment action the demotion is based on (audited).
+	EvidenceId    string `protobuf:"bytes,3,opt,name=evidence_id,json=evidenceId,proto3" json:"evidence_id,omitempty"`
+	Actor         *Actor `protobuf:"bytes,4,opt,name=actor,proto3" json:"actor,omitempty"`
+	CorrelationId string `protobuf:"bytes,5,opt,name=correlation_id,json=correlationId,proto3" json:"correlation_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DemoteStrategyRequest) Reset() {
+	*x = DemoteStrategyRequest{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DemoteStrategyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DemoteStrategyRequest) ProtoMessage() {}
+
+func (x *DemoteStrategyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DemoteStrategyRequest.ProtoReflect.Descriptor instead.
+func (*DemoteStrategyRequest) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *DemoteStrategyRequest) GetStrategyId() string {
+	if x != nil {
+		return x.StrategyId
+	}
+	return ""
+}
+
+func (x *DemoteStrategyRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *DemoteStrategyRequest) GetEvidenceId() string {
+	if x != nil {
+		return x.EvidenceId
+	}
+	return ""
+}
+
+func (x *DemoteStrategyRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *DemoteStrategyRequest) GetCorrelationId() string {
+	if x != nil {
+		return x.CorrelationId
+	}
+	return ""
+}
+
+type DemoteStrategyResponse struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Strategy *Strategy              `protobuf:"bytes,1,opt,name=strategy,proto3" json:"strategy,omitempty"`
+	From     StrategyMode           `protobuf:"varint,2,opt,name=from,proto3,enum=tb.orders.v1.StrategyMode" json:"from,omitempty"`
+	// False when the strategy was already halted or disabled.
+	Changed bool `protobuf:"varint,3,opt,name=changed,proto3" json:"changed,omitempty"`
+	// Set for live → paper (the latched strategy kill switch).
+	KillSwitchEventId string `protobuf:"bytes,4,opt,name=kill_switch_event_id,json=killSwitchEventId,proto3" json:"kill_switch_event_id,omitempty"`
+	OrdersCanceled    int32  `protobuf:"varint,5,opt,name=orders_canceled,json=ordersCanceled,proto3" json:"orders_canceled,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *DemoteStrategyResponse) Reset() {
+	*x = DemoteStrategyResponse{}
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[55]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DemoteStrategyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DemoteStrategyResponse) ProtoMessage() {}
+
+func (x *DemoteStrategyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[55]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DemoteStrategyResponse.ProtoReflect.Descriptor instead.
+func (*DemoteStrategyResponse) Descriptor() ([]byte, []int) {
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *DemoteStrategyResponse) GetStrategy() *Strategy {
+	if x != nil {
+		return x.Strategy
+	}
+	return nil
+}
+
+func (x *DemoteStrategyResponse) GetFrom() StrategyMode {
+	if x != nil {
+		return x.From
+	}
+	return StrategyMode_STRATEGY_MODE_UNSPECIFIED
+}
+
+func (x *DemoteStrategyResponse) GetChanged() bool {
+	if x != nil {
+		return x.Changed
+	}
+	return false
+}
+
+func (x *DemoteStrategyResponse) GetKillSwitchEventId() string {
+	if x != nil {
+		return x.KillSwitchEventId
+	}
+	return ""
+}
+
+func (x *DemoteStrategyResponse) GetOrdersCanceled() int32 {
+	if x != nil {
+		return x.OrdersCanceled
+	}
+	return 0
 }
 
 type GetRiskLimitsRequest struct {
@@ -2338,7 +4253,7 @@ type GetRiskLimitsRequest struct {
 
 func (x *GetRiskLimitsRequest) Reset() {
 	*x = GetRiskLimitsRequest{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[30]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2350,7 +4265,7 @@ func (x *GetRiskLimitsRequest) String() string {
 func (*GetRiskLimitsRequest) ProtoMessage() {}
 
 func (x *GetRiskLimitsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[30]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2363,7 +4278,7 @@ func (x *GetRiskLimitsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRiskLimitsRequest.ProtoReflect.Descriptor instead.
 func (*GetRiskLimitsRequest) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{30}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *GetRiskLimitsRequest) GetScope() string {
@@ -2385,7 +4300,7 @@ type GetRiskLimitsResponse struct {
 
 func (x *GetRiskLimitsResponse) Reset() {
 	*x = GetRiskLimitsResponse{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[31]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2397,7 +4312,7 @@ func (x *GetRiskLimitsResponse) String() string {
 func (*GetRiskLimitsResponse) ProtoMessage() {}
 
 func (x *GetRiskLimitsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[31]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2410,7 +4325,7 @@ func (x *GetRiskLimitsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRiskLimitsResponse.ProtoReflect.Descriptor instead.
 func (*GetRiskLimitsResponse) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{31}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *GetRiskLimitsResponse) GetScope() string {
@@ -2445,7 +4360,7 @@ type SetRiskLimitsRequest struct {
 
 func (x *SetRiskLimitsRequest) Reset() {
 	*x = SetRiskLimitsRequest{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[32]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2457,7 +4372,7 @@ func (x *SetRiskLimitsRequest) String() string {
 func (*SetRiskLimitsRequest) ProtoMessage() {}
 
 func (x *SetRiskLimitsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[32]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2470,7 +4385,7 @@ func (x *SetRiskLimitsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetRiskLimitsRequest.ProtoReflect.Descriptor instead.
 func (*SetRiskLimitsRequest) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{32}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *SetRiskLimitsRequest) GetScope() string {
@@ -2505,7 +4420,7 @@ type SetRiskLimitsResponse struct {
 
 func (x *SetRiskLimitsResponse) Reset() {
 	*x = SetRiskLimitsResponse{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[33]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2517,7 +4432,7 @@ func (x *SetRiskLimitsResponse) String() string {
 func (*SetRiskLimitsResponse) ProtoMessage() {}
 
 func (x *SetRiskLimitsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[33]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2530,7 +4445,7 @@ func (x *SetRiskLimitsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetRiskLimitsResponse.ProtoReflect.Descriptor instead.
 func (*SetRiskLimitsResponse) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{33}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *SetRiskLimitsResponse) GetLimits() *RiskLimits {
@@ -2560,7 +4475,7 @@ type TriggerKillSwitchRequest struct {
 
 func (x *TriggerKillSwitchRequest) Reset() {
 	*x = TriggerKillSwitchRequest{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[34]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2572,7 +4487,7 @@ func (x *TriggerKillSwitchRequest) String() string {
 func (*TriggerKillSwitchRequest) ProtoMessage() {}
 
 func (x *TriggerKillSwitchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[34]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2585,7 +4500,7 @@ func (x *TriggerKillSwitchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerKillSwitchRequest.ProtoReflect.Descriptor instead.
 func (*TriggerKillSwitchRequest) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{34}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *TriggerKillSwitchRequest) GetScope() KillSwitchScope {
@@ -2634,7 +4549,7 @@ type TriggerKillSwitchResponse struct {
 
 func (x *TriggerKillSwitchResponse) Reset() {
 	*x = TriggerKillSwitchResponse{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[35]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2646,7 +4561,7 @@ func (x *TriggerKillSwitchResponse) String() string {
 func (*TriggerKillSwitchResponse) ProtoMessage() {}
 
 func (x *TriggerKillSwitchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[35]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2659,7 +4574,7 @@ func (x *TriggerKillSwitchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerKillSwitchResponse.ProtoReflect.Descriptor instead.
 func (*TriggerKillSwitchResponse) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{35}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *TriggerKillSwitchResponse) GetKillSwitch() *KillSwitch {
@@ -2694,7 +4609,7 @@ type ReleaseKillSwitchRequest struct {
 
 func (x *ReleaseKillSwitchRequest) Reset() {
 	*x = ReleaseKillSwitchRequest{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[36]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2706,7 +4621,7 @@ func (x *ReleaseKillSwitchRequest) String() string {
 func (*ReleaseKillSwitchRequest) ProtoMessage() {}
 
 func (x *ReleaseKillSwitchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[36]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2719,7 +4634,7 @@ func (x *ReleaseKillSwitchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseKillSwitchRequest.ProtoReflect.Descriptor instead.
 func (*ReleaseKillSwitchRequest) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{36}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *ReleaseKillSwitchRequest) GetEventId() string {
@@ -2752,7 +4667,7 @@ type ReleaseKillSwitchResponse struct {
 
 func (x *ReleaseKillSwitchResponse) Reset() {
 	*x = ReleaseKillSwitchResponse{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[37]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2764,7 +4679,7 @@ func (x *ReleaseKillSwitchResponse) String() string {
 func (*ReleaseKillSwitchResponse) ProtoMessage() {}
 
 func (x *ReleaseKillSwitchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[37]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2777,7 +4692,7 @@ func (x *ReleaseKillSwitchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseKillSwitchResponse.ProtoReflect.Descriptor instead.
 func (*ReleaseKillSwitchResponse) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{37}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *ReleaseKillSwitchResponse) GetKillSwitch() *KillSwitch {
@@ -2796,7 +4711,7 @@ type ListKillSwitchesRequest struct {
 
 func (x *ListKillSwitchesRequest) Reset() {
 	*x = ListKillSwitchesRequest{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[38]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2808,7 +4723,7 @@ func (x *ListKillSwitchesRequest) String() string {
 func (*ListKillSwitchesRequest) ProtoMessage() {}
 
 func (x *ListKillSwitchesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[38]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2821,7 +4736,7 @@ func (x *ListKillSwitchesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKillSwitchesRequest.ProtoReflect.Descriptor instead.
 func (*ListKillSwitchesRequest) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{38}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *ListKillSwitchesRequest) GetActiveOnly() bool {
@@ -2840,7 +4755,7 @@ type ListKillSwitchesResponse struct {
 
 func (x *ListKillSwitchesResponse) Reset() {
 	*x = ListKillSwitchesResponse{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[39]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2852,7 +4767,7 @@ func (x *ListKillSwitchesResponse) String() string {
 func (*ListKillSwitchesResponse) ProtoMessage() {}
 
 func (x *ListKillSwitchesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[39]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2865,7 +4780,7 @@ func (x *ListKillSwitchesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKillSwitchesResponse.ProtoReflect.Descriptor instead.
 func (*ListKillSwitchesResponse) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{39}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *ListKillSwitchesResponse) GetKillSwitches() []*KillSwitch {
@@ -2883,7 +4798,7 @@ type GetTradingStatusRequest struct {
 
 func (x *GetTradingStatusRequest) Reset() {
 	*x = GetTradingStatusRequest{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[40]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2895,7 +4810,7 @@ func (x *GetTradingStatusRequest) String() string {
 func (*GetTradingStatusRequest) ProtoMessage() {}
 
 func (x *GetTradingStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[40]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2908,7 +4823,7 @@ func (x *GetTradingStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTradingStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetTradingStatusRequest) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{40}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{66}
 }
 
 type GetTradingStatusResponse struct {
@@ -2920,7 +4835,7 @@ type GetTradingStatusResponse struct {
 
 func (x *GetTradingStatusResponse) Reset() {
 	*x = GetTradingStatusResponse{}
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[41]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2932,7 +4847,7 @@ func (x *GetTradingStatusResponse) String() string {
 func (*GetTradingStatusResponse) ProtoMessage() {}
 
 func (x *GetTradingStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_orders_v1_execution_proto_msgTypes[41]
+	mi := &file_tb_orders_v1_execution_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2945,7 +4860,7 @@ func (x *GetTradingStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTradingStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetTradingStatusResponse) Descriptor() ([]byte, []int) {
-	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{41}
+	return file_tb_orders_v1_execution_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *GetTradingStatusResponse) GetStatus() *TradingStatus {
@@ -2979,7 +4894,7 @@ const file_tb_orders_v1_execution_proto_rawDesc = "" +
 	"\x10price_collar_pct\x18\x0e \x01(\v2\x15.tb.common.v1.DecimalR\x0epriceCollarPct\x128\n" +
 	"\x18duplicate_window_seconds\x18\x0f \x01(\x05R\x16duplicateWindowSeconds\x12E\n" +
 	"\x13fat_finger_multiple\x18\x10 \x01(\v2\x15.tb.common.v1.DecimalR\x11fatFingerMultiple\x12&\n" +
-	"\x0fmax_open_orders\x18\x11 \x01(\x05R\rmaxOpenOrders\"\xb2\x04\n" +
+	"\x0fmax_open_orders\x18\x11 \x01(\x05R\rmaxOpenOrders\"\xb2\a\n" +
 	"\bStrategy\x12\x1f\n" +
 	"\vstrategy_id\x18\x01 \x01(\tR\n" +
 	"strategyId\x12\x19\n" +
@@ -3002,7 +4917,163 @@ const file_tb_orders_v1_execution_proto_rawDesc = "" +
 	"modeReason\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\x0e \x01(\x03R\tupdatedAt\x12%\n" +
-	"\x0eruntime_hosted\x18\x0f \x01(\bR\rruntimeHosted\"\x8e\x03\n" +
+	"\x0eruntime_hosted\x18\x0f \x01(\bR\rruntimeHosted\x12?\n" +
+	"\x10live_capital_cap\x18\x10 \x01(\v2\x15.tb.common.v1.DecimalR\x0eliveCapitalCap\x12F\n" +
+	"\x13intended_allocation\x18\x11 \x01(\v2\x15.tb.common.v1.DecimalR\x12intendedAllocation\x12(\n" +
+	"\x10paper_account_id\x18\x12 \x01(\tR\x0epaperAccountId\x12\x1f\n" +
+	"\vladder_step\x18\x13 \x01(\x05R\n" +
+	"ladderStep\x12.\n" +
+	"\x13ladder_window_start\x18\x14 \x01(\x03R\x11ladderWindowStart\x12\"\n" +
+	"\rpaper_twin_of\x18\x15 \x01(\tR\vpaperTwinOf\x12(\n" +
+	"\x10live_promoted_at\x18\x16 \x01(\x03R\x0elivePromotedAt\x12,\n" +
+	"\x12live_evidence_hash\x18\x17 \x01(\tR\x10liveEvidenceHash\"\x92\x02\n" +
+	"\rReadinessItem\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
+	"\asection\x18\x02 \x01(\tR\asection\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x12\x1c\n" +
+	"\tautomated\x18\x05 \x01(\bR\tautomated\x12\x1d\n" +
+	"\n" +
+	"checked_by\x18\x06 \x01(\tR\tcheckedBy\x12\x1d\n" +
+	"\n" +
+	"checked_at\x18\a \x01(\x03R\tcheckedAt\x12\x12\n" +
+	"\x04note\x18\b \x01(\tR\x04note\x12!\n" +
+	"\fevidence_url\x18\t \x01(\tR\vevidenceUrl\x12\x16\n" +
+	"\x06detail\x18\n" +
+	" \x01(\tR\x06detail\"\xca\x01\n" +
+	"\rLiveReadiness\x12*\n" +
+	"\x11broker_account_id\x18\x01 \x01(\tR\x0fbrokerAccountId\x121\n" +
+	"\x05items\x18\x02 \x03(\v2\x1b.tb.orders.v1.ReadinessItemR\x05items\x12\x1a\n" +
+	"\bcomplete\x18\x03 \x01(\bR\bcomplete\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x04 \x01(\x03R\tupdatedAt\x12\x1f\n" +
+	"\vrecord_hash\x18\x05 \x01(\tR\n" +
+	"recordHash\"\xa5\x01\n" +
+	"\x13GraduationCriterion\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
+	"\brequired\x18\x02 \x01(\tR\brequired\x12\x16\n" +
+	"\x06actual\x18\x03 \x01(\tR\x06actual\x12\x16\n" +
+	"\x06passed\x18\x04 \x01(\bR\x06passed\x12\x16\n" +
+	"\x06source\x18\x05 \x01(\tR\x06source\x12\x16\n" +
+	"\x06detail\x18\x06 \x01(\tR\x06detail\"\xdc\x03\n" +
+	"\x10GraduationReport\x12\x1f\n" +
+	"\vstrategy_id\x18\x01 \x01(\tR\n" +
+	"strategyId\x12=\n" +
+	"\bcriteria\x18\x02 \x03(\v2!.tb.orders.v1.GraduationCriterionR\bcriteria\x12\x18\n" +
+	"\aoverall\x18\x03 \x01(\bR\aoverall\x12\x1f\n" +
+	"\vcomputed_at\x18\x04 \x01(\x03R\n" +
+	"computedAt\x12%\n" +
+	"\x0eevidence_links\x18\x05 \x03(\tR\revidenceLinks\x12\x1f\n" +
+	"\vreport_hash\x18\x06 \x01(\tR\n" +
+	"reportHash\x12%\n" +
+	"\x0epaper_sessions\x18\a \x01(\x05R\rpaperSessions\x12!\n" +
+	"\fpaper_trades\x18\b \x01(\x05R\vpaperTrades\x12%\n" +
+	"\x0eregistry_stage\x18\t \x01(\tR\rregistryStage\x122\n" +
+	"\x15paper_session_returns\x18\n" +
+	" \x03(\x01R\x13paperSessionReturns\x12!\n" +
+	"\fwindow_start\x18\v \x01(\x03R\vwindowStart\x12\x1d\n" +
+	"\n" +
+	"window_end\x18\f \x01(\x03R\twindowEnd\"\xf6\x03\n" +
+	"\x11LiveAccountStatus\x12*\n" +
+	"\x11broker_account_id\x18\x01 \x01(\tR\x0fbrokerAccountId\x12\x18\n" +
+	"\aenabled\x18\x02 \x01(\bR\aenabled\x12\x1d\n" +
+	"\n" +
+	"enabled_by\x18\x03 \x01(\tR\tenabledBy\x12\x1b\n" +
+	"\taudit_seq\x18\x04 \x01(\x03R\bauditSeq\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x05 \x01(\x03R\tupdatedAt\x12#\n" +
+	"\rsession_state\x18\x06 \x01(\tR\fsessionState\x12+\n" +
+	"\x11credential_stored\x18\a \x01(\bR\x10credentialStored\x12-\n" +
+	"\x12readiness_complete\x18\b \x01(\bR\x11readinessComplete\x12\x1f\n" +
+	"\vopen_breaks\x18\t \x01(\x05R\n" +
+	"openBreaks\x12'\n" +
+	"\x0flive_strategies\x18\n" +
+	" \x03(\tR\x0eliveStrategies\x12,\n" +
+	"\x12read_only_sessions\x18\v \x01(\x05R\x10readOnlySessions\x12%\n" +
+	"\x0eorders_enabled\x18\f \x01(\bR\rordersEnabled\x12 \n" +
+	"\venvironment\x18\r \x01(\tR\venvironment\"\x82\x02\n" +
+	"\n" +
+	"LiveStatus\x12!\n" +
+	"\fflag_enabled\x18\x01 \x01(\bR\vflagEnabled\x12;\n" +
+	"\baccounts\x18\x02 \x03(\v2\x1f.tb.orders.v1.LiveAccountStatusR\baccounts\x12?\n" +
+	"\x0flive_strategies\x18\x03 \x03(\v2\x16.tb.orders.v1.StrategyR\x0eliveStrategies\x12>\n" +
+	"\n" +
+	"candidates\x18\x04 \x03(\v2\x1e.tb.orders.v1.GraduationReportR\n" +
+	"candidates\x12\x13\n" +
+	"\x05as_of\x18\x05 \x01(\x03R\x04asOf\"\x16\n" +
+	"\x14GetLiveStatusRequest\"I\n" +
+	"\x15GetLiveStatusResponse\x120\n" +
+	"\x06status\x18\x01 \x01(\v2\x18.tb.orders.v1.LiveStatusR\x06status\"E\n" +
+	"\x17GetLiveReadinessRequest\x12*\n" +
+	"\x11broker_account_id\x18\x01 \x01(\tR\x0fbrokerAccountId\"U\n" +
+	"\x18GetLiveReadinessResponse\x129\n" +
+	"\treadiness\x18\x01 \x01(\v2\x1b.tb.orders.v1.LiveReadinessR\treadiness\"\xd8\x01\n" +
+	"\x17SetReadinessItemRequest\x12*\n" +
+	"\x11broker_account_id\x18\x01 \x01(\tR\x0fbrokerAccountId\x12\x17\n" +
+	"\aitem_id\x18\x02 \x01(\tR\x06itemId\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x12\x12\n" +
+	"\x04note\x18\x04 \x01(\tR\x04note\x12!\n" +
+	"\fevidence_url\x18\x05 \x01(\tR\vevidenceUrl\x12)\n" +
+	"\x05actor\x18\x06 \x01(\v2\x13.tb.orders.v1.ActorR\x05actor\"U\n" +
+	"\x18SetReadinessItemResponse\x129\n" +
+	"\treadiness\x18\x01 \x01(\v2\x1b.tb.orders.v1.LiveReadinessR\treadiness\"=\n" +
+	"\x1aGetGraduationReportRequest\x12\x1f\n" +
+	"\vstrategy_id\x18\x01 \x01(\tR\n" +
+	"strategyId\"U\n" +
+	"\x1bGetGraduationReportResponse\x126\n" +
+	"\x06report\x18\x01 \x01(\v2\x1e.tb.orders.v1.GraduationReportR\x06report\"\xab\x01\n" +
+	"\x18EnableLiveAccountRequest\x12*\n" +
+	"\x11broker_account_id\x18\x01 \x01(\tR\x0fbrokerAccountId\x12\"\n" +
+	"\fconfirmation\x18\x02 \x01(\tR\fconfirmation\x12)\n" +
+	"\x05actor\x18\x03 \x01(\v2\x13.tb.orders.v1.ActorR\x05actor\x12\x14\n" +
+	"\x05stage\x18\x04 \x01(\tR\x05stage\"V\n" +
+	"\x19EnableLiveAccountResponse\x129\n" +
+	"\aaccount\x18\x01 \x01(\v2\x1f.tb.orders.v1.LiveAccountStatusR\aaccount\"\x8a\x01\n" +
+	"\x19DisableLiveAccountRequest\x12*\n" +
+	"\x11broker_account_id\x18\x01 \x01(\tR\x0fbrokerAccountId\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\x12)\n" +
+	"\x05actor\x18\x03 \x01(\v2\x13.tb.orders.v1.ActorR\x05actor\"\xaf\x01\n" +
+	"\x1aDisableLiveAccountResponse\x129\n" +
+	"\aaccount\x18\x01 \x01(\v2\x1f.tb.orders.v1.LiveAccountStatusR\aaccount\x12'\n" +
+	"\x0forders_canceled\x18\x02 \x01(\x05R\x0eordersCanceled\x12-\n" +
+	"\x12demoted_strategies\x18\x03 \x03(\tR\x11demotedStrategies\"\x99\x03\n" +
+	"\x14PromoteToLiveRequest\x12\x1f\n" +
+	"\vstrategy_id\x18\x01 \x01(\tR\n" +
+	"strategyId\x12&\n" +
+	"\x0flive_account_id\x18\x02 \x01(\tR\rliveAccountId\x126\n" +
+	"\vcapital_cap\x18\x03 \x01(\v2\x15.tb.common.v1.DecimalR\n" +
+	"capitalCap\x12F\n" +
+	"\x13intended_allocation\x18\x04 \x01(\v2\x15.tb.common.v1.DecimalR\x12intendedAllocation\x12A\n" +
+	"\x0flimit_overrides\x18\x05 \x01(\v2\x18.tb.orders.v1.RiskLimitsR\x0elimitOverrides\x12\"\n" +
+	"\fconfirmation\x18\x06 \x01(\tR\fconfirmation\x12&\n" +
+	"\x0fskip_paper_twin\x18\a \x01(\bR\rskipPaperTwin\x12)\n" +
+	"\x05actor\x18\b \x01(\v2\x13.tb.orders.v1.ActorR\x05actor\"\xf5\x01\n" +
+	"\x15PromoteToLiveResponse\x122\n" +
+	"\bstrategy\x18\x01 \x01(\v2\x16.tb.orders.v1.StrategyR\bstrategy\x126\n" +
+	"\x06report\x18\x02 \x01(\v2\x1e.tb.orders.v1.GraduationReportR\x06report\x129\n" +
+	"\vlive_limits\x18\x03 \x01(\v2\x18.tb.orders.v1.RiskLimitsR\n" +
+	"liveLimits\x125\n" +
+	"\n" +
+	"paper_twin\x18\x04 \x01(\v2\x16.tb.orders.v1.StrategyR\tpaperTwin\"\xa4\x01\n" +
+	"\x15DemoteFromLiveRequest\x12\x1f\n" +
+	"\vstrategy_id\x18\x01 \x01(\tR\n" +
+	"strategyId\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\x12'\n" +
+	"\x0fposition_policy\x18\x03 \x01(\tR\x0epositionPolicy\x12)\n" +
+	"\x05actor\x18\x04 \x01(\v2\x13.tb.orders.v1.ActorR\x05actor\"\x9e\x01\n" +
+	"\x16DemoteFromLiveResponse\x122\n" +
+	"\bstrategy\x18\x01 \x01(\v2\x16.tb.orders.v1.StrategyR\bstrategy\x12'\n" +
+	"\x0forders_canceled\x18\x02 \x01(\x05R\x0eordersCanceled\x12'\n" +
+	"\x0fflatten_intents\x18\x03 \x01(\x05R\x0eflattenIntents\"\xb5\x01\n" +
+	"\x13RaiseLiveCapRequest\x12\x1f\n" +
+	"\vstrategy_id\x18\x01 \x01(\tR\n" +
+	"strategyId\x12.\n" +
+	"\anew_cap\x18\x02 \x01(\v2\x15.tb.common.v1.DecimalR\x06newCap\x12\"\n" +
+	"\fconfirmation\x18\x03 \x01(\tR\fconfirmation\x12)\n" +
+	"\x05actor\x18\x04 \x01(\v2\x13.tb.orders.v1.ActorR\x05actor\"\x98\x01\n" +
+	"\x14RaiseLiveCapResponse\x122\n" +
+	"\bstrategy\x18\x01 \x01(\v2\x16.tb.orders.v1.StrategyR\bstrategy\x12L\n" +
+	"\x12live_window_report\x18\x02 \x01(\v2\x1e.tb.orders.v1.GraduationReportR\x10liveWindowReport\"\x8e\x03\n" +
 	"\n" +
 	"KillSwitch\x12\x19\n" +
 	"\bevent_id\x18\x01 \x01(\tR\aeventId\x123\n" +
@@ -3163,7 +5234,21 @@ const file_tb_orders_v1_execution_proto_rawDesc = "" +
 	"\x06reason\x18\x03 \x01(\tR\x06reason\x12)\n" +
 	"\x05actor\x18\x04 \x01(\v2\x13.tb.orders.v1.ActorR\x05actor\"M\n" +
 	"\x17SetStrategyModeResponse\x122\n" +
-	"\bstrategy\x18\x01 \x01(\v2\x16.tb.orders.v1.StrategyR\bstrategy\",\n" +
+	"\bstrategy\x18\x01 \x01(\v2\x16.tb.orders.v1.StrategyR\bstrategy\"\xc3\x01\n" +
+	"\x15DemoteStrategyRequest\x12\x1f\n" +
+	"\vstrategy_id\x18\x01 \x01(\tR\n" +
+	"strategyId\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\x12\x1f\n" +
+	"\vevidence_id\x18\x03 \x01(\tR\n" +
+	"evidenceId\x12)\n" +
+	"\x05actor\x18\x04 \x01(\v2\x13.tb.orders.v1.ActorR\x05actor\x12%\n" +
+	"\x0ecorrelation_id\x18\x05 \x01(\tR\rcorrelationId\"\xf0\x01\n" +
+	"\x16DemoteStrategyResponse\x122\n" +
+	"\bstrategy\x18\x01 \x01(\v2\x16.tb.orders.v1.StrategyR\bstrategy\x12.\n" +
+	"\x04from\x18\x02 \x01(\x0e2\x1a.tb.orders.v1.StrategyModeR\x04from\x12\x18\n" +
+	"\achanged\x18\x03 \x01(\bR\achanged\x12/\n" +
+	"\x14kill_switch_event_id\x18\x04 \x01(\tR\x11killSwitchEventId\x12'\n" +
+	"\x0forders_canceled\x18\x05 \x01(\x05R\x0eordersCanceled\",\n" +
 	"\x14GetRiskLimitsRequest\x12\x14\n" +
 	"\x05scope\x18\x01 \x01(\tR\x05scope\"\x97\x01\n" +
 	"\x15GetRiskLimitsResponse\x12\x14\n" +
@@ -3209,7 +5294,7 @@ const file_tb_orders_v1_execution_proto_rawDesc = "" +
 	"\x14STRATEGY_MODE_SHADOW\x10\x02\x12\x17\n" +
 	"\x13STRATEGY_MODE_PAPER\x10\x03\x12\x16\n" +
 	"\x12STRATEGY_MODE_LIVE\x10\x04\x12\x18\n" +
-	"\x14STRATEGY_MODE_HALTED\x10\x052\xbe\v\n" +
+	"\x14STRATEGY_MODE_HALTED\x10\x052\x84\x13\n" +
 	"\x10ExecutionService\x12U\n" +
 	"\fSubmitIntent\x12!.tb.orders.v1.SubmitIntentRequest\x1a\".tb.orders.v1.SubmitIntentResponse\x12X\n" +
 	"\rPreviewIntent\x12\".tb.orders.v1.PreviewIntentRequest\x1a#.tb.orders.v1.PreviewIntentResponse\x12U\n" +
@@ -3227,7 +5312,17 @@ const file_tb_orders_v1_execution_proto_rawDesc = "" +
 	"\x11TriggerKillSwitch\x12&.tb.orders.v1.TriggerKillSwitchRequest\x1a'.tb.orders.v1.TriggerKillSwitchResponse\x12d\n" +
 	"\x11ReleaseKillSwitch\x12&.tb.orders.v1.ReleaseKillSwitchRequest\x1a'.tb.orders.v1.ReleaseKillSwitchResponse\x12a\n" +
 	"\x10ListKillSwitches\x12%.tb.orders.v1.ListKillSwitchesRequest\x1a&.tb.orders.v1.ListKillSwitchesResponse\x12a\n" +
-	"\x10GetTradingStatus\x12%.tb.orders.v1.GetTradingStatusRequest\x1a&.tb.orders.v1.GetTradingStatusResponseB\xbb\x01\n" +
+	"\x10GetTradingStatus\x12%.tb.orders.v1.GetTradingStatusRequest\x1a&.tb.orders.v1.GetTradingStatusResponse\x12[\n" +
+	"\x0eDemoteStrategy\x12#.tb.orders.v1.DemoteStrategyRequest\x1a$.tb.orders.v1.DemoteStrategyResponse\x12X\n" +
+	"\rGetLiveStatus\x12\".tb.orders.v1.GetLiveStatusRequest\x1a#.tb.orders.v1.GetLiveStatusResponse\x12a\n" +
+	"\x10GetLiveReadiness\x12%.tb.orders.v1.GetLiveReadinessRequest\x1a&.tb.orders.v1.GetLiveReadinessResponse\x12a\n" +
+	"\x10SetReadinessItem\x12%.tb.orders.v1.SetReadinessItemRequest\x1a&.tb.orders.v1.SetReadinessItemResponse\x12j\n" +
+	"\x13GetGraduationReport\x12(.tb.orders.v1.GetGraduationReportRequest\x1a).tb.orders.v1.GetGraduationReportResponse\x12d\n" +
+	"\x11EnableLiveAccount\x12&.tb.orders.v1.EnableLiveAccountRequest\x1a'.tb.orders.v1.EnableLiveAccountResponse\x12g\n" +
+	"\x12DisableLiveAccount\x12'.tb.orders.v1.DisableLiveAccountRequest\x1a(.tb.orders.v1.DisableLiveAccountResponse\x12X\n" +
+	"\rPromoteToLive\x12\".tb.orders.v1.PromoteToLiveRequest\x1a#.tb.orders.v1.PromoteToLiveResponse\x12[\n" +
+	"\x0eDemoteFromLive\x12#.tb.orders.v1.DemoteFromLiveRequest\x1a$.tb.orders.v1.DemoteFromLiveResponse\x12U\n" +
+	"\fRaiseLiveCap\x12!.tb.orders.v1.RaiseLiveCapRequest\x1a\".tb.orders.v1.RaiseLiveCapResponseB\xbb\x01\n" +
 	"\x10com.tb.orders.v1B\x0eExecutionProtoP\x01ZEgithub.com/illyanyc/strawberry/contracts/gen/go/tb/orders/v1;ordersv1\xa2\x02\x03TOX\xaa\x02\fTb.Orders.V1\xca\x02\fTb\\Orders\\V1\xe2\x02\x18Tb\\Orders\\V1\\GPBMetadata\xea\x02\x0eTb::Orders::V1b\x06proto3"
 
 var (
@@ -3243,161 +5338,240 @@ func file_tb_orders_v1_execution_proto_rawDescGZIP() []byte {
 }
 
 var file_tb_orders_v1_execution_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_tb_orders_v1_execution_proto_msgTypes = make([]protoimpl.MessageInfo, 42)
+var file_tb_orders_v1_execution_proto_msgTypes = make([]protoimpl.MessageInfo, 68)
 var file_tb_orders_v1_execution_proto_goTypes = []any{
-	(StrategyMode)(0),                 // 0: tb.orders.v1.StrategyMode
-	(*RiskLimits)(nil),                // 1: tb.orders.v1.RiskLimits
-	(*Strategy)(nil),                  // 2: tb.orders.v1.Strategy
-	(*KillSwitch)(nil),                // 3: tb.orders.v1.KillSwitch
-	(*Halt)(nil),                      // 4: tb.orders.v1.Halt
-	(*IntentRecord)(nil),              // 5: tb.orders.v1.IntentRecord
-	(*Fill)(nil),                      // 6: tb.orders.v1.Fill
-	(*AccountTradingStatus)(nil),      // 7: tb.orders.v1.AccountTradingStatus
-	(*StrategyTradingStatus)(nil),     // 8: tb.orders.v1.StrategyTradingStatus
-	(*TradingStatus)(nil),             // 9: tb.orders.v1.TradingStatus
-	(*Actor)(nil),                     // 10: tb.orders.v1.Actor
-	(*SubmitIntentRequest)(nil),       // 11: tb.orders.v1.SubmitIntentRequest
-	(*SubmitIntentResponse)(nil),      // 12: tb.orders.v1.SubmitIntentResponse
-	(*PreviewIntentRequest)(nil),      // 13: tb.orders.v1.PreviewIntentRequest
-	(*PreviewIntentResponse)(nil),     // 14: tb.orders.v1.PreviewIntentResponse
-	(*CancelIntentRequest)(nil),       // 15: tb.orders.v1.CancelIntentRequest
-	(*CancelIntentResponse)(nil),      // 16: tb.orders.v1.CancelIntentResponse
-	(*ListOrdersRequest)(nil),         // 17: tb.orders.v1.ListOrdersRequest
-	(*ListOrdersResponse)(nil),        // 18: tb.orders.v1.ListOrdersResponse
-	(*ListIntentsRequest)(nil),        // 19: tb.orders.v1.ListIntentsRequest
-	(*ListIntentsResponse)(nil),       // 20: tb.orders.v1.ListIntentsResponse
-	(*ListFillsRequest)(nil),          // 21: tb.orders.v1.ListFillsRequest
-	(*ListFillsResponse)(nil),         // 22: tb.orders.v1.ListFillsResponse
-	(*GetTraceRequest)(nil),           // 23: tb.orders.v1.GetTraceRequest
-	(*GetTraceResponse)(nil),          // 24: tb.orders.v1.GetTraceResponse
-	(*ListStrategiesRequest)(nil),     // 25: tb.orders.v1.ListStrategiesRequest
-	(*ListStrategiesResponse)(nil),    // 26: tb.orders.v1.ListStrategiesResponse
-	(*RegisterStrategyRequest)(nil),   // 27: tb.orders.v1.RegisterStrategyRequest
-	(*RegisterStrategyResponse)(nil),  // 28: tb.orders.v1.RegisterStrategyResponse
-	(*SetStrategyModeRequest)(nil),    // 29: tb.orders.v1.SetStrategyModeRequest
-	(*SetStrategyModeResponse)(nil),   // 30: tb.orders.v1.SetStrategyModeResponse
-	(*GetRiskLimitsRequest)(nil),      // 31: tb.orders.v1.GetRiskLimitsRequest
-	(*GetRiskLimitsResponse)(nil),     // 32: tb.orders.v1.GetRiskLimitsResponse
-	(*SetRiskLimitsRequest)(nil),      // 33: tb.orders.v1.SetRiskLimitsRequest
-	(*SetRiskLimitsResponse)(nil),     // 34: tb.orders.v1.SetRiskLimitsResponse
-	(*TriggerKillSwitchRequest)(nil),  // 35: tb.orders.v1.TriggerKillSwitchRequest
-	(*TriggerKillSwitchResponse)(nil), // 36: tb.orders.v1.TriggerKillSwitchResponse
-	(*ReleaseKillSwitchRequest)(nil),  // 37: tb.orders.v1.ReleaseKillSwitchRequest
-	(*ReleaseKillSwitchResponse)(nil), // 38: tb.orders.v1.ReleaseKillSwitchResponse
-	(*ListKillSwitchesRequest)(nil),   // 39: tb.orders.v1.ListKillSwitchesRequest
-	(*ListKillSwitchesResponse)(nil),  // 40: tb.orders.v1.ListKillSwitchesResponse
-	(*GetTradingStatusRequest)(nil),   // 41: tb.orders.v1.GetTradingStatusRequest
-	(*GetTradingStatusResponse)(nil),  // 42: tb.orders.v1.GetTradingStatusResponse
-	(*v1.Decimal)(nil),                // 43: tb.common.v1.Decimal
-	(v1.Horizon)(0),                   // 44: tb.common.v1.Horizon
-	(KillSwitchScope)(0),              // 45: tb.orders.v1.KillSwitchScope
-	(KillSwitchAction)(0),             // 46: tb.orders.v1.KillSwitchAction
-	(*OrderIntent)(nil),               // 47: tb.orders.v1.OrderIntent
-	(*RiskDecision)(nil),              // 48: tb.orders.v1.RiskDecision
-	(v1.Side)(0),                      // 49: tb.common.v1.Side
-	(*Order)(nil),                     // 50: tb.orders.v1.Order
+	(StrategyMode)(0),                   // 0: tb.orders.v1.StrategyMode
+	(*RiskLimits)(nil),                  // 1: tb.orders.v1.RiskLimits
+	(*Strategy)(nil),                    // 2: tb.orders.v1.Strategy
+	(*ReadinessItem)(nil),               // 3: tb.orders.v1.ReadinessItem
+	(*LiveReadiness)(nil),               // 4: tb.orders.v1.LiveReadiness
+	(*GraduationCriterion)(nil),         // 5: tb.orders.v1.GraduationCriterion
+	(*GraduationReport)(nil),            // 6: tb.orders.v1.GraduationReport
+	(*LiveAccountStatus)(nil),           // 7: tb.orders.v1.LiveAccountStatus
+	(*LiveStatus)(nil),                  // 8: tb.orders.v1.LiveStatus
+	(*GetLiveStatusRequest)(nil),        // 9: tb.orders.v1.GetLiveStatusRequest
+	(*GetLiveStatusResponse)(nil),       // 10: tb.orders.v1.GetLiveStatusResponse
+	(*GetLiveReadinessRequest)(nil),     // 11: tb.orders.v1.GetLiveReadinessRequest
+	(*GetLiveReadinessResponse)(nil),    // 12: tb.orders.v1.GetLiveReadinessResponse
+	(*SetReadinessItemRequest)(nil),     // 13: tb.orders.v1.SetReadinessItemRequest
+	(*SetReadinessItemResponse)(nil),    // 14: tb.orders.v1.SetReadinessItemResponse
+	(*GetGraduationReportRequest)(nil),  // 15: tb.orders.v1.GetGraduationReportRequest
+	(*GetGraduationReportResponse)(nil), // 16: tb.orders.v1.GetGraduationReportResponse
+	(*EnableLiveAccountRequest)(nil),    // 17: tb.orders.v1.EnableLiveAccountRequest
+	(*EnableLiveAccountResponse)(nil),   // 18: tb.orders.v1.EnableLiveAccountResponse
+	(*DisableLiveAccountRequest)(nil),   // 19: tb.orders.v1.DisableLiveAccountRequest
+	(*DisableLiveAccountResponse)(nil),  // 20: tb.orders.v1.DisableLiveAccountResponse
+	(*PromoteToLiveRequest)(nil),        // 21: tb.orders.v1.PromoteToLiveRequest
+	(*PromoteToLiveResponse)(nil),       // 22: tb.orders.v1.PromoteToLiveResponse
+	(*DemoteFromLiveRequest)(nil),       // 23: tb.orders.v1.DemoteFromLiveRequest
+	(*DemoteFromLiveResponse)(nil),      // 24: tb.orders.v1.DemoteFromLiveResponse
+	(*RaiseLiveCapRequest)(nil),         // 25: tb.orders.v1.RaiseLiveCapRequest
+	(*RaiseLiveCapResponse)(nil),        // 26: tb.orders.v1.RaiseLiveCapResponse
+	(*KillSwitch)(nil),                  // 27: tb.orders.v1.KillSwitch
+	(*Halt)(nil),                        // 28: tb.orders.v1.Halt
+	(*IntentRecord)(nil),                // 29: tb.orders.v1.IntentRecord
+	(*Fill)(nil),                        // 30: tb.orders.v1.Fill
+	(*AccountTradingStatus)(nil),        // 31: tb.orders.v1.AccountTradingStatus
+	(*StrategyTradingStatus)(nil),       // 32: tb.orders.v1.StrategyTradingStatus
+	(*TradingStatus)(nil),               // 33: tb.orders.v1.TradingStatus
+	(*Actor)(nil),                       // 34: tb.orders.v1.Actor
+	(*SubmitIntentRequest)(nil),         // 35: tb.orders.v1.SubmitIntentRequest
+	(*SubmitIntentResponse)(nil),        // 36: tb.orders.v1.SubmitIntentResponse
+	(*PreviewIntentRequest)(nil),        // 37: tb.orders.v1.PreviewIntentRequest
+	(*PreviewIntentResponse)(nil),       // 38: tb.orders.v1.PreviewIntentResponse
+	(*CancelIntentRequest)(nil),         // 39: tb.orders.v1.CancelIntentRequest
+	(*CancelIntentResponse)(nil),        // 40: tb.orders.v1.CancelIntentResponse
+	(*ListOrdersRequest)(nil),           // 41: tb.orders.v1.ListOrdersRequest
+	(*ListOrdersResponse)(nil),          // 42: tb.orders.v1.ListOrdersResponse
+	(*ListIntentsRequest)(nil),          // 43: tb.orders.v1.ListIntentsRequest
+	(*ListIntentsResponse)(nil),         // 44: tb.orders.v1.ListIntentsResponse
+	(*ListFillsRequest)(nil),            // 45: tb.orders.v1.ListFillsRequest
+	(*ListFillsResponse)(nil),           // 46: tb.orders.v1.ListFillsResponse
+	(*GetTraceRequest)(nil),             // 47: tb.orders.v1.GetTraceRequest
+	(*GetTraceResponse)(nil),            // 48: tb.orders.v1.GetTraceResponse
+	(*ListStrategiesRequest)(nil),       // 49: tb.orders.v1.ListStrategiesRequest
+	(*ListStrategiesResponse)(nil),      // 50: tb.orders.v1.ListStrategiesResponse
+	(*RegisterStrategyRequest)(nil),     // 51: tb.orders.v1.RegisterStrategyRequest
+	(*RegisterStrategyResponse)(nil),    // 52: tb.orders.v1.RegisterStrategyResponse
+	(*SetStrategyModeRequest)(nil),      // 53: tb.orders.v1.SetStrategyModeRequest
+	(*SetStrategyModeResponse)(nil),     // 54: tb.orders.v1.SetStrategyModeResponse
+	(*DemoteStrategyRequest)(nil),       // 55: tb.orders.v1.DemoteStrategyRequest
+	(*DemoteStrategyResponse)(nil),      // 56: tb.orders.v1.DemoteStrategyResponse
+	(*GetRiskLimitsRequest)(nil),        // 57: tb.orders.v1.GetRiskLimitsRequest
+	(*GetRiskLimitsResponse)(nil),       // 58: tb.orders.v1.GetRiskLimitsResponse
+	(*SetRiskLimitsRequest)(nil),        // 59: tb.orders.v1.SetRiskLimitsRequest
+	(*SetRiskLimitsResponse)(nil),       // 60: tb.orders.v1.SetRiskLimitsResponse
+	(*TriggerKillSwitchRequest)(nil),    // 61: tb.orders.v1.TriggerKillSwitchRequest
+	(*TriggerKillSwitchResponse)(nil),   // 62: tb.orders.v1.TriggerKillSwitchResponse
+	(*ReleaseKillSwitchRequest)(nil),    // 63: tb.orders.v1.ReleaseKillSwitchRequest
+	(*ReleaseKillSwitchResponse)(nil),   // 64: tb.orders.v1.ReleaseKillSwitchResponse
+	(*ListKillSwitchesRequest)(nil),     // 65: tb.orders.v1.ListKillSwitchesRequest
+	(*ListKillSwitchesResponse)(nil),    // 66: tb.orders.v1.ListKillSwitchesResponse
+	(*GetTradingStatusRequest)(nil),     // 67: tb.orders.v1.GetTradingStatusRequest
+	(*GetTradingStatusResponse)(nil),    // 68: tb.orders.v1.GetTradingStatusResponse
+	(*v1.Decimal)(nil),                  // 69: tb.common.v1.Decimal
+	(v1.Horizon)(0),                     // 70: tb.common.v1.Horizon
+	(KillSwitchScope)(0),                // 71: tb.orders.v1.KillSwitchScope
+	(KillSwitchAction)(0),               // 72: tb.orders.v1.KillSwitchAction
+	(*OrderIntent)(nil),                 // 73: tb.orders.v1.OrderIntent
+	(*RiskDecision)(nil),                // 74: tb.orders.v1.RiskDecision
+	(v1.Side)(0),                        // 75: tb.common.v1.Side
+	(*Order)(nil),                       // 76: tb.orders.v1.Order
 }
 var file_tb_orders_v1_execution_proto_depIdxs = []int32{
-	43, // 0: tb.orders.v1.RiskLimits.max_order_notional:type_name -> tb.common.v1.Decimal
-	43, // 1: tb.orders.v1.RiskLimits.max_order_qty:type_name -> tb.common.v1.Decimal
-	43, // 2: tb.orders.v1.RiskLimits.max_position_notional:type_name -> tb.common.v1.Decimal
-	43, // 3: tb.orders.v1.RiskLimits.max_position_pct_allocation:type_name -> tb.common.v1.Decimal
-	43, // 4: tb.orders.v1.RiskLimits.max_gross_exposure:type_name -> tb.common.v1.Decimal
-	43, // 5: tb.orders.v1.RiskLimits.max_net_exposure:type_name -> tb.common.v1.Decimal
-	43, // 6: tb.orders.v1.RiskLimits.max_concentration_pct:type_name -> tb.common.v1.Decimal
-	43, // 7: tb.orders.v1.RiskLimits.max_daily_loss:type_name -> tb.common.v1.Decimal
-	43, // 8: tb.orders.v1.RiskLimits.max_drawdown:type_name -> tb.common.v1.Decimal
-	43, // 9: tb.orders.v1.RiskLimits.price_collar_pct:type_name -> tb.common.v1.Decimal
-	43, // 10: tb.orders.v1.RiskLimits.fat_finger_multiple:type_name -> tb.common.v1.Decimal
-	44, // 11: tb.orders.v1.Strategy.horizon:type_name -> tb.common.v1.Horizon
-	0,  // 12: tb.orders.v1.Strategy.mode:type_name -> tb.orders.v1.StrategyMode
-	1,  // 13: tb.orders.v1.Strategy.limits:type_name -> tb.orders.v1.RiskLimits
-	45, // 14: tb.orders.v1.KillSwitch.scope:type_name -> tb.orders.v1.KillSwitchScope
-	46, // 15: tb.orders.v1.KillSwitch.action:type_name -> tb.orders.v1.KillSwitchAction
-	47, // 16: tb.orders.v1.IntentRecord.intent:type_name -> tb.orders.v1.OrderIntent
-	48, // 17: tb.orders.v1.IntentRecord.decision:type_name -> tb.orders.v1.RiskDecision
-	49, // 18: tb.orders.v1.Fill.side:type_name -> tb.common.v1.Side
-	43, // 19: tb.orders.v1.Fill.qty:type_name -> tb.common.v1.Decimal
-	43, // 20: tb.orders.v1.Fill.price:type_name -> tb.common.v1.Decimal
-	43, // 21: tb.orders.v1.Fill.fees:type_name -> tb.common.v1.Decimal
-	43, // 22: tb.orders.v1.AccountTradingStatus.margin_utilization:type_name -> tb.common.v1.Decimal
-	0,  // 23: tb.orders.v1.StrategyTradingStatus.mode:type_name -> tb.orders.v1.StrategyMode
-	7,  // 24: tb.orders.v1.TradingStatus.accounts:type_name -> tb.orders.v1.AccountTradingStatus
-	8,  // 25: tb.orders.v1.TradingStatus.strategies:type_name -> tb.orders.v1.StrategyTradingStatus
-	3,  // 26: tb.orders.v1.TradingStatus.active_kill_switches:type_name -> tb.orders.v1.KillSwitch
-	4,  // 27: tb.orders.v1.TradingStatus.active_halts:type_name -> tb.orders.v1.Halt
-	47, // 28: tb.orders.v1.SubmitIntentRequest.intent:type_name -> tb.orders.v1.OrderIntent
-	10, // 29: tb.orders.v1.SubmitIntentRequest.actor:type_name -> tb.orders.v1.Actor
-	48, // 30: tb.orders.v1.SubmitIntentResponse.decision:type_name -> tb.orders.v1.RiskDecision
-	50, // 31: tb.orders.v1.SubmitIntentResponse.orders:type_name -> tb.orders.v1.Order
-	47, // 32: tb.orders.v1.PreviewIntentRequest.intent:type_name -> tb.orders.v1.OrderIntent
-	48, // 33: tb.orders.v1.PreviewIntentResponse.decision:type_name -> tb.orders.v1.RiskDecision
-	43, // 34: tb.orders.v1.PreviewIntentResponse.estimated_notional:type_name -> tb.common.v1.Decimal
-	43, // 35: tb.orders.v1.PreviewIntentResponse.estimated_price:type_name -> tb.common.v1.Decimal
-	10, // 36: tb.orders.v1.CancelIntentRequest.actor:type_name -> tb.orders.v1.Actor
-	50, // 37: tb.orders.v1.ListOrdersResponse.orders:type_name -> tb.orders.v1.Order
-	5,  // 38: tb.orders.v1.ListIntentsResponse.intents:type_name -> tb.orders.v1.IntentRecord
-	6,  // 39: tb.orders.v1.ListFillsResponse.fills:type_name -> tb.orders.v1.Fill
-	5,  // 40: tb.orders.v1.GetTraceResponse.intents:type_name -> tb.orders.v1.IntentRecord
-	50, // 41: tb.orders.v1.GetTraceResponse.orders:type_name -> tb.orders.v1.Order
-	6,  // 42: tb.orders.v1.GetTraceResponse.fills:type_name -> tb.orders.v1.Fill
-	2,  // 43: tb.orders.v1.ListStrategiesResponse.strategies:type_name -> tb.orders.v1.Strategy
-	2,  // 44: tb.orders.v1.RegisterStrategyRequest.strategy:type_name -> tb.orders.v1.Strategy
-	10, // 45: tb.orders.v1.RegisterStrategyRequest.actor:type_name -> tb.orders.v1.Actor
-	2,  // 46: tb.orders.v1.RegisterStrategyResponse.strategy:type_name -> tb.orders.v1.Strategy
-	0,  // 47: tb.orders.v1.SetStrategyModeRequest.mode:type_name -> tb.orders.v1.StrategyMode
-	10, // 48: tb.orders.v1.SetStrategyModeRequest.actor:type_name -> tb.orders.v1.Actor
-	2,  // 49: tb.orders.v1.SetStrategyModeResponse.strategy:type_name -> tb.orders.v1.Strategy
-	1,  // 50: tb.orders.v1.GetRiskLimitsResponse.limits:type_name -> tb.orders.v1.RiskLimits
-	1,  // 51: tb.orders.v1.GetRiskLimitsResponse.effective:type_name -> tb.orders.v1.RiskLimits
-	1,  // 52: tb.orders.v1.SetRiskLimitsRequest.limits:type_name -> tb.orders.v1.RiskLimits
-	10, // 53: tb.orders.v1.SetRiskLimitsRequest.actor:type_name -> tb.orders.v1.Actor
-	1,  // 54: tb.orders.v1.SetRiskLimitsResponse.limits:type_name -> tb.orders.v1.RiskLimits
-	45, // 55: tb.orders.v1.TriggerKillSwitchRequest.scope:type_name -> tb.orders.v1.KillSwitchScope
-	46, // 56: tb.orders.v1.TriggerKillSwitchRequest.action:type_name -> tb.orders.v1.KillSwitchAction
-	10, // 57: tb.orders.v1.TriggerKillSwitchRequest.actor:type_name -> tb.orders.v1.Actor
-	3,  // 58: tb.orders.v1.TriggerKillSwitchResponse.kill_switch:type_name -> tb.orders.v1.KillSwitch
-	10, // 59: tb.orders.v1.ReleaseKillSwitchRequest.actor:type_name -> tb.orders.v1.Actor
-	3,  // 60: tb.orders.v1.ReleaseKillSwitchResponse.kill_switch:type_name -> tb.orders.v1.KillSwitch
-	3,  // 61: tb.orders.v1.ListKillSwitchesResponse.kill_switches:type_name -> tb.orders.v1.KillSwitch
-	9,  // 62: tb.orders.v1.GetTradingStatusResponse.status:type_name -> tb.orders.v1.TradingStatus
-	11, // 63: tb.orders.v1.ExecutionService.SubmitIntent:input_type -> tb.orders.v1.SubmitIntentRequest
-	13, // 64: tb.orders.v1.ExecutionService.PreviewIntent:input_type -> tb.orders.v1.PreviewIntentRequest
-	15, // 65: tb.orders.v1.ExecutionService.CancelIntent:input_type -> tb.orders.v1.CancelIntentRequest
-	17, // 66: tb.orders.v1.ExecutionService.ListOrders:input_type -> tb.orders.v1.ListOrdersRequest
-	19, // 67: tb.orders.v1.ExecutionService.ListIntents:input_type -> tb.orders.v1.ListIntentsRequest
-	21, // 68: tb.orders.v1.ExecutionService.ListFills:input_type -> tb.orders.v1.ListFillsRequest
-	23, // 69: tb.orders.v1.ExecutionService.GetTrace:input_type -> tb.orders.v1.GetTraceRequest
-	25, // 70: tb.orders.v1.ExecutionService.ListStrategies:input_type -> tb.orders.v1.ListStrategiesRequest
-	27, // 71: tb.orders.v1.ExecutionService.RegisterStrategy:input_type -> tb.orders.v1.RegisterStrategyRequest
-	29, // 72: tb.orders.v1.ExecutionService.SetStrategyMode:input_type -> tb.orders.v1.SetStrategyModeRequest
-	31, // 73: tb.orders.v1.ExecutionService.GetRiskLimits:input_type -> tb.orders.v1.GetRiskLimitsRequest
-	33, // 74: tb.orders.v1.ExecutionService.SetRiskLimits:input_type -> tb.orders.v1.SetRiskLimitsRequest
-	35, // 75: tb.orders.v1.ExecutionService.TriggerKillSwitch:input_type -> tb.orders.v1.TriggerKillSwitchRequest
-	37, // 76: tb.orders.v1.ExecutionService.ReleaseKillSwitch:input_type -> tb.orders.v1.ReleaseKillSwitchRequest
-	39, // 77: tb.orders.v1.ExecutionService.ListKillSwitches:input_type -> tb.orders.v1.ListKillSwitchesRequest
-	41, // 78: tb.orders.v1.ExecutionService.GetTradingStatus:input_type -> tb.orders.v1.GetTradingStatusRequest
-	12, // 79: tb.orders.v1.ExecutionService.SubmitIntent:output_type -> tb.orders.v1.SubmitIntentResponse
-	14, // 80: tb.orders.v1.ExecutionService.PreviewIntent:output_type -> tb.orders.v1.PreviewIntentResponse
-	16, // 81: tb.orders.v1.ExecutionService.CancelIntent:output_type -> tb.orders.v1.CancelIntentResponse
-	18, // 82: tb.orders.v1.ExecutionService.ListOrders:output_type -> tb.orders.v1.ListOrdersResponse
-	20, // 83: tb.orders.v1.ExecutionService.ListIntents:output_type -> tb.orders.v1.ListIntentsResponse
-	22, // 84: tb.orders.v1.ExecutionService.ListFills:output_type -> tb.orders.v1.ListFillsResponse
-	24, // 85: tb.orders.v1.ExecutionService.GetTrace:output_type -> tb.orders.v1.GetTraceResponse
-	26, // 86: tb.orders.v1.ExecutionService.ListStrategies:output_type -> tb.orders.v1.ListStrategiesResponse
-	28, // 87: tb.orders.v1.ExecutionService.RegisterStrategy:output_type -> tb.orders.v1.RegisterStrategyResponse
-	30, // 88: tb.orders.v1.ExecutionService.SetStrategyMode:output_type -> tb.orders.v1.SetStrategyModeResponse
-	32, // 89: tb.orders.v1.ExecutionService.GetRiskLimits:output_type -> tb.orders.v1.GetRiskLimitsResponse
-	34, // 90: tb.orders.v1.ExecutionService.SetRiskLimits:output_type -> tb.orders.v1.SetRiskLimitsResponse
-	36, // 91: tb.orders.v1.ExecutionService.TriggerKillSwitch:output_type -> tb.orders.v1.TriggerKillSwitchResponse
-	38, // 92: tb.orders.v1.ExecutionService.ReleaseKillSwitch:output_type -> tb.orders.v1.ReleaseKillSwitchResponse
-	40, // 93: tb.orders.v1.ExecutionService.ListKillSwitches:output_type -> tb.orders.v1.ListKillSwitchesResponse
-	42, // 94: tb.orders.v1.ExecutionService.GetTradingStatus:output_type -> tb.orders.v1.GetTradingStatusResponse
-	79, // [79:95] is the sub-list for method output_type
-	63, // [63:79] is the sub-list for method input_type
-	63, // [63:63] is the sub-list for extension type_name
-	63, // [63:63] is the sub-list for extension extendee
-	0,  // [0:63] is the sub-list for field type_name
+	69,  // 0: tb.orders.v1.RiskLimits.max_order_notional:type_name -> tb.common.v1.Decimal
+	69,  // 1: tb.orders.v1.RiskLimits.max_order_qty:type_name -> tb.common.v1.Decimal
+	69,  // 2: tb.orders.v1.RiskLimits.max_position_notional:type_name -> tb.common.v1.Decimal
+	69,  // 3: tb.orders.v1.RiskLimits.max_position_pct_allocation:type_name -> tb.common.v1.Decimal
+	69,  // 4: tb.orders.v1.RiskLimits.max_gross_exposure:type_name -> tb.common.v1.Decimal
+	69,  // 5: tb.orders.v1.RiskLimits.max_net_exposure:type_name -> tb.common.v1.Decimal
+	69,  // 6: tb.orders.v1.RiskLimits.max_concentration_pct:type_name -> tb.common.v1.Decimal
+	69,  // 7: tb.orders.v1.RiskLimits.max_daily_loss:type_name -> tb.common.v1.Decimal
+	69,  // 8: tb.orders.v1.RiskLimits.max_drawdown:type_name -> tb.common.v1.Decimal
+	69,  // 9: tb.orders.v1.RiskLimits.price_collar_pct:type_name -> tb.common.v1.Decimal
+	69,  // 10: tb.orders.v1.RiskLimits.fat_finger_multiple:type_name -> tb.common.v1.Decimal
+	70,  // 11: tb.orders.v1.Strategy.horizon:type_name -> tb.common.v1.Horizon
+	0,   // 12: tb.orders.v1.Strategy.mode:type_name -> tb.orders.v1.StrategyMode
+	1,   // 13: tb.orders.v1.Strategy.limits:type_name -> tb.orders.v1.RiskLimits
+	69,  // 14: tb.orders.v1.Strategy.live_capital_cap:type_name -> tb.common.v1.Decimal
+	69,  // 15: tb.orders.v1.Strategy.intended_allocation:type_name -> tb.common.v1.Decimal
+	3,   // 16: tb.orders.v1.LiveReadiness.items:type_name -> tb.orders.v1.ReadinessItem
+	5,   // 17: tb.orders.v1.GraduationReport.criteria:type_name -> tb.orders.v1.GraduationCriterion
+	7,   // 18: tb.orders.v1.LiveStatus.accounts:type_name -> tb.orders.v1.LiveAccountStatus
+	2,   // 19: tb.orders.v1.LiveStatus.live_strategies:type_name -> tb.orders.v1.Strategy
+	6,   // 20: tb.orders.v1.LiveStatus.candidates:type_name -> tb.orders.v1.GraduationReport
+	8,   // 21: tb.orders.v1.GetLiveStatusResponse.status:type_name -> tb.orders.v1.LiveStatus
+	4,   // 22: tb.orders.v1.GetLiveReadinessResponse.readiness:type_name -> tb.orders.v1.LiveReadiness
+	34,  // 23: tb.orders.v1.SetReadinessItemRequest.actor:type_name -> tb.orders.v1.Actor
+	4,   // 24: tb.orders.v1.SetReadinessItemResponse.readiness:type_name -> tb.orders.v1.LiveReadiness
+	6,   // 25: tb.orders.v1.GetGraduationReportResponse.report:type_name -> tb.orders.v1.GraduationReport
+	34,  // 26: tb.orders.v1.EnableLiveAccountRequest.actor:type_name -> tb.orders.v1.Actor
+	7,   // 27: tb.orders.v1.EnableLiveAccountResponse.account:type_name -> tb.orders.v1.LiveAccountStatus
+	34,  // 28: tb.orders.v1.DisableLiveAccountRequest.actor:type_name -> tb.orders.v1.Actor
+	7,   // 29: tb.orders.v1.DisableLiveAccountResponse.account:type_name -> tb.orders.v1.LiveAccountStatus
+	69,  // 30: tb.orders.v1.PromoteToLiveRequest.capital_cap:type_name -> tb.common.v1.Decimal
+	69,  // 31: tb.orders.v1.PromoteToLiveRequest.intended_allocation:type_name -> tb.common.v1.Decimal
+	1,   // 32: tb.orders.v1.PromoteToLiveRequest.limit_overrides:type_name -> tb.orders.v1.RiskLimits
+	34,  // 33: tb.orders.v1.PromoteToLiveRequest.actor:type_name -> tb.orders.v1.Actor
+	2,   // 34: tb.orders.v1.PromoteToLiveResponse.strategy:type_name -> tb.orders.v1.Strategy
+	6,   // 35: tb.orders.v1.PromoteToLiveResponse.report:type_name -> tb.orders.v1.GraduationReport
+	1,   // 36: tb.orders.v1.PromoteToLiveResponse.live_limits:type_name -> tb.orders.v1.RiskLimits
+	2,   // 37: tb.orders.v1.PromoteToLiveResponse.paper_twin:type_name -> tb.orders.v1.Strategy
+	34,  // 38: tb.orders.v1.DemoteFromLiveRequest.actor:type_name -> tb.orders.v1.Actor
+	2,   // 39: tb.orders.v1.DemoteFromLiveResponse.strategy:type_name -> tb.orders.v1.Strategy
+	69,  // 40: tb.orders.v1.RaiseLiveCapRequest.new_cap:type_name -> tb.common.v1.Decimal
+	34,  // 41: tb.orders.v1.RaiseLiveCapRequest.actor:type_name -> tb.orders.v1.Actor
+	2,   // 42: tb.orders.v1.RaiseLiveCapResponse.strategy:type_name -> tb.orders.v1.Strategy
+	6,   // 43: tb.orders.v1.RaiseLiveCapResponse.live_window_report:type_name -> tb.orders.v1.GraduationReport
+	71,  // 44: tb.orders.v1.KillSwitch.scope:type_name -> tb.orders.v1.KillSwitchScope
+	72,  // 45: tb.orders.v1.KillSwitch.action:type_name -> tb.orders.v1.KillSwitchAction
+	73,  // 46: tb.orders.v1.IntentRecord.intent:type_name -> tb.orders.v1.OrderIntent
+	74,  // 47: tb.orders.v1.IntentRecord.decision:type_name -> tb.orders.v1.RiskDecision
+	75,  // 48: tb.orders.v1.Fill.side:type_name -> tb.common.v1.Side
+	69,  // 49: tb.orders.v1.Fill.qty:type_name -> tb.common.v1.Decimal
+	69,  // 50: tb.orders.v1.Fill.price:type_name -> tb.common.v1.Decimal
+	69,  // 51: tb.orders.v1.Fill.fees:type_name -> tb.common.v1.Decimal
+	69,  // 52: tb.orders.v1.AccountTradingStatus.margin_utilization:type_name -> tb.common.v1.Decimal
+	0,   // 53: tb.orders.v1.StrategyTradingStatus.mode:type_name -> tb.orders.v1.StrategyMode
+	31,  // 54: tb.orders.v1.TradingStatus.accounts:type_name -> tb.orders.v1.AccountTradingStatus
+	32,  // 55: tb.orders.v1.TradingStatus.strategies:type_name -> tb.orders.v1.StrategyTradingStatus
+	27,  // 56: tb.orders.v1.TradingStatus.active_kill_switches:type_name -> tb.orders.v1.KillSwitch
+	28,  // 57: tb.orders.v1.TradingStatus.active_halts:type_name -> tb.orders.v1.Halt
+	73,  // 58: tb.orders.v1.SubmitIntentRequest.intent:type_name -> tb.orders.v1.OrderIntent
+	34,  // 59: tb.orders.v1.SubmitIntentRequest.actor:type_name -> tb.orders.v1.Actor
+	74,  // 60: tb.orders.v1.SubmitIntentResponse.decision:type_name -> tb.orders.v1.RiskDecision
+	76,  // 61: tb.orders.v1.SubmitIntentResponse.orders:type_name -> tb.orders.v1.Order
+	73,  // 62: tb.orders.v1.PreviewIntentRequest.intent:type_name -> tb.orders.v1.OrderIntent
+	74,  // 63: tb.orders.v1.PreviewIntentResponse.decision:type_name -> tb.orders.v1.RiskDecision
+	69,  // 64: tb.orders.v1.PreviewIntentResponse.estimated_notional:type_name -> tb.common.v1.Decimal
+	69,  // 65: tb.orders.v1.PreviewIntentResponse.estimated_price:type_name -> tb.common.v1.Decimal
+	34,  // 66: tb.orders.v1.CancelIntentRequest.actor:type_name -> tb.orders.v1.Actor
+	76,  // 67: tb.orders.v1.ListOrdersResponse.orders:type_name -> tb.orders.v1.Order
+	29,  // 68: tb.orders.v1.ListIntentsResponse.intents:type_name -> tb.orders.v1.IntentRecord
+	30,  // 69: tb.orders.v1.ListFillsResponse.fills:type_name -> tb.orders.v1.Fill
+	29,  // 70: tb.orders.v1.GetTraceResponse.intents:type_name -> tb.orders.v1.IntentRecord
+	76,  // 71: tb.orders.v1.GetTraceResponse.orders:type_name -> tb.orders.v1.Order
+	30,  // 72: tb.orders.v1.GetTraceResponse.fills:type_name -> tb.orders.v1.Fill
+	2,   // 73: tb.orders.v1.ListStrategiesResponse.strategies:type_name -> tb.orders.v1.Strategy
+	2,   // 74: tb.orders.v1.RegisterStrategyRequest.strategy:type_name -> tb.orders.v1.Strategy
+	34,  // 75: tb.orders.v1.RegisterStrategyRequest.actor:type_name -> tb.orders.v1.Actor
+	2,   // 76: tb.orders.v1.RegisterStrategyResponse.strategy:type_name -> tb.orders.v1.Strategy
+	0,   // 77: tb.orders.v1.SetStrategyModeRequest.mode:type_name -> tb.orders.v1.StrategyMode
+	34,  // 78: tb.orders.v1.SetStrategyModeRequest.actor:type_name -> tb.orders.v1.Actor
+	2,   // 79: tb.orders.v1.SetStrategyModeResponse.strategy:type_name -> tb.orders.v1.Strategy
+	34,  // 80: tb.orders.v1.DemoteStrategyRequest.actor:type_name -> tb.orders.v1.Actor
+	2,   // 81: tb.orders.v1.DemoteStrategyResponse.strategy:type_name -> tb.orders.v1.Strategy
+	0,   // 82: tb.orders.v1.DemoteStrategyResponse.from:type_name -> tb.orders.v1.StrategyMode
+	1,   // 83: tb.orders.v1.GetRiskLimitsResponse.limits:type_name -> tb.orders.v1.RiskLimits
+	1,   // 84: tb.orders.v1.GetRiskLimitsResponse.effective:type_name -> tb.orders.v1.RiskLimits
+	1,   // 85: tb.orders.v1.SetRiskLimitsRequest.limits:type_name -> tb.orders.v1.RiskLimits
+	34,  // 86: tb.orders.v1.SetRiskLimitsRequest.actor:type_name -> tb.orders.v1.Actor
+	1,   // 87: tb.orders.v1.SetRiskLimitsResponse.limits:type_name -> tb.orders.v1.RiskLimits
+	71,  // 88: tb.orders.v1.TriggerKillSwitchRequest.scope:type_name -> tb.orders.v1.KillSwitchScope
+	72,  // 89: tb.orders.v1.TriggerKillSwitchRequest.action:type_name -> tb.orders.v1.KillSwitchAction
+	34,  // 90: tb.orders.v1.TriggerKillSwitchRequest.actor:type_name -> tb.orders.v1.Actor
+	27,  // 91: tb.orders.v1.TriggerKillSwitchResponse.kill_switch:type_name -> tb.orders.v1.KillSwitch
+	34,  // 92: tb.orders.v1.ReleaseKillSwitchRequest.actor:type_name -> tb.orders.v1.Actor
+	27,  // 93: tb.orders.v1.ReleaseKillSwitchResponse.kill_switch:type_name -> tb.orders.v1.KillSwitch
+	27,  // 94: tb.orders.v1.ListKillSwitchesResponse.kill_switches:type_name -> tb.orders.v1.KillSwitch
+	33,  // 95: tb.orders.v1.GetTradingStatusResponse.status:type_name -> tb.orders.v1.TradingStatus
+	35,  // 96: tb.orders.v1.ExecutionService.SubmitIntent:input_type -> tb.orders.v1.SubmitIntentRequest
+	37,  // 97: tb.orders.v1.ExecutionService.PreviewIntent:input_type -> tb.orders.v1.PreviewIntentRequest
+	39,  // 98: tb.orders.v1.ExecutionService.CancelIntent:input_type -> tb.orders.v1.CancelIntentRequest
+	41,  // 99: tb.orders.v1.ExecutionService.ListOrders:input_type -> tb.orders.v1.ListOrdersRequest
+	43,  // 100: tb.orders.v1.ExecutionService.ListIntents:input_type -> tb.orders.v1.ListIntentsRequest
+	45,  // 101: tb.orders.v1.ExecutionService.ListFills:input_type -> tb.orders.v1.ListFillsRequest
+	47,  // 102: tb.orders.v1.ExecutionService.GetTrace:input_type -> tb.orders.v1.GetTraceRequest
+	49,  // 103: tb.orders.v1.ExecutionService.ListStrategies:input_type -> tb.orders.v1.ListStrategiesRequest
+	51,  // 104: tb.orders.v1.ExecutionService.RegisterStrategy:input_type -> tb.orders.v1.RegisterStrategyRequest
+	53,  // 105: tb.orders.v1.ExecutionService.SetStrategyMode:input_type -> tb.orders.v1.SetStrategyModeRequest
+	57,  // 106: tb.orders.v1.ExecutionService.GetRiskLimits:input_type -> tb.orders.v1.GetRiskLimitsRequest
+	59,  // 107: tb.orders.v1.ExecutionService.SetRiskLimits:input_type -> tb.orders.v1.SetRiskLimitsRequest
+	61,  // 108: tb.orders.v1.ExecutionService.TriggerKillSwitch:input_type -> tb.orders.v1.TriggerKillSwitchRequest
+	63,  // 109: tb.orders.v1.ExecutionService.ReleaseKillSwitch:input_type -> tb.orders.v1.ReleaseKillSwitchRequest
+	65,  // 110: tb.orders.v1.ExecutionService.ListKillSwitches:input_type -> tb.orders.v1.ListKillSwitchesRequest
+	67,  // 111: tb.orders.v1.ExecutionService.GetTradingStatus:input_type -> tb.orders.v1.GetTradingStatusRequest
+	55,  // 112: tb.orders.v1.ExecutionService.DemoteStrategy:input_type -> tb.orders.v1.DemoteStrategyRequest
+	9,   // 113: tb.orders.v1.ExecutionService.GetLiveStatus:input_type -> tb.orders.v1.GetLiveStatusRequest
+	11,  // 114: tb.orders.v1.ExecutionService.GetLiveReadiness:input_type -> tb.orders.v1.GetLiveReadinessRequest
+	13,  // 115: tb.orders.v1.ExecutionService.SetReadinessItem:input_type -> tb.orders.v1.SetReadinessItemRequest
+	15,  // 116: tb.orders.v1.ExecutionService.GetGraduationReport:input_type -> tb.orders.v1.GetGraduationReportRequest
+	17,  // 117: tb.orders.v1.ExecutionService.EnableLiveAccount:input_type -> tb.orders.v1.EnableLiveAccountRequest
+	19,  // 118: tb.orders.v1.ExecutionService.DisableLiveAccount:input_type -> tb.orders.v1.DisableLiveAccountRequest
+	21,  // 119: tb.orders.v1.ExecutionService.PromoteToLive:input_type -> tb.orders.v1.PromoteToLiveRequest
+	23,  // 120: tb.orders.v1.ExecutionService.DemoteFromLive:input_type -> tb.orders.v1.DemoteFromLiveRequest
+	25,  // 121: tb.orders.v1.ExecutionService.RaiseLiveCap:input_type -> tb.orders.v1.RaiseLiveCapRequest
+	36,  // 122: tb.orders.v1.ExecutionService.SubmitIntent:output_type -> tb.orders.v1.SubmitIntentResponse
+	38,  // 123: tb.orders.v1.ExecutionService.PreviewIntent:output_type -> tb.orders.v1.PreviewIntentResponse
+	40,  // 124: tb.orders.v1.ExecutionService.CancelIntent:output_type -> tb.orders.v1.CancelIntentResponse
+	42,  // 125: tb.orders.v1.ExecutionService.ListOrders:output_type -> tb.orders.v1.ListOrdersResponse
+	44,  // 126: tb.orders.v1.ExecutionService.ListIntents:output_type -> tb.orders.v1.ListIntentsResponse
+	46,  // 127: tb.orders.v1.ExecutionService.ListFills:output_type -> tb.orders.v1.ListFillsResponse
+	48,  // 128: tb.orders.v1.ExecutionService.GetTrace:output_type -> tb.orders.v1.GetTraceResponse
+	50,  // 129: tb.orders.v1.ExecutionService.ListStrategies:output_type -> tb.orders.v1.ListStrategiesResponse
+	52,  // 130: tb.orders.v1.ExecutionService.RegisterStrategy:output_type -> tb.orders.v1.RegisterStrategyResponse
+	54,  // 131: tb.orders.v1.ExecutionService.SetStrategyMode:output_type -> tb.orders.v1.SetStrategyModeResponse
+	58,  // 132: tb.orders.v1.ExecutionService.GetRiskLimits:output_type -> tb.orders.v1.GetRiskLimitsResponse
+	60,  // 133: tb.orders.v1.ExecutionService.SetRiskLimits:output_type -> tb.orders.v1.SetRiskLimitsResponse
+	62,  // 134: tb.orders.v1.ExecutionService.TriggerKillSwitch:output_type -> tb.orders.v1.TriggerKillSwitchResponse
+	64,  // 135: tb.orders.v1.ExecutionService.ReleaseKillSwitch:output_type -> tb.orders.v1.ReleaseKillSwitchResponse
+	66,  // 136: tb.orders.v1.ExecutionService.ListKillSwitches:output_type -> tb.orders.v1.ListKillSwitchesResponse
+	68,  // 137: tb.orders.v1.ExecutionService.GetTradingStatus:output_type -> tb.orders.v1.GetTradingStatusResponse
+	56,  // 138: tb.orders.v1.ExecutionService.DemoteStrategy:output_type -> tb.orders.v1.DemoteStrategyResponse
+	10,  // 139: tb.orders.v1.ExecutionService.GetLiveStatus:output_type -> tb.orders.v1.GetLiveStatusResponse
+	12,  // 140: tb.orders.v1.ExecutionService.GetLiveReadiness:output_type -> tb.orders.v1.GetLiveReadinessResponse
+	14,  // 141: tb.orders.v1.ExecutionService.SetReadinessItem:output_type -> tb.orders.v1.SetReadinessItemResponse
+	16,  // 142: tb.orders.v1.ExecutionService.GetGraduationReport:output_type -> tb.orders.v1.GetGraduationReportResponse
+	18,  // 143: tb.orders.v1.ExecutionService.EnableLiveAccount:output_type -> tb.orders.v1.EnableLiveAccountResponse
+	20,  // 144: tb.orders.v1.ExecutionService.DisableLiveAccount:output_type -> tb.orders.v1.DisableLiveAccountResponse
+	22,  // 145: tb.orders.v1.ExecutionService.PromoteToLive:output_type -> tb.orders.v1.PromoteToLiveResponse
+	24,  // 146: tb.orders.v1.ExecutionService.DemoteFromLive:output_type -> tb.orders.v1.DemoteFromLiveResponse
+	26,  // 147: tb.orders.v1.ExecutionService.RaiseLiveCap:output_type -> tb.orders.v1.RaiseLiveCapResponse
+	122, // [122:148] is the sub-list for method output_type
+	96,  // [96:122] is the sub-list for method input_type
+	96,  // [96:96] is the sub-list for extension type_name
+	96,  // [96:96] is the sub-list for extension extendee
+	0,   // [0:96] is the sub-list for field type_name
 }
 
 func init() { file_tb_orders_v1_execution_proto_init() }
@@ -3412,7 +5586,7 @@ func file_tb_orders_v1_execution_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tb_orders_v1_execution_proto_rawDesc), len(file_tb_orders_v1_execution_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   42,
+			NumMessages:   68,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

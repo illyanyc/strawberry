@@ -29,7 +29,7 @@ from tb.common.v1 import common_pb2
 from tb.ledger.v1 import ledger_pb2
 from tb.orders.v1 import execution_pb2, orders_pb2
 from tbcore.backtest.config import BacktestConfig
-from tbcore.backtest.costs import fees, to_fee, to_price
+from tbcore.backtest.costs import borrow_cost, fees, to_fee, to_price
 from tbcore.backtest.fills import FillBar, WorkingOrder, match_bar
 from tbcore.backtest.recording import Recording
 from tbcore.backtest.result import BacktestResult
@@ -206,6 +206,7 @@ class _Episode:
     entry_time: int
     realized_at_open: Decimal
     fills: list[dict[str, object]] = field(default_factory=list)
+    borrow: Decimal = Decimal(0)
 
 
 class EventEngine:
@@ -279,6 +280,8 @@ class EventEngine:
         self.fallback_impacts = 0
         self.unmatched_recorded: list[str] = []
         self.valuation_mismatch = 0
+        self.borrow_total: dict[str, Decimal] = {}
+        self.delisted: list[str] = []
         tf_width = int(TIMEFRAMES[config.fill_model.fill_timeframe or config.timeframe].total_seconds() * NS)
         if tf_width > FINALITY_NS + config.fill_model.latency_ms * 1_000_000 and config.fill_model.mode == "model":
             self.warnings.append(
@@ -308,6 +311,7 @@ class EventEngine:
             pdt_guard=a.pdt_guard,
             pdt_max=3,
             segregation=a.segregation,
+            dedicated=a.dedicated,
             opening_positions=[
                 ledger_pb2.Position(instrument_id=p.instrument_id, qty=_d(p.qty), avg_cost=_d(p.avg_cost))
                 for p in a.manual_positions
@@ -482,7 +486,7 @@ class EventEngine:
         def avg(fs: list[dict[str, object]], q: Decimal) -> float:
             return float(sum(Decimal(str(f["qty"])) * Decimal(str(f["price"])) for f in fs) / q) if q else math.nan
 
-        fee = sum((Decimal(str(f["fees"])) for f in ep.fills), Decimal(0))
+        fee = sum((Decimal(str(f["fees"])) for f in ep.fills), Decimal(0)) + ep.borrow
         slip = sum((float(str(f["slippage_cost"])) for f in ep.fills), 0.0)
         pnl = realized - ep.realized_at_open
         self.trade_rows.append(
@@ -781,9 +785,10 @@ class EventEngine:
         if self.ca is not None and self.ca.height:
             for r in self.ca.iter_rows(named=True):
                 kind = str(r["type"])
-                if kind not in ("split", "dividend"):
+                if kind not in ("split", "dividend", "delisting"):
                     continue
-                val = r["ratio"] if kind == "split" else r["amount"]
+                # BT-008: the delisting price is the last traded price when the event is processed.
+                val = r["ratio"] if kind == "split" else (r["amount"] if kind == "dividend" else "")
                 ex = int(str(r["ex_date"]))
                 src = str(r.get("source_id") or f"ca:{r['instrument_id']}:{ex}")
                 ev.append(
@@ -815,6 +820,9 @@ class EventEngine:
             self._handle(resp, now)
         elif isinstance(payload, CorporateActionEvent):
             now = self._now(self._session_open_after(self.clock))
+            if payload.kind == "delisting":
+                self._delist(sc, payload, now)
+                return
             resp = sc.call(
                 simcore_pb2.SimRequest(
                     corporate_action=simcore_pb2.SimCorporateAction(
@@ -829,6 +837,87 @@ class EventEngine:
             self._handle(resp, now)
         else:
             self._session_close(sc, payload)
+
+    def _delist(self, sc: SimCore, ca: CorporateActionEvent, now: int) -> None:
+        """BT-008: a delisted instrument's working orders end (the broker cancels them) and every open
+        position in it is closed at the last traded price times (1 - delisting_haircut), with the
+        ledger core's cash flow; the trade's exit reason is ``delisting``."""
+        last = self.last_bar.get(ca.instrument_id)
+        if last is None:
+            self.warnings.append(
+                f"delisting_without_price: {ca.instrument_id} had no bar before {ca.source_id} (BT-008)"
+            )
+            return
+        price = to_price(last[0] * (1.0 - self.cfg.fill_model.delisting_haircut))
+        for w in sorted(self.by_instr.get(ca.instrument_id, []), key=lambda x: x.broker_order_id):
+            if w.broker_order_id in self.working:
+                resp = sc.call(
+                    simcore_pb2.SimRequest(
+                        order_end=simcore_pb2.SimOrderEnd(
+                            now=now,
+                            broker_account_id=w.account,
+                            broker_order_id=w.broker_order_id,
+                            state=orders_pb2.ORDER_STATE_CANCELED,
+                        )
+                    )
+                )
+                self._handle(resp, now)
+        for (sid, inst), pos in self.positions.items():
+            ep = self.episodes.get((sid, inst))
+            if inst == ca.instrument_id and pos.qty != 0 and ep is not None:
+                ep.fills.append(
+                    {
+                        "role": "delisting",
+                        "qty": float(abs(pos.qty)),
+                        "price": float(price),
+                        "fees": 0.0,
+                        "slippage_cost": 0.0,
+                        "intent_id": "",
+                    }
+                )
+        self.delisted.append(ca.instrument_id)
+        resp = sc.call(
+            simcore_pb2.SimRequest(
+                corporate_action=simcore_pb2.SimCorporateAction(
+                    now=now, instrument_id=ca.instrument_id, kind="delisting", value=_d(price), source_id=ca.source_id
+                )
+            )
+        )
+        self._handle(resp, now)
+
+    def _charge_borrow(self, sc: SimCore, s: Session, now: int) -> None:
+        """BT-014: a short held over a session close pays borrow for the calendar days until the next
+        session (Friday → Monday is 3) on its notional at the close, at the account's per-instrument
+        rate or the cost model's default, scaled by ``cost_multiplier``. Intraday shorts pay nothing."""
+        nxt = self.cal.next_open(s.close)
+        days = (nxt.astimezone(UTC).date() - s.date).days if nxt else 1
+        for st in self.cfg.strategies:
+            for inst in sorted(self.open_pos.get(st.strategy_id, ())):
+                pos = self.positions[(st.strategy_id, inst)]
+                if pos.qty >= 0 or inst not in self.last_bar:
+                    continue
+                notional = float(abs(pos.qty)) * self.last_bar[inst][0]
+                rate = self.cfg.account.borrow_fee_bps.get(inst)
+                fee = to_fee(float(borrow_cost(self.cfg.cost_model, notional, max(days, 1), rate)))
+                if fee <= 0:
+                    continue
+                resp = sc.call(
+                    simcore_pb2.SimRequest(
+                        fee=simcore_pb2.SimFee(
+                            now=now,
+                            broker_account_id=st.broker_account_id,
+                            owner=st.strategy_id,
+                            instrument_id=inst,
+                            amount=_d(fee),
+                            source_id=f"borrow:{st.strategy_id}:{inst}:{s.date.isoformat()}",
+                        )
+                    )
+                )
+                self.borrow_total[st.strategy_id] = self.borrow_total.get(st.strategy_id, Decimal(0)) + fee
+                ep = self.episodes.get((st.strategy_id, inst))
+                if ep is not None:
+                    ep.borrow += fee
+                self._handle(resp, now)
 
     def _session_close(self, sc: SimCore, s: Session) -> None:
         now = self._now(int(s.close.timestamp()) * NS)
@@ -851,6 +940,7 @@ class EventEngine:
             )
         )
         self._handle(resp, now)
+        self._charge_borrow(sc, s, now)
         self._record_daily(sc, s.date.isoformat(), now)
 
     def _tick_due(self, t: int) -> bool:
@@ -938,6 +1028,8 @@ class EventEngine:
             "unmatched_recorded": list(self.unmatched_recorded),
             "open_episodes": len(self.episodes),
             "blackout_blocked": blocked,
+            "borrow_cost": {k: float(v) for k, v in sorted(self.borrow_total.items())},
+            "delisted": list(self.delisted),
         }
         return BacktestResult(
             config=self.cfg,

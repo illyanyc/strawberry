@@ -93,6 +93,8 @@ func (s *Server) registerResearchRoutes(priv func(string, string, func(http.Resp
 	priv("POST", "/api/v1/research/lineages", s.handleLineageCreate)
 	priv("GET", "/api/v1/research/lineages/{id}", s.handleLineage)
 	priv("PUT", "/api/v1/research/lineages/{id}/autonomy", s.handleLineageAutonomy)
+	priv("GET", "/api/v1/research/lineages/{id}/deployment-limits", s.handleDeploymentLimits)
+	priv("PUT", "/api/v1/research/lineages/{id}/deployment-limits", s.handleDeploymentLimitsPut)
 	priv("POST", "/api/v1/research/lineages/{id}/cycles", s.handleLineageCycle)
 	priv("GET", "/api/v1/research/lineages/{id}/ledger", s.handleLineageLedger)
 	priv("GET", "/api/v1/research/lineages/{id}/stats", s.handleLineageStats)
@@ -115,6 +117,7 @@ func (s *Server) registerResearchRoutes(priv func(string, string, func(http.Resp
 	priv("POST", "/api/v1/research/candidates/{id}/check", s.handleCandidateCheck)
 	priv("POST", "/api/v1/research/candidates/{id}/promote", s.handleCandidatePromote)
 	priv("POST", "/api/v1/research/candidates/{id}/demote", s.handleCandidateDemote)
+	priv("POST", "/api/v1/research/candidates/{id}/register", s.handleCandidateRegister)
 	priv("POST", "/api/v1/research/candidates/{id}/holdout", s.handleHoldoutEvaluate)
 }
 

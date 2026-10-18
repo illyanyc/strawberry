@@ -43,20 +43,22 @@ var Schemas = []Schema{
 	{Name: "holdout", Owner: "holdout_owner"},
 	// The AI analyst's journal, loop state, and call logs (ADR-0041); only svc_assistant uses it.
 	{Name: "analyst", Owner: "analyst_owner"},
+	// Monitoring records, containment policies and actions, the alert inbox (ADR-0045); svc_monitor only.
+	{Name: "monitor", Owner: "monitor_owner"},
 }
 
 // LoginRoles are the service roles that may log in to the platform database. Their passwords are
 // read from secrets pg_<role>_password by `tbctl db init`.
 var LoginRoles = []string{
 	"svc_api_gateway", "svc_broker_gateway", "svc_broker_gateway_ibkr", "svc_marketdata", "svc_execution", "svc_ledger",
-	"svc_ops", "svc_metrics", "svc_ml", "svc_optimizer", "svc_holdout", "svc_assistant",
+	"svc_ops", "svc_metrics", "svc_ml", "svc_optimizer", "svc_holdout", "svc_assistant", "svc_monitor",
 }
 
 // GroupRoles are NOLOGIN roles granted to login roles.
 var GroupRoles = map[string][]string{
 	// svc_broker_gateway_ibkr appends order-path audit events (BR-014); its tables are in broker_ibkr.
 	"audit_writer": {"svc_api_gateway", "svc_broker_gateway", "svc_broker_gateway_ibkr", "svc_marketdata", "svc_execution", "svc_ledger",
-		"svc_ml", "svc_optimizer", "svc_holdout", "svc_assistant"},
+		"svc_ml", "svc_optimizer", "svc_holdout", "svc_assistant", "svc_monitor"},
 	"audit_reader": {"svc_api_gateway", "svc_ops"},
 	// Read-only reference data (instrument master, calendar, corporate actions, universes). The
 	// assistant reads tickers only to mask them out of LLM prompts (AN-051).

@@ -46,6 +46,7 @@ type Server struct {
 	trading  *TradingClients
 	research *ResearchClients
 	analyst  *AnalystClients
+	monitor  *MonitorClients
 	market   MarketBus
 	signals  SignalBus
 	push     PushDeps
@@ -75,6 +76,7 @@ type Deps struct {
 	Trading   *TradingClients
 	Research  *ResearchClients
 	Analyst   *AnalystClients
+	Monitor   *MonitorClients
 	Market    MarketBus
 	// Signals reads recent signals (JetStream SIGNALS) and publishes TradingView signals.
 	Signals SignalBus
@@ -131,7 +133,7 @@ func New(cfg Config, d Deps) (*Server, error) {
 	}
 	s := &Server{
 		cfg: cfg, store: &Store{pool: d.Pool}, pool: d.Pool, wa: wa, keys: k, audit: audit.NewWriter(d.Pool),
-		log: d.Log, alerts: d.Alerts, creds: d.Creds, trading: d.Trading, research: d.Research, analyst: d.Analyst, market: d.Market,
+		log: d.Log, alerts: d.Alerts, creds: d.Creds, trading: d.Trading, research: d.Research, analyst: d.Analyst, monitor: d.Monitor, market: d.Market,
 		signals: d.Signals, push: d.Push, now: time.Now, limiters: map[string]*rate.Limiter{},
 		rateEvery: 200 * time.Millisecond, rateBurst: 30,
 	}
@@ -211,6 +213,7 @@ func (s *Server) registerRoutes() {
 	s.registerPushRoutes(priv)
 	priv("GET", "/api/v1/signals", s.handleSignals)
 	priv("GET", "/api/v1/tradingview", s.handleTradingViewStatus)
+	s.registerMonitoringRoutes(priv)
 }
 
 // Handler returns the full HTTP handler (API + static UI).

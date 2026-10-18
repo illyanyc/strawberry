@@ -26,10 +26,10 @@ from tb.alerts.v1 import alerts_pb2 as al
 from tb.ml.v1 import ml_pb2 as mlp
 from tb.ml.v1 import training_pb2 as tp
 from tb.optimizer.v1 import optimizer_pb2 as op
-from tb_optimizer import gates, registry
+from tb_optimizer import deployment, gates, registry
 from tb_optimizer.holdout import HoldoutCore
 from tb_optimizer.nested import Control, DatasetCache, NestedResult, NestedRunner
-from tb_optimizer.stats import EffectiveN, Series, align, cumulative, cycle_budget, effective_n
+from tb_optimizer.stats import EffectiveN, Series, align, cumulative, cycle_budget, dsr_of, effective_n
 from tbcore.audit import AuditSink, MemoryAudit, digest
 from tbcore.backtest import tearsheet
 from tbcore.buspub import MemoryPublisher, Publisher
@@ -48,6 +48,7 @@ log = logging.getLogger("tb_optimizer")
 
 K_LINEAGE, K_CYCLE, K_STUDY, K_TRIAL, K_CAND, K_GATE = "lineage", "cycle", "study", "trial", "candidate", "gate_report"
 K_STAGE, K_POLICY, K_HOLDOUT_COUNT, K_MODEL = "stage_change", "retrain_policy", "holdout_count", "model_version"
+K_DEPLOY_LIMITS = "deployment_limits"
 YEAR_NS = 365.25 * 86_400 * 1e9
 
 
@@ -90,6 +91,7 @@ class OptimizerCore:
         graduation_min_sessions: int = 20,
         global_analyst_trials: int = 0,
         clock: Any = time.time_ns,
+        deployment_profiles: str = "",
     ) -> None:
         self.store = store or MemoryDocStore()
         self.artifacts = Path(artifacts_dir)
@@ -105,6 +107,7 @@ class OptimizerCore:
         self.global_analyst_trials = global_analyst_trials
         self._clock = clock
         self.holdout = HoldoutCore(holdout_store or MemoryDocStore(), self.audit, self, lake_dir, clock=clock)
+        self.profiles = deployment.load_profiles(deployment_profiles)
         self._studies: dict[str, _Study] = {}
         self._lock = threading.RLock()
 
@@ -178,6 +181,73 @@ class OptimizerCore:
         self.store.put(K_LINEAGE, lineage_id, lin, lineage_id)
         self.audit.append(callers.name(caller), "optimizer.autonomy.set", lineage_id, {"level": level})
         return lin
+
+    def _profile(self, lin: op.Lineage) -> op.DeploymentLimits:
+        h = deployment.horizon_of(lin.timeframe)
+        p = self.profiles[h]
+        return op.DeploymentLimits(
+            lineage_id=lin.lineage_id,
+            horizon=h,
+            limits=deployment.to_proto(p["limits"]),
+            allocation=p["allocation"],
+            source=f"profile:{h}",
+        )
+
+    def deployment_limits(self, lineage_id: str) -> tuple[op.DeploymentLimits, op.DeploymentLimits]:
+        """(effective, profile) deployment limits of a lineage (EX-062)."""
+        lin = self._lineage(lineage_id)
+        prof = self._profile(lin)
+        ov = self.store.get(K_DEPLOY_LIMITS, lineage_id, op.DeploymentLimits)
+        if ov is None:
+            return prof, prof
+        eff = op.DeploymentLimits()
+        eff.CopyFrom(prof)
+        eff.limits.CopyFrom(
+            deployment.to_proto(deployment.overlay(deployment.to_dict(prof.limits), deployment.to_dict(ov.limits)))
+        )
+        eff.allocation = ov.allocation or prof.allocation
+        eff.source, eff.updated_at, eff.updated_by = "lineage", ov.updated_at, ov.updated_by
+        return eff, prof
+
+    def set_deployment_limits(
+        self, lineage_id: str, limits: Any, allocation: str, caller: tp.CallerContext
+    ) -> tuple[op.DeploymentLimits, bool]:
+        """Owner only (EX-062): the analyst can never change risk limits; raising any limit or the
+        allocation above the current effective value needs a fresh passkey step-up (RM-007)."""
+        if caller.actor != tp.ACTOR_OWNER:
+            self._deny(caller, "optimizer.deployment_limits", lineage_id, "deployment limits are owner-only (EX-062)")
+        cur, prof = self.deployment_limits(lineage_id)
+        new_limits = deployment.overlay(deployment.to_dict(prof.limits), deployment.to_dict(limits))
+        new_alloc = allocation or prof.allocation
+        deployment.to_proto(new_limits)
+        if allocation:
+            deployment._check_decimal("allocation", allocation)
+        up = deployment.raised(deployment.to_dict(cur.limits), cur.allocation, new_limits, new_alloc)
+        if up and not callers.has_fresh_step_up(caller, now_ns=self.now()):
+            self._deny(
+                caller,
+                "optimizer.deployment_limits",
+                lineage_id,
+                "raising deployment limits needs a passkey step-up (RM-007)",
+            )
+        ov = op.DeploymentLimits(
+            lineage_id=lineage_id,
+            horizon=prof.horizon,
+            limits=deployment.to_proto(deployment.to_dict(limits)),
+            allocation=allocation,
+            source="lineage",
+            updated_at=self.now(),
+            updated_by=callers.name(caller),
+        )
+        self.store.put(K_DEPLOY_LIMITS, lineage_id, ov, lineage_id)
+        self.audit.append(
+            callers.name(caller),
+            "optimizer.deployment_limits.set",
+            lineage_id,
+            {"raised": up, "step_up": caller.step_up.method, "limits": new_limits, "allocation": new_alloc},
+            correlation_id=caller.correlation_id,
+        )
+        return self.deployment_limits(lineage_id)[0], up
 
     def _available_years(self, lin: op.Lineage) -> float:
         if lin.universe.startswith("synthetic:"):
@@ -352,6 +422,35 @@ class OptimizerCore:
         return cumulative(
             lineage_id, trials, self._series(trials), self.holdout_touches(lineage_id), 1, self._cycle(lin)
         )
+
+    def graduation_statistics(
+        self, strategy_id: str, paper_returns: list[float], horizon: str
+    ) -> op.GraduationStatistics:
+        """GL-002: DSR of the paper record deflated by the lineage's effective N, plus registry stage.
+
+        ``paper_returns`` are per-session fractions, or bps when the median absolute value exceeds 1
+        (the monitor's ``session_returns_bps``). Missing inputs leave the available flags false.
+        """
+        del horizon  # the monitor already applied the horizon's session and trade minimums
+        st = op.GraduationStatistics(strategy_id=strategy_id, computed_at=time.time_ns())
+        cands = [c for c in self.candidates() if c.strategy_id == strategy_id]
+        if not cands:
+            return st
+        cand = max(cands, key=lambda c: (c.stage, c.stage_changed_at))
+        st.candidate_id = cand.candidate_id
+        st.registry_stage = mlp.RegistryStage.Name(cand.stage)
+        rets = np.asarray(paper_returns, dtype=np.float64)
+        if rets.size and float(np.nanmedian(np.abs(rets))) > 1:
+            rets = rets / 1e4
+        if rets.size >= 3 and cand.lineage_id:
+            eff = self.effective(cand.lineage_id)
+            dsr = dsr_of(rets, eff)
+            st.n_effective = eff.n_effective
+            st.n_observations = int(rets.size)
+            if math.isfinite(dsr):
+                st.dsr_combined = float(dsr)
+                st.dsr_available = True
+        return st
 
     # ---------------------------------------------------------------- studies
     def _deny(self, caller: tp.CallerContext, action: str, target: str, why: str) -> None:
@@ -715,8 +814,9 @@ class OptimizerCore:
         cdir.mkdir(parents=True, exist_ok=True)
         outer = nested.stitched()
         pl.DataFrame({"session_day": outer.days, "ret": outer.rets}).write_parquet(cdir / "outer.parquet")
+        dl, _ = self.deployment_limits(cand.lineage_id)
         try:
-            event = gates.event_evidence(nested, ds, cfg)
+            event = gates.event_evidence(nested, ds, cfg, dl)
         except Exception:
             log.exception("event-driven rerun failed for %s", cid)
             event = None
@@ -731,6 +831,8 @@ class OptimizerCore:
         eff = effective_n(trials, mat, self.holdout_touches(lin.lineage_id))
         surv = "complete" if cand.synthetic_data else "unknown"
         rep = gates.build_gate_report(cid, nested, ds, cfg, mat, eff, champ_series, champ_id, res, surv, event)
+        rep.deployment_limits.CopyFrom(dl)
+        gates.write_expectation(cdir / "expectation.json", cand, run, rep, dl, event, outer)
         self.store.put(K_GATE, rep.report_id, rep, lin.lineage_id, cid)
         if event is not None and event.result is not None:
             tearsheet.write(
@@ -739,7 +841,7 @@ class OptimizerCore:
                 overfitting={"DSR (lineage N)": rep.dsr, "effective N": rep.n_effective, "PBO": rep.pbo},
             )
         cand.gate_report_id = rep.report_id
-        cand.registry_entry_json = json_format_dumps(registry.registry_entry(cand, "shadow", *self.accounts))
+        cand.registry_entry_json = json_format_dumps(self._entry(cand, "shadow"))
         self.store.put(K_CAND, cid, cand, lin.lineage_id, w.study.study_id)
         self.audit.append("system", "optimizer.candidate.create", cid, {"gate": rep.passed, "dsr": rep.dsr})
         self.bus.publish(
@@ -821,7 +923,7 @@ class OptimizerCore:
         lin = self._lineage(cand.lineage_id)
         if to in (mlp.REGISTRY_STAGE_SHADOW, mlp.REGISTRY_STAGE_PAPER):
             mode = "paper" if to == mlp.REGISTRY_STAGE_PAPER else "shadow"
-            entry = registry.registry_entry(cand, mode, *self.accounts)
+            entry = self._entry(cand, mode)
             cand.registry_entry_json = json_format_dumps(entry)
             self._deploy(entry)
         if to == mlp.REGISTRY_STAGE_PAPER:
@@ -943,6 +1045,30 @@ class OptimizerCore:
         (cdir / "evidence.md").write_text(pack.markdown)
         (cdir / "evidence.html").write_text(pack.html)
         return pack
+
+    def _entry(self, cand: op.Candidate, mode: str) -> dict[str, Any]:
+        """Deployment entry with the lineage's deployment limits and the monitoring expectation (EX-064)."""
+        dl, _ = self.deployment_limits(cand.lineage_id)
+        run_dir = self.artifacts / "runs" / cand.run_id
+        monitoring = {
+            "lineage_id": cand.lineage_id,
+            "candidate_id": cand.candidate_id,
+            "model_version": cand.model_version.version,
+            "training_run_id": cand.run_id,
+            "feature_set_id": cand.model_version.feature_set_id,
+            "expectation": str(self.artifacts / "candidates" / cand.candidate_id / "expectation.json"),
+            "reference": str(run_dir / "reference.parquet"),
+            "oof": str(run_dir / "oof.parquet"),
+            "importance": str(run_dir / "importance.json"),
+        }
+        return registry.registry_entry(
+            cand,
+            mode,
+            *self.accounts,
+            limits=deployment.to_dict(dl.limits),
+            allocation=dl.allocation,
+            monitoring=monitoring,
+        )
 
     def _deploy(self, entry: dict[str, Any]) -> None:
         """Write the entry to the research deployment registry read by strategy-runtime (EX-056)."""

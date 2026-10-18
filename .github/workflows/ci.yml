@@ -104,12 +104,20 @@ jobs:
         run: make paper-ibkr
       - name: Phase 2 gate - five ORB paper sessions through the full path (tests/paper)
         run: make paper-gate
+      - name: Section 15 live gate - step-up, analyst denial, paper credential (simulators only)
+        run: make live-gate
       - name: Upload paper-gate evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with: { name: paper-gate-evidence, path: paper-gate-evidence.json, if-no-files-found: ignore }
       - name: Gate 3 parity - replay the fresh paper-gate recording (recorded and modeled fills)
         run: make parity-gate
+      - name: Gate 5 monitoring - drift, divergence, and drawdown containment through execution (tests/paper)
+        run: make monitoring-gate
+      - name: Upload monitoring-gate evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with: { name: monitoring-gate-evidence, path: monitoring-gate-evidence.json, if-no-files-found: ignore }
       - name: Upload parity reports
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

@@ -23,7 +23,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file tb/orders/v1/execution.proto.
  */
 export const file_tb_orders_v1_execution: GenFile = /*@__PURE__*/
-  fileDesc("Chx0Yi9vcmRlcnMvdjEvZXhlY3V0aW9uLnByb3RvEgx0Yi5vcmRlcnMudjEi6wUKClJpc2tMaW1pdHMSMQoSbWF4X29yZGVyX25vdGlvbmFsGAEgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSLAoNbWF4X29yZGVyX3F0eRgCIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEjQKFW1heF9wb3NpdGlvbl9ub3Rpb25hbBgDIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEjoKG21heF9wb3NpdGlvbl9wY3RfYWxsb2NhdGlvbhgEIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEjEKEm1heF9ncm9zc19leHBvc3VyZRgFIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEi8KEG1heF9uZXRfZXhwb3N1cmUYBiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIVCg1tYXhfcG9zaXRpb25zGAcgASgFEjQKFW1heF9jb25jZW50cmF0aW9uX3BjdBgIIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEi0KDm1heF9kYWlseV9sb3NzGAkgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSKwoMbWF4X2RyYXdkb3duGAogASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSHQoVbWF4X29yZGVyc19wZXJfbWludXRlGAsgASgFEh4KFm1heF9jYW5jZWxzX3Blcl9taW51dGUYDCABKAUSHgoWbWF4X2NvbnNlY3V0aXZlX2xvc3NlcxgNIAEoBRIvChBwcmljZV9jb2xsYXJfcGN0GA4gASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSIAoYZHVwbGljYXRlX3dpbmRvd19zZWNvbmRzGA8gASgFEjIKE2ZhdF9maW5nZXJfbXVsdGlwbGUYECABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIXCg9tYXhfb3Blbl9vcmRlcnMYESABKAUihgMKCFN0cmF0ZWd5EhMKC3N0cmF0ZWd5X2lkGAEgASgJEhAKCHNob3J0X2lkGAIgASgJEgwKBG5hbWUYAyABKAkSJgoHaG9yaXpvbhgEIAEoDjIVLnRiLmNvbW1vbi52MS5Ib3Jpem9uEigKBG1vZGUYBSABKA4yGi50Yi5vcmRlcnMudjEuU3RyYXRlZ3lNb2RlEhkKEWJyb2tlcl9hY2NvdW50X2lkGAYgASgJEg8KB3ZlcnNpb24YByABKAkSEwoLY29kZV9jb21taXQYCCABKAkSEwoLcGFyYW1zX2hhc2gYCSABKAkSEwoLYWxsb3dfc2hvcnQYCiABKAgSHQoVc2VncmVnYXRpb25fYWxsb3dsaXN0GAsgAygJEigKBmxpbWl0cxgMIAEoCzIYLnRiLm9yZGVycy52MS5SaXNrTGltaXRzEhMKC21vZGVfcmVhc29uGA0gASgJEhIKCnVwZGF0ZWRfYXQYDiABKAMSFgoOcnVudGltZV9ob3N0ZWQYDyABKAginAIKCktpbGxTd2l0Y2gSEAoIZXZlbnRfaWQYASABKAkSLAoFc2NvcGUYAiABKA4yHS50Yi5vcmRlcnMudjEuS2lsbFN3aXRjaFNjb3BlEg4KBnRhcmdldBgDIAEoCRIuCgZhY3Rpb24YBCABKA4yHi50Yi5vcmRlcnMudjEuS2lsbFN3aXRjaEFjdGlvbhISCgplbmdhZ2VkX2J5GAUgASgJEg4KBnJlYXNvbhgGIAEoCRISCgplbmdhZ2VkX2F0GAcgASgDEg8KB2xhdGNoZWQYCCABKAgSEwoLcmVsZWFzZWRfYXQYCSABKAMSEwoLcmVsZWFzZWRfYnkYCiABKAkSGwoTY2FuY2VsX2NvbXBsZXRlZF9ucxgLIAEoAyKhAQoESGFsdBIPCgdoYWx0X2lkGAEgASgJEhkKEWJyb2tlcl9hY2NvdW50X2lkGAIgASgJEhMKC3N0cmF0ZWd5X2lkGAMgASgJEhUKDWluc3RydW1lbnRfaWQYBCABKAkSDgoGcmVhc29uGAUgASgJEg0KBXNpbmNlGAYgASgDEhIKCmNsZWFyZWRfYXQYByABKAMSDgoGc291cmNlGAggASgJIosBCgxJbnRlbnRSZWNvcmQSKQoGaW50ZW50GAEgASgLMhkudGIub3JkZXJzLnYxLk9yZGVySW50ZW50EiwKCGRlY2lzaW9uGAIgASgLMhoudGIub3JkZXJzLnYxLlJpc2tEZWNpc2lvbhINCgVzdGF0ZRgDIAEoCRITCgtyZWNlaXZlZF9hdBgEIAEoAyLgAgoERmlsbBIZChFicm9rZXJfYWNjb3VudF9pZBgBIAEoCRIWCg5icm9rZXJfZXhlY19pZBgCIAEoCRIQCghvcmRlcl9pZBgDIAEoCRIRCglpbnRlbnRfaWQYBCABKAkSEwoLc3RyYXRlZ3lfaWQYBSABKAkSFQoNaW5zdHJ1bWVudF9pZBgGIAEoCRIgCgRzaWRlGAcgASgOMhIudGIuY29tbW9uLnYxLlNpZGUSIgoDcXR5GAggASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSJAoFcHJpY2UYCSABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIjCgRmZWVzGAogASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSEgoKZXZlbnRfdGltZRgLIAEoAxIWCg5jb3JyZWxhdGlvbl9pZBgMIAEoCRIXCg9jbGllbnRfb3JkZXJfaWQYDSABKAki4wIKFEFjY291bnRUcmFkaW5nU3RhdHVzEhkKEWJyb2tlcl9hY2NvdW50X2lkGAEgASgJEhUKDXNlc3Npb25fc3RhdGUYAiABKAkSHQoVcmVjb25jaWxpYXRpb25fc3RhdHVzGAMgASgJEhwKFHJlY29uY2lsaWF0aW9uX2ZyZXNoGAQgASgIEh8KF2ludHJhZGF5X21hcmdpbl9kZWZpY2l0GAUgASgIEhMKC21hcmdpbl9jYWxsGAYgASgIEhcKD2RheV90cmFkZV9jb3VudBgHIAEoBRIRCglwZHRfZ3VhcmQYCCABKAkSGQoRYWNjZXB0aW5nX2ludGVudHMYCSABKAgSFwoPYmxvY2tlZF9yZWFzb25zGAogAygJEhMKC2Vudmlyb25tZW50GAsgASgJEjEKEm1hcmdpbl91dGlsaXphdGlvbhgMIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsIqIBChVTdHJhdGVneVRyYWRpbmdTdGF0dXMSEwoLc3RyYXRlZ3lfaWQYASABKAkSKAoEbW9kZRgCIAEoDjIaLnRiLm9yZGVycy52MS5TdHJhdGVneU1vZGUSGQoRYWNjZXB0aW5nX2ludGVudHMYAyABKAgSFwoPYmxvY2tlZF9yZWFzb25zGAQgAygJEhYKDmxhc3RfaGVhcnRiZWF0GAUgASgDIswCCg1UcmFkaW5nU3RhdHVzEhQKDGdsb2JhbF9zdGF0ZRgBIAEoCRI0CghhY2NvdW50cxgCIAMoCzIiLnRiLm9yZGVycy52MS5BY2NvdW50VHJhZGluZ1N0YXR1cxI3CgpzdHJhdGVnaWVzGAMgAygLMiMudGIub3JkZXJzLnYxLlN0cmF0ZWd5VHJhZGluZ1N0YXR1cxI2ChRhY3RpdmVfa2lsbF9zd2l0Y2hlcxgEIAMoCzIYLnRiLm9yZGVycy52MS5LaWxsU3dpdGNoEigKDGFjdGl2ZV9oYWx0cxgFIAMoCzISLnRiLm9yZGVycy52MS5IYWx0Eg0KBWFzX29mGAYgASgDEhAKCGNsb2NrX29rGAcgASgIEhMKC29wZW5fb3JkZXJzGAggASgFEh4KFnJ1bnRpbWVfbGFzdF9oZWFydGJlYXQYCSABKAMiWQoFQWN0b3ISDAoEbmFtZRgBIAEoCRIWCg5zdGVwX3VwX21ldGhvZBgCIAEoCRIOCgZtb2JpbGUYAyABKAgSCgoCaXAYBCABKAkSDgoGZGV2aWNlGAUgASgJImQKE1N1Ym1pdEludGVudFJlcXVlc3QSKQoGaW50ZW50GAEgASgLMhkudGIub3JkZXJzLnYxLk9yZGVySW50ZW50EiIKBWFjdG9yGAIgASgLMhMudGIub3JkZXJzLnYxLkFjdG9yInwKFFN1Ym1pdEludGVudFJlc3BvbnNlEiwKCGRlY2lzaW9uGAEgASgLMhoudGIub3JkZXJzLnYxLlJpc2tEZWNpc2lvbhIjCgZvcmRlcnMYAiADKAsyEy50Yi5vcmRlcnMudjEuT3JkZXISEQoJZHVwbGljYXRlGAMgASgIIkEKFFByZXZpZXdJbnRlbnRSZXF1ZXN0EikKBmludGVudBgBIAEoCzIZLnRiLm9yZGVycy52MS5PcmRlckludGVudCLAAQoVUHJldmlld0ludGVudFJlc3BvbnNlEiwKCGRlY2lzaW9uGAEgASgLMhoudGIub3JkZXJzLnYxLlJpc2tEZWNpc2lvbhIxChJlc3RpbWF0ZWRfbm90aW9uYWwYAiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIuCg9lc3RpbWF0ZWRfcHJpY2UYAyABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIWCg5vd25lcnNoaXBfbm90ZRgEIAEoCSJMChNDYW5jZWxJbnRlbnRSZXF1ZXN0EhEKCWludGVudF9pZBgBIAEoCRIiCgVhY3RvchgCIAEoCzITLnRiLm9yZGVycy52MS5BY3RvciIoChRDYW5jZWxJbnRlbnRSZXNwb25zZRIQCghjYW5jZWxlZBgBIAEoBSJ0ChFMaXN0T3JkZXJzUmVxdWVzdBIZChFicm9rZXJfYWNjb3VudF9pZBgBIAEoCRITCgtzdHJhdGVneV9pZBgCIAEoCRIRCglvcGVuX29ubHkYAyABKAgSDQoFc2luY2UYBCABKAMSDQoFbGltaXQYBSABKAUiOQoSTGlzdE9yZGVyc1Jlc3BvbnNlEiMKBm9yZGVycxgBIAMoCzITLnRiLm9yZGVycy52MS5PcmRlciJeChJMaXN0SW50ZW50c1JlcXVlc3QSEwoLc3RyYXRlZ3lfaWQYASABKAkSFQoNcmVqZWN0ZWRfb25seRgCIAEoCBINCgVzaW5jZRgDIAEoAxINCgVsaW1pdBgEIAEoBSJCChNMaXN0SW50ZW50c1Jlc3BvbnNlEisKB2ludGVudHMYASADKAsyGi50Yi5vcmRlcnMudjEuSW50ZW50UmVjb3JkImAKEExpc3RGaWxsc1JlcXVlc3QSGQoRYnJva2VyX2FjY291bnRfaWQYASABKAkSEwoLc3RyYXRlZ3lfaWQYAiABKAkSDQoFc2luY2UYAyABKAMSDQoFbGltaXQYBCABKAUiNgoRTGlzdEZpbGxzUmVzcG9uc2USIQoFZmlsbHMYASADKAsyEi50Yi5vcmRlcnMudjEuRmlsbCIpCg9HZXRUcmFjZVJlcXVlc3QSFgoOY29ycmVsYXRpb25faWQYASABKAkihwEKEEdldFRyYWNlUmVzcG9uc2USKwoHaW50ZW50cxgBIAMoCzIaLnRiLm9yZGVycy52MS5JbnRlbnRSZWNvcmQSIwoGb3JkZXJzGAIgAygLMhMudGIub3JkZXJzLnYxLk9yZGVyEiEKBWZpbGxzGAMgAygLMhIudGIub3JkZXJzLnYxLkZpbGwiFwoVTGlzdFN0cmF0ZWdpZXNSZXF1ZXN0IkQKFkxpc3RTdHJhdGVnaWVzUmVzcG9uc2USKgoKc3RyYXRlZ2llcxgBIAMoCzIWLnRiLm9yZGVycy52MS5TdHJhdGVneSJnChdSZWdpc3RlclN0cmF0ZWd5UmVxdWVzdBIoCghzdHJhdGVneRgBIAEoCzIWLnRiLm9yZGVycy52MS5TdHJhdGVneRIiCgVhY3RvchgCIAEoCzITLnRiLm9yZGVycy52MS5BY3RvciJEChhSZWdpc3RlclN0cmF0ZWd5UmVzcG9uc2USKAoIc3RyYXRlZ3kYASABKAsyFi50Yi5vcmRlcnMudjEuU3RyYXRlZ3kiiwEKFlNldFN0cmF0ZWd5TW9kZVJlcXVlc3QSEwoLc3RyYXRlZ3lfaWQYASABKAkSKAoEbW9kZRgCIAEoDjIaLnRiLm9yZGVycy52MS5TdHJhdGVneU1vZGUSDgoGcmVhc29uGAMgASgJEiIKBWFjdG9yGAQgASgLMhMudGIub3JkZXJzLnYxLkFjdG9yIkMKF1NldFN0cmF0ZWd5TW9kZVJlc3BvbnNlEigKCHN0cmF0ZWd5GAEgASgLMhYudGIub3JkZXJzLnYxLlN0cmF0ZWd5IiUKFEdldFJpc2tMaW1pdHNSZXF1ZXN0Eg0KBXNjb3BlGAEgASgJIn0KFUdldFJpc2tMaW1pdHNSZXNwb25zZRINCgVzY29wZRgBIAEoCRIoCgZsaW1pdHMYAiABKAsyGC50Yi5vcmRlcnMudjEuUmlza0xpbWl0cxIrCgllZmZlY3RpdmUYAyABKAsyGC50Yi5vcmRlcnMudjEuUmlza0xpbWl0cyJzChRTZXRSaXNrTGltaXRzUmVxdWVzdBINCgVzY29wZRgBIAEoCRIoCgZsaW1pdHMYAiABKAsyGC50Yi5vcmRlcnMudjEuUmlza0xpbWl0cxIiCgVhY3RvchgDIAEoCzITLnRiLm9yZGVycy52MS5BY3RvciJRChVTZXRSaXNrTGltaXRzUmVzcG9uc2USKAoGbGltaXRzGAEgASgLMhgudGIub3JkZXJzLnYxLlJpc2tMaW1pdHMSDgoGcmFpc2VkGAIgASgIIrwBChhUcmlnZ2VyS2lsbFN3aXRjaFJlcXVlc3QSLAoFc2NvcGUYASABKA4yHS50Yi5vcmRlcnMudjEuS2lsbFN3aXRjaFNjb3BlEg4KBnRhcmdldBgCIAEoCRIuCgZhY3Rpb24YAyABKA4yHi50Yi5vcmRlcnMudjEuS2lsbFN3aXRjaEFjdGlvbhIOCgZyZWFzb24YBCABKAkSIgoFYWN0b3IYBSABKAsyEy50Yi5vcmRlcnMudjEuQWN0b3IifAoZVHJpZ2dlcktpbGxTd2l0Y2hSZXNwb25zZRItCgtraWxsX3N3aXRjaBgBIAEoCzIYLnRiLm9yZGVycy52MS5LaWxsU3dpdGNoEhcKD29yZGVyc19jYW5jZWxlZBgCIAEoBRIXCg9mbGF0dGVuX2ludGVudHMYAyABKAUiYAoYUmVsZWFzZUtpbGxTd2l0Y2hSZXF1ZXN0EhAKCGV2ZW50X2lkGAEgASgJEg4KBnJlYXNvbhgCIAEoCRIiCgVhY3RvchgDIAEoCzITLnRiLm9yZGVycy52MS5BY3RvciJKChlSZWxlYXNlS2lsbFN3aXRjaFJlc3BvbnNlEi0KC2tpbGxfc3dpdGNoGAEgASgLMhgudGIub3JkZXJzLnYxLktpbGxTd2l0Y2giLgoXTGlzdEtpbGxTd2l0Y2hlc1JlcXVlc3QSEwoLYWN0aXZlX29ubHkYASABKAgiSwoYTGlzdEtpbGxTd2l0Y2hlc1Jlc3BvbnNlEi8KDWtpbGxfc3dpdGNoZXMYASADKAsyGC50Yi5vcmRlcnMudjEuS2lsbFN3aXRjaCIZChdHZXRUcmFkaW5nU3RhdHVzUmVxdWVzdCJHChhHZXRUcmFkaW5nU3RhdHVzUmVzcG9uc2USKwoGc3RhdHVzGAEgASgLMhsudGIub3JkZXJzLnYxLlRyYWRpbmdTdGF0dXMqrgEKDFN0cmF0ZWd5TW9kZRIdChlTVFJBVEVHWV9NT0RFX1VOU1BFQ0lGSUVEEAASGgoWU1RSQVRFR1lfTU9ERV9ESVNBQkxFRBABEhgKFFNUUkFURUdZX01PREVfU0hBRE9XEAISFwoTU1RSQVRFR1lfTU9ERV9QQVBFUhADEhYKElNUUkFURUdZX01PREVfTElWRRAEEhgKFFNUUkFURUdZX01PREVfSEFMVEVEEAUyvgsKEEV4ZWN1dGlvblNlcnZpY2USVQoMU3VibWl0SW50ZW50EiEudGIub3JkZXJzLnYxLlN1Ym1pdEludGVudFJlcXVlc3QaIi50Yi5vcmRlcnMudjEuU3VibWl0SW50ZW50UmVzcG9uc2USWAoNUHJldmlld0ludGVudBIiLnRiLm9yZGVycy52MS5QcmV2aWV3SW50ZW50UmVxdWVzdBojLnRiLm9yZGVycy52MS5QcmV2aWV3SW50ZW50UmVzcG9uc2USVQoMQ2FuY2VsSW50ZW50EiEudGIub3JkZXJzLnYxLkNhbmNlbEludGVudFJlcXVlc3QaIi50Yi5vcmRlcnMudjEuQ2FuY2VsSW50ZW50UmVzcG9uc2USTwoKTGlzdE9yZGVycxIfLnRiLm9yZGVycy52MS5MaXN0T3JkZXJzUmVxdWVzdBogLnRiLm9yZGVycy52MS5MaXN0T3JkZXJzUmVzcG9uc2USUgoLTGlzdEludGVudHMSIC50Yi5vcmRlcnMudjEuTGlzdEludGVudHNSZXF1ZXN0GiEudGIub3JkZXJzLnYxLkxpc3RJbnRlbnRzUmVzcG9uc2USTAoJTGlzdEZpbGxzEh4udGIub3JkZXJzLnYxLkxpc3RGaWxsc1JlcXVlc3QaHy50Yi5vcmRlcnMudjEuTGlzdEZpbGxzUmVzcG9uc2USSQoIR2V0VHJhY2USHS50Yi5vcmRlcnMudjEuR2V0VHJhY2VSZXF1ZXN0Gh4udGIub3JkZXJzLnYxLkdldFRyYWNlUmVzcG9uc2USWwoOTGlzdFN0cmF0ZWdpZXMSIy50Yi5vcmRlcnMudjEuTGlzdFN0cmF0ZWdpZXNSZXF1ZXN0GiQudGIub3JkZXJzLnYxLkxpc3RTdHJhdGVnaWVzUmVzcG9uc2USYQoQUmVnaXN0ZXJTdHJhdGVneRIlLnRiLm9yZGVycy52MS5SZWdpc3RlclN0cmF0ZWd5UmVxdWVzdBomLnRiLm9yZGVycy52MS5SZWdpc3RlclN0cmF0ZWd5UmVzcG9uc2USXgoPU2V0U3RyYXRlZ3lNb2RlEiQudGIub3JkZXJzLnYxLlNldFN0cmF0ZWd5TW9kZVJlcXVlc3QaJS50Yi5vcmRlcnMudjEuU2V0U3RyYXRlZ3lNb2RlUmVzcG9uc2USWAoNR2V0Umlza0xpbWl0cxIiLnRiLm9yZGVycy52MS5HZXRSaXNrTGltaXRzUmVxdWVzdBojLnRiLm9yZGVycy52MS5HZXRSaXNrTGltaXRzUmVzcG9uc2USWAoNU2V0Umlza0xpbWl0cxIiLnRiLm9yZGVycy52MS5TZXRSaXNrTGltaXRzUmVxdWVzdBojLnRiLm9yZGVycy52MS5TZXRSaXNrTGltaXRzUmVzcG9uc2USZAoRVHJpZ2dlcktpbGxTd2l0Y2gSJi50Yi5vcmRlcnMudjEuVHJpZ2dlcktpbGxTd2l0Y2hSZXF1ZXN0GicudGIub3JkZXJzLnYxLlRyaWdnZXJLaWxsU3dpdGNoUmVzcG9uc2USZAoRUmVsZWFzZUtpbGxTd2l0Y2gSJi50Yi5vcmRlcnMudjEuUmVsZWFzZUtpbGxTd2l0Y2hSZXF1ZXN0GicudGIub3JkZXJzLnYxLlJlbGVhc2VLaWxsU3dpdGNoUmVzcG9uc2USYQoQTGlzdEtpbGxTd2l0Y2hlcxIlLnRiLm9yZGVycy52MS5MaXN0S2lsbFN3aXRjaGVzUmVxdWVzdBomLnRiLm9yZGVycy52MS5MaXN0S2lsbFN3aXRjaGVzUmVzcG9uc2USYQoQR2V0VHJhZGluZ1N0YXR1cxIlLnRiLm9yZGVycy52MS5HZXRUcmFkaW5nU3RhdHVzUmVxdWVzdBomLnRiLm9yZGVycy52MS5HZXRUcmFkaW5nU3RhdHVzUmVzcG9uc2VCuwEKEGNvbS50Yi5vcmRlcnMudjFCDkV4ZWN1dGlvblByb3RvUAFaRWdpdGh1Yi5jb20vaWxseWFueWMvc3RyYXdiZXJyeS9jb250cmFjdHMvZ2VuL2dvL3RiL29yZGVycy92MTtvcmRlcnN2MaICA1RPWKoCDFRiLk9yZGVycy5WMcoCDFRiXE9yZGVyc1xWMeICGFRiXE9yZGVyc1xWMVxHUEJNZXRhZGF0YeoCDlRiOjpPcmRlcnM6OlYxYgZwcm90bzM", [file_tb_common_v1_common, file_tb_orders_v1_orders]);
+  fileDesc("Chx0Yi9vcmRlcnMvdjEvZXhlY3V0aW9uLnByb3RvEgx0Yi5vcmRlcnMudjEi6wUKClJpc2tMaW1pdHMSMQoSbWF4X29yZGVyX25vdGlvbmFsGAEgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSLAoNbWF4X29yZGVyX3F0eRgCIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEjQKFW1heF9wb3NpdGlvbl9ub3Rpb25hbBgDIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEjoKG21heF9wb3NpdGlvbl9wY3RfYWxsb2NhdGlvbhgEIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEjEKEm1heF9ncm9zc19leHBvc3VyZRgFIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEi8KEG1heF9uZXRfZXhwb3N1cmUYBiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIVCg1tYXhfcG9zaXRpb25zGAcgASgFEjQKFW1heF9jb25jZW50cmF0aW9uX3BjdBgIIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEi0KDm1heF9kYWlseV9sb3NzGAkgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSKwoMbWF4X2RyYXdkb3duGAogASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSHQoVbWF4X29yZGVyc19wZXJfbWludXRlGAsgASgFEh4KFm1heF9jYW5jZWxzX3Blcl9taW51dGUYDCABKAUSHgoWbWF4X2NvbnNlY3V0aXZlX2xvc3NlcxgNIAEoBRIvChBwcmljZV9jb2xsYXJfcGN0GA4gASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSIAoYZHVwbGljYXRlX3dpbmRvd19zZWNvbmRzGA8gASgFEjIKE2ZhdF9maW5nZXJfbXVsdGlwbGUYECABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIXCg9tYXhfb3Blbl9vcmRlcnMYESABKAUihAUKCFN0cmF0ZWd5EhMKC3N0cmF0ZWd5X2lkGAEgASgJEhAKCHNob3J0X2lkGAIgASgJEgwKBG5hbWUYAyABKAkSJgoHaG9yaXpvbhgEIAEoDjIVLnRiLmNvbW1vbi52MS5Ib3Jpem9uEigKBG1vZGUYBSABKA4yGi50Yi5vcmRlcnMudjEuU3RyYXRlZ3lNb2RlEhkKEWJyb2tlcl9hY2NvdW50X2lkGAYgASgJEg8KB3ZlcnNpb24YByABKAkSEwoLY29kZV9jb21taXQYCCABKAkSEwoLcGFyYW1zX2hhc2gYCSABKAkSEwoLYWxsb3dfc2hvcnQYCiABKAgSHQoVc2VncmVnYXRpb25fYWxsb3dsaXN0GAsgAygJEigKBmxpbWl0cxgMIAEoCzIYLnRiLm9yZGVycy52MS5SaXNrTGltaXRzEhMKC21vZGVfcmVhc29uGA0gASgJEhIKCnVwZGF0ZWRfYXQYDiABKAMSFgoOcnVudGltZV9ob3N0ZWQYDyABKAgSLwoQbGl2ZV9jYXBpdGFsX2NhcBgQIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEjIKE2ludGVuZGVkX2FsbG9jYXRpb24YESABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIYChBwYXBlcl9hY2NvdW50X2lkGBIgASgJEhMKC2xhZGRlcl9zdGVwGBMgASgFEhsKE2xhZGRlcl93aW5kb3dfc3RhcnQYFCABKAMSFQoNcGFwZXJfdHdpbl9vZhgVIAEoCRIYChBsaXZlX3Byb21vdGVkX2F0GBYgASgDEhoKEmxpdmVfZXZpZGVuY2VfaGFzaBgXIAEoCSK6AQoNUmVhZGluZXNzSXRlbRIKCgJpZBgBIAEoCRIPCgdzZWN0aW9uGAIgASgJEg0KBXRpdGxlGAMgASgJEg4KBnN0YXR1cxgEIAEoCRIRCglhdXRvbWF0ZWQYBSABKAgSEgoKY2hlY2tlZF9ieRgGIAEoCRISCgpjaGVja2VkX2F0GAcgASgDEgwKBG5vdGUYCCABKAkSFAoMZXZpZGVuY2VfdXJsGAkgASgJEg4KBmRldGFpbBgKIAEoCSKRAQoNTGl2ZVJlYWRpbmVzcxIZChFicm9rZXJfYWNjb3VudF9pZBgBIAEoCRIqCgVpdGVtcxgCIAMoCzIbLnRiLm9yZGVycy52MS5SZWFkaW5lc3NJdGVtEhAKCGNvbXBsZXRlGAMgASgIEhIKCnVwZGF0ZWRfYXQYBCABKAMSEwoLcmVjb3JkX2hhc2gYBSABKAkidQoTR3JhZHVhdGlvbkNyaXRlcmlvbhIMCgRuYW1lGAEgASgJEhAKCHJlcXVpcmVkGAIgASgJEg4KBmFjdHVhbBgDIAEoCRIOCgZwYXNzZWQYBCABKAgSDgoGc291cmNlGAUgASgJEg4KBmRldGFpbBgGIAEoCSK+AgoQR3JhZHVhdGlvblJlcG9ydBITCgtzdHJhdGVneV9pZBgBIAEoCRIzCghjcml0ZXJpYRgCIAMoCzIhLnRiLm9yZGVycy52MS5HcmFkdWF0aW9uQ3JpdGVyaW9uEg8KB292ZXJhbGwYAyABKAgSEwoLY29tcHV0ZWRfYXQYBCABKAMSFgoOZXZpZGVuY2VfbGlua3MYBSADKAkSEwoLcmVwb3J0X2hhc2gYBiABKAkSFgoOcGFwZXJfc2Vzc2lvbnMYByABKAUSFAoMcGFwZXJfdHJhZGVzGAggASgFEhYKDnJlZ2lzdHJ5X3N0YWdlGAkgASgJEh0KFXBhcGVyX3Nlc3Npb25fcmV0dXJucxgKIAMoARIUCgx3aW5kb3dfc3RhcnQYCyABKAMSEgoKd2luZG93X2VuZBgMIAEoAyK/AgoRTGl2ZUFjY291bnRTdGF0dXMSGQoRYnJva2VyX2FjY291bnRfaWQYASABKAkSDwoHZW5hYmxlZBgCIAEoCBISCgplbmFibGVkX2J5GAMgASgJEhEKCWF1ZGl0X3NlcRgEIAEoAxISCgp1cGRhdGVkX2F0GAUgASgDEhUKDXNlc3Npb25fc3RhdGUYBiABKAkSGQoRY3JlZGVudGlhbF9zdG9yZWQYByABKAgSGgoScmVhZGluZXNzX2NvbXBsZXRlGAggASgIEhMKC29wZW5fYnJlYWtzGAkgASgFEhcKD2xpdmVfc3RyYXRlZ2llcxgKIAMoCRIaChJyZWFkX29ubHlfc2Vzc2lvbnMYCyABKAUSFgoOb3JkZXJzX2VuYWJsZWQYDCABKAgSEwoLZW52aXJvbm1lbnQYDSABKAkiyQEKCkxpdmVTdGF0dXMSFAoMZmxhZ19lbmFibGVkGAEgASgIEjEKCGFjY291bnRzGAIgAygLMh8udGIub3JkZXJzLnYxLkxpdmVBY2NvdW50U3RhdHVzEi8KD2xpdmVfc3RyYXRlZ2llcxgDIAMoCzIWLnRiLm9yZGVycy52MS5TdHJhdGVneRIyCgpjYW5kaWRhdGVzGAQgAygLMh4udGIub3JkZXJzLnYxLkdyYWR1YXRpb25SZXBvcnQSDQoFYXNfb2YYBSABKAMiFgoUR2V0TGl2ZVN0YXR1c1JlcXVlc3QiQQoVR2V0TGl2ZVN0YXR1c1Jlc3BvbnNlEigKBnN0YXR1cxgBIAEoCzIYLnRiLm9yZGVycy52MS5MaXZlU3RhdHVzIjQKF0dldExpdmVSZWFkaW5lc3NSZXF1ZXN0EhkKEWJyb2tlcl9hY2NvdW50X2lkGAEgASgJIkoKGEdldExpdmVSZWFkaW5lc3NSZXNwb25zZRIuCglyZWFkaW5lc3MYASABKAsyGy50Yi5vcmRlcnMudjEuTGl2ZVJlYWRpbmVzcyKdAQoXU2V0UmVhZGluZXNzSXRlbVJlcXVlc3QSGQoRYnJva2VyX2FjY291bnRfaWQYASABKAkSDwoHaXRlbV9pZBgCIAEoCRIOCgZzdGF0dXMYAyABKAkSDAoEbm90ZRgEIAEoCRIUCgxldmlkZW5jZV91cmwYBSABKAkSIgoFYWN0b3IYBiABKAsyEy50Yi5vcmRlcnMudjEuQWN0b3IiSgoYU2V0UmVhZGluZXNzSXRlbVJlc3BvbnNlEi4KCXJlYWRpbmVzcxgBIAEoCzIbLnRiLm9yZGVycy52MS5MaXZlUmVhZGluZXNzIjEKGkdldEdyYWR1YXRpb25SZXBvcnRSZXF1ZXN0EhMKC3N0cmF0ZWd5X2lkGAEgASgJIk0KG0dldEdyYWR1YXRpb25SZXBvcnRSZXNwb25zZRIuCgZyZXBvcnQYASABKAsyHi50Yi5vcmRlcnMudjEuR3JhZHVhdGlvblJlcG9ydCJ+ChhFbmFibGVMaXZlQWNjb3VudFJlcXVlc3QSGQoRYnJva2VyX2FjY291bnRfaWQYASABKAkSFAoMY29uZmlybWF0aW9uGAIgASgJEiIKBWFjdG9yGAMgASgLMhMudGIub3JkZXJzLnYxLkFjdG9yEg0KBXN0YWdlGAQgASgJIk0KGUVuYWJsZUxpdmVBY2NvdW50UmVzcG9uc2USMAoHYWNjb3VudBgBIAEoCzIfLnRiLm9yZGVycy52MS5MaXZlQWNjb3VudFN0YXR1cyJqChlEaXNhYmxlTGl2ZUFjY291bnRSZXF1ZXN0EhkKEWJyb2tlcl9hY2NvdW50X2lkGAEgASgJEg4KBnJlYXNvbhgCIAEoCRIiCgVhY3RvchgDIAEoCzITLnRiLm9yZGVycy52MS5BY3RvciKDAQoaRGlzYWJsZUxpdmVBY2NvdW50UmVzcG9uc2USMAoHYWNjb3VudBgBIAEoCzIfLnRiLm9yZGVycy52MS5MaXZlQWNjb3VudFN0YXR1cxIXCg9vcmRlcnNfY2FuY2VsZWQYAiABKAUSGgoSZGVtb3RlZF9zdHJhdGVnaWVzGAMgAygJIqoCChRQcm9tb3RlVG9MaXZlUmVxdWVzdBITCgtzdHJhdGVneV9pZBgBIAEoCRIXCg9saXZlX2FjY291bnRfaWQYAiABKAkSKgoLY2FwaXRhbF9jYXAYAyABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIyChNpbnRlbmRlZF9hbGxvY2F0aW9uGAQgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwSMQoPbGltaXRfb3ZlcnJpZGVzGAUgASgLMhgudGIub3JkZXJzLnYxLlJpc2tMaW1pdHMSFAoMY29uZmlybWF0aW9uGAYgASgJEhcKD3NraXBfcGFwZXJfdHdpbhgHIAEoCBIiCgVhY3RvchgIIAEoCzITLnRiLm9yZGVycy52MS5BY3RvciLMAQoVUHJvbW90ZVRvTGl2ZVJlc3BvbnNlEigKCHN0cmF0ZWd5GAEgASgLMhYudGIub3JkZXJzLnYxLlN0cmF0ZWd5Ei4KBnJlcG9ydBgCIAEoCzIeLnRiLm9yZGVycy52MS5HcmFkdWF0aW9uUmVwb3J0Ei0KC2xpdmVfbGltaXRzGAMgASgLMhgudGIub3JkZXJzLnYxLlJpc2tMaW1pdHMSKgoKcGFwZXJfdHdpbhgEIAEoCzIWLnRiLm9yZGVycy52MS5TdHJhdGVneSJ5ChVEZW1vdGVGcm9tTGl2ZVJlcXVlc3QSEwoLc3RyYXRlZ3lfaWQYASABKAkSDgoGcmVhc29uGAIgASgJEhcKD3Bvc2l0aW9uX3BvbGljeRgDIAEoCRIiCgVhY3RvchgEIAEoCzITLnRiLm9yZGVycy52MS5BY3RvciJ0ChZEZW1vdGVGcm9tTGl2ZVJlc3BvbnNlEigKCHN0cmF0ZWd5GAEgASgLMhYudGIub3JkZXJzLnYxLlN0cmF0ZWd5EhcKD29yZGVyc19jYW5jZWxlZBgCIAEoBRIXCg9mbGF0dGVuX2ludGVudHMYAyABKAUijAEKE1JhaXNlTGl2ZUNhcFJlcXVlc3QSEwoLc3RyYXRlZ3lfaWQYASABKAkSJgoHbmV3X2NhcBgCIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEhQKDGNvbmZpcm1hdGlvbhgDIAEoCRIiCgVhY3RvchgEIAEoCzITLnRiLm9yZGVycy52MS5BY3RvciJ8ChRSYWlzZUxpdmVDYXBSZXNwb25zZRIoCghzdHJhdGVneRgBIAEoCzIWLnRiLm9yZGVycy52MS5TdHJhdGVneRI6ChJsaXZlX3dpbmRvd19yZXBvcnQYAiABKAsyHi50Yi5vcmRlcnMudjEuR3JhZHVhdGlvblJlcG9ydCKcAgoKS2lsbFN3aXRjaBIQCghldmVudF9pZBgBIAEoCRIsCgVzY29wZRgCIAEoDjIdLnRiLm9yZGVycy52MS5LaWxsU3dpdGNoU2NvcGUSDgoGdGFyZ2V0GAMgASgJEi4KBmFjdGlvbhgEIAEoDjIeLnRiLm9yZGVycy52MS5LaWxsU3dpdGNoQWN0aW9uEhIKCmVuZ2FnZWRfYnkYBSABKAkSDgoGcmVhc29uGAYgASgJEhIKCmVuZ2FnZWRfYXQYByABKAMSDwoHbGF0Y2hlZBgIIAEoCBITCgtyZWxlYXNlZF9hdBgJIAEoAxITCgtyZWxlYXNlZF9ieRgKIAEoCRIbChNjYW5jZWxfY29tcGxldGVkX25zGAsgASgDIqEBCgRIYWx0Eg8KB2hhbHRfaWQYASABKAkSGQoRYnJva2VyX2FjY291bnRfaWQYAiABKAkSEwoLc3RyYXRlZ3lfaWQYAyABKAkSFQoNaW5zdHJ1bWVudF9pZBgEIAEoCRIOCgZyZWFzb24YBSABKAkSDQoFc2luY2UYBiABKAMSEgoKY2xlYXJlZF9hdBgHIAEoAxIOCgZzb3VyY2UYCCABKAkiiwEKDEludGVudFJlY29yZBIpCgZpbnRlbnQYASABKAsyGS50Yi5vcmRlcnMudjEuT3JkZXJJbnRlbnQSLAoIZGVjaXNpb24YAiABKAsyGi50Yi5vcmRlcnMudjEuUmlza0RlY2lzaW9uEg0KBXN0YXRlGAMgASgJEhMKC3JlY2VpdmVkX2F0GAQgASgDIuACCgRGaWxsEhkKEWJyb2tlcl9hY2NvdW50X2lkGAEgASgJEhYKDmJyb2tlcl9leGVjX2lkGAIgASgJEhAKCG9yZGVyX2lkGAMgASgJEhEKCWludGVudF9pZBgEIAEoCRITCgtzdHJhdGVneV9pZBgFIAEoCRIVCg1pbnN0cnVtZW50X2lkGAYgASgJEiAKBHNpZGUYByABKA4yEi50Yi5jb21tb24udjEuU2lkZRIiCgNxdHkYCCABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBIkCgVwcmljZRgJIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEiMKBGZlZXMYCiABKAsyFS50Yi5jb21tb24udjEuRGVjaW1hbBISCgpldmVudF90aW1lGAsgASgDEhYKDmNvcnJlbGF0aW9uX2lkGAwgASgJEhcKD2NsaWVudF9vcmRlcl9pZBgNIAEoCSLjAgoUQWNjb3VudFRyYWRpbmdTdGF0dXMSGQoRYnJva2VyX2FjY291bnRfaWQYASABKAkSFQoNc2Vzc2lvbl9zdGF0ZRgCIAEoCRIdChVyZWNvbmNpbGlhdGlvbl9zdGF0dXMYAyABKAkSHAoUcmVjb25jaWxpYXRpb25fZnJlc2gYBCABKAgSHwoXaW50cmFkYXlfbWFyZ2luX2RlZmljaXQYBSABKAgSEwoLbWFyZ2luX2NhbGwYBiABKAgSFwoPZGF5X3RyYWRlX2NvdW50GAcgASgFEhEKCXBkdF9ndWFyZBgIIAEoCRIZChFhY2NlcHRpbmdfaW50ZW50cxgJIAEoCBIXCg9ibG9ja2VkX3JlYXNvbnMYCiADKAkSEwoLZW52aXJvbm1lbnQYCyABKAkSMQoSbWFyZ2luX3V0aWxpemF0aW9uGAwgASgLMhUudGIuY29tbW9uLnYxLkRlY2ltYWwiogEKFVN0cmF0ZWd5VHJhZGluZ1N0YXR1cxITCgtzdHJhdGVneV9pZBgBIAEoCRIoCgRtb2RlGAIgASgOMhoudGIub3JkZXJzLnYxLlN0cmF0ZWd5TW9kZRIZChFhY2NlcHRpbmdfaW50ZW50cxgDIAEoCBIXCg9ibG9ja2VkX3JlYXNvbnMYBCADKAkSFgoObGFzdF9oZWFydGJlYXQYBSABKAMizAIKDVRyYWRpbmdTdGF0dXMSFAoMZ2xvYmFsX3N0YXRlGAEgASgJEjQKCGFjY291bnRzGAIgAygLMiIudGIub3JkZXJzLnYxLkFjY291bnRUcmFkaW5nU3RhdHVzEjcKCnN0cmF0ZWdpZXMYAyADKAsyIy50Yi5vcmRlcnMudjEuU3RyYXRlZ3lUcmFkaW5nU3RhdHVzEjYKFGFjdGl2ZV9raWxsX3N3aXRjaGVzGAQgAygLMhgudGIub3JkZXJzLnYxLktpbGxTd2l0Y2gSKAoMYWN0aXZlX2hhbHRzGAUgAygLMhIudGIub3JkZXJzLnYxLkhhbHQSDQoFYXNfb2YYBiABKAMSEAoIY2xvY2tfb2sYByABKAgSEwoLb3Blbl9vcmRlcnMYCCABKAUSHgoWcnVudGltZV9sYXN0X2hlYXJ0YmVhdBgJIAEoAyJZCgVBY3RvchIMCgRuYW1lGAEgASgJEhYKDnN0ZXBfdXBfbWV0aG9kGAIgASgJEg4KBm1vYmlsZRgDIAEoCBIKCgJpcBgEIAEoCRIOCgZkZXZpY2UYBSABKAkiZAoTU3VibWl0SW50ZW50UmVxdWVzdBIpCgZpbnRlbnQYASABKAsyGS50Yi5vcmRlcnMudjEuT3JkZXJJbnRlbnQSIgoFYWN0b3IYAiABKAsyEy50Yi5vcmRlcnMudjEuQWN0b3IifAoUU3VibWl0SW50ZW50UmVzcG9uc2USLAoIZGVjaXNpb24YASABKAsyGi50Yi5vcmRlcnMudjEuUmlza0RlY2lzaW9uEiMKBm9yZGVycxgCIAMoCzITLnRiLm9yZGVycy52MS5PcmRlchIRCglkdXBsaWNhdGUYAyABKAgiQQoUUHJldmlld0ludGVudFJlcXVlc3QSKQoGaW50ZW50GAEgASgLMhkudGIub3JkZXJzLnYxLk9yZGVySW50ZW50IsABChVQcmV2aWV3SW50ZW50UmVzcG9uc2USLAoIZGVjaXNpb24YASABKAsyGi50Yi5vcmRlcnMudjEuUmlza0RlY2lzaW9uEjEKEmVzdGltYXRlZF9ub3Rpb25hbBgCIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEi4KD2VzdGltYXRlZF9wcmljZRgDIAEoCzIVLnRiLmNvbW1vbi52MS5EZWNpbWFsEhYKDm93bmVyc2hpcF9ub3RlGAQgASgJIkwKE0NhbmNlbEludGVudFJlcXVlc3QSEQoJaW50ZW50X2lkGAEgASgJEiIKBWFjdG9yGAIgASgLMhMudGIub3JkZXJzLnYxLkFjdG9yIigKFENhbmNlbEludGVudFJlc3BvbnNlEhAKCGNhbmNlbGVkGAEgASgFInQKEUxpc3RPcmRlcnNSZXF1ZXN0EhkKEWJyb2tlcl9hY2NvdW50X2lkGAEgASgJEhMKC3N0cmF0ZWd5X2lkGAIgASgJEhEKCW9wZW5fb25seRgDIAEoCBINCgVzaW5jZRgEIAEoAxINCgVsaW1pdBgFIAEoBSI5ChJMaXN0T3JkZXJzUmVzcG9uc2USIwoGb3JkZXJzGAEgAygLMhMudGIub3JkZXJzLnYxLk9yZGVyIl4KEkxpc3RJbnRlbnRzUmVxdWVzdBITCgtzdHJhdGVneV9pZBgBIAEoCRIVCg1yZWplY3RlZF9vbmx5GAIgASgIEg0KBXNpbmNlGAMgASgDEg0KBWxpbWl0GAQgASgFIkIKE0xpc3RJbnRlbnRzUmVzcG9uc2USKwoHaW50ZW50cxgBIAMoCzIaLnRiLm9yZGVycy52MS5JbnRlbnRSZWNvcmQiYAoQTGlzdEZpbGxzUmVxdWVzdBIZChFicm9rZXJfYWNjb3VudF9pZBgBIAEoCRITCgtzdHJhdGVneV9pZBgCIAEoCRINCgVzaW5jZRgDIAEoAxINCgVsaW1pdBgEIAEoBSI2ChFMaXN0RmlsbHNSZXNwb25zZRIhCgVmaWxscxgBIAMoCzISLnRiLm9yZGVycy52MS5GaWxsIikKD0dldFRyYWNlUmVxdWVzdBIWCg5jb3JyZWxhdGlvbl9pZBgBIAEoCSKHAQoQR2V0VHJhY2VSZXNwb25zZRIrCgdpbnRlbnRzGAEgAygLMhoudGIub3JkZXJzLnYxLkludGVudFJlY29yZBIjCgZvcmRlcnMYAiADKAsyEy50Yi5vcmRlcnMudjEuT3JkZXISIQoFZmlsbHMYAyADKAsyEi50Yi5vcmRlcnMudjEuRmlsbCIXChVMaXN0U3RyYXRlZ2llc1JlcXVlc3QiRAoWTGlzdFN0cmF0ZWdpZXNSZXNwb25zZRIqCgpzdHJhdGVnaWVzGAEgAygLMhYudGIub3JkZXJzLnYxLlN0cmF0ZWd5ImcKF1JlZ2lzdGVyU3RyYXRlZ3lSZXF1ZXN0EigKCHN0cmF0ZWd5GAEgASgLMhYudGIub3JkZXJzLnYxLlN0cmF0ZWd5EiIKBWFjdG9yGAIgASgLMhMudGIub3JkZXJzLnYxLkFjdG9yIkQKGFJlZ2lzdGVyU3RyYXRlZ3lSZXNwb25zZRIoCghzdHJhdGVneRgBIAEoCzIWLnRiLm9yZGVycy52MS5TdHJhdGVneSKLAQoWU2V0U3RyYXRlZ3lNb2RlUmVxdWVzdBITCgtzdHJhdGVneV9pZBgBIAEoCRIoCgRtb2RlGAIgASgOMhoudGIub3JkZXJzLnYxLlN0cmF0ZWd5TW9kZRIOCgZyZWFzb24YAyABKAkSIgoFYWN0b3IYBCABKAsyEy50Yi5vcmRlcnMudjEuQWN0b3IiQwoXU2V0U3RyYXRlZ3lNb2RlUmVzcG9uc2USKAoIc3RyYXRlZ3kYASABKAsyFi50Yi5vcmRlcnMudjEuU3RyYXRlZ3kijQEKFURlbW90ZVN0cmF0ZWd5UmVxdWVzdBITCgtzdHJhdGVneV9pZBgBIAEoCRIOCgZyZWFzb24YAiABKAkSEwoLZXZpZGVuY2VfaWQYAyABKAkSIgoFYWN0b3IYBCABKAsyEy50Yi5vcmRlcnMudjEuQWN0b3ISFgoOY29ycmVsYXRpb25faWQYBSABKAkitAEKFkRlbW90ZVN0cmF0ZWd5UmVzcG9uc2USKAoIc3RyYXRlZ3kYASABKAsyFi50Yi5vcmRlcnMudjEuU3RyYXRlZ3kSKAoEZnJvbRgCIAEoDjIaLnRiLm9yZGVycy52MS5TdHJhdGVneU1vZGUSDwoHY2hhbmdlZBgDIAEoCBIcChRraWxsX3N3aXRjaF9ldmVudF9pZBgEIAEoCRIXCg9vcmRlcnNfY2FuY2VsZWQYBSABKAUiJQoUR2V0Umlza0xpbWl0c1JlcXVlc3QSDQoFc2NvcGUYASABKAkifQoVR2V0Umlza0xpbWl0c1Jlc3BvbnNlEg0KBXNjb3BlGAEgASgJEigKBmxpbWl0cxgCIAEoCzIYLnRiLm9yZGVycy52MS5SaXNrTGltaXRzEisKCWVmZmVjdGl2ZRgDIAEoCzIYLnRiLm9yZGVycy52MS5SaXNrTGltaXRzInMKFFNldFJpc2tMaW1pdHNSZXF1ZXN0Eg0KBXNjb3BlGAEgASgJEigKBmxpbWl0cxgCIAEoCzIYLnRiLm9yZGVycy52MS5SaXNrTGltaXRzEiIKBWFjdG9yGAMgASgLMhMudGIub3JkZXJzLnYxLkFjdG9yIlEKFVNldFJpc2tMaW1pdHNSZXNwb25zZRIoCgZsaW1pdHMYASABKAsyGC50Yi5vcmRlcnMudjEuUmlza0xpbWl0cxIOCgZyYWlzZWQYAiABKAgivAEKGFRyaWdnZXJLaWxsU3dpdGNoUmVxdWVzdBIsCgVzY29wZRgBIAEoDjIdLnRiLm9yZGVycy52MS5LaWxsU3dpdGNoU2NvcGUSDgoGdGFyZ2V0GAIgASgJEi4KBmFjdGlvbhgDIAEoDjIeLnRiLm9yZGVycy52MS5LaWxsU3dpdGNoQWN0aW9uEg4KBnJlYXNvbhgEIAEoCRIiCgVhY3RvchgFIAEoCzITLnRiLm9yZGVycy52MS5BY3RvciJ8ChlUcmlnZ2VyS2lsbFN3aXRjaFJlc3BvbnNlEi0KC2tpbGxfc3dpdGNoGAEgASgLMhgudGIub3JkZXJzLnYxLktpbGxTd2l0Y2gSFwoPb3JkZXJzX2NhbmNlbGVkGAIgASgFEhcKD2ZsYXR0ZW5faW50ZW50cxgDIAEoBSJgChhSZWxlYXNlS2lsbFN3aXRjaFJlcXVlc3QSEAoIZXZlbnRfaWQYASABKAkSDgoGcmVhc29uGAIgASgJEiIKBWFjdG9yGAMgASgLMhMudGIub3JkZXJzLnYxLkFjdG9yIkoKGVJlbGVhc2VLaWxsU3dpdGNoUmVzcG9uc2USLQoLa2lsbF9zd2l0Y2gYASABKAsyGC50Yi5vcmRlcnMudjEuS2lsbFN3aXRjaCIuChdMaXN0S2lsbFN3aXRjaGVzUmVxdWVzdBITCgthY3RpdmVfb25seRgBIAEoCCJLChhMaXN0S2lsbFN3aXRjaGVzUmVzcG9uc2USLwoNa2lsbF9zd2l0Y2hlcxgBIAMoCzIYLnRiLm9yZGVycy52MS5LaWxsU3dpdGNoIhkKF0dldFRyYWRpbmdTdGF0dXNSZXF1ZXN0IkcKGEdldFRyYWRpbmdTdGF0dXNSZXNwb25zZRIrCgZzdGF0dXMYASABKAsyGy50Yi5vcmRlcnMudjEuVHJhZGluZ1N0YXR1cyquAQoMU3RyYXRlZ3lNb2RlEh0KGVNUUkFURUdZX01PREVfVU5TUEVDSUZJRUQQABIaChZTVFJBVEVHWV9NT0RFX0RJU0FCTEVEEAESGAoUU1RSQVRFR1lfTU9ERV9TSEFET1cQAhIXChNTVFJBVEVHWV9NT0RFX1BBUEVSEAMSFgoSU1RSQVRFR1lfTU9ERV9MSVZFEAQSGAoUU1RSQVRFR1lfTU9ERV9IQUxURUQQBTKEEwoQRXhlY3V0aW9uU2VydmljZRJVCgxTdWJtaXRJbnRlbnQSIS50Yi5vcmRlcnMudjEuU3VibWl0SW50ZW50UmVxdWVzdBoiLnRiLm9yZGVycy52MS5TdWJtaXRJbnRlbnRSZXNwb25zZRJYCg1QcmV2aWV3SW50ZW50EiIudGIub3JkZXJzLnYxLlByZXZpZXdJbnRlbnRSZXF1ZXN0GiMudGIub3JkZXJzLnYxLlByZXZpZXdJbnRlbnRSZXNwb25zZRJVCgxDYW5jZWxJbnRlbnQSIS50Yi5vcmRlcnMudjEuQ2FuY2VsSW50ZW50UmVxdWVzdBoiLnRiLm9yZGVycy52MS5DYW5jZWxJbnRlbnRSZXNwb25zZRJPCgpMaXN0T3JkZXJzEh8udGIub3JkZXJzLnYxLkxpc3RPcmRlcnNSZXF1ZXN0GiAudGIub3JkZXJzLnYxLkxpc3RPcmRlcnNSZXNwb25zZRJSCgtMaXN0SW50ZW50cxIgLnRiLm9yZGVycy52MS5MaXN0SW50ZW50c1JlcXVlc3QaIS50Yi5vcmRlcnMudjEuTGlzdEludGVudHNSZXNwb25zZRJMCglMaXN0RmlsbHMSHi50Yi5vcmRlcnMudjEuTGlzdEZpbGxzUmVxdWVzdBofLnRiLm9yZGVycy52MS5MaXN0RmlsbHNSZXNwb25zZRJJCghHZXRUcmFjZRIdLnRiLm9yZGVycy52MS5HZXRUcmFjZVJlcXVlc3QaHi50Yi5vcmRlcnMudjEuR2V0VHJhY2VSZXNwb25zZRJbCg5MaXN0U3RyYXRlZ2llcxIjLnRiLm9yZGVycy52MS5MaXN0U3RyYXRlZ2llc1JlcXVlc3QaJC50Yi5vcmRlcnMudjEuTGlzdFN0cmF0ZWdpZXNSZXNwb25zZRJhChBSZWdpc3RlclN0cmF0ZWd5EiUudGIub3JkZXJzLnYxLlJlZ2lzdGVyU3RyYXRlZ3lSZXF1ZXN0GiYudGIub3JkZXJzLnYxLlJlZ2lzdGVyU3RyYXRlZ3lSZXNwb25zZRJeCg9TZXRTdHJhdGVneU1vZGUSJC50Yi5vcmRlcnMudjEuU2V0U3RyYXRlZ3lNb2RlUmVxdWVzdBolLnRiLm9yZGVycy52MS5TZXRTdHJhdGVneU1vZGVSZXNwb25zZRJYCg1HZXRSaXNrTGltaXRzEiIudGIub3JkZXJzLnYxLkdldFJpc2tMaW1pdHNSZXF1ZXN0GiMudGIub3JkZXJzLnYxLkdldFJpc2tMaW1pdHNSZXNwb25zZRJYCg1TZXRSaXNrTGltaXRzEiIudGIub3JkZXJzLnYxLlNldFJpc2tMaW1pdHNSZXF1ZXN0GiMudGIub3JkZXJzLnYxLlNldFJpc2tMaW1pdHNSZXNwb25zZRJkChFUcmlnZ2VyS2lsbFN3aXRjaBImLnRiLm9yZGVycy52MS5UcmlnZ2VyS2lsbFN3aXRjaFJlcXVlc3QaJy50Yi5vcmRlcnMudjEuVHJpZ2dlcktpbGxTd2l0Y2hSZXNwb25zZRJkChFSZWxlYXNlS2lsbFN3aXRjaBImLnRiLm9yZGVycy52MS5SZWxlYXNlS2lsbFN3aXRjaFJlcXVlc3QaJy50Yi5vcmRlcnMudjEuUmVsZWFzZUtpbGxTd2l0Y2hSZXNwb25zZRJhChBMaXN0S2lsbFN3aXRjaGVzEiUudGIub3JkZXJzLnYxLkxpc3RLaWxsU3dpdGNoZXNSZXF1ZXN0GiYudGIub3JkZXJzLnYxLkxpc3RLaWxsU3dpdGNoZXNSZXNwb25zZRJhChBHZXRUcmFkaW5nU3RhdHVzEiUudGIub3JkZXJzLnYxLkdldFRyYWRpbmdTdGF0dXNSZXF1ZXN0GiYudGIub3JkZXJzLnYxLkdldFRyYWRpbmdTdGF0dXNSZXNwb25zZRJbCg5EZW1vdGVTdHJhdGVneRIjLnRiLm9yZGVycy52MS5EZW1vdGVTdHJhdGVneVJlcXVlc3QaJC50Yi5vcmRlcnMudjEuRGVtb3RlU3RyYXRlZ3lSZXNwb25zZRJYCg1HZXRMaXZlU3RhdHVzEiIudGIub3JkZXJzLnYxLkdldExpdmVTdGF0dXNSZXF1ZXN0GiMudGIub3JkZXJzLnYxLkdldExpdmVTdGF0dXNSZXNwb25zZRJhChBHZXRMaXZlUmVhZGluZXNzEiUudGIub3JkZXJzLnYxLkdldExpdmVSZWFkaW5lc3NSZXF1ZXN0GiYudGIub3JkZXJzLnYxLkdldExpdmVSZWFkaW5lc3NSZXNwb25zZRJhChBTZXRSZWFkaW5lc3NJdGVtEiUudGIub3JkZXJzLnYxLlNldFJlYWRpbmVzc0l0ZW1SZXF1ZXN0GiYudGIub3JkZXJzLnYxLlNldFJlYWRpbmVzc0l0ZW1SZXNwb25zZRJqChNHZXRHcmFkdWF0aW9uUmVwb3J0EigudGIub3JkZXJzLnYxLkdldEdyYWR1YXRpb25SZXBvcnRSZXF1ZXN0GikudGIub3JkZXJzLnYxLkdldEdyYWR1YXRpb25SZXBvcnRSZXNwb25zZRJkChFFbmFibGVMaXZlQWNjb3VudBImLnRiLm9yZGVycy52MS5FbmFibGVMaXZlQWNjb3VudFJlcXVlc3QaJy50Yi5vcmRlcnMudjEuRW5hYmxlTGl2ZUFjY291bnRSZXNwb25zZRJnChJEaXNhYmxlTGl2ZUFjY291bnQSJy50Yi5vcmRlcnMudjEuRGlzYWJsZUxpdmVBY2NvdW50UmVxdWVzdBooLnRiLm9yZGVycy52MS5EaXNhYmxlTGl2ZUFjY291bnRSZXNwb25zZRJYCg1Qcm9tb3RlVG9MaXZlEiIudGIub3JkZXJzLnYxLlByb21vdGVUb0xpdmVSZXF1ZXN0GiMudGIub3JkZXJzLnYxLlByb21vdGVUb0xpdmVSZXNwb25zZRJbCg5EZW1vdGVGcm9tTGl2ZRIjLnRiLm9yZGVycy52MS5EZW1vdGVGcm9tTGl2ZVJlcXVlc3QaJC50Yi5vcmRlcnMudjEuRGVtb3RlRnJvbUxpdmVSZXNwb25zZRJVCgxSYWlzZUxpdmVDYXASIS50Yi5vcmRlcnMudjEuUmFpc2VMaXZlQ2FwUmVxdWVzdBoiLnRiLm9yZGVycy52MS5SYWlzZUxpdmVDYXBSZXNwb25zZUK7AQoQY29tLnRiLm9yZGVycy52MUIORXhlY3V0aW9uUHJvdG9QAVpFZ2l0aHViLmNvbS9pbGx5YW55Yy9zdHJhd2JlcnJ5L2NvbnRyYWN0cy9nZW4vZ28vdGIvb3JkZXJzL3YxO29yZGVyc3YxogIDVE9YqgIMVGIuT3JkZXJzLlYxygIMVGJcT3JkZXJzXFYx4gIYVGJcT3JkZXJzXFYxXEdQQk1ldGFkYXRh6gIOVGI6Ok9yZGVyczo6VjFiBnByb3RvMw", [file_tb_common_v1_common, file_tb_orders_v1_orders]);
 
 /**
  * RiskLimits are the configurable pre-trade limits for one scope (RM-003). Unset fields inherit the
@@ -328,6 +328,57 @@ export type Strategy = Message<"tb.orders.v1.Strategy"> & {
    * @generated from field: bool runtime_hosted = 15;
    */
   runtimeHosted: boolean;
+
+  /**
+   * Section 15 (GL-020): the live capital cap and the allocation it was graduated for. Zero unless
+   * the strategy is or was live. The ledger allocation on the live account equals the cap.
+   *
+   * @generated from field: tb.common.v1.Decimal live_capital_cap = 16;
+   */
+  liveCapitalCap?: Decimal | undefined;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal intended_allocation = 17;
+   */
+  intendedAllocation?: Decimal | undefined;
+
+  /**
+   * Account the strategy traded paper on before promotion; demotion returns it there (GL-030).
+   *
+   * @generated from field: string paper_account_id = 18;
+   */
+  paperAccountId: string;
+
+  /**
+   * Scaling ladder step (0 = initial cap) and when the current step started (GL-040).
+   *
+   * @generated from field: int32 ladder_step = 19;
+   */
+  ladderStep: number;
+
+  /**
+   * @generated from field: int64 ladder_window_start = 20;
+   */
+  ladderWindowStart: bigint;
+
+  /**
+   * Set on a paper twin registered by promotion: the live strategy it mirrors (GL-022).
+   *
+   * @generated from field: string paper_twin_of = 21;
+   */
+  paperTwinOf: string;
+
+  /**
+   * @generated from field: int64 live_promoted_at = 22;
+   */
+  livePromotedAt: bigint;
+
+  /**
+   * Hash of the graduation report and readiness record the promotion was approved on.
+   *
+   * @generated from field: string live_evidence_hash = 23;
+   */
+  liveEvidenceHash: string;
 };
 
 /**
@@ -416,6 +467,57 @@ export type StrategyJson = {
    * @generated from field: bool runtime_hosted = 15;
    */
   runtimeHosted?: boolean;
+
+  /**
+   * Section 15 (GL-020): the live capital cap and the allocation it was graduated for. Zero unless
+   * the strategy is or was live. The ledger allocation on the live account equals the cap.
+   *
+   * @generated from field: tb.common.v1.Decimal live_capital_cap = 16;
+   */
+  liveCapitalCap?: DecimalJson;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal intended_allocation = 17;
+   */
+  intendedAllocation?: DecimalJson;
+
+  /**
+   * Account the strategy traded paper on before promotion; demotion returns it there (GL-030).
+   *
+   * @generated from field: string paper_account_id = 18;
+   */
+  paperAccountId?: string;
+
+  /**
+   * Scaling ladder step (0 = initial cap) and when the current step started (GL-040).
+   *
+   * @generated from field: int32 ladder_step = 19;
+   */
+  ladderStep?: number;
+
+  /**
+   * @generated from field: int64 ladder_window_start = 20;
+   */
+  ladderWindowStart?: string;
+
+  /**
+   * Set on a paper twin registered by promotion: the live strategy it mirrors (GL-022).
+   *
+   * @generated from field: string paper_twin_of = 21;
+   */
+  paperTwinOf?: string;
+
+  /**
+   * @generated from field: int64 live_promoted_at = 22;
+   */
+  livePromotedAt?: string;
+
+  /**
+   * Hash of the graduation report and readiness record the promotion was approved on.
+   *
+   * @generated from field: string live_evidence_hash = 23;
+   */
+  liveEvidenceHash?: string;
 };
 
 /**
@@ -424,6 +526,1534 @@ export type StrategyJson = {
  */
 export const StrategySchema: GenMessage<Strategy, {jsonType: StrategyJson}> = /*@__PURE__*/
   messageDesc(file_tb_orders_v1_execution, 1);
+
+/**
+ * ReadinessItem is one entry of the pre-live readiness checklist (GL-010). Automated items are
+ * evaluated on every read; attested items are marked by the owner. There is no waiver status.
+ *
+ * @generated from message tb.orders.v1.ReadinessItem
+ */
+export type ReadinessItem = Message<"tb.orders.v1.ReadinessItem"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * security | operations | data | ledger | risk | monitoring | compliance | documentation
+   *
+   * @generated from field: string section = 2;
+   */
+  section: string;
+
+  /**
+   * @generated from field: string title = 3;
+   */
+  title: string;
+
+  /**
+   * pending | passed | failed
+   *
+   * @generated from field: string status = 4;
+   */
+  status: string;
+
+  /**
+   * @generated from field: bool automated = 5;
+   */
+  automated: boolean;
+
+  /**
+   * @generated from field: string checked_by = 6;
+   */
+  checkedBy: string;
+
+  /**
+   * @generated from field: int64 checked_at = 7;
+   */
+  checkedAt: bigint;
+
+  /**
+   * @generated from field: string note = 8;
+   */
+  note: string;
+
+  /**
+   * @generated from field: string evidence_url = 9;
+   */
+  evidenceUrl: string;
+
+  /**
+   * Explanation from the automated evaluation (why it failed), empty otherwise.
+   *
+   * @generated from field: string detail = 10;
+   */
+  detail: string;
+};
+
+/**
+ * ReadinessItem is one entry of the pre-live readiness checklist (GL-010). Automated items are
+ * evaluated on every read; attested items are marked by the owner. There is no waiver status.
+ *
+ * @generated from message tb.orders.v1.ReadinessItem
+ */
+export type ReadinessItemJson = {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id?: string;
+
+  /**
+   * security | operations | data | ledger | risk | monitoring | compliance | documentation
+   *
+   * @generated from field: string section = 2;
+   */
+  section?: string;
+
+  /**
+   * @generated from field: string title = 3;
+   */
+  title?: string;
+
+  /**
+   * pending | passed | failed
+   *
+   * @generated from field: string status = 4;
+   */
+  status?: string;
+
+  /**
+   * @generated from field: bool automated = 5;
+   */
+  automated?: boolean;
+
+  /**
+   * @generated from field: string checked_by = 6;
+   */
+  checkedBy?: string;
+
+  /**
+   * @generated from field: int64 checked_at = 7;
+   */
+  checkedAt?: string;
+
+  /**
+   * @generated from field: string note = 8;
+   */
+  note?: string;
+
+  /**
+   * @generated from field: string evidence_url = 9;
+   */
+  evidenceUrl?: string;
+
+  /**
+   * Explanation from the automated evaluation (why it failed), empty otherwise.
+   *
+   * @generated from field: string detail = 10;
+   */
+  detail?: string;
+};
+
+/**
+ * Describes the message tb.orders.v1.ReadinessItem.
+ * Use `create(ReadinessItemSchema)` to create a new message.
+ */
+export const ReadinessItemSchema: GenMessage<ReadinessItem, {jsonType: ReadinessItemJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 2);
+
+/**
+ * @generated from message tb.orders.v1.LiveReadiness
+ */
+export type LiveReadiness = Message<"tb.orders.v1.LiveReadiness"> & {
+  /**
+   * @generated from field: string broker_account_id = 1;
+   */
+  brokerAccountId: string;
+
+  /**
+   * @generated from field: repeated tb.orders.v1.ReadinessItem items = 2;
+   */
+  items: ReadinessItem[];
+
+  /**
+   * True only when every item is passed (GL-010).
+   *
+   * @generated from field: bool complete = 3;
+   */
+  complete: boolean;
+
+  /**
+   * @generated from field: int64 updated_at = 4;
+   */
+  updatedAt: bigint;
+
+  /**
+   * SHA-256 of the canonical record; recorded in the enablement audit event.
+   *
+   * @generated from field: string record_hash = 5;
+   */
+  recordHash: string;
+};
+
+/**
+ * @generated from message tb.orders.v1.LiveReadiness
+ */
+export type LiveReadinessJson = {
+  /**
+   * @generated from field: string broker_account_id = 1;
+   */
+  brokerAccountId?: string;
+
+  /**
+   * @generated from field: repeated tb.orders.v1.ReadinessItem items = 2;
+   */
+  items?: ReadinessItemJson[];
+
+  /**
+   * True only when every item is passed (GL-010).
+   *
+   * @generated from field: bool complete = 3;
+   */
+  complete?: boolean;
+
+  /**
+   * @generated from field: int64 updated_at = 4;
+   */
+  updatedAt?: string;
+
+  /**
+   * SHA-256 of the canonical record; recorded in the enablement audit event.
+   *
+   * @generated from field: string record_hash = 5;
+   */
+  recordHash?: string;
+};
+
+/**
+ * Describes the message tb.orders.v1.LiveReadiness.
+ * Use `create(LiveReadinessSchema)` to create a new message.
+ */
+export const LiveReadinessSchema: GenMessage<LiveReadiness, {jsonType: LiveReadinessJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 3);
+
+/**
+ * GraduationCriterion is one paper-graduation test (GL-001..GL-003).
+ *
+ * @generated from message tb.orders.v1.GraduationCriterion
+ */
+export type GraduationCriterion = Message<"tb.orders.v1.GraduationCriterion"> & {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string required = 2;
+   */
+  required: string;
+
+  /**
+   * @generated from field: string actual = 3;
+   */
+  actual: string;
+
+  /**
+   * @generated from field: bool passed = 4;
+   */
+  passed: boolean;
+
+  /**
+   * execution | ledger | optimizer | monitor
+   *
+   * @generated from field: string source = 5;
+   */
+  source: string;
+
+  /**
+   * @generated from field: string detail = 6;
+   */
+  detail: string;
+};
+
+/**
+ * GraduationCriterion is one paper-graduation test (GL-001..GL-003).
+ *
+ * @generated from message tb.orders.v1.GraduationCriterion
+ */
+export type GraduationCriterionJson = {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name?: string;
+
+  /**
+   * @generated from field: string required = 2;
+   */
+  required?: string;
+
+  /**
+   * @generated from field: string actual = 3;
+   */
+  actual?: string;
+
+  /**
+   * @generated from field: bool passed = 4;
+   */
+  passed?: boolean;
+
+  /**
+   * execution | ledger | optimizer | monitor
+   *
+   * @generated from field: string source = 5;
+   */
+  source?: string;
+
+  /**
+   * @generated from field: string detail = 6;
+   */
+  detail?: string;
+};
+
+/**
+ * Describes the message tb.orders.v1.GraduationCriterion.
+ * Use `create(GraduationCriterionSchema)` to create a new message.
+ */
+export const GraduationCriterionSchema: GenMessage<GraduationCriterion, {jsonType: GraduationCriterionJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 4);
+
+/**
+ * @generated from message tb.orders.v1.GraduationReport
+ */
+export type GraduationReport = Message<"tb.orders.v1.GraduationReport"> & {
+  /**
+   * @generated from field: string strategy_id = 1;
+   */
+  strategyId: string;
+
+  /**
+   * @generated from field: repeated tb.orders.v1.GraduationCriterion criteria = 2;
+   */
+  criteria: GraduationCriterion[];
+
+  /**
+   * @generated from field: bool overall = 3;
+   */
+  overall: boolean;
+
+  /**
+   * @generated from field: int64 computed_at = 4;
+   */
+  computedAt: bigint;
+
+  /**
+   * @generated from field: repeated string evidence_links = 5;
+   */
+  evidenceLinks: string[];
+
+  /**
+   * SHA-256 of the canonical report; PromoteToLive records it (GL-020).
+   *
+   * @generated from field: string report_hash = 6;
+   */
+  reportHash: string;
+
+  /**
+   * @generated from field: int32 paper_sessions = 7;
+   */
+  paperSessions: number;
+
+  /**
+   * @generated from field: int32 paper_trades = 8;
+   */
+  paperTrades: number;
+
+  /**
+   * Registry stage name of the strategy's candidate (tb.ml.v1.RegistryStage), empty when unknown.
+   *
+   * @generated from field: string registry_stage = 9;
+   */
+  registryStage: string;
+
+  /**
+   * Per-session paper returns (fraction of allocation) the statistics were computed on.
+   *
+   * @generated from field: repeated double paper_session_returns = 10;
+   */
+  paperSessionReturns: number[];
+
+  /**
+   * Window the report covers: first and last paper session (UTC ns).
+   *
+   * @generated from field: int64 window_start = 11;
+   */
+  windowStart: bigint;
+
+  /**
+   * @generated from field: int64 window_end = 12;
+   */
+  windowEnd: bigint;
+};
+
+/**
+ * @generated from message tb.orders.v1.GraduationReport
+ */
+export type GraduationReportJson = {
+  /**
+   * @generated from field: string strategy_id = 1;
+   */
+  strategyId?: string;
+
+  /**
+   * @generated from field: repeated tb.orders.v1.GraduationCriterion criteria = 2;
+   */
+  criteria?: GraduationCriterionJson[];
+
+  /**
+   * @generated from field: bool overall = 3;
+   */
+  overall?: boolean;
+
+  /**
+   * @generated from field: int64 computed_at = 4;
+   */
+  computedAt?: string;
+
+  /**
+   * @generated from field: repeated string evidence_links = 5;
+   */
+  evidenceLinks?: string[];
+
+  /**
+   * SHA-256 of the canonical report; PromoteToLive records it (GL-020).
+   *
+   * @generated from field: string report_hash = 6;
+   */
+  reportHash?: string;
+
+  /**
+   * @generated from field: int32 paper_sessions = 7;
+   */
+  paperSessions?: number;
+
+  /**
+   * @generated from field: int32 paper_trades = 8;
+   */
+  paperTrades?: number;
+
+  /**
+   * Registry stage name of the strategy's candidate (tb.ml.v1.RegistryStage), empty when unknown.
+   *
+   * @generated from field: string registry_stage = 9;
+   */
+  registryStage?: string;
+
+  /**
+   * Per-session paper returns (fraction of allocation) the statistics were computed on.
+   *
+   * @generated from field: repeated double paper_session_returns = 10;
+   */
+  paperSessionReturns?: (number | "NaN" | "Infinity" | "-Infinity")[];
+
+  /**
+   * Window the report covers: first and last paper session (UTC ns).
+   *
+   * @generated from field: int64 window_start = 11;
+   */
+  windowStart?: string;
+
+  /**
+   * @generated from field: int64 window_end = 12;
+   */
+  windowEnd?: string;
+};
+
+/**
+ * Describes the message tb.orders.v1.GraduationReport.
+ * Use `create(GraduationReportSchema)` to create a new message.
+ */
+export const GraduationReportSchema: GenMessage<GraduationReport, {jsonType: GraduationReportJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 5);
+
+/**
+ * LiveAccountStatus is one live-environment account as the go-live flow sees it (GL-011).
+ *
+ * @generated from message tb.orders.v1.LiveAccountStatus
+ */
+export type LiveAccountStatus = Message<"tb.orders.v1.LiveAccountStatus"> & {
+  /**
+   * @generated from field: string broker_account_id = 1;
+   */
+  brokerAccountId: string;
+
+  /**
+   * Audited enablement row (broker.live_enablement): enabled, by whom, audit sequence.
+   *
+   * @generated from field: bool enabled = 2;
+   */
+  enabled: boolean;
+
+  /**
+   * @generated from field: string enabled_by = 3;
+   */
+  enabledBy: string;
+
+  /**
+   * @generated from field: int64 audit_seq = 4;
+   */
+  auditSeq: bigint;
+
+  /**
+   * @generated from field: int64 updated_at = 5;
+   */
+  updatedAt: bigint;
+
+  /**
+   * Adapter session (SESSION_STATE_* name) and whether a live credential is stored.
+   *
+   * @generated from field: string session_state = 6;
+   */
+  sessionState: string;
+
+  /**
+   * @generated from field: bool credential_stored = 7;
+   */
+  credentialStored: boolean;
+
+  /**
+   * @generated from field: bool readiness_complete = 8;
+   */
+  readinessComplete: boolean;
+
+  /**
+   * Unexplained reconciliation breaks open on the account (ledger).
+   *
+   * @generated from field: int32 open_breaks = 9;
+   */
+  openBreaks: number;
+
+  /**
+   * Live strategies registered to this account.
+   *
+   * @generated from field: repeated string live_strategies = 10;
+   */
+  liveStrategies: string[];
+
+  /**
+   * Sessions the adapter has streamed read-only with clean reconciliation (GL-012 read-only day).
+   *
+   * @generated from field: int32 read_only_sessions = 11;
+   */
+  readOnlySessions: number;
+
+  /**
+   * Orders allowed (stage trading); enabled alone is the read-only stage.
+   *
+   * @generated from field: bool orders_enabled = 12;
+   */
+  ordersEnabled: boolean;
+
+  /**
+   * paper | live (adapter environment).
+   *
+   * @generated from field: string environment = 13;
+   */
+  environment: string;
+};
+
+/**
+ * LiveAccountStatus is one live-environment account as the go-live flow sees it (GL-011).
+ *
+ * @generated from message tb.orders.v1.LiveAccountStatus
+ */
+export type LiveAccountStatusJson = {
+  /**
+   * @generated from field: string broker_account_id = 1;
+   */
+  brokerAccountId?: string;
+
+  /**
+   * Audited enablement row (broker.live_enablement): enabled, by whom, audit sequence.
+   *
+   * @generated from field: bool enabled = 2;
+   */
+  enabled?: boolean;
+
+  /**
+   * @generated from field: string enabled_by = 3;
+   */
+  enabledBy?: string;
+
+  /**
+   * @generated from field: int64 audit_seq = 4;
+   */
+  auditSeq?: string;
+
+  /**
+   * @generated from field: int64 updated_at = 5;
+   */
+  updatedAt?: string;
+
+  /**
+   * Adapter session (SESSION_STATE_* name) and whether a live credential is stored.
+   *
+   * @generated from field: string session_state = 6;
+   */
+  sessionState?: string;
+
+  /**
+   * @generated from field: bool credential_stored = 7;
+   */
+  credentialStored?: boolean;
+
+  /**
+   * @generated from field: bool readiness_complete = 8;
+   */
+  readinessComplete?: boolean;
+
+  /**
+   * Unexplained reconciliation breaks open on the account (ledger).
+   *
+   * @generated from field: int32 open_breaks = 9;
+   */
+  openBreaks?: number;
+
+  /**
+   * Live strategies registered to this account.
+   *
+   * @generated from field: repeated string live_strategies = 10;
+   */
+  liveStrategies?: string[];
+
+  /**
+   * Sessions the adapter has streamed read-only with clean reconciliation (GL-012 read-only day).
+   *
+   * @generated from field: int32 read_only_sessions = 11;
+   */
+  readOnlySessions?: number;
+
+  /**
+   * Orders allowed (stage trading); enabled alone is the read-only stage.
+   *
+   * @generated from field: bool orders_enabled = 12;
+   */
+  ordersEnabled?: boolean;
+
+  /**
+   * paper | live (adapter environment).
+   *
+   * @generated from field: string environment = 13;
+   */
+  environment?: string;
+};
+
+/**
+ * Describes the message tb.orders.v1.LiveAccountStatus.
+ * Use `create(LiveAccountStatusSchema)` to create a new message.
+ */
+export const LiveAccountStatusSchema: GenMessage<LiveAccountStatus, {jsonType: LiveAccountStatusJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 6);
+
+/**
+ * @generated from message tb.orders.v1.LiveStatus
+ */
+export type LiveStatus = Message<"tb.orders.v1.LiveStatus"> & {
+  /**
+   * TB_TRADING_LIVE_ENABLED as seen by execution (deploy flag, GL-011).
+   *
+   * @generated from field: bool flag_enabled = 1;
+   */
+  flagEnabled: boolean;
+
+  /**
+   * @generated from field: repeated tb.orders.v1.LiveAccountStatus accounts = 2;
+   */
+  accounts: LiveAccountStatus[];
+
+  /**
+   * @generated from field: repeated tb.orders.v1.Strategy live_strategies = 3;
+   */
+  liveStrategies: Strategy[];
+
+  /**
+   * Paper strategies that could graduate, with their latest report overall flag.
+   *
+   * @generated from field: repeated tb.orders.v1.GraduationReport candidates = 4;
+   */
+  candidates: GraduationReport[];
+
+  /**
+   * @generated from field: int64 as_of = 5;
+   */
+  asOf: bigint;
+};
+
+/**
+ * @generated from message tb.orders.v1.LiveStatus
+ */
+export type LiveStatusJson = {
+  /**
+   * TB_TRADING_LIVE_ENABLED as seen by execution (deploy flag, GL-011).
+   *
+   * @generated from field: bool flag_enabled = 1;
+   */
+  flagEnabled?: boolean;
+
+  /**
+   * @generated from field: repeated tb.orders.v1.LiveAccountStatus accounts = 2;
+   */
+  accounts?: LiveAccountStatusJson[];
+
+  /**
+   * @generated from field: repeated tb.orders.v1.Strategy live_strategies = 3;
+   */
+  liveStrategies?: StrategyJson[];
+
+  /**
+   * Paper strategies that could graduate, with their latest report overall flag.
+   *
+   * @generated from field: repeated tb.orders.v1.GraduationReport candidates = 4;
+   */
+  candidates?: GraduationReportJson[];
+
+  /**
+   * @generated from field: int64 as_of = 5;
+   */
+  asOf?: string;
+};
+
+/**
+ * Describes the message tb.orders.v1.LiveStatus.
+ * Use `create(LiveStatusSchema)` to create a new message.
+ */
+export const LiveStatusSchema: GenMessage<LiveStatus, {jsonType: LiveStatusJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 7);
+
+/**
+ * @generated from message tb.orders.v1.GetLiveStatusRequest
+ */
+export type GetLiveStatusRequest = Message<"tb.orders.v1.GetLiveStatusRequest"> & {
+};
+
+/**
+ * @generated from message tb.orders.v1.GetLiveStatusRequest
+ */
+export type GetLiveStatusRequestJson = {
+};
+
+/**
+ * Describes the message tb.orders.v1.GetLiveStatusRequest.
+ * Use `create(GetLiveStatusRequestSchema)` to create a new message.
+ */
+export const GetLiveStatusRequestSchema: GenMessage<GetLiveStatusRequest, {jsonType: GetLiveStatusRequestJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 8);
+
+/**
+ * @generated from message tb.orders.v1.GetLiveStatusResponse
+ */
+export type GetLiveStatusResponse = Message<"tb.orders.v1.GetLiveStatusResponse"> & {
+  /**
+   * @generated from field: tb.orders.v1.LiveStatus status = 1;
+   */
+  status?: LiveStatus | undefined;
+};
+
+/**
+ * @generated from message tb.orders.v1.GetLiveStatusResponse
+ */
+export type GetLiveStatusResponseJson = {
+  /**
+   * @generated from field: tb.orders.v1.LiveStatus status = 1;
+   */
+  status?: LiveStatusJson;
+};
+
+/**
+ * Describes the message tb.orders.v1.GetLiveStatusResponse.
+ * Use `create(GetLiveStatusResponseSchema)` to create a new message.
+ */
+export const GetLiveStatusResponseSchema: GenMessage<GetLiveStatusResponse, {jsonType: GetLiveStatusResponseJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 9);
+
+/**
+ * @generated from message tb.orders.v1.GetLiveReadinessRequest
+ */
+export type GetLiveReadinessRequest = Message<"tb.orders.v1.GetLiveReadinessRequest"> & {
+  /**
+   * @generated from field: string broker_account_id = 1;
+   */
+  brokerAccountId: string;
+};
+
+/**
+ * @generated from message tb.orders.v1.GetLiveReadinessRequest
+ */
+export type GetLiveReadinessRequestJson = {
+  /**
+   * @generated from field: string broker_account_id = 1;
+   */
+  brokerAccountId?: string;
+};
+
+/**
+ * Describes the message tb.orders.v1.GetLiveReadinessRequest.
+ * Use `create(GetLiveReadinessRequestSchema)` to create a new message.
+ */
+export const GetLiveReadinessRequestSchema: GenMessage<GetLiveReadinessRequest, {jsonType: GetLiveReadinessRequestJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 10);
+
+/**
+ * @generated from message tb.orders.v1.GetLiveReadinessResponse
+ */
+export type GetLiveReadinessResponse = Message<"tb.orders.v1.GetLiveReadinessResponse"> & {
+  /**
+   * @generated from field: tb.orders.v1.LiveReadiness readiness = 1;
+   */
+  readiness?: LiveReadiness | undefined;
+};
+
+/**
+ * @generated from message tb.orders.v1.GetLiveReadinessResponse
+ */
+export type GetLiveReadinessResponseJson = {
+  /**
+   * @generated from field: tb.orders.v1.LiveReadiness readiness = 1;
+   */
+  readiness?: LiveReadinessJson;
+};
+
+/**
+ * Describes the message tb.orders.v1.GetLiveReadinessResponse.
+ * Use `create(GetLiveReadinessResponseSchema)` to create a new message.
+ */
+export const GetLiveReadinessResponseSchema: GenMessage<GetLiveReadinessResponse, {jsonType: GetLiveReadinessResponseJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 11);
+
+/**
+ * @generated from message tb.orders.v1.SetReadinessItemRequest
+ */
+export type SetReadinessItemRequest = Message<"tb.orders.v1.SetReadinessItemRequest"> & {
+  /**
+   * @generated from field: string broker_account_id = 1;
+   */
+  brokerAccountId: string;
+
+  /**
+   * @generated from field: string item_id = 2;
+   */
+  itemId: string;
+
+  /**
+   * passed | failed
+   *
+   * @generated from field: string status = 3;
+   */
+  status: string;
+
+  /**
+   * @generated from field: string note = 4;
+   */
+  note: string;
+
+  /**
+   * @generated from field: string evidence_url = 5;
+   */
+  evidenceUrl: string;
+
+  /**
+   * @generated from field: tb.orders.v1.Actor actor = 6;
+   */
+  actor?: Actor | undefined;
+};
+
+/**
+ * @generated from message tb.orders.v1.SetReadinessItemRequest
+ */
+export type SetReadinessItemRequestJson = {
+  /**
+   * @generated from field: string broker_account_id = 1;
+   */
+  brokerAccountId?: string;
+
+  /**
+   * @generated from field: string item_id = 2;
+   */
+  itemId?: string;
+
+  /**
+   * passed | failed
+   *
+   * @generated from field: string status = 3;
+   */
+  status?: string;
+
+  /**
+   * @generated from field: string note = 4;
+   */
+  note?: string;
+
+  /**
+   * @generated from field: string evidence_url = 5;
+   */
+  evidenceUrl?: string;
+
+  /**
+   * @generated from field: tb.orders.v1.Actor actor = 6;
+   */
+  actor?: ActorJson;
+};
+
+/**
+ * Describes the message tb.orders.v1.SetReadinessItemRequest.
+ * Use `create(SetReadinessItemRequestSchema)` to create a new message.
+ */
+export const SetReadinessItemRequestSchema: GenMessage<SetReadinessItemRequest, {jsonType: SetReadinessItemRequestJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 12);
+
+/**
+ * @generated from message tb.orders.v1.SetReadinessItemResponse
+ */
+export type SetReadinessItemResponse = Message<"tb.orders.v1.SetReadinessItemResponse"> & {
+  /**
+   * @generated from field: tb.orders.v1.LiveReadiness readiness = 1;
+   */
+  readiness?: LiveReadiness | undefined;
+};
+
+/**
+ * @generated from message tb.orders.v1.SetReadinessItemResponse
+ */
+export type SetReadinessItemResponseJson = {
+  /**
+   * @generated from field: tb.orders.v1.LiveReadiness readiness = 1;
+   */
+  readiness?: LiveReadinessJson;
+};
+
+/**
+ * Describes the message tb.orders.v1.SetReadinessItemResponse.
+ * Use `create(SetReadinessItemResponseSchema)` to create a new message.
+ */
+export const SetReadinessItemResponseSchema: GenMessage<SetReadinessItemResponse, {jsonType: SetReadinessItemResponseJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 13);
+
+/**
+ * @generated from message tb.orders.v1.GetGraduationReportRequest
+ */
+export type GetGraduationReportRequest = Message<"tb.orders.v1.GetGraduationReportRequest"> & {
+  /**
+   * @generated from field: string strategy_id = 1;
+   */
+  strategyId: string;
+};
+
+/**
+ * @generated from message tb.orders.v1.GetGraduationReportRequest
+ */
+export type GetGraduationReportRequestJson = {
+  /**
+   * @generated from field: string strategy_id = 1;
+   */
+  strategyId?: string;
+};
+
+/**
+ * Describes the message tb.orders.v1.GetGraduationReportRequest.
+ * Use `create(GetGraduationReportRequestSchema)` to create a new message.
+ */
+export const GetGraduationReportRequestSchema: GenMessage<GetGraduationReportRequest, {jsonType: GetGraduationReportRequestJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 14);
+
+/**
+ * @generated from message tb.orders.v1.GetGraduationReportResponse
+ */
+export type GetGraduationReportResponse = Message<"tb.orders.v1.GetGraduationReportResponse"> & {
+  /**
+   * @generated from field: tb.orders.v1.GraduationReport report = 1;
+   */
+  report?: GraduationReport | undefined;
+};
+
+/**
+ * @generated from message tb.orders.v1.GetGraduationReportResponse
+ */
+export type GetGraduationReportResponseJson = {
+  /**
+   * @generated from field: tb.orders.v1.GraduationReport report = 1;
+   */
+  report?: GraduationReportJson;
+};
+
+/**
+ * Describes the message tb.orders.v1.GetGraduationReportResponse.
+ * Use `create(GetGraduationReportResponseSchema)` to create a new message.
+ */
+export const GetGraduationReportResponseSchema: GenMessage<GetGraduationReportResponse, {jsonType: GetGraduationReportResponseJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 15);
+
+/**
+ * @generated from message tb.orders.v1.EnableLiveAccountRequest
+ */
+export type EnableLiveAccountRequest = Message<"tb.orders.v1.EnableLiveAccountRequest"> & {
+  /**
+   * @generated from field: string broker_account_id = 1;
+   */
+  brokerAccountId: string;
+
+  /**
+   * Must equal broker_account_id (typed confirmation, GL-011).
+   *
+   * @generated from field: string confirmation = 2;
+   */
+  confirmation: string;
+
+  /**
+   * @generated from field: tb.orders.v1.Actor actor = 3;
+   */
+  actor?: Actor | undefined;
+
+  /**
+   * read_only: the live adapter connects, streams account data, and reconciles; orders stay
+   * refused (GL-012 live read-only day). trading: orders allowed; needs the complete readiness
+   * record, which includes a clean read-only session.
+   *
+   * @generated from field: string stage = 4;
+   */
+  stage: string;
+};
+
+/**
+ * @generated from message tb.orders.v1.EnableLiveAccountRequest
+ */
+export type EnableLiveAccountRequestJson = {
+  /**
+   * @generated from field: string broker_account_id = 1;
+   */
+  brokerAccountId?: string;
+
+  /**
+   * Must equal broker_account_id (typed confirmation, GL-011).
+   *
+   * @generated from field: string confirmation = 2;
+   */
+  confirmation?: string;
+
+  /**
+   * @generated from field: tb.orders.v1.Actor actor = 3;
+   */
+  actor?: ActorJson;
+
+  /**
+   * read_only: the live adapter connects, streams account data, and reconciles; orders stay
+   * refused (GL-012 live read-only day). trading: orders allowed; needs the complete readiness
+   * record, which includes a clean read-only session.
+   *
+   * @generated from field: string stage = 4;
+   */
+  stage?: string;
+};
+
+/**
+ * Describes the message tb.orders.v1.EnableLiveAccountRequest.
+ * Use `create(EnableLiveAccountRequestSchema)` to create a new message.
+ */
+export const EnableLiveAccountRequestSchema: GenMessage<EnableLiveAccountRequest, {jsonType: EnableLiveAccountRequestJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 16);
+
+/**
+ * @generated from message tb.orders.v1.EnableLiveAccountResponse
+ */
+export type EnableLiveAccountResponse = Message<"tb.orders.v1.EnableLiveAccountResponse"> & {
+  /**
+   * @generated from field: tb.orders.v1.LiveAccountStatus account = 1;
+   */
+  account?: LiveAccountStatus | undefined;
+};
+
+/**
+ * @generated from message tb.orders.v1.EnableLiveAccountResponse
+ */
+export type EnableLiveAccountResponseJson = {
+  /**
+   * @generated from field: tb.orders.v1.LiveAccountStatus account = 1;
+   */
+  account?: LiveAccountStatusJson;
+};
+
+/**
+ * Describes the message tb.orders.v1.EnableLiveAccountResponse.
+ * Use `create(EnableLiveAccountResponseSchema)` to create a new message.
+ */
+export const EnableLiveAccountResponseSchema: GenMessage<EnableLiveAccountResponse, {jsonType: EnableLiveAccountResponseJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 17);
+
+/**
+ * @generated from message tb.orders.v1.DisableLiveAccountRequest
+ */
+export type DisableLiveAccountRequest = Message<"tb.orders.v1.DisableLiveAccountRequest"> & {
+  /**
+   * @generated from field: string broker_account_id = 1;
+   */
+  brokerAccountId: string;
+
+  /**
+   * @generated from field: string reason = 2;
+   */
+  reason: string;
+
+  /**
+   * @generated from field: tb.orders.v1.Actor actor = 3;
+   */
+  actor?: Actor | undefined;
+};
+
+/**
+ * @generated from message tb.orders.v1.DisableLiveAccountRequest
+ */
+export type DisableLiveAccountRequestJson = {
+  /**
+   * @generated from field: string broker_account_id = 1;
+   */
+  brokerAccountId?: string;
+
+  /**
+   * @generated from field: string reason = 2;
+   */
+  reason?: string;
+
+  /**
+   * @generated from field: tb.orders.v1.Actor actor = 3;
+   */
+  actor?: ActorJson;
+};
+
+/**
+ * Describes the message tb.orders.v1.DisableLiveAccountRequest.
+ * Use `create(DisableLiveAccountRequestSchema)` to create a new message.
+ */
+export const DisableLiveAccountRequestSchema: GenMessage<DisableLiveAccountRequest, {jsonType: DisableLiveAccountRequestJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 18);
+
+/**
+ * @generated from message tb.orders.v1.DisableLiveAccountResponse
+ */
+export type DisableLiveAccountResponse = Message<"tb.orders.v1.DisableLiveAccountResponse"> & {
+  /**
+   * @generated from field: tb.orders.v1.LiveAccountStatus account = 1;
+   */
+  account?: LiveAccountStatus | undefined;
+
+  /**
+   * @generated from field: int32 orders_canceled = 2;
+   */
+  ordersCanceled: number;
+
+  /**
+   * @generated from field: repeated string demoted_strategies = 3;
+   */
+  demotedStrategies: string[];
+};
+
+/**
+ * @generated from message tb.orders.v1.DisableLiveAccountResponse
+ */
+export type DisableLiveAccountResponseJson = {
+  /**
+   * @generated from field: tb.orders.v1.LiveAccountStatus account = 1;
+   */
+  account?: LiveAccountStatusJson;
+
+  /**
+   * @generated from field: int32 orders_canceled = 2;
+   */
+  ordersCanceled?: number;
+
+  /**
+   * @generated from field: repeated string demoted_strategies = 3;
+   */
+  demotedStrategies?: string[];
+};
+
+/**
+ * Describes the message tb.orders.v1.DisableLiveAccountResponse.
+ * Use `create(DisableLiveAccountResponseSchema)` to create a new message.
+ */
+export const DisableLiveAccountResponseSchema: GenMessage<DisableLiveAccountResponse, {jsonType: DisableLiveAccountResponseJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 19);
+
+/**
+ * @generated from message tb.orders.v1.PromoteToLiveRequest
+ */
+export type PromoteToLiveRequest = Message<"tb.orders.v1.PromoteToLiveRequest"> & {
+  /**
+   * @generated from field: string strategy_id = 1;
+   */
+  strategyId: string;
+
+  /**
+   * @generated from field: string live_account_id = 2;
+   */
+  liveAccountId: string;
+
+  /**
+   * 10–20 % of intended_allocation (GL-021); becomes the ledger allocation on the live account.
+   *
+   * @generated from field: tb.common.v1.Decimal capital_cap = 3;
+   */
+  capitalCap?: Decimal | undefined;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal intended_allocation = 4;
+   */
+  intendedAllocation?: Decimal | undefined;
+
+  /**
+   * Optional overrides; every field must be at least as tight as the live profile (GL-023).
+   *
+   * @generated from field: tb.orders.v1.RiskLimits limit_overrides = 5;
+   */
+  limitOverrides?: RiskLimits | undefined;
+
+  /**
+   * Must equal the strategy's name (typed confirmation).
+   *
+   * @generated from field: string confirmation = 6;
+   */
+  confirmation: string;
+
+  /**
+   * Keep a paper twin running on the paper account as the divergence reference (GL-022, default
+   * on: false here means "do not keep").
+   *
+   * @generated from field: bool skip_paper_twin = 7;
+   */
+  skipPaperTwin: boolean;
+
+  /**
+   * @generated from field: tb.orders.v1.Actor actor = 8;
+   */
+  actor?: Actor | undefined;
+};
+
+/**
+ * @generated from message tb.orders.v1.PromoteToLiveRequest
+ */
+export type PromoteToLiveRequestJson = {
+  /**
+   * @generated from field: string strategy_id = 1;
+   */
+  strategyId?: string;
+
+  /**
+   * @generated from field: string live_account_id = 2;
+   */
+  liveAccountId?: string;
+
+  /**
+   * 10–20 % of intended_allocation (GL-021); becomes the ledger allocation on the live account.
+   *
+   * @generated from field: tb.common.v1.Decimal capital_cap = 3;
+   */
+  capitalCap?: DecimalJson;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal intended_allocation = 4;
+   */
+  intendedAllocation?: DecimalJson;
+
+  /**
+   * Optional overrides; every field must be at least as tight as the live profile (GL-023).
+   *
+   * @generated from field: tb.orders.v1.RiskLimits limit_overrides = 5;
+   */
+  limitOverrides?: RiskLimitsJson;
+
+  /**
+   * Must equal the strategy's name (typed confirmation).
+   *
+   * @generated from field: string confirmation = 6;
+   */
+  confirmation?: string;
+
+  /**
+   * Keep a paper twin running on the paper account as the divergence reference (GL-022, default
+   * on: false here means "do not keep").
+   *
+   * @generated from field: bool skip_paper_twin = 7;
+   */
+  skipPaperTwin?: boolean;
+
+  /**
+   * @generated from field: tb.orders.v1.Actor actor = 8;
+   */
+  actor?: ActorJson;
+};
+
+/**
+ * Describes the message tb.orders.v1.PromoteToLiveRequest.
+ * Use `create(PromoteToLiveRequestSchema)` to create a new message.
+ */
+export const PromoteToLiveRequestSchema: GenMessage<PromoteToLiveRequest, {jsonType: PromoteToLiveRequestJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 20);
+
+/**
+ * @generated from message tb.orders.v1.PromoteToLiveResponse
+ */
+export type PromoteToLiveResponse = Message<"tb.orders.v1.PromoteToLiveResponse"> & {
+  /**
+   * @generated from field: tb.orders.v1.Strategy strategy = 1;
+   */
+  strategy?: Strategy | undefined;
+
+  /**
+   * @generated from field: tb.orders.v1.GraduationReport report = 2;
+   */
+  report?: GraduationReport | undefined;
+
+  /**
+   * @generated from field: tb.orders.v1.RiskLimits live_limits = 3;
+   */
+  liveLimits?: RiskLimits | undefined;
+
+  /**
+   * @generated from field: tb.orders.v1.Strategy paper_twin = 4;
+   */
+  paperTwin?: Strategy | undefined;
+};
+
+/**
+ * @generated from message tb.orders.v1.PromoteToLiveResponse
+ */
+export type PromoteToLiveResponseJson = {
+  /**
+   * @generated from field: tb.orders.v1.Strategy strategy = 1;
+   */
+  strategy?: StrategyJson;
+
+  /**
+   * @generated from field: tb.orders.v1.GraduationReport report = 2;
+   */
+  report?: GraduationReportJson;
+
+  /**
+   * @generated from field: tb.orders.v1.RiskLimits live_limits = 3;
+   */
+  liveLimits?: RiskLimitsJson;
+
+  /**
+   * @generated from field: tb.orders.v1.Strategy paper_twin = 4;
+   */
+  paperTwin?: StrategyJson;
+};
+
+/**
+ * Describes the message tb.orders.v1.PromoteToLiveResponse.
+ * Use `create(PromoteToLiveResponseSchema)` to create a new message.
+ */
+export const PromoteToLiveResponseSchema: GenMessage<PromoteToLiveResponse, {jsonType: PromoteToLiveResponseJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 21);
+
+/**
+ * @generated from message tb.orders.v1.DemoteFromLiveRequest
+ */
+export type DemoteFromLiveRequest = Message<"tb.orders.v1.DemoteFromLiveRequest"> & {
+  /**
+   * @generated from field: string strategy_id = 1;
+   */
+  strategyId: string;
+
+  /**
+   * @generated from field: string reason = 2;
+   */
+  reason: string;
+
+  /**
+   * hold | flatten: what happens to strategy-owned live quantity (GL-030); never manual.
+   *
+   * @generated from field: string position_policy = 3;
+   */
+  positionPolicy: string;
+
+  /**
+   * @generated from field: tb.orders.v1.Actor actor = 4;
+   */
+  actor?: Actor | undefined;
+};
+
+/**
+ * @generated from message tb.orders.v1.DemoteFromLiveRequest
+ */
+export type DemoteFromLiveRequestJson = {
+  /**
+   * @generated from field: string strategy_id = 1;
+   */
+  strategyId?: string;
+
+  /**
+   * @generated from field: string reason = 2;
+   */
+  reason?: string;
+
+  /**
+   * hold | flatten: what happens to strategy-owned live quantity (GL-030); never manual.
+   *
+   * @generated from field: string position_policy = 3;
+   */
+  positionPolicy?: string;
+
+  /**
+   * @generated from field: tb.orders.v1.Actor actor = 4;
+   */
+  actor?: ActorJson;
+};
+
+/**
+ * Describes the message tb.orders.v1.DemoteFromLiveRequest.
+ * Use `create(DemoteFromLiveRequestSchema)` to create a new message.
+ */
+export const DemoteFromLiveRequestSchema: GenMessage<DemoteFromLiveRequest, {jsonType: DemoteFromLiveRequestJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 22);
+
+/**
+ * @generated from message tb.orders.v1.DemoteFromLiveResponse
+ */
+export type DemoteFromLiveResponse = Message<"tb.orders.v1.DemoteFromLiveResponse"> & {
+  /**
+   * @generated from field: tb.orders.v1.Strategy strategy = 1;
+   */
+  strategy?: Strategy | undefined;
+
+  /**
+   * @generated from field: int32 orders_canceled = 2;
+   */
+  ordersCanceled: number;
+
+  /**
+   * @generated from field: int32 flatten_intents = 3;
+   */
+  flattenIntents: number;
+};
+
+/**
+ * @generated from message tb.orders.v1.DemoteFromLiveResponse
+ */
+export type DemoteFromLiveResponseJson = {
+  /**
+   * @generated from field: tb.orders.v1.Strategy strategy = 1;
+   */
+  strategy?: StrategyJson;
+
+  /**
+   * @generated from field: int32 orders_canceled = 2;
+   */
+  ordersCanceled?: number;
+
+  /**
+   * @generated from field: int32 flatten_intents = 3;
+   */
+  flattenIntents?: number;
+};
+
+/**
+ * Describes the message tb.orders.v1.DemoteFromLiveResponse.
+ * Use `create(DemoteFromLiveResponseSchema)` to create a new message.
+ */
+export const DemoteFromLiveResponseSchema: GenMessage<DemoteFromLiveResponse, {jsonType: DemoteFromLiveResponseJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 23);
+
+/**
+ * @generated from message tb.orders.v1.RaiseLiveCapRequest
+ */
+export type RaiseLiveCapRequest = Message<"tb.orders.v1.RaiseLiveCapRequest"> & {
+  /**
+   * @generated from field: string strategy_id = 1;
+   */
+  strategyId: string;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal new_cap = 2;
+   */
+  newCap?: Decimal | undefined;
+
+  /**
+   * @generated from field: string confirmation = 3;
+   */
+  confirmation: string;
+
+  /**
+   * @generated from field: tb.orders.v1.Actor actor = 4;
+   */
+  actor?: Actor | undefined;
+};
+
+/**
+ * @generated from message tb.orders.v1.RaiseLiveCapRequest
+ */
+export type RaiseLiveCapRequestJson = {
+  /**
+   * @generated from field: string strategy_id = 1;
+   */
+  strategyId?: string;
+
+  /**
+   * @generated from field: tb.common.v1.Decimal new_cap = 2;
+   */
+  newCap?: DecimalJson;
+
+  /**
+   * @generated from field: string confirmation = 3;
+   */
+  confirmation?: string;
+
+  /**
+   * @generated from field: tb.orders.v1.Actor actor = 4;
+   */
+  actor?: ActorJson;
+};
+
+/**
+ * Describes the message tb.orders.v1.RaiseLiveCapRequest.
+ * Use `create(RaiseLiveCapRequestSchema)` to create a new message.
+ */
+export const RaiseLiveCapRequestSchema: GenMessage<RaiseLiveCapRequest, {jsonType: RaiseLiveCapRequestJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 24);
+
+/**
+ * @generated from message tb.orders.v1.RaiseLiveCapResponse
+ */
+export type RaiseLiveCapResponse = Message<"tb.orders.v1.RaiseLiveCapResponse"> & {
+  /**
+   * @generated from field: tb.orders.v1.Strategy strategy = 1;
+   */
+  strategy?: Strategy | undefined;
+
+  /**
+   * @generated from field: tb.orders.v1.GraduationReport live_window_report = 2;
+   */
+  liveWindowReport?: GraduationReport | undefined;
+};
+
+/**
+ * @generated from message tb.orders.v1.RaiseLiveCapResponse
+ */
+export type RaiseLiveCapResponseJson = {
+  /**
+   * @generated from field: tb.orders.v1.Strategy strategy = 1;
+   */
+  strategy?: StrategyJson;
+
+  /**
+   * @generated from field: tb.orders.v1.GraduationReport live_window_report = 2;
+   */
+  liveWindowReport?: GraduationReportJson;
+};
+
+/**
+ * Describes the message tb.orders.v1.RaiseLiveCapResponse.
+ * Use `create(RaiseLiveCapResponseSchema)` to create a new message.
+ */
+export const RaiseLiveCapResponseSchema: GenMessage<RaiseLiveCapResponse, {jsonType: RaiseLiveCapResponseJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 25);
 
 /**
  * @generated from message tb.orders.v1.KillSwitch
@@ -554,7 +2184,7 @@ export type KillSwitchJson = {
  * Use `create(KillSwitchSchema)` to create a new message.
  */
 export const KillSwitchSchema: GenMessage<KillSwitch, {jsonType: KillSwitchJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 2);
+  messageDesc(file_tb_orders_v1_execution, 26);
 
 /**
  * Halt blocks new intents for a strategy (optionally one instrument) until cleared: unknown order
@@ -657,7 +2287,7 @@ export type HaltJson = {
  * Use `create(HaltSchema)` to create a new message.
  */
 export const HaltSchema: GenMessage<Halt, {jsonType: HaltJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 3);
+  messageDesc(file_tb_orders_v1_execution, 27);
 
 /**
  * @generated from message tb.orders.v1.IntentRecord
@@ -718,7 +2348,7 @@ export type IntentRecordJson = {
  * Use `create(IntentRecordSchema)` to create a new message.
  */
 export const IntentRecordSchema: GenMessage<IntentRecord, {jsonType: IntentRecordJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 4);
+  messageDesc(file_tb_orders_v1_execution, 28);
 
 /**
  * @generated from message tb.orders.v1.Fill
@@ -865,7 +2495,7 @@ export type FillJson = {
  * Use `create(FillSchema)` to create a new message.
  */
 export const FillSchema: GenMessage<Fill, {jsonType: FillJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 5);
+  messageDesc(file_tb_orders_v1_execution, 29);
 
 /**
  * @generated from message tb.orders.v1.AccountTradingStatus
@@ -1018,7 +2648,7 @@ export type AccountTradingStatusJson = {
  * Use `create(AccountTradingStatusSchema)` to create a new message.
  */
 export const AccountTradingStatusSchema: GenMessage<AccountTradingStatus, {jsonType: AccountTradingStatusJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 6);
+  messageDesc(file_tb_orders_v1_execution, 30);
 
 /**
  * @generated from message tb.orders.v1.StrategyTradingStatus
@@ -1085,7 +2715,7 @@ export type StrategyTradingStatusJson = {
  * Use `create(StrategyTradingStatusSchema)` to create a new message.
  */
 export const StrategyTradingStatusSchema: GenMessage<StrategyTradingStatus, {jsonType: StrategyTradingStatusJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 7);
+  messageDesc(file_tb_orders_v1_execution, 31);
 
 /**
  * @generated from message tb.orders.v1.TradingStatus
@@ -1200,7 +2830,7 @@ export type TradingStatusJson = {
  * Use `create(TradingStatusSchema)` to create a new message.
  */
 export const TradingStatusSchema: GenMessage<TradingStatus, {jsonType: TradingStatusJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 8);
+  messageDesc(file_tb_orders_v1_execution, 32);
 
 /**
  * Actor is the authenticated principal behind an owner action, as established by api-gateway.
@@ -1283,7 +2913,7 @@ export type ActorJson = {
  * Use `create(ActorSchema)` to create a new message.
  */
 export const ActorSchema: GenMessage<Actor, {jsonType: ActorJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 9);
+  messageDesc(file_tb_orders_v1_execution, 33);
 
 /**
  * @generated from message tb.orders.v1.SubmitIntentRequest
@@ -1320,7 +2950,7 @@ export type SubmitIntentRequestJson = {
  * Use `create(SubmitIntentRequestSchema)` to create a new message.
  */
 export const SubmitIntentRequestSchema: GenMessage<SubmitIntentRequest, {jsonType: SubmitIntentRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 10);
+  messageDesc(file_tb_orders_v1_execution, 34);
 
 /**
  * @generated from message tb.orders.v1.SubmitIntentResponse
@@ -1371,7 +3001,7 @@ export type SubmitIntentResponseJson = {
  * Use `create(SubmitIntentResponseSchema)` to create a new message.
  */
 export const SubmitIntentResponseSchema: GenMessage<SubmitIntentResponse, {jsonType: SubmitIntentResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 11);
+  messageDesc(file_tb_orders_v1_execution, 35);
 
 /**
  * @generated from message tb.orders.v1.PreviewIntentRequest
@@ -1398,7 +3028,7 @@ export type PreviewIntentRequestJson = {
  * Use `create(PreviewIntentRequestSchema)` to create a new message.
  */
 export const PreviewIntentRequestSchema: GenMessage<PreviewIntentRequest, {jsonType: PreviewIntentRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 12);
+  messageDesc(file_tb_orders_v1_execution, 36);
 
 /**
  * @generated from message tb.orders.v1.PreviewIntentResponse
@@ -1459,7 +3089,7 @@ export type PreviewIntentResponseJson = {
  * Use `create(PreviewIntentResponseSchema)` to create a new message.
  */
 export const PreviewIntentResponseSchema: GenMessage<PreviewIntentResponse, {jsonType: PreviewIntentResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 13);
+  messageDesc(file_tb_orders_v1_execution, 37);
 
 /**
  * @generated from message tb.orders.v1.CancelIntentRequest
@@ -1496,7 +3126,7 @@ export type CancelIntentRequestJson = {
  * Use `create(CancelIntentRequestSchema)` to create a new message.
  */
 export const CancelIntentRequestSchema: GenMessage<CancelIntentRequest, {jsonType: CancelIntentRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 14);
+  messageDesc(file_tb_orders_v1_execution, 38);
 
 /**
  * @generated from message tb.orders.v1.CancelIntentResponse
@@ -1523,7 +3153,7 @@ export type CancelIntentResponseJson = {
  * Use `create(CancelIntentResponseSchema)` to create a new message.
  */
 export const CancelIntentResponseSchema: GenMessage<CancelIntentResponse, {jsonType: CancelIntentResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 15);
+  messageDesc(file_tb_orders_v1_execution, 39);
 
 /**
  * @generated from message tb.orders.v1.ListOrdersRequest
@@ -1590,7 +3220,7 @@ export type ListOrdersRequestJson = {
  * Use `create(ListOrdersRequestSchema)` to create a new message.
  */
 export const ListOrdersRequestSchema: GenMessage<ListOrdersRequest, {jsonType: ListOrdersRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 16);
+  messageDesc(file_tb_orders_v1_execution, 40);
 
 /**
  * @generated from message tb.orders.v1.ListOrdersResponse
@@ -1617,7 +3247,7 @@ export type ListOrdersResponseJson = {
  * Use `create(ListOrdersResponseSchema)` to create a new message.
  */
 export const ListOrdersResponseSchema: GenMessage<ListOrdersResponse, {jsonType: ListOrdersResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 17);
+  messageDesc(file_tb_orders_v1_execution, 41);
 
 /**
  * @generated from message tb.orders.v1.ListIntentsRequest
@@ -1674,7 +3304,7 @@ export type ListIntentsRequestJson = {
  * Use `create(ListIntentsRequestSchema)` to create a new message.
  */
 export const ListIntentsRequestSchema: GenMessage<ListIntentsRequest, {jsonType: ListIntentsRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 18);
+  messageDesc(file_tb_orders_v1_execution, 42);
 
 /**
  * @generated from message tb.orders.v1.ListIntentsResponse
@@ -1701,7 +3331,7 @@ export type ListIntentsResponseJson = {
  * Use `create(ListIntentsResponseSchema)` to create a new message.
  */
 export const ListIntentsResponseSchema: GenMessage<ListIntentsResponse, {jsonType: ListIntentsResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 19);
+  messageDesc(file_tb_orders_v1_execution, 43);
 
 /**
  * @generated from message tb.orders.v1.ListFillsRequest
@@ -1758,7 +3388,7 @@ export type ListFillsRequestJson = {
  * Use `create(ListFillsRequestSchema)` to create a new message.
  */
 export const ListFillsRequestSchema: GenMessage<ListFillsRequest, {jsonType: ListFillsRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 20);
+  messageDesc(file_tb_orders_v1_execution, 44);
 
 /**
  * @generated from message tb.orders.v1.ListFillsResponse
@@ -1785,7 +3415,7 @@ export type ListFillsResponseJson = {
  * Use `create(ListFillsResponseSchema)` to create a new message.
  */
 export const ListFillsResponseSchema: GenMessage<ListFillsResponse, {jsonType: ListFillsResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 21);
+  messageDesc(file_tb_orders_v1_execution, 45);
 
 /**
  * @generated from message tb.orders.v1.GetTraceRequest
@@ -1812,7 +3442,7 @@ export type GetTraceRequestJson = {
  * Use `create(GetTraceRequestSchema)` to create a new message.
  */
 export const GetTraceRequestSchema: GenMessage<GetTraceRequest, {jsonType: GetTraceRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 22);
+  messageDesc(file_tb_orders_v1_execution, 46);
 
 /**
  * @generated from message tb.orders.v1.GetTraceResponse
@@ -1859,7 +3489,7 @@ export type GetTraceResponseJson = {
  * Use `create(GetTraceResponseSchema)` to create a new message.
  */
 export const GetTraceResponseSchema: GenMessage<GetTraceResponse, {jsonType: GetTraceResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 23);
+  messageDesc(file_tb_orders_v1_execution, 47);
 
 /**
  * @generated from message tb.orders.v1.ListStrategiesRequest
@@ -1878,7 +3508,7 @@ export type ListStrategiesRequestJson = {
  * Use `create(ListStrategiesRequestSchema)` to create a new message.
  */
 export const ListStrategiesRequestSchema: GenMessage<ListStrategiesRequest, {jsonType: ListStrategiesRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 24);
+  messageDesc(file_tb_orders_v1_execution, 48);
 
 /**
  * @generated from message tb.orders.v1.ListStrategiesResponse
@@ -1905,7 +3535,7 @@ export type ListStrategiesResponseJson = {
  * Use `create(ListStrategiesResponseSchema)` to create a new message.
  */
 export const ListStrategiesResponseSchema: GenMessage<ListStrategiesResponse, {jsonType: ListStrategiesResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 25);
+  messageDesc(file_tb_orders_v1_execution, 49);
 
 /**
  * @generated from message tb.orders.v1.RegisterStrategyRequest
@@ -1942,7 +3572,7 @@ export type RegisterStrategyRequestJson = {
  * Use `create(RegisterStrategyRequestSchema)` to create a new message.
  */
 export const RegisterStrategyRequestSchema: GenMessage<RegisterStrategyRequest, {jsonType: RegisterStrategyRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 26);
+  messageDesc(file_tb_orders_v1_execution, 50);
 
 /**
  * @generated from message tb.orders.v1.RegisterStrategyResponse
@@ -1969,7 +3599,7 @@ export type RegisterStrategyResponseJson = {
  * Use `create(RegisterStrategyResponseSchema)` to create a new message.
  */
 export const RegisterStrategyResponseSchema: GenMessage<RegisterStrategyResponse, {jsonType: RegisterStrategyResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 27);
+  messageDesc(file_tb_orders_v1_execution, 51);
 
 /**
  * @generated from message tb.orders.v1.SetStrategyModeRequest
@@ -2026,7 +3656,7 @@ export type SetStrategyModeRequestJson = {
  * Use `create(SetStrategyModeRequestSchema)` to create a new message.
  */
 export const SetStrategyModeRequestSchema: GenMessage<SetStrategyModeRequest, {jsonType: SetStrategyModeRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 28);
+  messageDesc(file_tb_orders_v1_execution, 52);
 
 /**
  * @generated from message tb.orders.v1.SetStrategyModeResponse
@@ -2053,7 +3683,153 @@ export type SetStrategyModeResponseJson = {
  * Use `create(SetStrategyModeResponseSchema)` to create a new message.
  */
 export const SetStrategyModeResponseSchema: GenMessage<SetStrategyModeResponse, {jsonType: SetStrategyModeResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 29);
+  messageDesc(file_tb_orders_v1_execution, 53);
+
+/**
+ * @generated from message tb.orders.v1.DemoteStrategyRequest
+ */
+export type DemoteStrategyRequest = Message<"tb.orders.v1.DemoteStrategyRequest"> & {
+  /**
+   * @generated from field: string strategy_id = 1;
+   */
+  strategyId: string;
+
+  /**
+   * @generated from field: string reason = 2;
+   */
+  reason: string;
+
+  /**
+   * Monitoring report or containment action the demotion is based on (audited).
+   *
+   * @generated from field: string evidence_id = 3;
+   */
+  evidenceId: string;
+
+  /**
+   * @generated from field: tb.orders.v1.Actor actor = 4;
+   */
+  actor?: Actor | undefined;
+
+  /**
+   * @generated from field: string correlation_id = 5;
+   */
+  correlationId: string;
+};
+
+/**
+ * @generated from message tb.orders.v1.DemoteStrategyRequest
+ */
+export type DemoteStrategyRequestJson = {
+  /**
+   * @generated from field: string strategy_id = 1;
+   */
+  strategyId?: string;
+
+  /**
+   * @generated from field: string reason = 2;
+   */
+  reason?: string;
+
+  /**
+   * Monitoring report or containment action the demotion is based on (audited).
+   *
+   * @generated from field: string evidence_id = 3;
+   */
+  evidenceId?: string;
+
+  /**
+   * @generated from field: tb.orders.v1.Actor actor = 4;
+   */
+  actor?: ActorJson;
+
+  /**
+   * @generated from field: string correlation_id = 5;
+   */
+  correlationId?: string;
+};
+
+/**
+ * Describes the message tb.orders.v1.DemoteStrategyRequest.
+ * Use `create(DemoteStrategyRequestSchema)` to create a new message.
+ */
+export const DemoteStrategyRequestSchema: GenMessage<DemoteStrategyRequest, {jsonType: DemoteStrategyRequestJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 54);
+
+/**
+ * @generated from message tb.orders.v1.DemoteStrategyResponse
+ */
+export type DemoteStrategyResponse = Message<"tb.orders.v1.DemoteStrategyResponse"> & {
+  /**
+   * @generated from field: tb.orders.v1.Strategy strategy = 1;
+   */
+  strategy?: Strategy | undefined;
+
+  /**
+   * @generated from field: tb.orders.v1.StrategyMode from = 2;
+   */
+  from: StrategyMode;
+
+  /**
+   * False when the strategy was already halted or disabled.
+   *
+   * @generated from field: bool changed = 3;
+   */
+  changed: boolean;
+
+  /**
+   * Set for live → paper (the latched strategy kill switch).
+   *
+   * @generated from field: string kill_switch_event_id = 4;
+   */
+  killSwitchEventId: string;
+
+  /**
+   * @generated from field: int32 orders_canceled = 5;
+   */
+  ordersCanceled: number;
+};
+
+/**
+ * @generated from message tb.orders.v1.DemoteStrategyResponse
+ */
+export type DemoteStrategyResponseJson = {
+  /**
+   * @generated from field: tb.orders.v1.Strategy strategy = 1;
+   */
+  strategy?: StrategyJson;
+
+  /**
+   * @generated from field: tb.orders.v1.StrategyMode from = 2;
+   */
+  from?: StrategyModeJson;
+
+  /**
+   * False when the strategy was already halted or disabled.
+   *
+   * @generated from field: bool changed = 3;
+   */
+  changed?: boolean;
+
+  /**
+   * Set for live → paper (the latched strategy kill switch).
+   *
+   * @generated from field: string kill_switch_event_id = 4;
+   */
+  killSwitchEventId?: string;
+
+  /**
+   * @generated from field: int32 orders_canceled = 5;
+   */
+  ordersCanceled?: number;
+};
+
+/**
+ * Describes the message tb.orders.v1.DemoteStrategyResponse.
+ * Use `create(DemoteStrategyResponseSchema)` to create a new message.
+ */
+export const DemoteStrategyResponseSchema: GenMessage<DemoteStrategyResponse, {jsonType: DemoteStrategyResponseJson}> = /*@__PURE__*/
+  messageDesc(file_tb_orders_v1_execution, 55);
 
 /**
  * @generated from message tb.orders.v1.GetRiskLimitsRequest
@@ -2084,7 +3860,7 @@ export type GetRiskLimitsRequestJson = {
  * Use `create(GetRiskLimitsRequestSchema)` to create a new message.
  */
 export const GetRiskLimitsRequestSchema: GenMessage<GetRiskLimitsRequest, {jsonType: GetRiskLimitsRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 30);
+  messageDesc(file_tb_orders_v1_execution, 56);
 
 /**
  * @generated from message tb.orders.v1.GetRiskLimitsResponse
@@ -2135,7 +3911,7 @@ export type GetRiskLimitsResponseJson = {
  * Use `create(GetRiskLimitsResponseSchema)` to create a new message.
  */
 export const GetRiskLimitsResponseSchema: GenMessage<GetRiskLimitsResponse, {jsonType: GetRiskLimitsResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 31);
+  messageDesc(file_tb_orders_v1_execution, 57);
 
 /**
  * @generated from message tb.orders.v1.SetRiskLimitsRequest
@@ -2182,7 +3958,7 @@ export type SetRiskLimitsRequestJson = {
  * Use `create(SetRiskLimitsRequestSchema)` to create a new message.
  */
 export const SetRiskLimitsRequestSchema: GenMessage<SetRiskLimitsRequest, {jsonType: SetRiskLimitsRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 32);
+  messageDesc(file_tb_orders_v1_execution, 58);
 
 /**
  * @generated from message tb.orders.v1.SetRiskLimitsResponse
@@ -2223,7 +3999,7 @@ export type SetRiskLimitsResponseJson = {
  * Use `create(SetRiskLimitsResponseSchema)` to create a new message.
  */
 export const SetRiskLimitsResponseSchema: GenMessage<SetRiskLimitsResponse, {jsonType: SetRiskLimitsResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 33);
+  messageDesc(file_tb_orders_v1_execution, 59);
 
 /**
  * @generated from message tb.orders.v1.TriggerKillSwitchRequest
@@ -2290,7 +4066,7 @@ export type TriggerKillSwitchRequestJson = {
  * Use `create(TriggerKillSwitchRequestSchema)` to create a new message.
  */
 export const TriggerKillSwitchRequestSchema: GenMessage<TriggerKillSwitchRequest, {jsonType: TriggerKillSwitchRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 34);
+  messageDesc(file_tb_orders_v1_execution, 60);
 
 /**
  * @generated from message tb.orders.v1.TriggerKillSwitchResponse
@@ -2337,7 +4113,7 @@ export type TriggerKillSwitchResponseJson = {
  * Use `create(TriggerKillSwitchResponseSchema)` to create a new message.
  */
 export const TriggerKillSwitchResponseSchema: GenMessage<TriggerKillSwitchResponse, {jsonType: TriggerKillSwitchResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 35);
+  messageDesc(file_tb_orders_v1_execution, 61);
 
 /**
  * @generated from message tb.orders.v1.ReleaseKillSwitchRequest
@@ -2384,7 +4160,7 @@ export type ReleaseKillSwitchRequestJson = {
  * Use `create(ReleaseKillSwitchRequestSchema)` to create a new message.
  */
 export const ReleaseKillSwitchRequestSchema: GenMessage<ReleaseKillSwitchRequest, {jsonType: ReleaseKillSwitchRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 36);
+  messageDesc(file_tb_orders_v1_execution, 62);
 
 /**
  * @generated from message tb.orders.v1.ReleaseKillSwitchResponse
@@ -2411,7 +4187,7 @@ export type ReleaseKillSwitchResponseJson = {
  * Use `create(ReleaseKillSwitchResponseSchema)` to create a new message.
  */
 export const ReleaseKillSwitchResponseSchema: GenMessage<ReleaseKillSwitchResponse, {jsonType: ReleaseKillSwitchResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 37);
+  messageDesc(file_tb_orders_v1_execution, 63);
 
 /**
  * @generated from message tb.orders.v1.ListKillSwitchesRequest
@@ -2438,7 +4214,7 @@ export type ListKillSwitchesRequestJson = {
  * Use `create(ListKillSwitchesRequestSchema)` to create a new message.
  */
 export const ListKillSwitchesRequestSchema: GenMessage<ListKillSwitchesRequest, {jsonType: ListKillSwitchesRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 38);
+  messageDesc(file_tb_orders_v1_execution, 64);
 
 /**
  * @generated from message tb.orders.v1.ListKillSwitchesResponse
@@ -2465,7 +4241,7 @@ export type ListKillSwitchesResponseJson = {
  * Use `create(ListKillSwitchesResponseSchema)` to create a new message.
  */
 export const ListKillSwitchesResponseSchema: GenMessage<ListKillSwitchesResponse, {jsonType: ListKillSwitchesResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 39);
+  messageDesc(file_tb_orders_v1_execution, 65);
 
 /**
  * @generated from message tb.orders.v1.GetTradingStatusRequest
@@ -2484,7 +4260,7 @@ export type GetTradingStatusRequestJson = {
  * Use `create(GetTradingStatusRequestSchema)` to create a new message.
  */
 export const GetTradingStatusRequestSchema: GenMessage<GetTradingStatusRequest, {jsonType: GetTradingStatusRequestJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 40);
+  messageDesc(file_tb_orders_v1_execution, 66);
 
 /**
  * @generated from message tb.orders.v1.GetTradingStatusResponse
@@ -2511,7 +4287,7 @@ export type GetTradingStatusResponseJson = {
  * Use `create(GetTradingStatusResponseSchema)` to create a new message.
  */
 export const GetTradingStatusResponseSchema: GenMessage<GetTradingStatusResponse, {jsonType: GetTradingStatusResponseJson}> = /*@__PURE__*/
-  messageDesc(file_tb_orders_v1_execution, 41);
+  messageDesc(file_tb_orders_v1_execution, 67);
 
 /**
  * StrategyMode is a strategy's trading mode (SM-012). `live` is only reachable through section 15.
@@ -2717,6 +4493,119 @@ export const ExecutionService: GenService<{
     methodKind: "unary";
     input: typeof GetTradingStatusRequestSchema;
     output: typeof GetTradingStatusResponseSchema;
+  },
+  /**
+   * Automatic containment (section 13, RM-018, SM-006): only ever reduces risk. live → paper
+   * through a latched strategy kill switch with action demote_to_paper; shadow or paper → halted
+   * with the strategy's open non-protective orders canceled; halted or disabled → unchanged.
+   * Callers: monitor, api-gateway. Idempotent; re-promotion is always a manual owner action.
+   *
+   * @generated from rpc tb.orders.v1.ExecutionService.DemoteStrategy
+   */
+  demoteStrategy: {
+    methodKind: "unary";
+    input: typeof DemoteStrategyRequestSchema;
+    output: typeof DemoteStrategyResponseSchema;
+  },
+  /**
+   * ---- Section 15 go-live (ADR-0054, GL-*). The only path to StrategyMode LIVE.
+   * Live status: the deploy flag, every live-environment account with its audited enablement and
+   * adapter session, live strategies with their caps and ladder, and paper strategies' graduation.
+   *
+   * @generated from rpc tb.orders.v1.ExecutionService.GetLiveStatus
+   */
+  getLiveStatus: {
+    methodKind: "unary";
+    input: typeof GetLiveStatusRequestSchema;
+    output: typeof GetLiveStatusResponseSchema;
+  },
+  /**
+   * Readiness checklist of one live account (GL-010): owner-attested items plus automated checks.
+   *
+   * @generated from rpc tb.orders.v1.ExecutionService.GetLiveReadiness
+   */
+  getLiveReadiness: {
+    methodKind: "unary";
+    input: typeof GetLiveReadinessRequestSchema;
+    output: typeof GetLiveReadinessResponseSchema;
+  },
+  /**
+   * Owner marks one attested checklist item passed or failed (never a waiver).
+   *
+   * @generated from rpc tb.orders.v1.ExecutionService.SetReadinessItem
+   */
+  setReadinessItem: {
+    methodKind: "unary";
+    input: typeof SetReadinessItemRequestSchema;
+    output: typeof SetReadinessItemResponseSchema;
+  },
+  /**
+   * Graduation report for a paper strategy, computed from recorded paper results only (GL-001).
+   *
+   * @generated from rpc tb.orders.v1.ExecutionService.GetGraduationReport
+   */
+  getGraduationReport: {
+    methodKind: "unary";
+    input: typeof GetGraduationReportRequestSchema;
+    output: typeof GetGraduationReportResponseSchema;
+  },
+  /**
+   * Enables a live account: deploy flag, complete readiness record, live credential connection-tested
+   * read-only, owner with a fresh passkey step-up and a typed confirmation (GL-011). Writes the
+   * audited broker.live_enablement row the live adapter gate reads (BR-013).
+   *
+   * @generated from rpc tb.orders.v1.ExecutionService.EnableLiveAccount
+   */
+  enableLiveAccount: {
+    methodKind: "unary";
+    input: typeof EnableLiveAccountRequestSchema;
+    output: typeof EnableLiveAccountResponseSchema;
+  },
+  /**
+   * Disables a live account: enablement off, account kill switch (freeze + cancel platform orders,
+   * never manual positions), every live strategy on it demoted to paper (GL-031). No step-up.
+   *
+   * @generated from rpc tb.orders.v1.ExecutionService.DisableLiveAccount
+   */
+  disableLiveAccount: {
+    methodKind: "unary";
+    input: typeof DisableLiveAccountRequestSchema;
+    output: typeof DisableLiveAccountResponseSchema;
+  },
+  /**
+   * Promotes a paper strategy to live: graduation passed, registry stage live_eligible, account
+   * live-enabled, capital cap within 10–20 % of the intended allocation, live limit profile, owner
+   * passkey step-up, typed confirmation (GL-020). Actor analyst is denied at every autonomy level.
+   *
+   * @generated from rpc tb.orders.v1.ExecutionService.PromoteToLive
+   */
+  promoteToLive: {
+    methodKind: "unary";
+    input: typeof PromoteToLiveRequestSchema;
+    output: typeof PromoteToLiveResponseSchema;
+  },
+  /**
+   * Demotes a live strategy to paper: cancels its open live orders, keeps or flattens
+   * strategy-owned quantity per policy, moves it back to its paper account (GL-030). No step-up;
+   * callable by the owner from any device and by the monitor (system containment).
+   *
+   * @generated from rpc tb.orders.v1.ExecutionService.DemoteFromLive
+   */
+  demoteFromLive: {
+    methodKind: "unary";
+    input: typeof DemoteFromLiveRequestSchema;
+    output: typeof DemoteFromLiveResponseSchema;
+  },
+  /**
+   * Raises a live strategy's capital cap one ladder step (GL-040): at most 2x, only after a full
+   * window with the graduation-style report passing on the live window, passkey step-up.
+   *
+   * @generated from rpc tb.orders.v1.ExecutionService.RaiseLiveCap
+   */
+  raiseLiveCap: {
+    methodKind: "unary";
+    input: typeof RaiseLiveCapRequestSchema;
+    output: typeof RaiseLiveCapResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_tb_orders_v1_execution, 0);

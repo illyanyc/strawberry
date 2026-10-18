@@ -277,6 +277,13 @@ func (g gate) Allowed(context.Context, string) (bool, string) {
 	return false, "live gate closed"
 }
 
+func (g gate) OrdersAllowed(context.Context, string) (bool, string) {
+	if g.ok {
+		return true, ""
+	}
+	return false, "live orders disabled"
+}
+
 func TestBR013LiveAdapterStaysStopped(t *testing.T) {
 	for _, g := range []adapter.LiveGate{nil, gate{false}} {
 		s := sim.New(sim.Config{AccountID: "sim-live", Environment: brokerv1.Environment_ENVIRONMENT_LIVE})
@@ -295,6 +302,35 @@ func TestBR013LiveAdapterStaysStopped(t *testing.T) {
 	acct := adapter.NewAccount(s, execstore.NewMemory(), &testkit.Audit{}, gate{true}, testLog(), nil, testkit.FastOptions())
 	testkit.Run(t, acct)
 	testkit.WaitState(t, acct, session.Ready)
+}
+
+type readOnlyGate struct{}
+
+func (readOnlyGate) Allowed(context.Context, string) (bool, string) { return true, "" }
+func (readOnlyGate) OrdersAllowed(context.Context, string) (bool, string) {
+	return false, "live orders disabled: account is read-only"
+}
+
+// GL-052: a paper account, which decrypts only the paper credential, refuses a live-mode order
+// before anything is sent. A live account in the read-only stage refuses every order (GL-012).
+func TestGL052PaperCredentialCannotPlaceLiveOrder(t *testing.T) {
+	_, paper, _, _ := ready(t, sim.Config{})
+	req := baseReq()
+	req.Mode = commonv1.Mode_MODE_LIVE
+	resp, err := paper.Submit(context.Background(), req, false, decimal.Zero)
+	if err != nil || resp.GetOutcome() != brokerv1.SubmitOutcome_SUBMIT_OUTCOME_REJECTED || !strings.Contains(resp.GetReject().GetMessage(), "paper credential") {
+		t.Fatalf("paper account live order: err=%v resp=%v", err, resp)
+	}
+	s := sim.New(sim.Config{AccountID: "sim-live", Environment: brokerv1.Environment_ENVIRONMENT_LIVE})
+	live := adapter.NewAccount(s, execstore.NewMemory(), &testkit.Audit{}, readOnlyGate{}, testLog(), nil, testkit.FastOptions())
+	testkit.Run(t, live)
+	testkit.WaitState(t, live, session.Ready)
+	req.BrokerAccountId = "sim-live"
+	req.Mode = commonv1.Mode_MODE_LIVE
+	resp, err = live.Submit(context.Background(), req, false, decimal.Zero)
+	if err != nil || resp.GetOutcome() != brokerv1.SubmitOutcome_SUBMIT_OUTCOME_REJECTED || !strings.Contains(resp.GetReject().GetMessage(), "read-only") {
+		t.Fatalf("read-only live order: err=%v resp=%v", err, resp)
+	}
 }
 
 func TestBR011ResyncRecoversAfterStoreFailure(t *testing.T) {

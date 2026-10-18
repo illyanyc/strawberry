@@ -28,22 +28,32 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ExecutionService_SubmitIntent_FullMethodName      = "/tb.orders.v1.ExecutionService/SubmitIntent"
-	ExecutionService_PreviewIntent_FullMethodName     = "/tb.orders.v1.ExecutionService/PreviewIntent"
-	ExecutionService_CancelIntent_FullMethodName      = "/tb.orders.v1.ExecutionService/CancelIntent"
-	ExecutionService_ListOrders_FullMethodName        = "/tb.orders.v1.ExecutionService/ListOrders"
-	ExecutionService_ListIntents_FullMethodName       = "/tb.orders.v1.ExecutionService/ListIntents"
-	ExecutionService_ListFills_FullMethodName         = "/tb.orders.v1.ExecutionService/ListFills"
-	ExecutionService_GetTrace_FullMethodName          = "/tb.orders.v1.ExecutionService/GetTrace"
-	ExecutionService_ListStrategies_FullMethodName    = "/tb.orders.v1.ExecutionService/ListStrategies"
-	ExecutionService_RegisterStrategy_FullMethodName  = "/tb.orders.v1.ExecutionService/RegisterStrategy"
-	ExecutionService_SetStrategyMode_FullMethodName   = "/tb.orders.v1.ExecutionService/SetStrategyMode"
-	ExecutionService_GetRiskLimits_FullMethodName     = "/tb.orders.v1.ExecutionService/GetRiskLimits"
-	ExecutionService_SetRiskLimits_FullMethodName     = "/tb.orders.v1.ExecutionService/SetRiskLimits"
-	ExecutionService_TriggerKillSwitch_FullMethodName = "/tb.orders.v1.ExecutionService/TriggerKillSwitch"
-	ExecutionService_ReleaseKillSwitch_FullMethodName = "/tb.orders.v1.ExecutionService/ReleaseKillSwitch"
-	ExecutionService_ListKillSwitches_FullMethodName  = "/tb.orders.v1.ExecutionService/ListKillSwitches"
-	ExecutionService_GetTradingStatus_FullMethodName  = "/tb.orders.v1.ExecutionService/GetTradingStatus"
+	ExecutionService_SubmitIntent_FullMethodName        = "/tb.orders.v1.ExecutionService/SubmitIntent"
+	ExecutionService_PreviewIntent_FullMethodName       = "/tb.orders.v1.ExecutionService/PreviewIntent"
+	ExecutionService_CancelIntent_FullMethodName        = "/tb.orders.v1.ExecutionService/CancelIntent"
+	ExecutionService_ListOrders_FullMethodName          = "/tb.orders.v1.ExecutionService/ListOrders"
+	ExecutionService_ListIntents_FullMethodName         = "/tb.orders.v1.ExecutionService/ListIntents"
+	ExecutionService_ListFills_FullMethodName           = "/tb.orders.v1.ExecutionService/ListFills"
+	ExecutionService_GetTrace_FullMethodName            = "/tb.orders.v1.ExecutionService/GetTrace"
+	ExecutionService_ListStrategies_FullMethodName      = "/tb.orders.v1.ExecutionService/ListStrategies"
+	ExecutionService_RegisterStrategy_FullMethodName    = "/tb.orders.v1.ExecutionService/RegisterStrategy"
+	ExecutionService_SetStrategyMode_FullMethodName     = "/tb.orders.v1.ExecutionService/SetStrategyMode"
+	ExecutionService_GetRiskLimits_FullMethodName       = "/tb.orders.v1.ExecutionService/GetRiskLimits"
+	ExecutionService_SetRiskLimits_FullMethodName       = "/tb.orders.v1.ExecutionService/SetRiskLimits"
+	ExecutionService_TriggerKillSwitch_FullMethodName   = "/tb.orders.v1.ExecutionService/TriggerKillSwitch"
+	ExecutionService_ReleaseKillSwitch_FullMethodName   = "/tb.orders.v1.ExecutionService/ReleaseKillSwitch"
+	ExecutionService_ListKillSwitches_FullMethodName    = "/tb.orders.v1.ExecutionService/ListKillSwitches"
+	ExecutionService_GetTradingStatus_FullMethodName    = "/tb.orders.v1.ExecutionService/GetTradingStatus"
+	ExecutionService_DemoteStrategy_FullMethodName      = "/tb.orders.v1.ExecutionService/DemoteStrategy"
+	ExecutionService_GetLiveStatus_FullMethodName       = "/tb.orders.v1.ExecutionService/GetLiveStatus"
+	ExecutionService_GetLiveReadiness_FullMethodName    = "/tb.orders.v1.ExecutionService/GetLiveReadiness"
+	ExecutionService_SetReadinessItem_FullMethodName    = "/tb.orders.v1.ExecutionService/SetReadinessItem"
+	ExecutionService_GetGraduationReport_FullMethodName = "/tb.orders.v1.ExecutionService/GetGraduationReport"
+	ExecutionService_EnableLiveAccount_FullMethodName   = "/tb.orders.v1.ExecutionService/EnableLiveAccount"
+	ExecutionService_DisableLiveAccount_FullMethodName  = "/tb.orders.v1.ExecutionService/DisableLiveAccount"
+	ExecutionService_PromoteToLive_FullMethodName       = "/tb.orders.v1.ExecutionService/PromoteToLive"
+	ExecutionService_DemoteFromLive_FullMethodName      = "/tb.orders.v1.ExecutionService/DemoteFromLive"
+	ExecutionService_RaiseLiveCap_FullMethodName        = "/tb.orders.v1.ExecutionService/RaiseLiveCap"
 )
 
 // ExecutionServiceClient is the client API for ExecutionService service.
@@ -76,6 +86,39 @@ type ExecutionServiceClient interface {
 	ReleaseKillSwitch(ctx context.Context, in *ReleaseKillSwitchRequest, opts ...grpc.CallOption) (*ReleaseKillSwitchResponse, error)
 	ListKillSwitches(ctx context.Context, in *ListKillSwitchesRequest, opts ...grpc.CallOption) (*ListKillSwitchesResponse, error)
 	GetTradingStatus(ctx context.Context, in *GetTradingStatusRequest, opts ...grpc.CallOption) (*GetTradingStatusResponse, error)
+	// Automatic containment (section 13, RM-018, SM-006): only ever reduces risk. live → paper
+	// through a latched strategy kill switch with action demote_to_paper; shadow or paper → halted
+	// with the strategy's open non-protective orders canceled; halted or disabled → unchanged.
+	// Callers: monitor, api-gateway. Idempotent; re-promotion is always a manual owner action.
+	DemoteStrategy(ctx context.Context, in *DemoteStrategyRequest, opts ...grpc.CallOption) (*DemoteStrategyResponse, error)
+	// ---- Section 15 go-live (ADR-0054, GL-*). The only path to StrategyMode LIVE.
+	// Live status: the deploy flag, every live-environment account with its audited enablement and
+	// adapter session, live strategies with their caps and ladder, and paper strategies' graduation.
+	GetLiveStatus(ctx context.Context, in *GetLiveStatusRequest, opts ...grpc.CallOption) (*GetLiveStatusResponse, error)
+	// Readiness checklist of one live account (GL-010): owner-attested items plus automated checks.
+	GetLiveReadiness(ctx context.Context, in *GetLiveReadinessRequest, opts ...grpc.CallOption) (*GetLiveReadinessResponse, error)
+	// Owner marks one attested checklist item passed or failed (never a waiver).
+	SetReadinessItem(ctx context.Context, in *SetReadinessItemRequest, opts ...grpc.CallOption) (*SetReadinessItemResponse, error)
+	// Graduation report for a paper strategy, computed from recorded paper results only (GL-001).
+	GetGraduationReport(ctx context.Context, in *GetGraduationReportRequest, opts ...grpc.CallOption) (*GetGraduationReportResponse, error)
+	// Enables a live account: deploy flag, complete readiness record, live credential connection-tested
+	// read-only, owner with a fresh passkey step-up and a typed confirmation (GL-011). Writes the
+	// audited broker.live_enablement row the live adapter gate reads (BR-013).
+	EnableLiveAccount(ctx context.Context, in *EnableLiveAccountRequest, opts ...grpc.CallOption) (*EnableLiveAccountResponse, error)
+	// Disables a live account: enablement off, account kill switch (freeze + cancel platform orders,
+	// never manual positions), every live strategy on it demoted to paper (GL-031). No step-up.
+	DisableLiveAccount(ctx context.Context, in *DisableLiveAccountRequest, opts ...grpc.CallOption) (*DisableLiveAccountResponse, error)
+	// Promotes a paper strategy to live: graduation passed, registry stage live_eligible, account
+	// live-enabled, capital cap within 10–20 % of the intended allocation, live limit profile, owner
+	// passkey step-up, typed confirmation (GL-020). Actor analyst is denied at every autonomy level.
+	PromoteToLive(ctx context.Context, in *PromoteToLiveRequest, opts ...grpc.CallOption) (*PromoteToLiveResponse, error)
+	// Demotes a live strategy to paper: cancels its open live orders, keeps or flattens
+	// strategy-owned quantity per policy, moves it back to its paper account (GL-030). No step-up;
+	// callable by the owner from any device and by the monitor (system containment).
+	DemoteFromLive(ctx context.Context, in *DemoteFromLiveRequest, opts ...grpc.CallOption) (*DemoteFromLiveResponse, error)
+	// Raises a live strategy's capital cap one ladder step (GL-040): at most 2x, only after a full
+	// window with the graduation-style report passing on the live window, passkey step-up.
+	RaiseLiveCap(ctx context.Context, in *RaiseLiveCapRequest, opts ...grpc.CallOption) (*RaiseLiveCapResponse, error)
 }
 
 type executionServiceClient struct {
@@ -246,6 +289,106 @@ func (c *executionServiceClient) GetTradingStatus(ctx context.Context, in *GetTr
 	return out, nil
 }
 
+func (c *executionServiceClient) DemoteStrategy(ctx context.Context, in *DemoteStrategyRequest, opts ...grpc.CallOption) (*DemoteStrategyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DemoteStrategyResponse)
+	err := c.cc.Invoke(ctx, ExecutionService_DemoteStrategy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *executionServiceClient) GetLiveStatus(ctx context.Context, in *GetLiveStatusRequest, opts ...grpc.CallOption) (*GetLiveStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetLiveStatusResponse)
+	err := c.cc.Invoke(ctx, ExecutionService_GetLiveStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *executionServiceClient) GetLiveReadiness(ctx context.Context, in *GetLiveReadinessRequest, opts ...grpc.CallOption) (*GetLiveReadinessResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetLiveReadinessResponse)
+	err := c.cc.Invoke(ctx, ExecutionService_GetLiveReadiness_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *executionServiceClient) SetReadinessItem(ctx context.Context, in *SetReadinessItemRequest, opts ...grpc.CallOption) (*SetReadinessItemResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetReadinessItemResponse)
+	err := c.cc.Invoke(ctx, ExecutionService_SetReadinessItem_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *executionServiceClient) GetGraduationReport(ctx context.Context, in *GetGraduationReportRequest, opts ...grpc.CallOption) (*GetGraduationReportResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetGraduationReportResponse)
+	err := c.cc.Invoke(ctx, ExecutionService_GetGraduationReport_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *executionServiceClient) EnableLiveAccount(ctx context.Context, in *EnableLiveAccountRequest, opts ...grpc.CallOption) (*EnableLiveAccountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EnableLiveAccountResponse)
+	err := c.cc.Invoke(ctx, ExecutionService_EnableLiveAccount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *executionServiceClient) DisableLiveAccount(ctx context.Context, in *DisableLiveAccountRequest, opts ...grpc.CallOption) (*DisableLiveAccountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DisableLiveAccountResponse)
+	err := c.cc.Invoke(ctx, ExecutionService_DisableLiveAccount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *executionServiceClient) PromoteToLive(ctx context.Context, in *PromoteToLiveRequest, opts ...grpc.CallOption) (*PromoteToLiveResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PromoteToLiveResponse)
+	err := c.cc.Invoke(ctx, ExecutionService_PromoteToLive_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *executionServiceClient) DemoteFromLive(ctx context.Context, in *DemoteFromLiveRequest, opts ...grpc.CallOption) (*DemoteFromLiveResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DemoteFromLiveResponse)
+	err := c.cc.Invoke(ctx, ExecutionService_DemoteFromLive_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *executionServiceClient) RaiseLiveCap(ctx context.Context, in *RaiseLiveCapRequest, opts ...grpc.CallOption) (*RaiseLiveCapResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RaiseLiveCapResponse)
+	err := c.cc.Invoke(ctx, ExecutionService_RaiseLiveCap_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ExecutionServiceServer is the server API for ExecutionService service.
 // All implementations must embed UnimplementedExecutionServiceServer
 // for forward compatibility.
@@ -276,6 +419,39 @@ type ExecutionServiceServer interface {
 	ReleaseKillSwitch(context.Context, *ReleaseKillSwitchRequest) (*ReleaseKillSwitchResponse, error)
 	ListKillSwitches(context.Context, *ListKillSwitchesRequest) (*ListKillSwitchesResponse, error)
 	GetTradingStatus(context.Context, *GetTradingStatusRequest) (*GetTradingStatusResponse, error)
+	// Automatic containment (section 13, RM-018, SM-006): only ever reduces risk. live → paper
+	// through a latched strategy kill switch with action demote_to_paper; shadow or paper → halted
+	// with the strategy's open non-protective orders canceled; halted or disabled → unchanged.
+	// Callers: monitor, api-gateway. Idempotent; re-promotion is always a manual owner action.
+	DemoteStrategy(context.Context, *DemoteStrategyRequest) (*DemoteStrategyResponse, error)
+	// ---- Section 15 go-live (ADR-0054, GL-*). The only path to StrategyMode LIVE.
+	// Live status: the deploy flag, every live-environment account with its audited enablement and
+	// adapter session, live strategies with their caps and ladder, and paper strategies' graduation.
+	GetLiveStatus(context.Context, *GetLiveStatusRequest) (*GetLiveStatusResponse, error)
+	// Readiness checklist of one live account (GL-010): owner-attested items plus automated checks.
+	GetLiveReadiness(context.Context, *GetLiveReadinessRequest) (*GetLiveReadinessResponse, error)
+	// Owner marks one attested checklist item passed or failed (never a waiver).
+	SetReadinessItem(context.Context, *SetReadinessItemRequest) (*SetReadinessItemResponse, error)
+	// Graduation report for a paper strategy, computed from recorded paper results only (GL-001).
+	GetGraduationReport(context.Context, *GetGraduationReportRequest) (*GetGraduationReportResponse, error)
+	// Enables a live account: deploy flag, complete readiness record, live credential connection-tested
+	// read-only, owner with a fresh passkey step-up and a typed confirmation (GL-011). Writes the
+	// audited broker.live_enablement row the live adapter gate reads (BR-013).
+	EnableLiveAccount(context.Context, *EnableLiveAccountRequest) (*EnableLiveAccountResponse, error)
+	// Disables a live account: enablement off, account kill switch (freeze + cancel platform orders,
+	// never manual positions), every live strategy on it demoted to paper (GL-031). No step-up.
+	DisableLiveAccount(context.Context, *DisableLiveAccountRequest) (*DisableLiveAccountResponse, error)
+	// Promotes a paper strategy to live: graduation passed, registry stage live_eligible, account
+	// live-enabled, capital cap within 10–20 % of the intended allocation, live limit profile, owner
+	// passkey step-up, typed confirmation (GL-020). Actor analyst is denied at every autonomy level.
+	PromoteToLive(context.Context, *PromoteToLiveRequest) (*PromoteToLiveResponse, error)
+	// Demotes a live strategy to paper: cancels its open live orders, keeps or flattens
+	// strategy-owned quantity per policy, moves it back to its paper account (GL-030). No step-up;
+	// callable by the owner from any device and by the monitor (system containment).
+	DemoteFromLive(context.Context, *DemoteFromLiveRequest) (*DemoteFromLiveResponse, error)
+	// Raises a live strategy's capital cap one ladder step (GL-040): at most 2x, only after a full
+	// window with the graduation-style report passing on the live window, passkey step-up.
+	RaiseLiveCap(context.Context, *RaiseLiveCapRequest) (*RaiseLiveCapResponse, error)
 	mustEmbedUnimplementedExecutionServiceServer()
 }
 
@@ -333,6 +509,36 @@ func (UnimplementedExecutionServiceServer) ListKillSwitches(context.Context, *Li
 }
 func (UnimplementedExecutionServiceServer) GetTradingStatus(context.Context, *GetTradingStatusRequest) (*GetTradingStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetTradingStatus not implemented")
+}
+func (UnimplementedExecutionServiceServer) DemoteStrategy(context.Context, *DemoteStrategyRequest) (*DemoteStrategyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DemoteStrategy not implemented")
+}
+func (UnimplementedExecutionServiceServer) GetLiveStatus(context.Context, *GetLiveStatusRequest) (*GetLiveStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetLiveStatus not implemented")
+}
+func (UnimplementedExecutionServiceServer) GetLiveReadiness(context.Context, *GetLiveReadinessRequest) (*GetLiveReadinessResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetLiveReadiness not implemented")
+}
+func (UnimplementedExecutionServiceServer) SetReadinessItem(context.Context, *SetReadinessItemRequest) (*SetReadinessItemResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetReadinessItem not implemented")
+}
+func (UnimplementedExecutionServiceServer) GetGraduationReport(context.Context, *GetGraduationReportRequest) (*GetGraduationReportResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetGraduationReport not implemented")
+}
+func (UnimplementedExecutionServiceServer) EnableLiveAccount(context.Context, *EnableLiveAccountRequest) (*EnableLiveAccountResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method EnableLiveAccount not implemented")
+}
+func (UnimplementedExecutionServiceServer) DisableLiveAccount(context.Context, *DisableLiveAccountRequest) (*DisableLiveAccountResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DisableLiveAccount not implemented")
+}
+func (UnimplementedExecutionServiceServer) PromoteToLive(context.Context, *PromoteToLiveRequest) (*PromoteToLiveResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PromoteToLive not implemented")
+}
+func (UnimplementedExecutionServiceServer) DemoteFromLive(context.Context, *DemoteFromLiveRequest) (*DemoteFromLiveResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DemoteFromLive not implemented")
+}
+func (UnimplementedExecutionServiceServer) RaiseLiveCap(context.Context, *RaiseLiveCapRequest) (*RaiseLiveCapResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RaiseLiveCap not implemented")
 }
 func (UnimplementedExecutionServiceServer) mustEmbedUnimplementedExecutionServiceServer() {}
 func (UnimplementedExecutionServiceServer) testEmbeddedByValue()                          {}
@@ -643,6 +849,186 @@ func _ExecutionService_GetTradingStatus_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ExecutionService_DemoteStrategy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DemoteStrategyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExecutionServiceServer).DemoteStrategy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExecutionService_DemoteStrategy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExecutionServiceServer).DemoteStrategy(ctx, req.(*DemoteStrategyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ExecutionService_GetLiveStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLiveStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExecutionServiceServer).GetLiveStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExecutionService_GetLiveStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExecutionServiceServer).GetLiveStatus(ctx, req.(*GetLiveStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ExecutionService_GetLiveReadiness_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLiveReadinessRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExecutionServiceServer).GetLiveReadiness(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExecutionService_GetLiveReadiness_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExecutionServiceServer).GetLiveReadiness(ctx, req.(*GetLiveReadinessRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ExecutionService_SetReadinessItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetReadinessItemRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExecutionServiceServer).SetReadinessItem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExecutionService_SetReadinessItem_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExecutionServiceServer).SetReadinessItem(ctx, req.(*SetReadinessItemRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ExecutionService_GetGraduationReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGraduationReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExecutionServiceServer).GetGraduationReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExecutionService_GetGraduationReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExecutionServiceServer).GetGraduationReport(ctx, req.(*GetGraduationReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ExecutionService_EnableLiveAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EnableLiveAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExecutionServiceServer).EnableLiveAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExecutionService_EnableLiveAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExecutionServiceServer).EnableLiveAccount(ctx, req.(*EnableLiveAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ExecutionService_DisableLiveAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DisableLiveAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExecutionServiceServer).DisableLiveAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExecutionService_DisableLiveAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExecutionServiceServer).DisableLiveAccount(ctx, req.(*DisableLiveAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ExecutionService_PromoteToLive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PromoteToLiveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExecutionServiceServer).PromoteToLive(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExecutionService_PromoteToLive_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExecutionServiceServer).PromoteToLive(ctx, req.(*PromoteToLiveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ExecutionService_DemoteFromLive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DemoteFromLiveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExecutionServiceServer).DemoteFromLive(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExecutionService_DemoteFromLive_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExecutionServiceServer).DemoteFromLive(ctx, req.(*DemoteFromLiveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ExecutionService_RaiseLiveCap_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RaiseLiveCapRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExecutionServiceServer).RaiseLiveCap(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExecutionService_RaiseLiveCap_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExecutionServiceServer).RaiseLiveCap(ctx, req.(*RaiseLiveCapRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ExecutionService_ServiceDesc is the grpc.ServiceDesc for ExecutionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -713,6 +1099,46 @@ var ExecutionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTradingStatus",
 			Handler:    _ExecutionService_GetTradingStatus_Handler,
+		},
+		{
+			MethodName: "DemoteStrategy",
+			Handler:    _ExecutionService_DemoteStrategy_Handler,
+		},
+		{
+			MethodName: "GetLiveStatus",
+			Handler:    _ExecutionService_GetLiveStatus_Handler,
+		},
+		{
+			MethodName: "GetLiveReadiness",
+			Handler:    _ExecutionService_GetLiveReadiness_Handler,
+		},
+		{
+			MethodName: "SetReadinessItem",
+			Handler:    _ExecutionService_SetReadinessItem_Handler,
+		},
+		{
+			MethodName: "GetGraduationReport",
+			Handler:    _ExecutionService_GetGraduationReport_Handler,
+		},
+		{
+			MethodName: "EnableLiveAccount",
+			Handler:    _ExecutionService_EnableLiveAccount_Handler,
+		},
+		{
+			MethodName: "DisableLiveAccount",
+			Handler:    _ExecutionService_DisableLiveAccount_Handler,
+		},
+		{
+			MethodName: "PromoteToLive",
+			Handler:    _ExecutionService_PromoteToLive_Handler,
+		},
+		{
+			MethodName: "DemoteFromLive",
+			Handler:    _ExecutionService_DemoteFromLive_Handler,
+		},
+		{
+			MethodName: "RaiseLiveCap",
+			Handler:    _ExecutionService_RaiseLiveCap_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

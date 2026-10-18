@@ -123,6 +123,8 @@ class OrderRequest(_Frozen):
     instrument: Instrument | None = None
     # Ticker, used only when neither instrument_id nor a conId identifies the contract (IB-027).
     symbol: str = ""
+    # "" | paper | live. A paper account refuses "live" (GL-052).
+    mode: str = ""
 
 
 class OrderChanges(_Frozen):

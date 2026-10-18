@@ -21,6 +21,9 @@ class Enabled:
     def is_live_enabled(self, broker_account_id: str) -> bool:
         return broker_account_id in self._accounts
 
+    def orders_enabled(self, broker_account_id: str) -> bool:
+        return False
+
 
 def settings(**env: object) -> IbkrSettings:
     return IbkrSettings(ibkr_accounts="bot=U0000001", **env)  # type: ignore[arg-type]

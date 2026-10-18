@@ -16,11 +16,13 @@ import {
   Database,
   FlaskConical,
   Gauge,
+  HeartPulse,
   KeyRound,
   LayoutDashboard,
   type LucideIcon,
   PieChart,
   Radio,
+  Rocket,
   ScrollText,
   Settings2,
   ShieldAlert,
@@ -53,6 +55,8 @@ export type NavPath =
   | "/backtests"
   | "/analyst"
   | "/risk"
+  | "/monitoring"
+  | "/live"
   | "/settings/notifications"
   | "/settings/tradingview"
   | "/settings/security"
@@ -88,6 +92,8 @@ export const NAV: readonly NavItem[] = [
   { to: "/backtests", label: "Backtests & tearsheets", short: "Tearsheets", icon: Activity, section: "research", key: "b", keywords: "tearsheet runs compare backtest" },
   { to: "/analyst", label: "AI analyst", short: "Analyst", icon: Bot, section: "research", key: "a", keywords: "assistant journal chat" },
   { to: "/risk", label: "Risk & kill switches", short: "Risk", icon: ShieldAlert, section: "operations", key: "r", keywords: "kill switch halt limits freeze" },
+  { to: "/monitoring", label: "Monitoring", short: "Monitor", icon: HeartPulse, section: "operations", key: "m", keywords: "health drift divergence shortfall containment alerts inbox daily report graduation" },
+  { to: "/live", label: "Go live", short: "Go live", icon: Rocket, section: "operations", key: "l", keywords: "graduation live enable promote capital cap readiness checklist" },
   { to: "/settings/notifications", label: "Notifications", short: "Alerts", icon: BellRing, section: "settings", key: "n", keywords: "push pwa install pushover web push" },
   { to: "/settings/tradingview", label: "TradingView", short: "TradingView", icon: Radio, section: "settings", keywords: "webhook tv signals cloudflare" },
   { to: "/settings/security", label: "Security", short: "Security", icon: ShieldCheck, section: "settings", keywords: "passkey totp recovery sessions" },

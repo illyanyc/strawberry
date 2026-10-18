@@ -16,6 +16,8 @@ import (
 
 	brokerv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/broker/v1"
 	ledgerv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/ledger/v1"
+	monitorv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/monitor/v1"
+	optimizerv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/optimizer/v1"
 	"github.com/illyanyc/strawberry/libs/go/bus"
 	"github.com/illyanyc/strawberry/libs/go/clock"
 	"github.com/illyanyc/strawberry/libs/go/config"
@@ -24,6 +26,7 @@ import (
 	"github.com/illyanyc/strawberry/libs/go/svc"
 	"github.com/illyanyc/strawberry/libs/go/svcauth"
 	"github.com/illyanyc/strawberry/services/execution/app"
+	"github.com/illyanyc/strawberry/services/execution/internal/oms"
 )
 
 type cfg struct {
@@ -43,6 +46,10 @@ type cfg struct {
 	Registry           string        `env:"TB_STRATEGY_REGISTRY" envDefault:"" json:"strategy_registry"`
 	FlattenBeforeClose time.Duration `env:"TB_INTRADAY_FLATTEN_BEFORE_CLOSE" envDefault:"10m" json:"flatten_before_close"`
 	DeadmanTimeout     time.Duration `env:"TB_DEADMAN_TIMEOUT" envDefault:"30s" json:"deadman_timeout"`
+	// GL-011: deploy flag. Default false; it never promotes a strategy by itself.
+	TradingLiveEnabled bool   `env:"TB_TRADING_LIVE_ENABLED" envDefault:"false" json:"trading_live_enabled"`
+	MonitorAddr        string `env:"TB_MONITOR_ADDR" envDefault:"" json:"monitor_addr"`
+	OptimizerAddr      string `env:"TB_OPTIMIZER_ADDR" envDefault:"" json:"optimizer_addr"`
 }
 
 func main() {
@@ -65,7 +72,7 @@ func main() {
 	if ec.Policies, err = app.ParsePolicies(c.Policies, ec.DefaultPolicy); err != nil {
 		svc.Fatal(rt.Log, "config", err)
 	}
-	ec.FlattenBeforeClose, ec.DeadmanTimeout = c.FlattenBeforeClose, c.DeadmanTimeout
+	ec.FlattenBeforeClose, ec.DeadmanTimeout, ec.LiveFlag = c.FlattenBeforeClose, c.DeadmanTimeout, c.TradingLiveEnabled
 	pool, err := db.Connect(rt.Ctx, c.DB, rt.Secrets)
 	if err != nil {
 		svc.Fatal(rt.Log, "database", err)
@@ -130,8 +137,30 @@ func main() {
 			time.Sleep(5 * time.Second)
 		}
 	}()
+	var monC monitorv1.MonitorServiceClient
+	if c.MonitorAddr != "" {
+		conn, err := grpc.NewClient(c.MonitorAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			svc.Fatal(rt.Log, "monitor", err)
+		}
+		defer conn.Close()
+		monC = monitorv1.NewMonitorServiceClient(conn)
+	}
+	var optC optimizerv1.OptimizerServiceClient
+	if c.OptimizerAddr != "" {
+		conn, err := grpc.NewClient(c.OptimizerAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			svc.Fatal(rt.Log, "optimizer", err)
+		}
+		defer conn.Close()
+		optC = optimizerv1.NewOptimizerServiceClient(conn)
+	}
+	app.WireLive(a.Engine, monC, optC, signer, &oms.PostgresLive{Pool: pool})
+	if err := a.Engine.LoadLive(rt.Ctx); err != nil {
+		rt.Log.Warn("go-live state not loaded", "err", err)
+	}
 	go a.Run(rt.Ctx)
-	verifier, err := svcauth.LoadVerifier(rt.Secrets, c.Service, "api-gateway")
+	verifier, err := svcauth.LoadVerifier(rt.Secrets, c.Service, "api-gateway", "monitor")
 	if err != nil {
 		svc.Fatal(rt.Log, "service keys", err)
 	}

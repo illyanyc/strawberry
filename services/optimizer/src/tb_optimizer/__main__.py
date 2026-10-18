@@ -39,6 +39,8 @@ class Settings(ServiceSettings):
     opt_paper_account_swing: str = "sim-paper"
     graduation_min_sessions: int = 20
     opt_global_analyst_trials: int = 0
+    # Candidate deployment limit profiles per horizon (EX-062); empty = shipped defaults.
+    opt_deployment_limits: str = ""
     nats_url: str = ""
     nats_user: str = "optimizer"
     db_host: str = "postgres"
@@ -81,6 +83,7 @@ def build(s: Settings) -> tuple[OptimizerCore, AuditSink]:
         paper_account_swing=s.opt_paper_account_swing,
         graduation_min_sessions=s.graduation_min_sessions,
         global_analyst_trials=s.opt_global_analyst_trials,
+        deployment_profiles=s.opt_deployment_limits,
     )
     return core, audit
 
@@ -89,7 +92,7 @@ def main(argv: list[str] | None = None) -> int:
     s = Settings()
     log = configure("optimizer", s.log_level)
     core, audit = build(s)
-    callers = ["api-gateway", "assistant", "ml", "optimizer", "monitor"]
+    callers = ["api-gateway", "assistant", "ml", "optimizer", "monitor", "execution"]
     verifier = Verifier.from_secrets("optimizer", callers, s.secrets_dir)
     holdout_verifier = Verifier.from_secrets("holdout", callers, s.secrets_dir)
     server, port = serve(s.opt_grpc_addr, [(OPT, OptimizerServicer(core, audit), OPT_ALLOW)], verifier)

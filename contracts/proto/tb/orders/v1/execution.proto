@@ -40,6 +40,42 @@ service ExecutionService {
   rpc ReleaseKillSwitch(ReleaseKillSwitchRequest) returns (ReleaseKillSwitchResponse);
   rpc ListKillSwitches(ListKillSwitchesRequest) returns (ListKillSwitchesResponse);
   rpc GetTradingStatus(GetTradingStatusRequest) returns (GetTradingStatusResponse);
+  // Automatic containment (section 13, RM-018, SM-006): only ever reduces risk. live → paper
+  // through a latched strategy kill switch with action demote_to_paper; shadow or paper → halted
+  // with the strategy's open non-protective orders canceled; halted or disabled → unchanged.
+  // Callers: monitor, api-gateway. Idempotent; re-promotion is always a manual owner action.
+  rpc DemoteStrategy(DemoteStrategyRequest) returns (DemoteStrategyResponse);
+
+
+  // ---- Section 15 go-live (ADR-0054, GL-*). The only path to StrategyMode LIVE.
+  // Live status: the deploy flag, every live-environment account with its audited enablement and
+  // adapter session, live strategies with their caps and ladder, and paper strategies' graduation.
+  rpc GetLiveStatus(GetLiveStatusRequest) returns (GetLiveStatusResponse);
+  // Readiness checklist of one live account (GL-010): owner-attested items plus automated checks.
+  rpc GetLiveReadiness(GetLiveReadinessRequest) returns (GetLiveReadinessResponse);
+  // Owner marks one attested checklist item passed or failed (never a waiver).
+  rpc SetReadinessItem(SetReadinessItemRequest) returns (SetReadinessItemResponse);
+  // Graduation report for a paper strategy, computed from recorded paper results only (GL-001).
+  rpc GetGraduationReport(GetGraduationReportRequest) returns (GetGraduationReportResponse);
+  // Enables a live account: deploy flag, complete readiness record, live credential connection-tested
+  // read-only, owner with a fresh passkey step-up and a typed confirmation (GL-011). Writes the
+  // audited broker.live_enablement row the live adapter gate reads (BR-013).
+  rpc EnableLiveAccount(EnableLiveAccountRequest) returns (EnableLiveAccountResponse);
+  // Disables a live account: enablement off, account kill switch (freeze + cancel platform orders,
+  // never manual positions), every live strategy on it demoted to paper (GL-031). No step-up.
+  rpc DisableLiveAccount(DisableLiveAccountRequest) returns (DisableLiveAccountResponse);
+  // Promotes a paper strategy to live: graduation passed, registry stage live_eligible, account
+  // live-enabled, capital cap within 10–20 % of the intended allocation, live limit profile, owner
+  // passkey step-up, typed confirmation (GL-020). Actor analyst is denied at every autonomy level.
+  rpc PromoteToLive(PromoteToLiveRequest) returns (PromoteToLiveResponse);
+  // Demotes a live strategy to paper: cancels its open live orders, keeps or flattens
+  // strategy-owned quantity per policy, moves it back to its paper account (GL-030). No step-up;
+  // callable by the owner from any device and by the monitor (system containment).
+  rpc DemoteFromLive(DemoteFromLiveRequest) returns (DemoteFromLiveResponse);
+  // Raises a live strategy's capital cap one ladder step (GL-040): at most 2x, only after a full
+  // window with the graduation-style report passing on the live window, passkey step-up.
+  rpc RaiseLiveCap(RaiseLiveCapRequest) returns (RaiseLiveCapResponse);
+
 }
 
 // StrategyMode is a strategy's trading mode (SM-012). `live` is only reachable through section 15.
@@ -102,6 +138,226 @@ message Strategy {
   int64 updated_at = 14;
   // Hosted by the strategy runtime (dead-man watched, RM-017); false for UI/webhook owners.
   bool runtime_hosted = 15;
+  // Section 15 (GL-020): the live capital cap and the allocation it was graduated for. Zero unless
+  // the strategy is or was live. The ledger allocation on the live account equals the cap.
+  tb.common.v1.Decimal live_capital_cap = 16;
+  tb.common.v1.Decimal intended_allocation = 17;
+  // Account the strategy traded paper on before promotion; demotion returns it there (GL-030).
+  string paper_account_id = 18;
+  // Scaling ladder step (0 = initial cap) and when the current step started (GL-040).
+  int32 ladder_step = 19;
+  int64 ladder_window_start = 20;
+  // Set on a paper twin registered by promotion: the live strategy it mirrors (GL-022).
+  string paper_twin_of = 21;
+  int64 live_promoted_at = 22;
+  // Hash of the graduation report and readiness record the promotion was approved on.
+  string live_evidence_hash = 23;
+}
+
+// ---- Section 15 go-live messages (GL-*).
+
+// ReadinessItem is one entry of the pre-live readiness checklist (GL-010). Automated items are
+// evaluated on every read; attested items are marked by the owner. There is no waiver status.
+message ReadinessItem {
+  string id = 1;
+  // security | operations | data | ledger | risk | monitoring | compliance | documentation
+  string section = 2;
+  string title = 3;
+  // pending | passed | failed
+  string status = 4;
+  bool automated = 5;
+  string checked_by = 6;
+  int64 checked_at = 7;
+  string note = 8;
+  string evidence_url = 9;
+  // Explanation from the automated evaluation (why it failed), empty otherwise.
+  string detail = 10;
+}
+
+message LiveReadiness {
+  string broker_account_id = 1;
+  repeated ReadinessItem items = 2;
+  // True only when every item is passed (GL-010).
+  bool complete = 3;
+  int64 updated_at = 4;
+  // SHA-256 of the canonical record; recorded in the enablement audit event.
+  string record_hash = 5;
+}
+
+// GraduationCriterion is one paper-graduation test (GL-001..GL-003).
+message GraduationCriterion {
+  string name = 1;
+  string required = 2;
+  string actual = 3;
+  bool passed = 4;
+  // execution | ledger | optimizer | monitor
+  string source = 5;
+  string detail = 6;
+}
+
+message GraduationReport {
+  string strategy_id = 1;
+  repeated GraduationCriterion criteria = 2;
+  bool overall = 3;
+  int64 computed_at = 4;
+  repeated string evidence_links = 5;
+  // SHA-256 of the canonical report; PromoteToLive records it (GL-020).
+  string report_hash = 6;
+  int32 paper_sessions = 7;
+  int32 paper_trades = 8;
+  // Registry stage name of the strategy's candidate (tb.ml.v1.RegistryStage), empty when unknown.
+  string registry_stage = 9;
+  // Per-session paper returns (fraction of allocation) the statistics were computed on.
+  repeated double paper_session_returns = 10;
+  // Window the report covers: first and last paper session (UTC ns).
+  int64 window_start = 11;
+  int64 window_end = 12;
+}
+
+// LiveAccountStatus is one live-environment account as the go-live flow sees it (GL-011).
+message LiveAccountStatus {
+  string broker_account_id = 1;
+  // Audited enablement row (broker.live_enablement): enabled, by whom, audit sequence.
+  bool enabled = 2;
+  string enabled_by = 3;
+  int64 audit_seq = 4;
+  int64 updated_at = 5;
+  // Adapter session (SESSION_STATE_* name) and whether a live credential is stored.
+  string session_state = 6;
+  bool credential_stored = 7;
+  bool readiness_complete = 8;
+  // Unexplained reconciliation breaks open on the account (ledger).
+  int32 open_breaks = 9;
+  // Live strategies registered to this account.
+  repeated string live_strategies = 10;
+  // Sessions the adapter has streamed read-only with clean reconciliation (GL-012 read-only day).
+  int32 read_only_sessions = 11;
+  // Orders allowed (stage trading); enabled alone is the read-only stage.
+  bool orders_enabled = 12;
+  // paper | live (adapter environment).
+  string environment = 13;
+}
+
+message LiveStatus {
+  // TB_TRADING_LIVE_ENABLED as seen by execution (deploy flag, GL-011).
+  bool flag_enabled = 1;
+  repeated LiveAccountStatus accounts = 2;
+  repeated Strategy live_strategies = 3;
+  // Paper strategies that could graduate, with their latest report overall flag.
+  repeated GraduationReport candidates = 4;
+  int64 as_of = 5;
+}
+
+message GetLiveStatusRequest {}
+
+message GetLiveStatusResponse {
+  LiveStatus status = 1;
+}
+
+message GetLiveReadinessRequest {
+  string broker_account_id = 1;
+}
+
+message GetLiveReadinessResponse {
+  LiveReadiness readiness = 1;
+}
+
+message SetReadinessItemRequest {
+  string broker_account_id = 1;
+  string item_id = 2;
+  // passed | failed
+  string status = 3;
+  string note = 4;
+  string evidence_url = 5;
+  Actor actor = 6;
+}
+
+message SetReadinessItemResponse {
+  LiveReadiness readiness = 1;
+}
+
+message GetGraduationReportRequest {
+  string strategy_id = 1;
+}
+
+message GetGraduationReportResponse {
+  GraduationReport report = 1;
+}
+
+message EnableLiveAccountRequest {
+  string broker_account_id = 1;
+  // Must equal broker_account_id (typed confirmation, GL-011).
+  string confirmation = 2;
+  Actor actor = 3;
+  // read_only: the live adapter connects, streams account data, and reconciles; orders stay
+  // refused (GL-012 live read-only day). trading: orders allowed; needs the complete readiness
+  // record, which includes a clean read-only session.
+  string stage = 4;
+}
+
+message EnableLiveAccountResponse {
+  LiveAccountStatus account = 1;
+}
+
+message DisableLiveAccountRequest {
+  string broker_account_id = 1;
+  string reason = 2;
+  Actor actor = 3;
+}
+
+message DisableLiveAccountResponse {
+  LiveAccountStatus account = 1;
+  int32 orders_canceled = 2;
+  repeated string demoted_strategies = 3;
+}
+
+message PromoteToLiveRequest {
+  string strategy_id = 1;
+  string live_account_id = 2;
+  // 10–20 % of intended_allocation (GL-021); becomes the ledger allocation on the live account.
+  tb.common.v1.Decimal capital_cap = 3;
+  tb.common.v1.Decimal intended_allocation = 4;
+  // Optional overrides; every field must be at least as tight as the live profile (GL-023).
+  RiskLimits limit_overrides = 5;
+  // Must equal the strategy's name (typed confirmation).
+  string confirmation = 6;
+  // Keep a paper twin running on the paper account as the divergence reference (GL-022, default
+  // on: false here means "do not keep").
+  bool skip_paper_twin = 7;
+  Actor actor = 8;
+}
+
+message PromoteToLiveResponse {
+  Strategy strategy = 1;
+  GraduationReport report = 2;
+  RiskLimits live_limits = 3;
+  Strategy paper_twin = 4;
+}
+
+message DemoteFromLiveRequest {
+  string strategy_id = 1;
+  string reason = 2;
+  // hold | flatten: what happens to strategy-owned live quantity (GL-030); never manual.
+  string position_policy = 3;
+  Actor actor = 4;
+}
+
+message DemoteFromLiveResponse {
+  Strategy strategy = 1;
+  int32 orders_canceled = 2;
+  int32 flatten_intents = 3;
+}
+
+message RaiseLiveCapRequest {
+  string strategy_id = 1;
+  tb.common.v1.Decimal new_cap = 2;
+  string confirmation = 3;
+  Actor actor = 4;
+}
+
+message RaiseLiveCapResponse {
+  Strategy strategy = 1;
+  GraduationReport live_window_report = 2;
 }
 
 message KillSwitch {
@@ -310,6 +566,25 @@ message SetStrategyModeRequest {
 
 message SetStrategyModeResponse {
   Strategy strategy = 1;
+}
+
+message DemoteStrategyRequest {
+  string strategy_id = 1;
+  string reason = 2;
+  // Monitoring report or containment action the demotion is based on (audited).
+  string evidence_id = 3;
+  Actor actor = 4;
+  string correlation_id = 5;
+}
+
+message DemoteStrategyResponse {
+  Strategy strategy = 1;
+  StrategyMode from = 2;
+  // False when the strategy was already halted or disabled.
+  bool changed = 3;
+  // Set for live → paper (the latched strategy kill switch).
+  string kill_switch_event_id = 4;
+  int32 orders_canceled = 5;
 }
 
 message GetRiskLimitsRequest {

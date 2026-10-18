@@ -345,3 +345,50 @@ func TestVPInvariantsProperty(t *testing.T) {
 		}
 	}
 }
+
+// BT-014: a fee (short borrow in the backtest simcore) is realized: owner equity and account cash go
+// down by the amount, the owner's fees go up, and a repeated source is a no-op.
+func TestBT014FeeIsRealizedAndIdempotent(t *testing.T) {
+	f := newFixture(t)
+	f.fill("alpha-1", "Y", true, "10", "20")
+	a := f.b.Accounts["acct"]
+	cash, realized := a.Cash, a.Owner("alpha-1").Realized
+	ev := Event{Kind: KindFee, Account: "acct", Source: "borrow:alpha-1:Y:2026-10-13", Time: 500,
+		Fee: &Fee{Owner: "alpha-1", InstrumentID: "Y", Amount: d("1.25")}}
+	f.apply(ev)
+	f.apply(ev)
+	o := a.Owner("alpha-1")
+	if !a.Cash.Equal(cash.Sub(d("1.25"))) || !o.Realized.Equal(realized.Sub(d("1.25"))) || !o.Fees.Equal(d("1.25")) {
+		t.Fatalf("cash %s realized %s fees %s", a.Cash, o.Realized, o.Fees)
+	}
+	if !f.qty("alpha-1", "Y").Equal(d("10")) {
+		t.Fatal("a fee must not change quantity")
+	}
+	if _, _, err := f.b.Apply(Event{Kind: KindFee, Account: "acct", Source: "x", Fee: &Fee{Owner: "nobody", Amount: d("1")}}, f.brk, f.res); err == nil {
+		t.Fatal("fee for an unknown owner must fail")
+	}
+}
+
+// BT-008: a delisting closes every owner's position at the delisting price with the cash flow of a
+// closing trade; the broker-lot shadow ledger is flat too.
+func TestBT008DelistingClosesEveryOwner(t *testing.T) {
+	f := newFixture(t)
+	f.fill("alpha-1", "X", true, "30", "60")
+	a := f.b.Accounts["acct"]
+	cash := a.Cash
+	f.apply(Event{Kind: KindDelisting, Account: "acct", Source: "ca:X:1", Time: 600, Delist: &Delisting{InstrumentID: "X", Price: d("10")}})
+	for _, o := range []string{"alpha-1", Manual} {
+		if !f.qty(o, "X").IsZero() {
+			t.Fatalf("%s still holds %s X", o, f.qty(o, "X"))
+		}
+	}
+	if !a.Cash.Equal(cash.Add(d("1300"))) {
+		t.Fatalf("cash %s, want %s (130 shares x 10)", a.Cash, cash.Add(d("1300")))
+	}
+	if r := a.Owner("alpha-1").Realized; !r.Equal(d("-1500")) {
+		t.Fatalf("alpha realized %s, want -1500 (30 x (10 - 60))", r)
+	}
+	if !a.LedgerQty("X").IsZero() || len(a.Shadow["X"]) != 0 {
+		t.Fatalf("ledger qty %s shadow %v", a.LedgerQty("X"), a.Shadow["X"])
+	}
+}

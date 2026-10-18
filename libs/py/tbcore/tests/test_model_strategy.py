@@ -5,6 +5,7 @@ to a paper champion (ML-040, ML-041, ML-042, ML-016, SM-011, SM-013, BT-026, EX-
 from __future__ import annotations
 
 import json
+import time
 from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
@@ -19,7 +20,7 @@ from tbcore.data.calendar import xnys
 from tbcore.ml import config, dataset, models, schema, synthetic, train
 from tbcore.ml.bundle import FeatureMismatchError, ModelBundle
 from tbcore.strategy.api import Bar
-from tbcore.strategy.host import Runner
+from tbcore.strategy.host import Runner, feature_subject, feature_vector_messages, signal_messages, signal_subject
 from tbcore.strategy.model_signal import OnlineModelScores
 
 PRESET = "intraday_small"
@@ -177,3 +178,87 @@ def test_ex056_shadow_challenger_runs_next_to_the_paper_champion(tmp_path: Path)
         for it in runner.dispatch(_bar(row)):
             seen[it.strategy_id] += 1
     assert seen["champion"] > 0 and seen["challenger"] == seen["champion"]  # same model, same bars, same intents
+
+
+def test_ml042_scored_batches_become_signals_and_feature_vectors(tmp_path: Path) -> None:
+    """Every online scoring is published as a Signal (model version, feature snapshot ID) and the exact
+    scored features as a FeatureVector with the same snapshot ID (ML-042, MN-038)."""
+    res, ds = _trained()
+    assert res.final is not None
+    res.final.save(tmp_path / "m")
+    uni = sorted(set(ds.frame["instrument_id"].to_list()))
+    reg = {
+        "strategies": [
+            {
+                "strategy_id": "mlsig",
+                "short_id": "mlsig01",
+                "broker_account_id": "sim-paper",
+                "mode": "paper",
+                "allocation": "10000",
+                "runtime": {
+                    "class": "model_signal",
+                    "timeframe": "15m",
+                    "instruments": [*uni, ds.benchmark],
+                    "params": {"bundle": str(tmp_path / "m"), "universe": uni, "horizon": 4, "benchmark": ds.benchmark},
+                },
+            }
+        ]
+    }
+    runner = Runner.from_registry_data(reg)
+    bars = ds.bars.sort(["ts_open", "instrument_id"])
+    times = np.sort(bars["ts_open"].unique().to_numpy())
+    for row in bars.filter(pl.col("ts_open") >= int(times[-40])).iter_rows(named=True):
+        runner.dispatch(_bar(row))
+    scored = runner.drain_scored()
+    assert scored and runner.drain_scored() == []
+    h, sb = scored[-1]
+    sigs, fvs = signal_messages(h, sb), feature_vector_messages(sb)
+    assert len(sigs) == len(fvs) == len(sb.decisions) == len(uni)
+    assert sb.score_seconds >= 0 and sb.feature_seconds >= 0
+    for sig, fv in zip(sigs, fvs, strict=True):
+        assert sig.strategy_id == "mlsig" and sig.model_version == (res.final.model_version or res.final.run_id)
+        assert sig.feature_snapshot_id == fv.snapshot_id and sig.feature_snapshot_id.startswith("fv_")
+        assert sig.instrument_id == fv.instrument_id and sig.as_of == fv.as_of
+        assert set(fv.values) <= set(res.final.features) and fv.values
+        assert sig.horizon == 4 * 900 * 10**9
+    again = signal_messages(h, sb)
+    assert [s.signal_id for s in again] == [s.signal_id for s in sigs]  # replays dedupe on Nats-Msg-Id
+    assert feature_subject(sb.feature_set_id, "I1") == f"feat.{sb.feature_set_id.partition('@')[0]}.I1"
+    assert signal_subject("mlsig", "I1") == "sig.mlsig.I1"
+
+
+def test_ml043_tree_inference_p99_under_20ms_for_an_intraday_universe() -> None:
+    """ML-043: LightGBM scoring of one bar batch of a 300-name intraday universe stays under 20 ms p99 on
+    CPU (the runtime records the same stage in tb_inference_seconds{stage="score"})."""
+    res, ds = _trained("lgbm_regression")
+    bundle = res.final
+    assert bundle is not None
+    rows = ds.frame.drop_nulls(bundle.features).head(300)
+    frame = pl.concat([rows] * (300 // max(1, rows.height) + 1)).head(300)
+    assert frame.height == 300
+    bundle.score_frame(frame)  # warm-up
+    samples = []
+    for _ in range(200):
+        t0 = time.perf_counter()
+        bundle.score_frame(frame)
+        samples.append(time.perf_counter() - t0)
+    p99 = float(np.percentile(samples, 99))
+    assert p99 < 0.020, f"p99 {p99 * 1000:.2f} ms"
+
+
+def test_ex063_rm019_rerun_under_deployment_limits_replaces_the_global_defaults() -> None:
+    """The event-driven rerun applies the candidate's limits in the strategy scope: drawdown and daily-loss
+    limits looser than the global paper defaults (2,500 / 1,000) let the strategy keep trading where the
+    defaults latch."""
+    res, ds = _trained()
+    dec = _decisions(res).with_columns(pl.lit(True).alias("take"))
+    uni = sorted(set(ds.frame["instrument_id"].to_list()))
+    spec = strategy_spec("regression", "15m", uni, ds.benchmark, {"horizon": 4}, Decimal(100_000))
+    start, end = int(dec["decision_time"].min()), int(ds.bars["available_at"].max() or 0)  # type: ignore[arg-type]
+    latches = ["drawdown", "daily_loss", "consecutive_losses"]
+    default = evaluate_event(dec, ds.bars, spec, start, end)
+    limits = {"max_drawdown": "50000", "max_daily_loss": "50000", "max_consecutive_losses": "500"}
+    sized = evaluate_event(dec, ds.bars, spec.model_copy(update={"limits": limits}), start, end)
+    assert default.result.intents.filter(pl.col("first_failure").is_in(latches)).height > 0
+    assert sized.result.intents.filter(pl.col("first_failure").is_in(latches)).height == 0
+    assert sized.trades > default.trades

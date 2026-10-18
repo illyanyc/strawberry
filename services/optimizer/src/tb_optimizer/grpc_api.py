@@ -54,6 +54,7 @@ for _m in ANALYST_TOOLS:
 OPT_ALLOW["GetLineage"] = [GATEWAY, ASSISTANT, ML]
 OPT_ALLOW["RecordTrial"] = [ML, OPTIMIZER]
 OPT_ALLOW["DemoteCandidate"] = [GATEWAY, MONITOR]
+OPT_ALLOW["GetGraduationStatistics"] = [GATEWAY, "execution"]
 HOLD_ALLOW: dict[str, list[str]] = {m.name: [GATEWAY] for m in HOLD.methods}
 HOLD_ALLOW["CheckDataAccess"] = [GATEWAY, ML, OPTIMIZER]
 
@@ -109,6 +110,34 @@ class OptimizerServicer(_Base):
         c = self._caller(req.caller)
         cyc = self._do(ctx, "OpenCycle", c, lambda: self.core.open_cycle(req.lineage_id, req.target_sharpe, c))
         return op.OpenCycleResponse(cycle=cyc)
+
+    def GetDeploymentLimits(self, req: op.GetDeploymentLimitsRequest, ctx: grpc.ServicerContext) -> Any:
+        c = self._caller(None)
+        eff, prof = self._do(ctx, "GetDeploymentLimits", c, lambda: self.core.deployment_limits(req.lineage_id))
+        return op.GetDeploymentLimitsResponse(limits=eff, profile=prof)
+
+    def GetGraduationStatistics(self, req: op.GetGraduationStatisticsRequest, ctx: grpc.ServicerContext) -> Any:
+        c = self._caller(None)
+        if c.actor == tp.ACTOR_ANALYST:
+            self.audit.append(callers.name(c), "optimizer.denied", "GetGraduationStatistics", {"reason": "analyst"})
+            ctx.abort(grpc.StatusCode.PERMISSION_DENIED, "the analyst cannot read graduation statistics")
+        st = self._do(
+            ctx,
+            "GetGraduationStatistics",
+            c,
+            lambda: self.core.graduation_statistics(req.strategy_id, list(req.paper_session_returns), req.horizon),
+        )
+        return op.GetGraduationStatisticsResponse(statistics=st)
+
+    def SetDeploymentLimits(self, req: op.SetDeploymentLimitsRequest, ctx: grpc.ServicerContext) -> Any:
+        c = self._caller(req.caller)
+        lim, up = self._do(
+            ctx,
+            "SetDeploymentLimits",
+            c,
+            lambda: self.core.set_deployment_limits(req.lineage_id, req.limits, req.allocation, c),
+        )
+        return op.SetDeploymentLimitsResponse(limits=lim, raised=up)
 
     def CreateStudy(self, req: op.CreateStudyRequest, ctx: grpc.ServicerContext) -> Any:
         c = self._caller(req.caller)

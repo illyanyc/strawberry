@@ -381,6 +381,9 @@ paths:
     get: { responses: { '200': { description: tb.optimizer.v1.GetLineageResponse } } }
   /api/v1/research/lineages/{id}/autonomy:
     put: { description: 'Body tb.optimizer.v1.SetLineageAutonomyRequest; raising the level or budgets needs a passkey step-up (`analyst.autonomy.set`, EX-033).', responses: { '200': { description: tb.optimizer.v1.SetLineageAutonomyResponse }, '403': { $ref: '#/components/responses/Forbidden' } } }
+  /api/v1/research/lineages/{id}/deployment-limits:
+    get: { responses: { '200': { description: tb.optimizer.v1.GetDeploymentLimitsResponse (the lineage's limits or the horizon default, EX-062) } } }
+    put: { description: 'Body tb.optimizer.v1.SetDeploymentLimitsRequest (limits, allocation, reason); raising a limit or the allocation needs a passkey step-up (`research.deployment_limits.set`, RM-007).', responses: { '200': { description: tb.optimizer.v1.SetDeploymentLimitsResponse }, '403': { $ref: '#/components/responses/Forbidden' } } }
   /api/v1/research/lineages/{id}/cycles:
     post: { description: 'Opens a MinBTL research cycle; passkey step-up (`research.cycle.open`, EX-025).', responses: { '200': { description: tb.optimizer.v1.OpenCycleResponse }, '403': { $ref: '#/components/responses/Forbidden' } } }
   /api/v1/research/lineages/{id}/ledger:
@@ -424,8 +427,41 @@ paths:
     post: { description: 'Body {"toStage": validated|shadow|paper|live_eligible}; paper and live_eligible need a passkey step-up (`model.promote`, N4); live is refused (section 15).', responses: { '200': { description: tb.optimizer.v1.PromoteCandidateResponse }, '403': { $ref: '#/components/responses/Forbidden' } } }
   /api/v1/research/candidates/{id}/demote:
     post: { description: 'Body {"toStage": paper|retired, "reason"}.', responses: { '200': { description: tb.optimizer.v1.DemoteCandidateResponse } } }
+  /api/v1/research/candidates/{id}/register:
+    post: { description: 'Registers a shadow- or paper-stage candidate with execution (never live), sets its allocation in the ledger and its deployment limits in the strategy scope (SM-016, EX-064, RM-019); passkey step-up (`strategy.register`). 409 `wrong_stage` / `no_deployment` / `bad_limits`.', responses: { '200': { description: '{"strategy_id", "mode", "broker_account_id", "allocation", "limits_raised"}' }, '403': { $ref: '#/components/responses/Forbidden' }, '409': { description: Conflict } } }
   /api/v1/research/candidates/{id}/holdout:
     post: { description: 'Body {"reason"}; passkey step-up (`holdout.evaluate`), one touch per family per quarter, pass/fail + DSR only (EX-011).', responses: { '200': { description: tb.optimizer.v1.EvaluateOnHoldoutResponse }, '403': { $ref: '#/components/responses/Forbidden' } } }
+  # ---- monitoring (section 13 Phase 5; ADR-0045, MN-030..MN-046, UI-028..UI-031) ----
+  # Responses are the canonical protojson of tb.monitor.v1 messages; 503 `monitor_unavailable` while the monitor is down.
+  /api/v1/monitoring/strategies:
+    get: { responses: { '200': { description: tb.monitor.v1.ListStrategyHealthResponse } } }
+  /api/v1/monitoring/strategies/{id}:
+    get: { responses: { '200': { description: tb.monitor.v1.GetStrategyHealthResponse } } }
+  /api/v1/monitoring/strategies/{id}/{report}:
+    get:
+      description: 'report = performance | drift | divergence (optional `date`, YYYY-MM-DD) | execution | feedback | graduation (section 15 evidence, MN-040) | actions; any other value is 404.'
+      parameters: [{ name: date, in: query, schema: { type: string } }]
+      responses: { '200': { description: 'tb.monitor.v1 Get{Performance,Drift,Divergence}Report, GetExecutionQuality, GetLiveFeedback, GetGraduationEvidence, or ListContainmentActions response' }, '404': { description: unknown report } }
+  /api/v1/monitoring/alerts:
+    get:
+      parameters: [{ name: status, in: query, schema: { type: string } }, { name: severity, in: query, schema: { type: string } }, { name: since, in: query, schema: { type: integer } }, { name: limit, in: query, schema: { type: integer } }]
+      responses: { '200': { description: tb.monitor.v1.ListAlertsResponse (MN-041) } }
+  /api/v1/monitoring/alerts/{key}/ack:
+    post:
+      requestBody: { content: { application/json: { schema: { type: object, properties: { note: { type: string, maxLength: 300 } } } } } }
+      responses: { '200': { description: tb.monitor.v1.AckAlertResponse } }
+  /api/v1/monitoring/alerts/{key}/silence:
+    post:
+      description: Creates an Alertmanager silence for the alert; passkey step-up (`alerts.silence`, MN-042).
+      requestBody: { content: { application/json: { schema: { type: object, required: [durationSeconds, reason], properties: { durationSeconds: { type: integer, minimum: 1, maximum: 86400 }, reason: { type: string, minLength: 1, maxLength: 300 } } } } } }
+      responses: { '200': { description: tb.monitor.v1.SilenceAlertResponse }, '400': { description: Bad request }, '403': { $ref: '#/components/responses/Forbidden' } }
+  /api/v1/monitoring/daily-reports:
+    get: { parameters: [{ name: date, in: query, schema: { type: string } }], responses: { '200': { description: tb.monitor.v1.GetDailyReportResponse (pre-market checklist, end-of-day summary) } } }
+  /api/v1/monitoring/containment/actions:
+    get: { parameters: [{ name: strategy_id, in: query, schema: { type: string } }], responses: { '200': { description: tb.monitor.v1.ListContainmentActionsResponse } } }
+  /api/v1/monitoring/containment/policies/{id}:
+    get: { description: 'id = a strategy ID or `default`.', responses: { '200': { description: tb.monitor.v1.GetContainmentPolicyResponse } } }
+    put: { description: 'Body tb.monitor.v1.SetContainmentPolicyRequest (policy, reason); loosening a threshold or weakening an action needs a passkey step-up (`monitor.containment.set`, MN-036).', responses: { '200': { description: tb.monitor.v1.SetContainmentPolicyResponse }, '403': { $ref: '#/components/responses/Forbidden' } } }
   # ---- AI Research Analyst and assistant (section 14 Phase 4 slice; AN-060, AN-061, AN-073, AN-080) ----
   /api/v1/analyst/lineages:
     get: { responses: { '200': { description: tb.analyst.v1.ListLineagesResponse (loop status, autonomy, budgets, LLM spend) } } }

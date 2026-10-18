@@ -10,6 +10,7 @@ event-driven evaluation ran.
 from __future__ import annotations
 
 import hashlib
+import json
 import math
 import os
 import subprocess
@@ -148,6 +149,30 @@ def model_card(res: TrainingResult, run: tp.TrainingRun, report: tp.DiagnosticsR
     return "\n".join(lines) + "\n"
 
 
+REFERENCE_ROWS = 5000
+
+
+def write_monitoring_reference(res: TrainingResult, report: tp.DiagnosticsReport, d: Path) -> None:
+    """Training reference for live drift monitoring (MN-038, ML-044): ``reference.parquet`` is a
+    deterministic sample (at most ``REFERENCE_ROWS``, evenly spaced in decision time) of the run's
+    dataset rows, the training window only (the dataset never contains the sealed holdout, EX-012), with
+    the feature columns the model uses; ``importance.json`` maps each feature to its rank by mean
+    absolute gain importance across folds (1 = most important). Live predictions are compared with the
+    out-of-fold predictions in ``oof.parquet``, never with in-sample scores."""
+    d.mkdir(parents=True, exist_ok=True)
+    f = res.dataset.frame.sort("decision_time")
+    step = max(1, math.ceil(f.height / REFERENCE_ROWS))
+    f.select(["instrument_id", "decision_time", *res.dataset.features]).gather_every(step).write_parquet(
+        d / "reference.parquet"
+    )
+    totals: dict[str, float] = {}
+    for fi in report.importance.per_fold:
+        for k, v in fi.values.items():
+            totals[k] = totals.get(k, 0.0) + abs(float(v))
+    ranked = sorted(res.dataset.features, key=lambda k: (-totals.get(k, 0.0), k))
+    (d / "importance.json").write_text(json.dumps({k: i + 1 for i, k in enumerate(ranked)}, sort_keys=True))
+
+
 def persist(
     res: TrainingResult,
     run_id: str,
@@ -175,6 +200,7 @@ def persist(
     res.final.save(d / "model")
     report = build_report(res, run_id)
     (d / "diagnostics.binpb").write_bytes(report.SerializeToString())
+    write_monitoring_reference(res, report, d)
     repro = tp.Reproducibility()
     repro.CopyFrom(res.repro)
     repro.code_commit = code_commit()

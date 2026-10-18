@@ -51,8 +51,11 @@ type SimAccount struct {
 	Segregation    bool        `protobuf:"varint,10,opt,name=segregation,proto3" json:"segregation,omitempty"`
 	// Opening positions; they belong to the `manual` owner (VP-015, BT-007).
 	OpeningPositions []*v11.Position `protobuf:"bytes,11,rep,name=opening_positions,json=openingPositions,proto3" json:"opening_positions,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// A dedicated strategy account (D19, IBKR bot account): owners registered here may short, subject
+	// to VP-005's "no other owner holds the symbol" rule. Needed to simulate short strategies (BT-014).
+	Dedicated     bool `protobuf:"varint,12,opt,name=dedicated,proto3" json:"dedicated,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SimAccount) Reset() {
@@ -160,6 +163,13 @@ func (x *SimAccount) GetOpeningPositions() []*v11.Position {
 		return x.OpeningPositions
 	}
 	return nil
+}
+
+func (x *SimAccount) GetDedicated() bool {
+	if x != nil {
+		return x.Dedicated
+	}
+	return false
 }
 
 type SimRoute struct {
@@ -847,9 +857,10 @@ type SimCorporateAction struct {
 	state        protoimpl.MessageState `protogen:"open.v1"`
 	Now          int64                  `protobuf:"varint,1,opt,name=now,proto3" json:"now,omitempty"`
 	InstrumentId string                 `protobuf:"bytes,2,opt,name=instrument_id,json=instrumentId,proto3" json:"instrument_id,omitempty"`
-	// split | dividend
+	// split | dividend | delisting
 	Kind string `protobuf:"bytes,3,opt,name=kind,proto3" json:"kind,omitempty"`
-	// Split ratio (new/old) or cash dividend per share.
+	// Split ratio (new/old), cash dividend per share, or the delisting close price (last traded price
+	// after the delisting haircut, BT-008).
 	Value         *v1.Decimal `protobuf:"bytes,4,opt,name=value,proto3" json:"value,omitempty"`
 	SourceId      string      `protobuf:"bytes,5,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -921,6 +932,92 @@ func (x *SimCorporateAction) GetSourceId() string {
 	return ""
 }
 
+// A charge to one owner outside a fill: short borrow for the calendar days a short is held over a
+// session close (BT-014). Booked as realized loss and fees by the ledger core.
+type SimFee struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Now             int64                  `protobuf:"varint,1,opt,name=now,proto3" json:"now,omitempty"`
+	BrokerAccountId string                 `protobuf:"bytes,2,opt,name=broker_account_id,json=brokerAccountId,proto3" json:"broker_account_id,omitempty"`
+	Owner           string                 `protobuf:"bytes,3,opt,name=owner,proto3" json:"owner,omitempty"`
+	InstrumentId    string                 `protobuf:"bytes,4,opt,name=instrument_id,json=instrumentId,proto3" json:"instrument_id,omitempty"`
+	Amount          *v1.Decimal            `protobuf:"bytes,5,opt,name=amount,proto3" json:"amount,omitempty"`
+	SourceId        string                 `protobuf:"bytes,6,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *SimFee) Reset() {
+	*x = SimFee{}
+	mi := &file_tb_backtest_v1_simcore_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SimFee) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SimFee) ProtoMessage() {}
+
+func (x *SimFee) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_backtest_v1_simcore_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SimFee.ProtoReflect.Descriptor instead.
+func (*SimFee) Descriptor() ([]byte, []int) {
+	return file_tb_backtest_v1_simcore_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *SimFee) GetNow() int64 {
+	if x != nil {
+		return x.Now
+	}
+	return 0
+}
+
+func (x *SimFee) GetBrokerAccountId() string {
+	if x != nil {
+		return x.BrokerAccountId
+	}
+	return ""
+}
+
+func (x *SimFee) GetOwner() string {
+	if x != nil {
+		return x.Owner
+	}
+	return ""
+}
+
+func (x *SimFee) GetInstrumentId() string {
+	if x != nil {
+		return x.InstrumentId
+	}
+	return ""
+}
+
+func (x *SimFee) GetAmount() *v1.Decimal {
+	if x != nil {
+		return x.Amount
+	}
+	return nil
+}
+
+func (x *SimFee) GetSourceId() string {
+	if x != nil {
+		return x.SourceId
+	}
+	return ""
+}
+
 type SimQuery struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Owner           string                 `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
@@ -931,7 +1028,7 @@ type SimQuery struct {
 
 func (x *SimQuery) Reset() {
 	*x = SimQuery{}
-	mi := &file_tb_backtest_v1_simcore_proto_msgTypes[11]
+	mi := &file_tb_backtest_v1_simcore_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -943,7 +1040,7 @@ func (x *SimQuery) String() string {
 func (*SimQuery) ProtoMessage() {}
 
 func (x *SimQuery) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_backtest_v1_simcore_proto_msgTypes[11]
+	mi := &file_tb_backtest_v1_simcore_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -956,7 +1053,7 @@ func (x *SimQuery) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SimQuery.ProtoReflect.Descriptor instead.
 func (*SimQuery) Descriptor() ([]byte, []int) {
-	return file_tb_backtest_v1_simcore_proto_rawDescGZIP(), []int{11}
+	return file_tb_backtest_v1_simcore_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SimQuery) GetOwner() string {
@@ -985,6 +1082,7 @@ type SimRequest struct {
 	//	*SimRequest_ManualFill
 	//	*SimRequest_CorporateAction
 	//	*SimRequest_Query
+	//	*SimRequest_Fee
 	Body          isSimRequest_Body `protobuf_oneof:"body"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -992,7 +1090,7 @@ type SimRequest struct {
 
 func (x *SimRequest) Reset() {
 	*x = SimRequest{}
-	mi := &file_tb_backtest_v1_simcore_proto_msgTypes[12]
+	mi := &file_tb_backtest_v1_simcore_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1004,7 +1102,7 @@ func (x *SimRequest) String() string {
 func (*SimRequest) ProtoMessage() {}
 
 func (x *SimRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_backtest_v1_simcore_proto_msgTypes[12]
+	mi := &file_tb_backtest_v1_simcore_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1017,7 +1115,7 @@ func (x *SimRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SimRequest.ProtoReflect.Descriptor instead.
 func (*SimRequest) Descriptor() ([]byte, []int) {
-	return file_tb_backtest_v1_simcore_proto_rawDescGZIP(), []int{12}
+	return file_tb_backtest_v1_simcore_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *SimRequest) GetBody() isSimRequest_Body {
@@ -1099,6 +1197,15 @@ func (x *SimRequest) GetQuery() *SimQuery {
 	return nil
 }
 
+func (x *SimRequest) GetFee() *SimFee {
+	if x != nil {
+		if x, ok := x.Body.(*SimRequest_Fee); ok {
+			return x.Fee
+		}
+	}
+	return nil
+}
+
 type isSimRequest_Body interface {
 	isSimRequest_Body()
 }
@@ -1135,6 +1242,10 @@ type SimRequest_Query struct {
 	Query *SimQuery `protobuf:"bytes,8,opt,name=query,proto3,oneof"`
 }
 
+type SimRequest_Fee struct {
+	Fee *SimFee `protobuf:"bytes,9,opt,name=fee,proto3,oneof"`
+}
+
 func (*SimRequest_Setup) isSimRequest_Body() {}
 
 func (*SimRequest_Advance) isSimRequest_Body() {}
@@ -1150,6 +1261,8 @@ func (*SimRequest_ManualFill) isSimRequest_Body() {}
 func (*SimRequest_CorporateAction) isSimRequest_Body() {}
 
 func (*SimRequest_Query) isSimRequest_Body() {}
+
+func (*SimRequest_Fee) isSimRequest_Body() {}
 
 type SimResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1171,7 +1284,7 @@ type SimResponse struct {
 
 func (x *SimResponse) Reset() {
 	*x = SimResponse{}
-	mi := &file_tb_backtest_v1_simcore_proto_msgTypes[13]
+	mi := &file_tb_backtest_v1_simcore_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1183,7 +1296,7 @@ func (x *SimResponse) String() string {
 func (*SimResponse) ProtoMessage() {}
 
 func (x *SimResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_backtest_v1_simcore_proto_msgTypes[13]
+	mi := &file_tb_backtest_v1_simcore_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1196,7 +1309,7 @@ func (x *SimResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SimResponse.ProtoReflect.Descriptor instead.
 func (*SimResponse) Descriptor() ([]byte, []int) {
-	return file_tb_backtest_v1_simcore_proto_rawDescGZIP(), []int{13}
+	return file_tb_backtest_v1_simcore_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *SimResponse) GetError() string {
@@ -1251,7 +1364,7 @@ type RecordedMessage struct {
 
 func (x *RecordedMessage) Reset() {
 	*x = RecordedMessage{}
-	mi := &file_tb_backtest_v1_simcore_proto_msgTypes[14]
+	mi := &file_tb_backtest_v1_simcore_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1263,7 +1376,7 @@ func (x *RecordedMessage) String() string {
 func (*RecordedMessage) ProtoMessage() {}
 
 func (x *RecordedMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_backtest_v1_simcore_proto_msgTypes[14]
+	mi := &file_tb_backtest_v1_simcore_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1276,7 +1389,7 @@ func (x *RecordedMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RecordedMessage.ProtoReflect.Descriptor instead.
 func (*RecordedMessage) Descriptor() ([]byte, []int) {
-	return file_tb_backtest_v1_simcore_proto_rawDescGZIP(), []int{14}
+	return file_tb_backtest_v1_simcore_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *RecordedMessage) GetSubject() string {
@@ -1318,7 +1431,7 @@ var File_tb_backtest_v1_simcore_proto protoreflect.FileDescriptor
 
 const file_tb_backtest_v1_simcore_proto_rawDesc = "" +
 	"\n" +
-	"\x1ctb/backtest/v1/simcore.proto\x12\x0etb.backtest.v1\x1a\x1atb/broker/v1/gateway.proto\x1a\x19tb/common/v1/common.proto\x1a\x19tb/ledger/v1/ledger.proto\x1a!tb/ledger/v1/ledger_service.proto\x1a\x1ctb/orders/v1/execution.proto\x1a\x19tb/orders/v1/orders.proto\"\x89\x04\n" +
+	"\x1ctb/backtest/v1/simcore.proto\x12\x0etb.backtest.v1\x1a\x1atb/broker/v1/gateway.proto\x1a\x19tb/common/v1/common.proto\x1a\x19tb/ledger/v1/ledger.proto\x1a!tb/ledger/v1/ledger_service.proto\x1a\x1ctb/orders/v1/execution.proto\x1a\x19tb/orders/v1/orders.proto\"\xa7\x04\n" +
 	"\n" +
 	"SimAccount\x12*\n" +
 	"\x11broker_account_id\x18\x01 \x01(\tR\x0fbrokerAccountId\x12,\n" +
@@ -1332,7 +1445,8 @@ const file_tb_backtest_v1_simcore_proto_rawDesc = "" +
 	"\apdt_max\x18\t \x01(\x05R\x06pdtMax\x12 \n" +
 	"\vsegregation\x18\n" +
 	" \x01(\bR\vsegregation\x12C\n" +
-	"\x11opening_positions\x18\v \x03(\v2\x16.tb.ledger.v1.PositionR\x10openingPositions\"i\n" +
+	"\x11opening_positions\x18\v \x03(\v2\x16.tb.ledger.v1.PositionR\x10openingPositions\x12\x1c\n" +
+	"\tdedicated\x18\f \x01(\bR\tdedicated\"i\n" +
 	"\bSimRoute\x12/\n" +
 	"\ahorizon\x18\x01 \x01(\x0e2\x15.tb.common.v1.HorizonR\ahorizon\x12,\n" +
 	"\x12broker_account_ids\x18\x02 \x03(\tR\x10brokerAccountIds\"\x86\x01\n" +
@@ -1392,10 +1506,17 @@ const file_tb_backtest_v1_simcore_proto_rawDesc = "" +
 	"\rinstrument_id\x18\x02 \x01(\tR\finstrumentId\x12\x12\n" +
 	"\x04kind\x18\x03 \x01(\tR\x04kind\x12+\n" +
 	"\x05value\x18\x04 \x01(\v2\x15.tb.common.v1.DecimalR\x05value\x12\x1b\n" +
-	"\tsource_id\x18\x05 \x01(\tR\bsourceId\"L\n" +
+	"\tsource_id\x18\x05 \x01(\tR\bsourceId\"\xcd\x01\n" +
+	"\x06SimFee\x12\x10\n" +
+	"\x03now\x18\x01 \x01(\x03R\x03now\x12*\n" +
+	"\x11broker_account_id\x18\x02 \x01(\tR\x0fbrokerAccountId\x12\x14\n" +
+	"\x05owner\x18\x03 \x01(\tR\x05owner\x12#\n" +
+	"\rinstrument_id\x18\x04 \x01(\tR\finstrumentId\x12-\n" +
+	"\x06amount\x18\x05 \x01(\v2\x15.tb.common.v1.DecimalR\x06amount\x12\x1b\n" +
+	"\tsource_id\x18\x06 \x01(\tR\bsourceId\"L\n" +
 	"\bSimQuery\x12\x14\n" +
 	"\x05owner\x18\x01 \x01(\tR\x05owner\x12*\n" +
-	"\x11broker_account_id\x18\x02 \x01(\tR\x0fbrokerAccountId\"\xe3\x03\n" +
+	"\x11broker_account_id\x18\x02 \x01(\tR\x0fbrokerAccountId\"\x8f\x04\n" +
 	"\n" +
 	"SimRequest\x120\n" +
 	"\x05setup\x18\x01 \x01(\v2\x18.tb.backtest.v1.SimSetupH\x00R\x05setup\x126\n" +
@@ -1406,7 +1527,8 @@ const file_tb_backtest_v1_simcore_proto_rawDesc = "" +
 	"\vmanual_fill\x18\x06 \x01(\v2\x1d.tb.backtest.v1.SimManualFillH\x00R\n" +
 	"manualFill\x12O\n" +
 	"\x10corporate_action\x18\a \x01(\v2\".tb.backtest.v1.SimCorporateActionH\x00R\x0fcorporateAction\x120\n" +
-	"\x05query\x18\b \x01(\v2\x18.tb.backtest.v1.SimQueryH\x00R\x05queryB\x06\n" +
+	"\x05query\x18\b \x01(\v2\x18.tb.backtest.v1.SimQueryH\x00R\x05query\x12*\n" +
+	"\x03fee\x18\t \x01(\v2\x16.tb.backtest.v1.SimFeeH\x00R\x03feeB\x06\n" +
 	"\x04body\"\x88\x02\n" +
 	"\vSimResponse\x12\x14\n" +
 	"\x05error\x18\x01 \x01(\tR\x05error\x121\n" +
@@ -1435,7 +1557,7 @@ func file_tb_backtest_v1_simcore_proto_rawDescGZIP() []byte {
 	return file_tb_backtest_v1_simcore_proto_rawDescData
 }
 
-var file_tb_backtest_v1_simcore_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_tb_backtest_v1_simcore_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_tb_backtest_v1_simcore_proto_goTypes = []any{
 	(*SimAccount)(nil),         // 0: tb.backtest.v1.SimAccount
 	(*SimRoute)(nil),           // 1: tb.backtest.v1.SimRoute
@@ -1448,64 +1570,67 @@ var file_tb_backtest_v1_simcore_proto_goTypes = []any{
 	(*SimOrderEnd)(nil),        // 8: tb.backtest.v1.SimOrderEnd
 	(*SimManualFill)(nil),      // 9: tb.backtest.v1.SimManualFill
 	(*SimCorporateAction)(nil), // 10: tb.backtest.v1.SimCorporateAction
-	(*SimQuery)(nil),           // 11: tb.backtest.v1.SimQuery
-	(*SimRequest)(nil),         // 12: tb.backtest.v1.SimRequest
-	(*SimResponse)(nil),        // 13: tb.backtest.v1.SimResponse
-	(*RecordedMessage)(nil),    // 14: tb.backtest.v1.RecordedMessage
-	(v1.Broker)(0),             // 15: tb.common.v1.Broker
-	(*v1.Decimal)(nil),         // 16: tb.common.v1.Decimal
-	(*v11.Position)(nil),       // 17: tb.ledger.v1.Position
-	(v1.Horizon)(0),            // 18: tb.common.v1.Horizon
-	(*v12.RiskLimits)(nil),     // 19: tb.orders.v1.RiskLimits
-	(*v12.OrderIntent)(nil),    // 20: tb.orders.v1.OrderIntent
-	(v12.OrderState)(0),        // 21: tb.orders.v1.OrderState
-	(v1.Side)(0),               // 22: tb.common.v1.Side
-	(*v13.BrokerOrder)(nil),    // 23: tb.broker.v1.BrokerOrder
-	(*v12.RiskDecision)(nil),   // 24: tb.orders.v1.RiskDecision
-	(*v11.LedgerUpdate)(nil),   // 25: tb.ledger.v1.LedgerUpdate
-	(*v11.OwnerView)(nil),      // 26: tb.ledger.v1.OwnerView
+	(*SimFee)(nil),             // 11: tb.backtest.v1.SimFee
+	(*SimQuery)(nil),           // 12: tb.backtest.v1.SimQuery
+	(*SimRequest)(nil),         // 13: tb.backtest.v1.SimRequest
+	(*SimResponse)(nil),        // 14: tb.backtest.v1.SimResponse
+	(*RecordedMessage)(nil),    // 15: tb.backtest.v1.RecordedMessage
+	(v1.Broker)(0),             // 16: tb.common.v1.Broker
+	(*v1.Decimal)(nil),         // 17: tb.common.v1.Decimal
+	(*v11.Position)(nil),       // 18: tb.ledger.v1.Position
+	(v1.Horizon)(0),            // 19: tb.common.v1.Horizon
+	(*v12.RiskLimits)(nil),     // 20: tb.orders.v1.RiskLimits
+	(*v12.OrderIntent)(nil),    // 21: tb.orders.v1.OrderIntent
+	(v12.OrderState)(0),        // 22: tb.orders.v1.OrderState
+	(v1.Side)(0),               // 23: tb.common.v1.Side
+	(*v13.BrokerOrder)(nil),    // 24: tb.broker.v1.BrokerOrder
+	(*v12.RiskDecision)(nil),   // 25: tb.orders.v1.RiskDecision
+	(*v11.LedgerUpdate)(nil),   // 26: tb.ledger.v1.LedgerUpdate
+	(*v11.OwnerView)(nil),      // 27: tb.ledger.v1.OwnerView
 }
 var file_tb_backtest_v1_simcore_proto_depIdxs = []int32{
-	15, // 0: tb.backtest.v1.SimAccount.broker:type_name -> tb.common.v1.Broker
-	16, // 1: tb.backtest.v1.SimAccount.cash:type_name -> tb.common.v1.Decimal
-	16, // 2: tb.backtest.v1.SimAccount.margin_multiple:type_name -> tb.common.v1.Decimal
-	16, // 3: tb.backtest.v1.SimAccount.margin_util_cap:type_name -> tb.common.v1.Decimal
-	17, // 4: tb.backtest.v1.SimAccount.opening_positions:type_name -> tb.ledger.v1.Position
-	18, // 5: tb.backtest.v1.SimRoute.horizon:type_name -> tb.common.v1.Horizon
+	16, // 0: tb.backtest.v1.SimAccount.broker:type_name -> tb.common.v1.Broker
+	17, // 1: tb.backtest.v1.SimAccount.cash:type_name -> tb.common.v1.Decimal
+	17, // 2: tb.backtest.v1.SimAccount.margin_multiple:type_name -> tb.common.v1.Decimal
+	17, // 3: tb.backtest.v1.SimAccount.margin_util_cap:type_name -> tb.common.v1.Decimal
+	18, // 4: tb.backtest.v1.SimAccount.opening_positions:type_name -> tb.ledger.v1.Position
+	19, // 5: tb.backtest.v1.SimRoute.horizon:type_name -> tb.common.v1.Horizon
 	0,  // 6: tb.backtest.v1.SimSetup.accounts:type_name -> tb.backtest.v1.SimAccount
 	1,  // 7: tb.backtest.v1.SimSetup.routing:type_name -> tb.backtest.v1.SimRoute
-	19, // 8: tb.backtest.v1.SimSetup.global_limits:type_name -> tb.orders.v1.RiskLimits
+	20, // 8: tb.backtest.v1.SimSetup.global_limits:type_name -> tb.orders.v1.RiskLimits
 	2,  // 9: tb.backtest.v1.SimSetup.instruments:type_name -> tb.backtest.v1.SimInstrument
-	16, // 10: tb.backtest.v1.SimBar.close:type_name -> tb.common.v1.Decimal
+	17, // 10: tb.backtest.v1.SimBar.close:type_name -> tb.common.v1.Decimal
 	4,  // 11: tb.backtest.v1.SimAdvance.bars:type_name -> tb.backtest.v1.SimBar
-	20, // 12: tb.backtest.v1.SimSubmit.intent:type_name -> tb.orders.v1.OrderIntent
+	21, // 12: tb.backtest.v1.SimSubmit.intent:type_name -> tb.orders.v1.OrderIntent
 	4,  // 13: tb.backtest.v1.SimSubmit.bars:type_name -> tb.backtest.v1.SimBar
-	16, // 14: tb.backtest.v1.SimFill.qty:type_name -> tb.common.v1.Decimal
-	16, // 15: tb.backtest.v1.SimFill.price:type_name -> tb.common.v1.Decimal
-	16, // 16: tb.backtest.v1.SimFill.fees:type_name -> tb.common.v1.Decimal
-	21, // 17: tb.backtest.v1.SimOrderEnd.state:type_name -> tb.orders.v1.OrderState
-	22, // 18: tb.backtest.v1.SimManualFill.side:type_name -> tb.common.v1.Side
-	16, // 19: tb.backtest.v1.SimManualFill.qty:type_name -> tb.common.v1.Decimal
-	16, // 20: tb.backtest.v1.SimManualFill.price:type_name -> tb.common.v1.Decimal
-	16, // 21: tb.backtest.v1.SimManualFill.fees:type_name -> tb.common.v1.Decimal
-	16, // 22: tb.backtest.v1.SimCorporateAction.value:type_name -> tb.common.v1.Decimal
-	3,  // 23: tb.backtest.v1.SimRequest.setup:type_name -> tb.backtest.v1.SimSetup
-	5,  // 24: tb.backtest.v1.SimRequest.advance:type_name -> tb.backtest.v1.SimAdvance
-	6,  // 25: tb.backtest.v1.SimRequest.submit:type_name -> tb.backtest.v1.SimSubmit
-	7,  // 26: tb.backtest.v1.SimRequest.fill:type_name -> tb.backtest.v1.SimFill
-	8,  // 27: tb.backtest.v1.SimRequest.order_end:type_name -> tb.backtest.v1.SimOrderEnd
-	9,  // 28: tb.backtest.v1.SimRequest.manual_fill:type_name -> tb.backtest.v1.SimManualFill
-	10, // 29: tb.backtest.v1.SimRequest.corporate_action:type_name -> tb.backtest.v1.SimCorporateAction
-	11, // 30: tb.backtest.v1.SimRequest.query:type_name -> tb.backtest.v1.SimQuery
-	23, // 31: tb.backtest.v1.SimResponse.orders:type_name -> tb.broker.v1.BrokerOrder
-	24, // 32: tb.backtest.v1.SimResponse.decision:type_name -> tb.orders.v1.RiskDecision
-	25, // 33: tb.backtest.v1.SimResponse.ledger_updates:type_name -> tb.ledger.v1.LedgerUpdate
-	26, // 34: tb.backtest.v1.SimResponse.portfolio:type_name -> tb.ledger.v1.OwnerView
-	35, // [35:35] is the sub-list for method output_type
-	35, // [35:35] is the sub-list for method input_type
-	35, // [35:35] is the sub-list for extension type_name
-	35, // [35:35] is the sub-list for extension extendee
-	0,  // [0:35] is the sub-list for field type_name
+	17, // 14: tb.backtest.v1.SimFill.qty:type_name -> tb.common.v1.Decimal
+	17, // 15: tb.backtest.v1.SimFill.price:type_name -> tb.common.v1.Decimal
+	17, // 16: tb.backtest.v1.SimFill.fees:type_name -> tb.common.v1.Decimal
+	22, // 17: tb.backtest.v1.SimOrderEnd.state:type_name -> tb.orders.v1.OrderState
+	23, // 18: tb.backtest.v1.SimManualFill.side:type_name -> tb.common.v1.Side
+	17, // 19: tb.backtest.v1.SimManualFill.qty:type_name -> tb.common.v1.Decimal
+	17, // 20: tb.backtest.v1.SimManualFill.price:type_name -> tb.common.v1.Decimal
+	17, // 21: tb.backtest.v1.SimManualFill.fees:type_name -> tb.common.v1.Decimal
+	17, // 22: tb.backtest.v1.SimCorporateAction.value:type_name -> tb.common.v1.Decimal
+	17, // 23: tb.backtest.v1.SimFee.amount:type_name -> tb.common.v1.Decimal
+	3,  // 24: tb.backtest.v1.SimRequest.setup:type_name -> tb.backtest.v1.SimSetup
+	5,  // 25: tb.backtest.v1.SimRequest.advance:type_name -> tb.backtest.v1.SimAdvance
+	6,  // 26: tb.backtest.v1.SimRequest.submit:type_name -> tb.backtest.v1.SimSubmit
+	7,  // 27: tb.backtest.v1.SimRequest.fill:type_name -> tb.backtest.v1.SimFill
+	8,  // 28: tb.backtest.v1.SimRequest.order_end:type_name -> tb.backtest.v1.SimOrderEnd
+	9,  // 29: tb.backtest.v1.SimRequest.manual_fill:type_name -> tb.backtest.v1.SimManualFill
+	10, // 30: tb.backtest.v1.SimRequest.corporate_action:type_name -> tb.backtest.v1.SimCorporateAction
+	12, // 31: tb.backtest.v1.SimRequest.query:type_name -> tb.backtest.v1.SimQuery
+	11, // 32: tb.backtest.v1.SimRequest.fee:type_name -> tb.backtest.v1.SimFee
+	24, // 33: tb.backtest.v1.SimResponse.orders:type_name -> tb.broker.v1.BrokerOrder
+	25, // 34: tb.backtest.v1.SimResponse.decision:type_name -> tb.orders.v1.RiskDecision
+	26, // 35: tb.backtest.v1.SimResponse.ledger_updates:type_name -> tb.ledger.v1.LedgerUpdate
+	27, // 36: tb.backtest.v1.SimResponse.portfolio:type_name -> tb.ledger.v1.OwnerView
+	37, // [37:37] is the sub-list for method output_type
+	37, // [37:37] is the sub-list for method input_type
+	37, // [37:37] is the sub-list for extension type_name
+	37, // [37:37] is the sub-list for extension extendee
+	0,  // [0:37] is the sub-list for field type_name
 }
 
 func init() { file_tb_backtest_v1_simcore_proto_init() }
@@ -1513,7 +1638,7 @@ func file_tb_backtest_v1_simcore_proto_init() {
 	if File_tb_backtest_v1_simcore_proto != nil {
 		return
 	}
-	file_tb_backtest_v1_simcore_proto_msgTypes[12].OneofWrappers = []any{
+	file_tb_backtest_v1_simcore_proto_msgTypes[13].OneofWrappers = []any{
 		(*SimRequest_Setup)(nil),
 		(*SimRequest_Advance)(nil),
 		(*SimRequest_Submit)(nil),
@@ -1522,6 +1647,7 @@ func file_tb_backtest_v1_simcore_proto_init() {
 		(*SimRequest_ManualFill)(nil),
 		(*SimRequest_CorporateAction)(nil),
 		(*SimRequest_Query)(nil),
+		(*SimRequest_Fee)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1529,7 +1655,7 @@ func file_tb_backtest_v1_simcore_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tb_backtest_v1_simcore_proto_rawDesc), len(file_tb_backtest_v1_simcore_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   15,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

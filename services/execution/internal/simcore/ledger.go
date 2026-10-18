@@ -31,6 +31,8 @@ type Ledger struct {
 	cal   *calendar.Calendar
 	now   func() int64
 	seq   int
+	// Accounts simulated as dedicated strategy accounts (VP-005).
+	dedicated map[string]bool
 }
 
 type equityState struct {
@@ -281,7 +283,8 @@ func (l *Ledger) ownerView(acct, owner string, openOnly bool) *ledgerv1.OwnerVie
 // RegisterOwner implements oms.Ledger (VP-012).
 func (l *Ledger) RegisterOwner(_ context.Context, r *ledgerv1.RegisterOwnerRequest) error {
 	_, err := l.apply(book.Event{Kind: book.KindRegister, Account: r.GetBrokerAccountId(), Source: "register:" + r.GetOwner(), Time: l.now(),
-		Register: &book.Register{Owner: r.GetOwner(), ShortID: r.GetShortId(), AllowShort: r.GetAllowShort(), Dedicated: r.GetDedicatedAccount()}})
+		Register: &book.Register{Owner: r.GetOwner(), ShortID: r.GetShortId(), AllowShort: r.GetAllowShort(),
+			Dedicated: r.GetDedicatedAccount() || l.dedicated[r.GetBrokerAccountId()]}})
 	return err
 }
 

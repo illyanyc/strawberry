@@ -130,7 +130,10 @@ class AccountSimConfig(BaseModel):
     # Execution's intraday flatten before the close (OE-016, TB_INTRADAY_FLATTEN_BEFORE_CLOSE).
     flatten_before_close_s: int = Field(default=600, ge=0)
     shortable: tuple[str, ...] = ()
+    # Annual borrow fee in bps per instrument; missing instruments use the cost model's default (BT-014).
     borrow_fee_bps: dict[str, float] = Field(default_factory=dict)
+    # A dedicated strategy account (D19): strategies with allow_short may short here (VP-005).
+    dedicated: bool = False
     halts: tuple[HaltWindow, ...] = ()
 
 

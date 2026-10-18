@@ -14,7 +14,7 @@ Studies, research lineages with one trial ledger, research cycles, gate reports,
 | in | gRPC `:9091` | `OptimizerService` (api-gateway; analyst tools also assistant; `RecordTrial` ml; `DemoteCandidate` monitor) | `tb.optimizer.v1` (`optimizer.proto`) |
 | in | gRPC `:9092` (audience `holdout`) | `HoldoutService` (api-gateway; `CheckDataAccess` also ml, optimizer; never assistant) | `holdout.proto` |
 | out | bus | `optimizer.study.completed`, `backtest.completed`, `ml.registry.stage_changed`, `optimizer.retrain_requested.<lineage>`, `alert.*` | `tb.optimizer.v1`, `tb.ml.v1`, `tb.alerts.v1` |
-| out | file | research deployments (`TB_OPT_DEPLOY_REGISTRY`) read by strategy-runtime | strategy registry entry format |
+| out | file | research deployments (`TB_OPT_DEPLOY_REGISTRY`) read by strategy-runtime, with deployment limits and the monitoring block (EX-064); `candidates/<id>/expectation.json` for the monitor | strategy registry entry format |
 | in | HTTP (internal) | ops endpoints `:8081` | OP-010 |
 
 ## Business rules enforced here
@@ -24,6 +24,7 @@ Studies, research lineages with one trial ledger, research cycles, gate reports,
 - EX-024, EX-051 (gate reports, event-driven evidence, leakage check) → `gates.py`
 - EX-030..EX-036, EX-050..EX-057 (permissions, limits, transitions, evidence packs, deployments) → `registry.py`, `core.py`
 - EX-040, EX-041 (retraining) → `core.py` (`trigger_retrain`, `tick`)
+- EX-062..EX-064 (deployment limits, gate rerun under them, deployment entries and expectations) → `deployment.py`, `gates.py`, `core.py`
 - Tests: `tests/test_optimizer.py`
 
 ## Layout
@@ -47,6 +48,7 @@ Studies, research lineages with one trial ledger, research cycles, gate reports,
 | `TB_ML_ARTIFACTS_DIR` | `data/ml-artifacts` | Shared with ml: runs, trial series, candidates, evidence packs |
 | `TB_HOLDOUT_MONTHS` | `12` | Default holdout length for lake lineages (EX-010) |
 | `TB_OPT_DEPLOY_REGISTRY` | — | Research deployment file for strategy-runtime |
+| `TB_OPT_DEPLOYMENT_LIMITS` | — (Compose: `/etc/tb/deployment-limits.json` from `infra/compose/deployment-limits.json`) | Deployment limit profiles per horizon (EX-062); empty = shipped defaults |
 | `TB_OPT_OPTUNA_STORAGE` | — | Optional Optuna RDB URL (dashboard); the ledger is the system of record |
 | `TB_OPT_PAPER_ACCOUNT_INTRADAY` / `_SWING` | `sim-paper` | Broker accounts in deployment entries |
 | `TB_GRADUATION_MIN_SESSIONS` | `20` | EX-053 |

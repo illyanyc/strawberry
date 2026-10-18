@@ -17,6 +17,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 
 	alertsv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/alerts/v1"
 	brokerv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/broker/v1"
@@ -35,6 +36,7 @@ var (
 	ErrNotFound          = errors.New("execution: not found")
 	ErrInvalid           = errors.New("execution: invalid request")
 	ErrStepUp            = errors.New("execution: desktop passkey step-up required")
+	ErrForbidden         = errors.New("execution: forbidden")
 	errUnknownInstrument = errors.New("execution: unknown instrument")
 )
 
@@ -104,6 +106,13 @@ type Engine struct {
 	instrCache map[string]*brokerv1.InstrumentInfo
 	flattened  map[string]string
 	alerted    map[string]bool
+	evidence   GraduationEvidence
+	research   GraduationResearch
+	liveDB     LiveDB
+	liveWired  bool
+	readiness  map[string]*ordersv1.LiveReadiness
+	cleanSess  map[string]map[string]struct{}
+	enablement map[string]Enablement
 	runtimeAt  time.Time
 	started    time.Time
 	deadman    bool
@@ -171,6 +180,7 @@ func New(ctx context.Context, cfg Config, store Store, brokers Brokers, ledger L
 	for _, h := range st.Halts {
 		e.halts[h.GetHaltId()] = h
 	}
+	e.initLive()
 	return e, nil
 }
 
@@ -326,6 +336,36 @@ func (e *Engine) Strategies() []*ordersv1.Strategy {
 
 // ---- limits
 
+func orEmpty(l *ordersv1.RiskLimits) *ordersv1.RiskLimits {
+	if l == nil {
+		return &ordersv1.RiskLimits{}
+	}
+	return l
+}
+
+// nonZero returns a copy of l without zero fields (proto.Merge would otherwise keep set-but-zero
+// decimals as overrides): zero means "inherit the global default" in an owner scope.
+func nonZero(l *ordersv1.RiskLimits) *ordersv1.RiskLimits {
+	out := &ordersv1.RiskLimits{}
+	if l == nil {
+		return out
+	}
+	m, o := l.ProtoReflect(), out.ProtoReflect()
+	m.Range(func(fd protoreflect.FieldDescriptor, v protoreflect.Value) bool {
+		switch {
+		case fd.Kind() == protoreflect.MessageKind:
+			if d, ok := v.Message().Interface().(*commonv1.Decimal); ok && pd(d).IsZero() {
+				return true
+			}
+		case v.Int() == 0:
+			return true
+		}
+		o.Set(fd, v)
+		return true
+	})
+	return out
+}
+
 func limitScopes(acct, strategy string, manual bool) []string {
 	if manual {
 		return []string{"global", "account:" + acct, "manual"}
@@ -333,8 +373,14 @@ func limitScopes(acct, strategy string, manual bool) []string {
 	return []string{"global", "account:" + acct, "strategy:" + strategy}
 }
 
-// effective merges limit scopes; for each field the tightest non-zero value wins (RM-003).
+// effective merges limit scopes (RM-003, RM-019). The owner scope (`strategy:<id>` or `manual`)
+// replaces the `global` default field by field; the `account:<id>` scope is a ceiling, so for each
+// field the tighter non-zero value of (owner-or-global, account) wins. Loosening an owner scope past
+// the global default therefore needs the same passkey step-up as any raise (SetLimits, RM-007).
 func (e *Engine) effective(acct, strategy string, manual bool) risk.Limits {
+	scopes := limitScopes(acct, strategy, manual)
+	base := proto.Clone(orEmpty(e.limits[scopes[0]])).(*ordersv1.RiskLimits)
+	proto.Merge(base, nonZero(e.limits[scopes[2]]))
 	var l risk.Limits
 	tight := func(cur *decimal.Decimal, v *commonv1.Decimal) {
 		x := pd(v)
@@ -347,8 +393,7 @@ func (e *Engine) effective(acct, strategy string, manual bool) risk.Limits {
 			*cur = int(v)
 		}
 	}
-	for _, sc := range limitScopes(acct, strategy, manual) {
-		r := e.limits[sc]
+	for _, r := range []*ordersv1.RiskLimits{base, e.limits[scopes[1]]} {
 		if r == nil {
 			continue
 		}
@@ -434,6 +479,20 @@ func (e *Engine) SetLimits(ctx context.Context, scope string, l *ordersv1.RiskLi
 		prev = &ordersv1.RiskLimits{}
 	}
 	raised := Raised(prev, l)
+	// An owner scope replaces the global default (RM-019): compare what the gate would enforce, so a
+	// first-time strategy limit above the global default is a raise too.
+	sid, isStrategy := strings.CutPrefix(scope, "strategy:")
+	if isStrategy || scope == "manual" {
+		acct := ""
+		if s := e.strategies[sid]; s != nil {
+			acct = s.GetBrokerAccountId()
+		}
+		before := limitsProto(e.effective(acct, sid, scope == "manual"))
+		e.limits[scope] = l
+		after := limitsProto(e.effective(acct, sid, scope == "manual"))
+		e.limits[scope] = prev
+		raised = raised || Raised(before, after)
+	}
 	if raised && actor.GetStepUpMethod() != "passkey" {
 		return true, ErrStepUp
 	}

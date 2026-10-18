@@ -37,3 +37,21 @@ def test_every_alert_rule_has_an_existing_runbook() -> None:
         m = re.search(r"runbook_url:\s*(docs/runbooks/[\w.-]+\.md)", body)
         assert m, f"{name} has no runbook"
         assert (ROOT / m.group(1)).is_file(), f"{name}: {m.group(1)} does not exist"
+
+
+def test_mn007_dead_man_pages_when_the_monitor_is_stopped() -> None:
+    """Stopping the monitor pages without the monitor: Prometheus scrapes it as a core target, so
+    `ServiceDown` (critical, 30 s) fires and Alertmanager sends it to Pushover emergency priority,
+    which repeats until acknowledged. `MonitorPipelineDown` also covers a monitor that runs but stalls."""
+    prom = (ROOT / "infra/observability/prometheus/prometheus.yml").read_text(encoding="utf-8")
+    assert re.search(r'targets: \["monitor:8081"\]\s*\n\s*labels: \{ service: monitor, tier: core \}', prom)
+    body = dict(rules())
+    down = body["stack.yml:ServiceDown"]
+    assert 'up{tier="core"} == 0' in down and re.search(r"for: 30s", down) and "severity: critical" in down
+    assert "tb_monitor_last_forward_seconds" in body["trading.yml:MonitorPipelineDown"]
+    am = (ROOT / "infra/observability/alertmanager/alertmanager.yml").read_text(encoding="utf-8")
+    route = re.search(r'matchers: \[severity="critical"\]\s*\n\s*receiver: (\S+)', am)
+    assert route and route.group(1) == "pushover-critical"
+    receiver = am[am.index("- name: pushover-critical") :]
+    for setting in (r'priority: "2"', r"retry: \S+", r"expire: \S+"):
+        assert re.search(setting, receiver), setting

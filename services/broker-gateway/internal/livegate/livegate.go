@@ -39,9 +39,9 @@ func (g *Gate) Allowed(ctx context.Context, account string) (bool, string) {
 	if g.DB == nil {
 		return false, "live trading disabled: no enablement store"
 	}
-	var enabled bool
+	var enabled, orders bool
 	var seq int64
-	err := g.DB.QueryRow(ctx, `SELECT enabled, audit_seq FROM broker.live_enablement WHERE broker_account_id = $1`, account).Scan(&enabled, &seq)
+	err := g.DB.QueryRow(ctx, `SELECT enabled, orders_enabled, audit_seq FROM broker.live_enablement WHERE broker_account_id = $1`, account).Scan(&enabled, &orders, &seq)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
 		return false, "live trading disabled: no audited live enablement for " + account
@@ -49,6 +49,28 @@ func (g *Gate) Allowed(ctx context.Context, account string) (bool, string) {
 		return false, "live trading disabled: enablement lookup failed"
 	case !enabled || seq <= 0:
 		return false, "live trading disabled: account not live-enabled"
+	}
+	_ = orders // read-only stage still lets the adapter run (GL-012); orders are a separate check
+	return true, ""
+}
+
+// OrdersAllowed reports whether the account may accept orders (GL-012). Enabled alone is the
+// read-only stage: the adapter streams and reconciles, and every order is refused.
+func (g *Gate) OrdersAllowed(ctx context.Context, account string) (bool, string) {
+	if !g.FlagEnabled {
+		return false, "live orders disabled: TB_TRADING_LIVE_ENABLED is not true"
+	}
+	if g.DB == nil {
+		return false, "live orders disabled: no enablement store"
+	}
+	var enabled, orders bool
+	var seq int64
+	err := g.DB.QueryRow(ctx, `SELECT enabled, orders_enabled, audit_seq FROM broker.live_enablement WHERE broker_account_id = $1`, account).Scan(&enabled, &orders, &seq)
+	switch {
+	case errors.Is(err, pgx.ErrNoRows), err != nil:
+		return false, "live orders disabled: enablement lookup failed"
+	case !enabled || !orders || seq <= 0:
+		return false, "live orders disabled: account is read-only"
 	}
 	return true, ""
 }
