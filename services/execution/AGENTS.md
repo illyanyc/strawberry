@@ -23,6 +23,7 @@ Owns the OMS, the pre-trade risk gate (D30 routing, intraday-margin guard, PDT g
 - OE-001, OE-012..OE-020 OMS → `internal/oms/engine.go`, `events.go` (`TestOE006StateMachineConvergesUnderReordering`)
 - RM-006, RM-007, RM-013, RM-016 kill switches → `internal/oms/kill.go`; RM-009, RM-017, OE-016 → `internal/oms/lifecycle.go`
 - Cross-service acceptance: `tests/paper` (`TestGate2*`)
+- BT-003 backtest simcore → `internal/simcore` (`TestBT003*`, `TestBT004*`, `TestBT007*`): the same engine, gate, and registry seed in simulation
 
 ## Layout
 | Path | Purpose |
@@ -32,6 +33,8 @@ Owns the OMS, the pre-trade risk gate (D30 routing, intraday-margin guard, PDT g
 | `internal/risk/` | Pure pre-trade checks and limits |
 | `internal/oms/` | OMS engine, stores (memory, Postgres), kill switches, lifecycle, views |
 | `internal/server/` | `ExecutionService` and caller allowlist |
+| `internal/simcore/` | Backtest simcore ([ADR-0031](../../docs/adr/0031-two-tier-backtester-and-simcore.md)): the real OMS engine on the in-memory store, a passive simulated broker (held bracket legs, broker-side OCO), and an `oms.Ledger` adapter over `services/ledger/book`; served on stdio by `cmd/tb-simcore` |
+| `cmd/tb-simcore/` | `tb-simcore` binary for the event-driven backtester (tb.backtest.v1 simcore protocol on stdin/stdout; no sockets, no secrets) |
 
 ## Configuration
 | Variable | Default | Notes |
@@ -47,6 +50,7 @@ Owns the OMS, the pre-trade risk gate (D30 routing, intraday-margin guard, PDT g
 
 ## Run and test
 - Run: `make up`. Build: `go build ./...`. Lint: `golangci-lint run ./...`.
+- Build the backtest simcore: `go build -o .tools/bin/tb-simcore ./cmd/tb-simcore` (or let `tbcore.backtest` build it on demand; `TB_SIMCORE_BIN` overrides).
 - Unit: `go test -race ./...`. Cross-service gate scenarios: `cd tests/paper && go test ./...`; the five-session ORB gate: `make paper-gate`.
 
 ## Operational notes
@@ -56,4 +60,5 @@ Owns the OMS, the pre-trade risk gate (D30 routing, intraday-margin guard, PDT g
 ## Gotchas
 - Intent IDs must be ULIDs (they are part of the attribution ID). Child orders use attempts 50–99.
 - After a restart nothing is approved until open orders are reconciled; after a reconnect until a reconciliation newer than the READY transition arrives.
+- The simcore links `internal/oms` directly: a change to OMS behavior changes backtests too (by design, BT-003). Keep the engine free of wall-clock assumptions other than `cfg.Wall` (the simcore runs it on a virtual `cfg.Now`).
 - Released kill switches stay in memory and in the table (30 days) so a late `risk.kill` copy cannot re-latch them.

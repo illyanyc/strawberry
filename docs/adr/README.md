@@ -48,3 +48,4 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0033](0033-quarantined-news-sentiment.md) | News sentiment through a quarantined local model, with a lexicon baseline and contamination flags | Accepted | 2026-10-18 |
 | [0029](0029-backtest-cost-and-fill-models.md) | Backtest cost and fill models: one NumPy cost model with a dated fee schedule; next-tradable-bar fills | Accepted | 2026-10-18 |
 | [0030](0030-validation-splitters-and-overfitting-statistics.md) | Validation splitters and overfitting statistics in `tbcore.validation`; DSR as the ranking gate | Accepted | 2026-10-18 |
+| [0031](0031-two-tier-backtester-and-simcore.md) | Two-tier backtester on `tbcore` with the live OMS, gate, and ledger core in a Go simcore | Accepted | 2026-10-18 |

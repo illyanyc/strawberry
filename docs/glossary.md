@@ -18,6 +18,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Broker capabilities** | Per-account declaration of what an adapter supports (order types, TIFs, bracket/OCO/OTO, fractional, short, extended hours, attribution length); execution builds orders against it (BR-002). |
 | **`BROKER_UNAVAILABLE`** | The typed error (gRPC `FAILED_PRECONDITION` + `ErrorInfo` reason) a broker adapter returns for order RPCs while the account session is not `ready` (BR-004, OE-004). |
 | **Broker-lot shadow ledger** | The ledger's model of the broker's own tax lots: one FIFO queue per instrument across all owners, shown next to the owner split so tax-lot divergence (a strategy sale relieving manual's oldest lot at the broker) is visible (VP-021). |
+| **Bus recording** | A file of `tb.backtest.v1.RecordedMessage` (subject, payload, message ID, receive time) captured from the bus; the replay input of the event-driven backtester and the parity harness (ADR-0031, BT-070). |
 | **Canonical execution ID** | The `broker_exec_id` used to deduplicate fills; identical whether a fill arrives on the stream or from a REST resync (Alpaca: `<order_id>:<cumulative qty>`) (BR-008). |
 | **Backfill job** | A resumable marketdata job that fetches historical bars in checkpointed chunks (≤ 100 symbols × a per-timeframe window); a restart skips finished chunks and a rerun writes nothing new (MD-001). |
 | **Bar finality** | A live 1-minute bar becomes final 60 s after its close (Alpaca's update window); only final bars reach the bus, cache, lake, and features (MD-002). |
@@ -113,6 +114,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Setup token** | One-time, 30-minute token printed by `make setup-token` that authorizes registering the first owner (SE-007). |
 | **Session state (broker)** | Per-account adapter health: `disconnected`, `connecting`, `authenticated`, `syncing`, `ready`, `degraded`, `stopped`; only `ready` accepts orders (BR-010). |
 | **Snapshot stamping** | Setting a context version's `available_at`: rule time when first seen, fetch time when vendor-restated content changes, official time for authoritative histories (CX-004). |
+| **Simcore (`tb-simcore`)** | Go process that runs the production OMS engine, pre-trade gate, and ledger accounting core for the event-driven backtester over a stdio protobuf protocol; it makes every order-path decision while the backtester decides fills (ADR-0031, BT-003). |
 | **SPA test** | Hansen's test for superior predictive ability: whether any challenger beats the benchmark after accounting for the number of challengers; consistent p-value from the stationary bootstrap (BT-046). |
 | **Staging file** | Lake file with newly written rows, visible to readers at once and merged by compaction (ST-004). |
 | **Shadow mode** | A model produces signals that are recorded but never sent as orders. |

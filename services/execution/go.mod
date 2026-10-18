@@ -10,6 +10,7 @@ replace (
 require (
 	github.com/illyanyc/strawberry/contracts/gen/go v0.0.0-00010101000000-000000000000
 	github.com/illyanyc/strawberry/libs/go v0.0.0-00010101000000-000000000000
+	github.com/illyanyc/strawberry/services/ledger v0.0.0-00010101000000-000000000000
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/nats-io/nats.go v1.54.0
 	github.com/oklog/ulid/v2 v2.1.2
@@ -58,3 +59,5 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20260928230214-8a89bd6388cc // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260928230214-8a89bd6388cc // indirect
 )
+
+replace github.com/illyanyc/strawberry/services/ledger => ../ledger

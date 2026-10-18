@@ -1,0 +1,175 @@
+syntax = "proto3";
+
+// Backtest simulation core (section 08, ADR-0031, BT-003). The event-driven backtester (Python,
+// tbcore.backtest) drives `tb-simcore`, a Go process that hosts the live OMS engine with its
+// pre-trade gate (services/execution/internal/oms, internal/risk) and the ledger's accounting core
+// (services/ledger/book), behind an in-process broker that only records orders. The backtester
+// owns the clock, market data, and fill decisions; the simcore owns every order-path decision.
+//
+// Transport: the backtester writes length-delimited SimRequest messages (unsigned varint byte
+// length, then the message) to the process's stdin and reads exactly one length-delimited
+// SimResponse per request from stdout. No network, no files, no credentials.
+package tb.backtest.v1;
+
+import "tb/broker/v1/gateway.proto";
+import "tb/common/v1/common.proto";
+import "tb/ledger/v1/ledger.proto";
+import "tb/ledger/v1/ledger_service.proto";
+import "tb/orders/v1/execution.proto";
+import "tb/orders/v1/orders.proto";
+
+message SimAccount {
+  string broker_account_id = 1;
+  tb.common.v1.Broker broker = 2;
+  tb.common.v1.Decimal cash = 3;
+  // Alpaca-style bracket/OTO at the broker; false = IBKR-style GTC stop after the entry fills.
+  bool supports_bracket = 4;
+  bool supports_fractional = 5;
+  // D30 account policy (execution AccountPolicy).
+  tb.common.v1.Decimal margin_multiple = 6;
+  tb.common.v1.Decimal margin_util_cap = 7;
+  string pdt_guard = 8;
+  int32 pdt_max = 9;
+  bool segregation = 10;
+  // Opening positions; they belong to the `manual` owner (VP-015, BT-007).
+  repeated tb.ledger.v1.Position opening_positions = 11;
+}
+
+message SimRoute {
+  tb.common.v1.Horizon horizon = 1;
+  repeated string broker_account_ids = 2;
+}
+
+message SimInstrument {
+  string instrument_id = 1;
+  string symbol = 2;
+  bool tradable = 3;
+  bool shortable = 4;
+}
+
+message SimSetup {
+  repeated SimAccount accounts = 1;
+  // Strategy registry in the execution registry-seed format (`infra/compose/strategies.json`):
+  // the same document seeds execution and the strategy runtime, so a backtest registers
+  // strategies, allocations, and limits exactly as production does.
+  bytes registry_json = 2;
+  repeated SimRoute routing = 3;
+  // Replaces the OMS default global limits when set (RM-003).
+  tb.orders.v1.RiskLimits global_limits = 4;
+  repeated SimInstrument instruments = 5;
+  // Zero keeps the OMS default (OE-013, OE-016).
+  int64 entry_collar_bps = 6;
+  int64 exit_collar_bps = 7;
+  int64 flatten_before_close_ns = 8;
+  // Virtual clock at the start of the run (UTC ns).
+  int64 start = 9;
+}
+
+// The latest final bar of an instrument as the OMS would have seen it on md.bar.* (RM-004).
+message SimBar {
+  string instrument_id = 1;
+  tb.common.v1.Decimal close = 2;
+  int64 ts_close = 3;
+  int64 interval_ns = 4;
+}
+
+// Moves the virtual clock, records bars and marks, and runs the OMS time-driven work (Tick).
+message SimAdvance {
+  int64 now = 1;
+  repeated SimBar bars = 2;
+}
+
+message SimSubmit {
+  int64 now = 1;
+  tb.orders.v1.OrderIntent intent = 2;
+  repeated SimBar bars = 3;
+}
+
+// A fill decided by the backtester's fill model for an order the simcore created.
+message SimFill {
+  int64 now = 1;
+  string broker_account_id = 2;
+  string broker_order_id = 3;
+  tb.common.v1.Decimal qty = 4;
+  tb.common.v1.Decimal price = 5;
+  tb.common.v1.Decimal fees = 6;
+  string exec_id = 7;
+}
+
+// A broker-side end of an order: OCO sibling canceled, DAY order expired, broker reject.
+message SimOrderEnd {
+  int64 now = 1;
+  string broker_account_id = 2;
+  string broker_order_id = 3;
+  tb.orders.v1.OrderState state = 4;
+}
+
+// Activity of the `manual` owner outside the platform (orders without the tb1- prefix, VP-001).
+message SimManualFill {
+  int64 now = 1;
+  string broker_account_id = 2;
+  string instrument_id = 3;
+  tb.common.v1.Side side = 4;
+  tb.common.v1.Decimal qty = 5;
+  tb.common.v1.Decimal price = 6;
+  tb.common.v1.Decimal fees = 7;
+  string exec_id = 8;
+}
+
+// A corporate action applied by the ledger core on its ex-date (VP-010, VP-023, BT-008).
+message SimCorporateAction {
+  int64 now = 1;
+  string instrument_id = 2;
+  // split | dividend
+  string kind = 3;
+  // Split ratio (new/old) or cash dividend per share.
+  tb.common.v1.Decimal value = 4;
+  string source_id = 5;
+}
+
+message SimQuery {
+  string owner = 1;
+  string broker_account_id = 2;
+}
+
+message SimRequest {
+  oneof body {
+    SimSetup setup = 1;
+    SimAdvance advance = 2;
+    SimSubmit submit = 3;
+    SimFill fill = 4;
+    SimOrderEnd order_end = 5;
+    SimManualFill manual_fill = 6;
+    SimCorporateAction corporate_action = 7;
+    SimQuery query = 8;
+  }
+}
+
+message SimResponse {
+  // Non-empty when the request failed; the backtest stops (fail closed).
+  string error = 1;
+  // Broker-side orders created or changed while handling the request (new orders, legs released
+  // when the parent fills, cancels), in the order they happened.
+  repeated tb.broker.v1.BrokerOrder orders = 2;
+  // Submit only: the gate's decision with every check (RM-001, RM-002).
+  tb.orders.v1.RiskDecision decision = 3;
+  // Owner positions changed by fills, manual fills, or corporate actions (SM-014 filtering is the
+  // backtester's job, exactly as in the strategy runtime).
+  repeated tb.ledger.v1.LedgerUpdate ledger_updates = 4;
+  // Query only.
+  tb.ledger.v1.OwnerView portfolio = 5;
+  // Intent records whose state changed (rejections included).
+  repeated tb.orders.v1.IntentRecord intents = 6;
+}
+
+// One message captured from the bus (JetStream) for replay: the input format of event-driven
+// replays and of the parity harness (BT-070, BT-071).
+message RecordedMessage {
+  string subject = 1;
+  bytes data = 2;
+  // Nats-Msg-Id header (deduplication key).
+  string msg_id = 3;
+  // When the recorder received the message (UTC ns).
+  int64 recorded_at = 4;
+  uint64 stream_sequence = 5;
+}
