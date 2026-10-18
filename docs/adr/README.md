@@ -59,3 +59,4 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0041](0041-ai-research-analyst-loop-and-tool-server.md) | AI Research Analyst: deterministic Centaur loop, tool server, stop rules, and the research journal | Accepted | 2026-10-18 |
 | [0042](0042-analyst-llm-providers-masking-and-egress.md) | Analyst LLM providers per role, prompt masking, the egress guard and allowlisting proxy, and spend caps | Accepted | 2026-10-18 |
 | [0043](0043-analyst-coder-sandbox-and-candidate-review.md) | Analyst coder sandbox: AST policy, no-network file-based jobs, synthetic inputs, evaluator-side checks, review before merge | Accepted | 2026-10-18 |
+| [0044](0044-live-feedback-and-retraining-triggers.md) | Live feedback reports and retraining triggers for the analyst (section 13 Phase 4 slice) | Accepted | 2026-10-18 |
