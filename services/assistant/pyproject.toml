@@ -3,7 +3,7 @@ name = "assistant"
 version = "0.0.0"
 description = "LLM research assistant with constrained tools (section 12, Phase 4)"
 requires-python = ">=3.12,<3.13"
-dependencies = ["tbcore"]
+dependencies = ["tbcore", "tbcontracts", "httpx==0.28.1", "nats-py==2.16.0", "grpcio==1.84.0", "asyncpg==0.32.0"]
 
 [project.scripts]
 assistant = "tb_assistant.__main__:main"
@@ -17,3 +17,4 @@ packages = ["src/tb_assistant"]
 
 [tool.uv.sources]
 tbcore = { workspace = true }
+tbcontracts = { workspace = true }
