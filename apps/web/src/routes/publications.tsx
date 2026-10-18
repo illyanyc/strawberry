@@ -182,7 +182,7 @@ function UserContentNotice({ notice }: { notice?: string }) {
   return (
     <Alert tone="info">
       {notice ??
-        "Each entry is user content. It is not advice from Alpha Inertia LLC, not a live signal, and not an instruction to trade."}
+        "Each entry is user content. It is not advice from Adwise Partners LLC, not a live signal, and not an instruction to trade."}
     </Alert>
   );
 }

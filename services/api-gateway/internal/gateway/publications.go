@@ -21,7 +21,7 @@ import (
 
 const (
 	publicationLabel   = "user_content"
-	publicationNotice  = "Each entry is user content. It is not advice from Alpha Inertia LLC, not a live signal, and not an instruction to trade."
+	publicationNotice  = "Each entry is user content. It is not advice from Adwise Partners LLC, not a live signal, and not an instruction to trade."
 	publicationCap     = 50
 	publicationMaxSpan = 40 * 366 * 24 * time.Hour
 )
