@@ -23,6 +23,12 @@ from tbcore.ml.preprocess import Pipeline
 F64 = NDArray[np.float64]
 
 
+def feature_vector_id(values: list[float | None]) -> str:
+    """ID of the exact feature vector behind a signal (ML-042): hash of the values at 12 significant digits."""
+    text = ",".join("nan" if v is None or v != v else f"{v:.12g}" for v in values)
+    return "fv_" + hashlib.sha256(text.encode()).hexdigest()[:24]
+
+
 class FeatureMismatchError(RuntimeError):
     """The online feature set differs from the model's (ML-040): no signal is produced."""
 

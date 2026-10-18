@@ -85,14 +85,14 @@ class Dataset:
         )
 
 
-def _to_ns(df: pl.DataFrame) -> pl.DataFrame:
+def to_ns(df: pl.DataFrame) -> pl.DataFrame:
     for c in ("ts_open", "ts_close", "available_at"):
         if c in df.columns and df.schema[c] != pl.Int64:
             df = df.with_columns(pl.col(c).dt.cast_time_unit("ns").dt.replace_time_zone("UTC").cast(pl.Int64))
     return df
 
 
-def _to_dt(df: pl.DataFrame) -> pl.DataFrame:
+def to_dt(df: pl.DataFrame) -> pl.DataFrame:
     return df.with_columns(
         [
             pl.col(c).cast(pl.Datetime("ns", "UTC"))
@@ -128,7 +128,7 @@ def load_bars(cfg: tp.TrainingConfig, lake_root: str | None = None) -> tuple[pl.
         warm = 400 * bar_ns(cfg.timeframe) if cfg.timeframe != DAILY else 400 * 86_400 * NS
         lake = Lake(lake_root)
         bars = lake.bars([*uni, bench], cfg.timeframe, cfg.period.start - warm, cfg.period.end, as_of=cfg.period.end)
-        return _to_ns(bars), uni, bench
+        return to_ns(bars), uni, bench
     raise ValueError(f"unknown data source {src!r}")
 
 
@@ -249,13 +249,13 @@ def build(
     if cfg.timeframe not in fsd.timeframes:
         raise ValueError(f"feature set {fsd.name} is for {fsd.timeframes}, not {cfg.timeframe}")
     fs = fsd.resolve(benchmark)
-    b = _to_ns(bars).filter(pl.col("instrument_id").is_in([*universe, benchmark]))
+    b = to_ns(bars).filter(pl.col("instrument_id").is_in([*universe, benchmark]))
     b = b.filter(pl.col("ts_open") < end)  # nothing at or after the boundary is ever read (EX-010)
     b = _bar_index(b)
     vd = (
         VectorData.from_bars(b.filter(pl.col("instrument_id") != benchmark)) if cfg.label.kind == "meta_label" else None
     )
-    feats = _to_ns(compute(fs, _to_dt(b.drop("bar_idx"))))
+    feats = to_ns(compute(fs, to_dt(b.drop("bar_idx"))))
     labels = _labels(cfg, b.drop("bar_idx"), universe, benchmark, vd)
     idx = b.select("instrument_id", "ts_open", "ts_close", "available_at", "bar_idx", "close")
     df = labels.join(idx, on=["instrument_id", "ts_open"], how="inner")

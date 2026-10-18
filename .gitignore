@@ -2,6 +2,8 @@
 .tools/
 .secrets/
 backups/
+# Runtime data: lake, MLflow and ML artifacts (make dirs)
+/data/
 *.age
 !infra/secrets/**/*.age
 

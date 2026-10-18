@@ -43,11 +43,15 @@ var natsUsers = map[string]struct{ pub, sub []string }{
 	// ledger events (section 13).
 	"monitor": {pub: []string{"alert.>", "sys.health.monitor", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
 		sub: []string{"_INBOX.>", "alert.>", "sys.health.>", "recon.result.>", "ord.decision", "exec.>", "ledger.update.>"}},
-	"ops": {pub: []string{">"}, sub: []string{">"}},
+	// ML and optimizer workers publish run, study, backtest, and registry events for the analyst and
+	// the UI (ADR-0035); the optimizer reads monitoring retrain triggers (EX-040).
+	"ml":        {pub: []string{"ml.>", "backtest.>", "alert.>", "sys.health.ml"}, sub: []string{"_INBOX.>"}},
+	"optimizer": {pub: []string{"optimizer.>", "ml.registry.>", "backtest.>", "alert.>", "sys.health.optimizer"}, sub: []string{"_INBOX.>", "monitor.>"}},
+	"ops":       {pub: []string{">"}, sub: []string{">"}},
 }
 
 // signingServices get Ed25519 service-token keys (SE-040).
-var signingServices = []string{"api-gateway", "broker-gateway", "context-data", "execution", "ledger", "marketdata"}
+var signingServices = []string{"api-gateway", "broker-gateway", "context-data", "execution", "ledger", "marketdata", "ml", "optimizer"}
 
 // initSecrets writes every missing secret into dir. Existing files are never overwritten, so the
 // command is safe to re-run after adding a new service. Files are 0644 inside a 0700 directory: the

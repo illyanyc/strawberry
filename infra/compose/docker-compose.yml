@@ -97,6 +97,8 @@ secrets:
   nats_monitor_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_monitor_password" }
   nats_strategy_runtime_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_strategy_runtime_password" }
   nats_context_data_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_context_data_password" }
+  nats_ml_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_ml_password" }
+  nats_optimizer_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_optimizer_password" }
   nats_ops_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_ops_password" }
   valkey_users_acl: { file: "${TB_SECRETS_DIR:-../../.secrets}/valkey_users.acl" }
   valkey_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/valkey_password" }
@@ -111,6 +113,10 @@ secrets:
   svc_marketdata_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_marketdata_ed25519.pub" }
   svc_context_data_ed25519: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_context_data_ed25519" }
   svc_context_data_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_context_data_ed25519.pub" }
+  svc_ml_ed25519: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_ml_ed25519" }
+  svc_ml_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_ml_ed25519.pub" }
+  svc_optimizer_ed25519: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_optimizer_ed25519" }
+  svc_optimizer_ed25519.pub: { file: "${TB_SECRETS_DIR:-../../.secrets}/svc_optimizer_ed25519.pub" }
   nats_broker_gateway_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_broker_gateway_password" }
   fmp_api_key: { file: "${TB_SECRETS_DIR:-../../.secrets}/fmp_api_key" }
   fred_api_key: { file: "${TB_SECRETS_DIR:-../../.secrets}/fred_api_key" }
@@ -127,6 +133,9 @@ secrets:
   ibkr_live_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/ibkr_live_password" }
   ibkr_vnc_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/ibkr_vnc_password" }
   pg_svc_broker_gateway_ibkr_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_svc_broker_gateway_ibkr_password" }
+  pg_svc_ml_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_svc_ml_password" }
+  pg_svc_optimizer_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_svc_optimizer_password" }
+  pg_svc_holdout_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/pg_svc_holdout_password" }
   nats_broker_gateway_ibkr_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_broker_gateway_ibkr_password" }
 
 services:
@@ -197,7 +206,8 @@ services:
     command: ["db", "init"]
     secrets: [pg_superuser_password, pg_svc_api_gateway_password, pg_svc_broker_gateway_password, pg_svc_marketdata_password,
               pg_svc_execution_password, pg_svc_ledger_password, pg_svc_ops_password, pg_svc_metrics_password,
-              pg_svc_broker_gateway_ibkr_password, pg_mlflow_password, pg_prefect_password]
+              pg_svc_broker_gateway_ibkr_password, pg_svc_ml_password, pg_svc_optimizer_password, pg_svc_holdout_password,
+              pg_mlflow_password, pg_prefect_password]
     networks: [backend]
     depends_on: { postgres: { condition: service_healthy } }
 
@@ -580,12 +590,30 @@ services:
     healthcheck: *py-healthcheck
 
   # Containerized ML workers for Linux hosts. On macOS these run natively under launchd (D29).
+  # MLService (section 10, ADR-0037): training jobs, runs, diagnostics. Same UID as marketdata to read
+  # the lake (0640 files); writes artifacts under TB_ML_ARTIFACTS_DIR.
   ml:
     <<: *hardening
     profiles: [ml-workers]
     image: strawberry/ml:${TB_VERSION:-dev}
     build: { <<: *py-build, args: { SERVICE: ml } }
-    environment: { <<: *common-env, TB_SERVICE: ml }
+    user: "${TB_HOST_UID:-65532}:${TB_HOST_GID:-65532}"
+    environment:
+      <<: *common-env
+      TB_SERVICE: ml
+      TB_DB_USER: svc_ml
+      TB_ML_GRPC_ADDR: "0.0.0.0:9090"
+      TB_ML_ARTIFACTS_DIR: /data/ml-artifacts
+      TB_LAKE_DIR: /data/lake
+      TB_ML_MLFLOW_URL: ${TB_ML_MLFLOW_URL:-}
+      TB_OPTIMIZER_ADDR: optimizer:9091
+      TB_HOLDOUT_ADDR: optimizer:9091
+      TB_NATS_URL: "nats://nats:4222"
+      TB_NATS_USER: ml
+    secrets: [pg_svc_ml_password, nats_ml_password, svc_ml_ed25519, svc_api_gateway_ed25519.pub, svc_optimizer_ed25519.pub]
+    volumes:
+      - "${TB_LAKE_DIR:-../../data/lake}:/data/lake:ro"
+      - "${TB_ML_ARTIFACTS_DIR:-../../data/ml-artifacts}:/data/ml-artifacts"
     networks: [backend]
     healthcheck: *py-healthcheck
 
@@ -598,12 +626,30 @@ services:
     networks: [backend]
     healthcheck: *py-healthcheck
 
+  # OptimizerService + HoldoutService (section 11, ADR-0038..0040). The holdout store uses its own role
+  # (svc_holdout) so nothing on the analyst path can read holdout records (EX-012).
   optimizer:
     <<: *hardening
     profiles: [ml-workers]
     image: strawberry/optimizer:${TB_VERSION:-dev}
     build: { <<: *py-build, args: { SERVICE: optimizer } }
-    environment: { <<: *common-env, TB_SERVICE: optimizer }
+    user: "${TB_HOST_UID:-65532}:${TB_HOST_GID:-65532}"
+    environment:
+      <<: *common-env
+      TB_SERVICE: optimizer
+      TB_DB_USER: svc_optimizer
+      TB_HOLDOUT_DB_USER: svc_holdout
+      TB_OPT_GRPC_ADDR: "0.0.0.0:9091"
+      TB_ML_ARTIFACTS_DIR: /data/ml-artifacts
+      TB_LAKE_DIR: /data/lake
+      TB_ML_MLFLOW_URL: ${TB_ML_MLFLOW_URL:-}
+      TB_NATS_URL: "nats://nats:4222"
+      TB_NATS_USER: optimizer
+    secrets: [pg_svc_optimizer_password, pg_svc_holdout_password, nats_optimizer_password, svc_optimizer_ed25519,
+              svc_api_gateway_ed25519.pub, svc_ml_ed25519.pub]
+    volumes:
+      - "${TB_LAKE_DIR:-../../data/lake}:/data/lake:ro"
+      - "${TB_ML_ARTIFACTS_DIR:-../../data/ml-artifacts}:/data/ml-artifacts"
     networks: [backend]
     healthcheck: *py-healthcheck
 
@@ -734,6 +780,7 @@ services:
     environment: { TB_DB_HOST: postgres, TB_NATS_URL: "nats://nats:4222" }
     secrets: [pg_superuser_password, pg_svc_api_gateway_password, pg_svc_broker_gateway_password, pg_svc_marketdata_password,
               pg_svc_execution_password, pg_svc_ledger_password, pg_svc_ops_password, pg_svc_metrics_password, pg_svc_broker_gateway_ibkr_password,
+              pg_svc_ml_password, pg_svc_optimizer_password, pg_svc_holdout_password,
               pg_mlflow_password, pg_prefect_password, nats_ops_password, backup_age_recipient, backup_age_identity]
     volumes:
       - ${TB_BACKUP_DIR:-../../backups}:/backups

@@ -71,6 +71,10 @@ var Streams = []jetstream.StreamConfig{
 	// Reference-data events (corporate actions for the ledger): durable (section 05).
 	{Name: "REF", Subjects: []string{"ref.>"}, Storage: jetstream.FileStorage,
 		Retention: jetstream.LimitsPolicy, MaxAge: 90 * 24 * time.Hour, Replicas: 1, Duplicates: 10 * time.Minute},
+	// Research events (ADR-0035): ml.run.completed, backtest.completed, optimizer.study.completed,
+	// ml.registry.stage_changed, optimizer.retrain_requested.<lineage>; the analyst consumes them durably.
+	{Name: "RESEARCH", Subjects: []string{"ml.>", "backtest.>", "optimizer.>"}, Storage: jetstream.FileStorage,
+		Retention: jetstream.LimitsPolicy, MaxAge: 30 * 24 * time.Hour, Replicas: 1, Duplicates: 10 * time.Minute},
 	{Name: "SYS", Subjects: []string{"sys.>"}, Storage: jetstream.MemoryStorage,
 		Retention: jetstream.LimitsPolicy, MaxAge: 10 * time.Minute, Replicas: 1},
 }

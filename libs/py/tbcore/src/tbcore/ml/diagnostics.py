@@ -445,6 +445,41 @@ def build_report(
     return rep
 
 
+def importance(res: TrainingResult, method: str, top_features: int = 30) -> tp.FeatureImportance:
+    """Per-fold importance and cross-fold stability by ``gain``, ``permutation``, or ``shap`` (mean |SHAP|)."""
+    if method not in ("gain", "permutation", "shap"):
+        raise ValueError(f"unknown importance method {method!r}")
+    feats = res.dataset.features
+    vals = [
+        fr.gain if method == "gain" else (fr.permutation if method == "permutation" else fr.shap_abs)
+        for fr in res.folds
+    ]
+    out = tp.FeatureImportance(method=method)
+    if not vals:
+        return out
+    mat = np.array(vals)
+    mean = mat.mean(axis=0)
+    top = list(np.argsort(-np.abs(mean))[:top_features])
+    ranks = np.array([np.argsort(np.argsort(-v)) for v in mat])
+    for fr, v in zip(res.folds, vals, strict=True):
+        out.per_fold.append(tp.FoldImportance(fold=fr.fold, values={feats[j]: float(v[j]) for j in top}))
+    for j in top:
+        dirs = np.array([np.sign(fr.shap_dir[j]) for fr in res.folds if abs(fr.shap_dir[j]) > 0.1])
+        flips = float(min(np.mean(dirs > 0), np.mean(dirs < 0))) if dirs.size > 1 else 0.0
+        out.stability.append(
+            tp.ImportanceStability(
+                feature=feats[j],
+                mean=float(mean[j]),
+                std=float(mat[:, j].std()),
+                sign_flip_rate=flips,
+                rank_std=float(ranks[:, j].std()) if ranks.shape[0] > 1 else 0.0,
+            )
+        )
+    for fa, fb, val in res.folds[-1].interactions[:10]:
+        out.top_interactions.append(tp.Interaction(feature_a=fa, feature_b=fb, value=val))
+    return out
+
+
 def _skill_of(task: str, pred: F64, y: F64, groups: NDArray[Any]) -> float:
     if task == "classification":
         a = metrics.auc(pred, y)
