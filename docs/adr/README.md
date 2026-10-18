@@ -42,3 +42,4 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0024](0024-virtual-ledgers-and-reconciliation.md) | Event-sourced virtual ledgers, broker-lot shadow ledger, and reconciliation with a break taxonomy | Accepted | 2026-10-18 |
 | [0025](0025-oms-risk-gate-and-kill-switches.md) | OMS, pre-trade gate, D30 routing and margin guard, latched kill switches, and dead-man checks | Accepted | 2026-10-18 |
 | [0026](0026-strategy-runtime-and-orb-baseline.md) | Python strategy runtime on `tbcore.strategy`, intents over the bus, and the ORB baseline | Accepted | 2026-10-18 |
+| [0027](0027-monitoring-ops-slice.md) | Monitoring ops slice: one alert router, bus alerts bridged by the monitor, daily reports as alerts | Accepted | 2026-10-18 |

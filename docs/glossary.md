@@ -33,6 +33,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Demotion** | Automatic or manual move of a strategy to `paper` or `halted`. Re-promotion is always manual. |
 | **`event_time`** | When something happened in the world (trade, bar close, news publication). |
 | **Encroachment** | A manual sell (in the broker's app) that takes manual quantity below zero while a strategy holds the instrument, i.e. the owner sold strategy-attributed shares; raises a critical break (VP-016). |
+| **End-of-day summary** | Daily report 10 minutes after the close: fills, fees, reconciliation, breaks per account; realized P&L per owner; approved and rejected intents per strategy; alerts (MN-006). |
 | **Fail closed** | On uncertainty (stale data, disconnect, unknown order state), stop opening risk instead of guessing. |
 | **Feature lookback** | Number of bars (current included) a feature's value depends on; finite by rule DF-013, it sizes the online ring buffer and offline warm-up. |
 | **Feature set** | Versioned collection of feature definitions in `libs/py/tbcore`; identical in train, backtest, and live. |
@@ -71,12 +72,14 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Backward adjustment (as of t)** | Multiplying raw prices before each corporate action's ex-date by the action's factor, using only actions known and effective by t (DF-005). |
 | **`permId`** | IBKR's permanent order ID; the durable `broker_order_id` for IBKR orders (IB-003). |
 | **Point-in-time (PIT)** | Data as it was knowable at a given moment, including universe membership and corporate actions. |
+| **Pre-market checklist** | Daily report 15 minutes before the open: broker sessions, reconciliation, kill switches, halts, clock, active strategies; fails closed without execution's heartbeat (MN-005). |
 | **Protective order** | A broker-side stop (bracket/OTO leg, or a separate GTC stop at brokers without brackets) attached to every algorithmic entry so an outage never leaves naked risk (N5, OE-014). |
 | **Publication delay** | Per-feed time between a bar's close and when it counts as available (`available_at` = `ts_close` + delay): Alpaca 60 s, FMP daily 6 h (MD-003). |
 | **Promotion** | Audited, human-approved move of a strategy from `paper` to `live`, with step-up auth and a capital cap. |
 | **Price-scale invariance** | Property of a feature that does not change when the price (or volume) series is multiplied by a constant; required so adjustments never change feature values (DF-013). |
 | **Purged / embargoed CV** | Time-series cross-validation that removes training samples overlapping test labels (purge) and a gap after the test set (embargo). |
 | **Quarantine (symbol-day)** | An instrument's session that failed cross-source reconciliation; excluded from feature snapshots by default, never deleted, resolved by the owner (MD-010). |
+| **Quiet hours** | 22:00–07:00 New York: warning notifications are muted; critical alerts are never muted (MN-003). |
 | **Reconciliation** | Check that broker positions equal the sum of virtual ledgers plus the manual bucket; unexplained differences halt affected strategies. |
 | **Reconciliation (cross-source)** | The nightly comparison of Alpaca SIP daily bars with FMP EOD bars within fixed tolerances (MD-010). Distinct from ledger reconciliation. |
 | **Reservation** | Cash (buys) or own quantity (sells) the ledger holds for an intent's open orders, so concurrent intents cannot spend the same capital; shrinks with fills, released on terminal states (VP-020). |

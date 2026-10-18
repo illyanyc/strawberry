@@ -3,7 +3,7 @@ name = "monitor"
 version = "0.0.0"
 description = "Drift, divergence, health, alert routing, auto-demotion (section 13, Phases 2 and 5)"
 requires-python = ">=3.12,<3.13"
-dependencies = ["tbcore"]
+dependencies = ["tbcore", "tbcontracts", "nats-py==2.16.0"]
 
 [project.scripts]
 monitor = "tb_monitor.__main__:main"
@@ -17,3 +17,4 @@ packages = ["src/tb_monitor"]
 
 [tool.uv.sources]
 tbcore = { workspace = true }
+tbcontracts = { workspace = true }

@@ -474,3 +474,32 @@ func (e *Engine) LastPrice(instr string) decimal.Decimal {
 	}
 	return decimal.Zero
 }
+
+// DailyLossUtilization returns, per active strategy, the session loss as a fraction of its
+// effective daily loss limit (0 when in profit; alert DailyLossApproaching at 0.8, RM-005).
+func (e *Engine) DailyLossUtilization(ctx context.Context) map[string]float64 {
+	e.mu.Lock()
+	type item struct {
+		id  string
+		lim decimal.Decimal
+	}
+	var items []item
+	for id, s := range e.strategies {
+		if s.GetMode() == ordersv1.StrategyMode_STRATEGY_MODE_PAPER || s.GetMode() == ordersv1.StrategyMode_STRATEGY_MODE_LIVE {
+			if l := e.effective(s.GetBrokerAccountId(), id, false).MaxDailyLoss; l.IsPositive() {
+				items = append(items, item{id, l})
+			}
+		}
+	}
+	e.mu.Unlock()
+	out := map[string]float64{}
+	for _, it := range items {
+		pv, err := e.ledger.Portfolio(ctx, it.id)
+		if err != nil {
+			continue
+		}
+		loss := decimal.Max(decimal.Zero, pd(pv.GetDayPnl()).Neg())
+		out[it.id], _ = loss.Div(it.lim).Float64()
+	}
+	return out
+}

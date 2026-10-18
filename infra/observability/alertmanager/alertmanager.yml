@@ -8,12 +8,43 @@ route:
   group_interval: 2m
   repeat_interval: 4h
   routes:
+    # Critical alerts always page (quiet hours never apply), repeating until acknowledged.
     - matchers: [severity="critical"]
       receiver: pushover-critical
       repeat_interval: 30m
+    # Daily reports from the monitor (pre-market checklist, end-of-day summary), normal priority.
+    - matchers: [kind="report"]
+      receiver: pushover-report
+      group_wait: 0s
+      repeat_interval: 24h
+    # Warnings notify at normal priority outside quiet hours (section 13: quiet hours never
+    # suppress critical).
+    - matchers: [severity="warning"]
+      receiver: pushover-warning
+      mute_time_intervals: [quiet-hours]
+
+time_intervals:
+  - name: quiet-hours
+    time_intervals:
+      - times: [{ start_time: "22:00", end_time: "24:00" }, { start_time: "00:00", end_time: "07:00" }]
+        location: America/New_York
 
 receivers:
   - name: log-only
+  - name: pushover-warning
+    pushover_configs:
+      - user_key_file: /run/secrets/pushover_user_key
+        token_file: /run/secrets/pushover_app_token
+        priority: "0"
+        title: '[WARNING] {{ .CommonLabels.alertname }}'
+        message: '{{ range .Alerts }}{{ .Annotations.summary }}{{ "\n" }}{{ end }}'
+  - name: pushover-report
+    pushover_configs:
+      - user_key_file: /run/secrets/pushover_user_key
+        token_file: /run/secrets/pushover_app_token
+        priority: "-1"
+        title: '{{ .CommonLabels.alertname }}'
+        message: '{{ range .Alerts }}{{ .Annotations.summary }}{{ "\n" }}{{ end }}'
   - name: pushover-critical
     pushover_configs:
       - user_key_file: /run/secrets/pushover_user_key

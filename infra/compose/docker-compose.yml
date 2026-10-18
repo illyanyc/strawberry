@@ -94,6 +94,7 @@ secrets:
   nats_marketdata_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_marketdata_password" }
   nats_execution_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_execution_password" }
   nats_ledger_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_ledger_password" }
+  nats_monitor_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_monitor_password" }
   nats_strategy_runtime_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_strategy_runtime_password" }
   nats_ops_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/nats_ops_password" }
   valkey_users_acl: { file: "${TB_SECRETS_DIR:-../../.secrets}/valkey_users.acl" }
@@ -361,7 +362,9 @@ services:
     profiles: [core]
     image: strawberry/monitor:${TB_VERSION:-dev}
     build: { <<: *py-build, args: { SERVICE: monitor } }
-    environment: { <<: *common-env, TB_SERVICE: monitor }
+    depends_on: { bus-init: { condition: service_completed_successfully } }
+    environment: { <<: *common-env, TB_SERVICE: monitor, TB_NATS_URL: "nats://nats:4222", TB_NATS_USER: monitor, TB_ALERTMANAGER_URL: "http://alertmanager:9093" }
+    secrets: [nats_monitor_password]
     networks: [backend]
     healthcheck: *py-healthcheck
     deploy: { resources: { limits: { memory: 256m } } }

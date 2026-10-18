@@ -553,11 +553,17 @@ name = "monitor"
 version = "0.0.0"
 source = { editable = "services/monitor" }
 dependencies = [
+    { name = "nats-py" },
+    { name = "tbcontracts" },
     { name = "tbcore" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "tbcore", editable = "libs/py/tbcore" }]
+requires-dist = [
+    { name = "nats-py", specifier = "==2.16.0" },
+    { name = "tbcontracts", editable = "contracts/gen/python" },
+    { name = "tbcore", editable = "libs/py/tbcore" },
+]
 
 [[package]]
 name = "mypy"

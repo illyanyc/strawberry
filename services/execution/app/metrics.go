@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -21,11 +22,12 @@ var (
 	descHalts     = prometheus.NewDesc("tb_execution_halts_active", "Active strategy/instrument halts.", nil, nil)
 	descDecisions = prometheus.NewDesc("tb_execution_decisions", "Risk decisions held in memory by outcome (approved or first failed check).", []string{"outcome"}, nil)
 	descRuntime   = prometheus.NewDesc("tb_execution_runtime_heartbeat_age_seconds", "Age of the last strategy-runtime heartbeat.", nil, nil)
+	descLoss      = prometheus.NewDesc("tb_execution_daily_loss_utilization", "Session loss as a fraction of the strategy's daily loss limit (RM-005).", []string{"strategy"}, nil)
 	descDayTrades = prometheus.NewDesc("tb_execution_day_trades", "Rolling five-session day-trade count per account (RM-008 metric).", []string{"account"}, nil)
 )
 
 func (c collector) Describe(ch chan<- *prometheus.Desc) {
-	for _, d := range []*prometheus.Desc{descEnabled, descAccepting, descOpen, descStuck, descUnknown, descKills, descHalts, descDecisions, descRuntime, descDayTrades} {
+	for _, d := range []*prometheus.Desc{descEnabled, descAccepting, descOpen, descStuck, descUnknown, descKills, descHalts, descDecisions, descRuntime, descDayTrades, descLoss} {
 		ch <- d
 	}
 }
@@ -55,4 +57,9 @@ func (c collector) Collect(ch chan<- prometheus.Metric) {
 		ch <- prometheus.MustNewConstMetric(descDecisions, prometheus.GaugeValue, float64(v), k)
 	}
 	ch <- prometheus.MustNewConstMetric(descRuntime, prometheus.GaugeValue, m.RuntimeAge.Seconds())
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	for id, v := range c.e.DailyLossUtilization(ctx) {
+		ch <- prometheus.MustNewConstMetric(descLoss, prometheus.GaugeValue, v, id)
+	}
 }

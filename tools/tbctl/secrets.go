@@ -35,6 +35,10 @@ var natsUsers = map[string]struct{ pub, sub []string }{
 	// strategies' ledger updates (ADR-0026).
 	"strategy_runtime": {pub: []string{"ord.intent", "sys.health.strategy-runtime", "alert.>", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
 		sub: []string{"_INBOX.>", "md.bar.>", "ledger.update.>"}},
+	// The monitor forwards bus alerts to Alertmanager and builds daily reports from order-path and
+	// ledger events (section 13).
+	"monitor": {pub: []string{"alert.>", "sys.health.monitor", "$JS.API.CONSUMER.>", "$JS.API.STREAM.INFO.>", "$JS.API.INFO", "$JS.ACK.>"},
+		sub: []string{"_INBOX.>", "alert.>", "sys.health.>", "recon.result.>", "ord.decision", "exec.>", "ledger.update.>"}},
 	"ops": {pub: []string{">"}, sub: []string{">"}},
 }
 
