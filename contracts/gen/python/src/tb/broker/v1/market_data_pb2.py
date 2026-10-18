@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from tb.marketdata.v1 import marketdata_pb2 as tb_dot_marketdata_dot_v1_dot_marketdata__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1etb/broker/v1/market_data.proto\x12\x0ctb.broker.v1\x1a!tb/marketdata/v1/marketdata.proto\"\xe0\x01\n\x18GetHistoricalBarsRequest\x12\x18\n\x07symbols\x18\x01 \x03(\tR\x07symbols\x12\x39\n\ttimeframe\x18\x02 \x01(\x0e\x32\x1b.tb.marketdata.v1.TimeframeR\ttimeframe\x12\x14\n\x05start\x18\x03 \x01(\x03R\x05start\x12\x10\n\x03\x65nd\x18\x04 \x01(\x03R\x03\x65nd\x12\x12\n\x04\x66\x65\x65\x64\x18\x05 \x01(\tR\x04\x66\x65\x65\x64\x12\x1d\n\npage_token\x18\x06 \x01(\tR\tpageToken\x12\x14\n\x05limit\x18\x07 \x01(\rR\x05limit\"n\n\x19GetHistoricalBarsResponse\x12)\n\x04\x62\x61rs\x18\x01 \x03(\x0b\x32\x15.tb.marketdata.v1.BarR\x04\x62\x61rs\x12&\n\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"u\n\x0cSubscription\x12\x12\n\x04\x62\x61rs\x18\x01 \x03(\tR\x04\x62\x61rs\x12!\n\x0cupdated_bars\x18\x02 \x03(\tR\x0bupdatedBars\x12\x16\n\x06quotes\x18\x03 \x03(\tR\x06quotes\x12\x16\n\x06trades\x18\x04 \x03(\tR\x06trades\"\xa5\x01\n\x17StreamMarketDataRequest\x12\x12\n\x04\x66\x65\x65\x64\x18\x01 \x01(\tR\x04\x66\x65\x65\x64\x12\x38\n\tsubscribe\x18\x02 \x01(\x0b\x32\x1a.tb.broker.v1.SubscriptionR\tsubscribe\x12<\n\x0bunsubscribe\x18\x03 \x01(\x0b\x32\x1a.tb.broker.v1.SubscriptionR\x0bunsubscribe\"\x87\x02\n\nFeedStatus\x12\x12\n\x04\x66\x65\x65\x64\x18\x01 \x01(\tR\x04\x66\x65\x65\x64\x12-\n\x05state\x18\x02 \x01(\x0e\x32\x17.tb.broker.v1.FeedStateR\x05state\x12&\n\x0flast_message_at\x18\x03 \x01(\x03R\rlastMessageAt\x12\'\n\x0f\x63onnected_since\x18\x04 \x01(\x03R\x0e\x63onnectedSince\x12\x1e\n\nreconnects\x18\x05 \x01(\x04R\nreconnects\x12-\n\x12subscribed_symbols\x18\x06 \x01(\rR\x11subscribedSymbols\x12\x16\n\x06\x64\x65tail\x18\x07 \x01(\tR\x06\x64\x65tail\"\x9e\x02\n\x18StreamMarketDataResponse\x12)\n\x03\x62\x61r\x18\x01 \x01(\x0b\x32\x15.tb.marketdata.v1.BarH\x00R\x03\x62\x61r\x12\x38\n\x0bupdated_bar\x18\x02 \x01(\x0b\x32\x15.tb.marketdata.v1.BarH\x00R\nupdatedBar\x12/\n\x05quote\x18\x03 \x01(\x0b\x32\x17.tb.marketdata.v1.QuoteH\x00R\x05quote\x12/\n\x05trade\x18\x04 \x01(\x0b\x32\x17.tb.marketdata.v1.TradeH\x00R\x05trade\x12\x32\n\x06status\x18\x05 \x01(\x0b\x32\x18.tb.broker.v1.FeedStatusH\x00R\x06statusB\x07\n\x05\x65vent\"\xd4\x02\n\x05\x41sset\x12\x16\n\x06symbol\x18\x01 \x01(\tR\x06symbol\x12&\n\x0f\x62roker_asset_id\x18\x02 \x01(\tR\rbrokerAssetId\x12\x1a\n\x08\x65xchange\x18\x03 \x01(\tR\x08\x65xchange\x12\x1f\n\x0b\x61sset_class\x18\x04 \x01(\tR\nassetClass\x12\x12\n\x04name\x18\x05 \x01(\tR\x04name\x12\x16\n\x06status\x18\x06 \x01(\tR\x06status\x12\x1a\n\x08tradable\x18\x07 \x01(\x08R\x08tradable\x12\x1c\n\tshortable\x18\x08 \x01(\x08R\tshortable\x12$\n\x0e\x65\x61sy_to_borrow\x18\t \x01(\x08R\x0c\x65\x61syToBorrow\x12\"\n\x0c\x66ractionable\x18\n \x01(\x08R\x0c\x66ractionable\x12\x1e\n\nmarginable\x18\x0b \x01(\x08R\nmarginable\">\n\x11ListAssetsRequest\x12)\n\x10include_inactive\x18\x01 \x01(\x08R\x0fincludeInactive\"V\n\x12ListAssetsResponse\x12+\n\x06\x61ssets\x18\x01 \x03(\x0b\x32\x13.tb.broker.v1.AssetR\x06\x61ssets\x12\x13\n\x05\x61s_of\x18\x02 \x01(\x03R\x04\x61sOf\"^\n\x1aGetCorporateActionsRequest\x12\x18\n\x07symbols\x18\x01 \x03(\tR\x07symbols\x12\x14\n\x05start\x18\x02 \x01(\x03R\x05start\x12\x10\n\x03\x65nd\x18\x03 \x01(\x03R\x03\x65nd\"Z\n\x1bGetCorporateActionsResponse\x12;\n\x07\x61\x63tions\x18\x01 \x03(\x0b\x32!.tb.marketdata.v1.CorporateActionR\x07\x61\x63tions\"\x16\n\x14GetFeedStatusRequest\"G\n\x15GetFeedStatusResponse\x12.\n\x05\x66\x65\x65\x64s\x18\x01 \x03(\x0b\x32\x18.tb.broker.v1.FeedStatusR\x05\x66\x65\x65\x64s*\xb6\x01\n\tFeedState\x12\x1a\n\x16\x46\x45\x45\x44_STATE_UNSPECIFIED\x10\x00\x12\x19\n\x15\x46\x45\x45\x44_STATE_CONNECTING\x10\x01\x12\x18\n\x14\x46\x45\x45\x44_STATE_CONNECTED\x10\x02\x12\x1b\n\x17\x46\x45\x45\x44_STATE_DISCONNECTED\x10\x03\x12\x1f\n\x1b\x46\x45\x45\x44_STATE_CONNECTION_LIMIT\x10\x04\x12\x1a\n\x16\x46\x45\x45\x44_STATE_AUTH_FAILED\x10\x05\x32\xfd\x03\n\x17\x42rokerMarketDataService\x12\x64\n\x11GetHistoricalBars\x12&.tb.broker.v1.GetHistoricalBarsRequest\x1a\'.tb.broker.v1.GetHistoricalBarsResponse\x12\x65\n\x10StreamMarketData\x12%.tb.broker.v1.StreamMarketDataRequest\x1a&.tb.broker.v1.StreamMarketDataResponse(\x01\x30\x01\x12O\n\nListAssets\x12\x1f.tb.broker.v1.ListAssetsRequest\x1a .tb.broker.v1.ListAssetsResponse\x12j\n\x13GetCorporateActions\x12(.tb.broker.v1.GetCorporateActionsRequest\x1a).tb.broker.v1.GetCorporateActionsResponse\x12X\n\rGetFeedStatus\x12\".tb.broker.v1.GetFeedStatusRequest\x1a#.tb.broker.v1.GetFeedStatusResponseB\xbc\x01\n\x10\x63om.tb.broker.v1B\x0fMarketDataProtoP\x01ZEgithub.com/illyanyc/strawberry/contracts/gen/go/tb/broker/v1;brokerv1\xa2\x02\x03TBX\xaa\x02\x0cTb.Broker.V1\xca\x02\x0cTb\\Broker\\V1\xe2\x02\x18Tb\\Broker\\V1\\GPBMetadata\xea\x02\x0eTb::Broker::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1etb/broker/v1/market_data.proto\x12\x0ctb.broker.v1\x1a!tb/marketdata/v1/marketdata.proto\"\xb0\x01\n\x0eGetNewsRequest\x12\x18\n\x07symbols\x18\x01 \x03(\tR\x07symbols\x12\x14\n\x05start\x18\x02 \x01(\x03R\x05start\x12\x10\n\x03\x65nd\x18\x03 \x01(\x03R\x03\x65nd\x12\x1d\n\npage_token\x18\x04 \x01(\tR\tpageToken\x12\x14\n\x05limit\x18\x05 \x01(\rR\x05limit\x12\'\n\x0finclude_content\x18\x06 \x01(\x08R\x0eincludeContent\"\x87\x02\n\x0bNewsArticle\x12\x0e\n\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n\x08headline\x18\x02 \x01(\tR\x08headline\x12\x18\n\x07summary\x18\x03 \x01(\tR\x07summary\x12\x18\n\x07\x63ontent\x18\x04 \x01(\tR\x07\x63ontent\x12\x16\n\x06\x61uthor\x18\x05 \x01(\tR\x06\x61uthor\x12\x16\n\x06source\x18\x06 \x01(\tR\x06source\x12\x10\n\x03url\x18\x07 \x01(\tR\x03url\x12\x18\n\x07symbols\x18\x08 \x03(\tR\x07symbols\x12\x1d\n\ncreated_at\x18\t \x01(\x03R\tcreatedAt\x12\x1d\n\nupdated_at\x18\n \x01(\x03R\tupdatedAt\"p\n\x0fGetNewsResponse\x12\x35\n\x08\x61rticles\x18\x01 \x03(\x0b\x32\x19.tb.broker.v1.NewsArticleR\x08\x61rticles\x12&\n\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xe0\x01\n\x18GetHistoricalBarsRequest\x12\x18\n\x07symbols\x18\x01 \x03(\tR\x07symbols\x12\x39\n\ttimeframe\x18\x02 \x01(\x0e\x32\x1b.tb.marketdata.v1.TimeframeR\ttimeframe\x12\x14\n\x05start\x18\x03 \x01(\x03R\x05start\x12\x10\n\x03\x65nd\x18\x04 \x01(\x03R\x03\x65nd\x12\x12\n\x04\x66\x65\x65\x64\x18\x05 \x01(\tR\x04\x66\x65\x65\x64\x12\x1d\n\npage_token\x18\x06 \x01(\tR\tpageToken\x12\x14\n\x05limit\x18\x07 \x01(\rR\x05limit\"n\n\x19GetHistoricalBarsResponse\x12)\n\x04\x62\x61rs\x18\x01 \x03(\x0b\x32\x15.tb.marketdata.v1.BarR\x04\x62\x61rs\x12&\n\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"u\n\x0cSubscription\x12\x12\n\x04\x62\x61rs\x18\x01 \x03(\tR\x04\x62\x61rs\x12!\n\x0cupdated_bars\x18\x02 \x03(\tR\x0bupdatedBars\x12\x16\n\x06quotes\x18\x03 \x03(\tR\x06quotes\x12\x16\n\x06trades\x18\x04 \x03(\tR\x06trades\"\xa5\x01\n\x17StreamMarketDataRequest\x12\x12\n\x04\x66\x65\x65\x64\x18\x01 \x01(\tR\x04\x66\x65\x65\x64\x12\x38\n\tsubscribe\x18\x02 \x01(\x0b\x32\x1a.tb.broker.v1.SubscriptionR\tsubscribe\x12<\n\x0bunsubscribe\x18\x03 \x01(\x0b\x32\x1a.tb.broker.v1.SubscriptionR\x0bunsubscribe\"\x87\x02\n\nFeedStatus\x12\x12\n\x04\x66\x65\x65\x64\x18\x01 \x01(\tR\x04\x66\x65\x65\x64\x12-\n\x05state\x18\x02 \x01(\x0e\x32\x17.tb.broker.v1.FeedStateR\x05state\x12&\n\x0flast_message_at\x18\x03 \x01(\x03R\rlastMessageAt\x12\'\n\x0f\x63onnected_since\x18\x04 \x01(\x03R\x0e\x63onnectedSince\x12\x1e\n\nreconnects\x18\x05 \x01(\x04R\nreconnects\x12-\n\x12subscribed_symbols\x18\x06 \x01(\rR\x11subscribedSymbols\x12\x16\n\x06\x64\x65tail\x18\x07 \x01(\tR\x06\x64\x65tail\"\x9e\x02\n\x18StreamMarketDataResponse\x12)\n\x03\x62\x61r\x18\x01 \x01(\x0b\x32\x15.tb.marketdata.v1.BarH\x00R\x03\x62\x61r\x12\x38\n\x0bupdated_bar\x18\x02 \x01(\x0b\x32\x15.tb.marketdata.v1.BarH\x00R\nupdatedBar\x12/\n\x05quote\x18\x03 \x01(\x0b\x32\x17.tb.marketdata.v1.QuoteH\x00R\x05quote\x12/\n\x05trade\x18\x04 \x01(\x0b\x32\x17.tb.marketdata.v1.TradeH\x00R\x05trade\x12\x32\n\x06status\x18\x05 \x01(\x0b\x32\x18.tb.broker.v1.FeedStatusH\x00R\x06statusB\x07\n\x05\x65vent\"\xd4\x02\n\x05\x41sset\x12\x16\n\x06symbol\x18\x01 \x01(\tR\x06symbol\x12&\n\x0f\x62roker_asset_id\x18\x02 \x01(\tR\rbrokerAssetId\x12\x1a\n\x08\x65xchange\x18\x03 \x01(\tR\x08\x65xchange\x12\x1f\n\x0b\x61sset_class\x18\x04 \x01(\tR\nassetClass\x12\x12\n\x04name\x18\x05 \x01(\tR\x04name\x12\x16\n\x06status\x18\x06 \x01(\tR\x06status\x12\x1a\n\x08tradable\x18\x07 \x01(\x08R\x08tradable\x12\x1c\n\tshortable\x18\x08 \x01(\x08R\tshortable\x12$\n\x0e\x65\x61sy_to_borrow\x18\t \x01(\x08R\x0c\x65\x61syToBorrow\x12\"\n\x0c\x66ractionable\x18\n \x01(\x08R\x0c\x66ractionable\x12\x1e\n\nmarginable\x18\x0b \x01(\x08R\nmarginable\">\n\x11ListAssetsRequest\x12)\n\x10include_inactive\x18\x01 \x01(\x08R\x0fincludeInactive\"V\n\x12ListAssetsResponse\x12+\n\x06\x61ssets\x18\x01 \x03(\x0b\x32\x13.tb.broker.v1.AssetR\x06\x61ssets\x12\x13\n\x05\x61s_of\x18\x02 \x01(\x03R\x04\x61sOf\"^\n\x1aGetCorporateActionsRequest\x12\x18\n\x07symbols\x18\x01 \x03(\tR\x07symbols\x12\x14\n\x05start\x18\x02 \x01(\x03R\x05start\x12\x10\n\x03\x65nd\x18\x03 \x01(\x03R\x03\x65nd\"Z\n\x1bGetCorporateActionsResponse\x12;\n\x07\x61\x63tions\x18\x01 \x03(\x0b\x32!.tb.marketdata.v1.CorporateActionR\x07\x61\x63tions\"\x16\n\x14GetFeedStatusRequest\"G\n\x15GetFeedStatusResponse\x12.\n\x05\x66\x65\x65\x64s\x18\x01 \x03(\x0b\x32\x18.tb.broker.v1.FeedStatusR\x05\x66\x65\x65\x64s*\xb6\x01\n\tFeedState\x12\x1a\n\x16\x46\x45\x45\x44_STATE_UNSPECIFIED\x10\x00\x12\x19\n\x15\x46\x45\x45\x44_STATE_CONNECTING\x10\x01\x12\x18\n\x14\x46\x45\x45\x44_STATE_CONNECTED\x10\x02\x12\x1b\n\x17\x46\x45\x45\x44_STATE_DISCONNECTED\x10\x03\x12\x1f\n\x1b\x46\x45\x45\x44_STATE_CONNECTION_LIMIT\x10\x04\x12\x1a\n\x16\x46\x45\x45\x44_STATE_AUTH_FAILED\x10\x05\x32\xc5\x04\n\x17\x42rokerMarketDataService\x12\x64\n\x11GetHistoricalBars\x12&.tb.broker.v1.GetHistoricalBarsRequest\x1a\'.tb.broker.v1.GetHistoricalBarsResponse\x12\x65\n\x10StreamMarketData\x12%.tb.broker.v1.StreamMarketDataRequest\x1a&.tb.broker.v1.StreamMarketDataResponse(\x01\x30\x01\x12O\n\nListAssets\x12\x1f.tb.broker.v1.ListAssetsRequest\x1a .tb.broker.v1.ListAssetsResponse\x12j\n\x13GetCorporateActions\x12(.tb.broker.v1.GetCorporateActionsRequest\x1a).tb.broker.v1.GetCorporateActionsResponse\x12X\n\rGetFeedStatus\x12\".tb.broker.v1.GetFeedStatusRequest\x1a#.tb.broker.v1.GetFeedStatusResponse\x12\x46\n\x07GetNews\x12\x1c.tb.broker.v1.GetNewsRequest\x1a\x1d.tb.broker.v1.GetNewsResponseB\xbc\x01\n\x10\x63om.tb.broker.v1B\x0fMarketDataProtoP\x01ZEgithub.com/illyanyc/strawberry/contracts/gen/go/tb/broker/v1;brokerv1\xa2\x02\x03TBX\xaa\x02\x0cTb.Broker.V1\xca\x02\x0cTb\\Broker\\V1\xe2\x02\x18Tb\\Broker\\V1\\GPBMetadata\xea\x02\x0eTb::Broker::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,34 +33,40 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'tb.broker.v1.market_data_pb
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\n\020com.tb.broker.v1B\017MarketDataProtoP\001ZEgithub.com/illyanyc/strawberry/contracts/gen/go/tb/broker/v1;brokerv1\242\002\003TBX\252\002\014Tb.Broker.V1\312\002\014Tb\\Broker\\V1\342\002\030Tb\\Broker\\V1\\GPBMetadata\352\002\016Tb::Broker::V1'
-  _globals['_FEEDSTATE']._serialized_start=2045
-  _globals['_FEEDSTATE']._serialized_end=2227
-  _globals['_GETHISTORICALBARSREQUEST']._serialized_start=84
-  _globals['_GETHISTORICALBARSREQUEST']._serialized_end=308
-  _globals['_GETHISTORICALBARSRESPONSE']._serialized_start=310
-  _globals['_GETHISTORICALBARSRESPONSE']._serialized_end=420
-  _globals['_SUBSCRIPTION']._serialized_start=422
-  _globals['_SUBSCRIPTION']._serialized_end=539
-  _globals['_STREAMMARKETDATAREQUEST']._serialized_start=542
-  _globals['_STREAMMARKETDATAREQUEST']._serialized_end=707
-  _globals['_FEEDSTATUS']._serialized_start=710
-  _globals['_FEEDSTATUS']._serialized_end=973
-  _globals['_STREAMMARKETDATARESPONSE']._serialized_start=976
-  _globals['_STREAMMARKETDATARESPONSE']._serialized_end=1262
-  _globals['_ASSET']._serialized_start=1265
-  _globals['_ASSET']._serialized_end=1605
-  _globals['_LISTASSETSREQUEST']._serialized_start=1607
-  _globals['_LISTASSETSREQUEST']._serialized_end=1669
-  _globals['_LISTASSETSRESPONSE']._serialized_start=1671
-  _globals['_LISTASSETSRESPONSE']._serialized_end=1757
-  _globals['_GETCORPORATEACTIONSREQUEST']._serialized_start=1759
-  _globals['_GETCORPORATEACTIONSREQUEST']._serialized_end=1853
-  _globals['_GETCORPORATEACTIONSRESPONSE']._serialized_start=1855
-  _globals['_GETCORPORATEACTIONSRESPONSE']._serialized_end=1945
-  _globals['_GETFEEDSTATUSREQUEST']._serialized_start=1947
-  _globals['_GETFEEDSTATUSREQUEST']._serialized_end=1969
-  _globals['_GETFEEDSTATUSRESPONSE']._serialized_start=1971
-  _globals['_GETFEEDSTATUSRESPONSE']._serialized_end=2042
-  _globals['_BROKERMARKETDATASERVICE']._serialized_start=2230
-  _globals['_BROKERMARKETDATASERVICE']._serialized_end=2739
+  _globals['_FEEDSTATE']._serialized_start=2604
+  _globals['_FEEDSTATE']._serialized_end=2786
+  _globals['_GETNEWSREQUEST']._serialized_start=84
+  _globals['_GETNEWSREQUEST']._serialized_end=260
+  _globals['_NEWSARTICLE']._serialized_start=263
+  _globals['_NEWSARTICLE']._serialized_end=526
+  _globals['_GETNEWSRESPONSE']._serialized_start=528
+  _globals['_GETNEWSRESPONSE']._serialized_end=640
+  _globals['_GETHISTORICALBARSREQUEST']._serialized_start=643
+  _globals['_GETHISTORICALBARSREQUEST']._serialized_end=867
+  _globals['_GETHISTORICALBARSRESPONSE']._serialized_start=869
+  _globals['_GETHISTORICALBARSRESPONSE']._serialized_end=979
+  _globals['_SUBSCRIPTION']._serialized_start=981
+  _globals['_SUBSCRIPTION']._serialized_end=1098
+  _globals['_STREAMMARKETDATAREQUEST']._serialized_start=1101
+  _globals['_STREAMMARKETDATAREQUEST']._serialized_end=1266
+  _globals['_FEEDSTATUS']._serialized_start=1269
+  _globals['_FEEDSTATUS']._serialized_end=1532
+  _globals['_STREAMMARKETDATARESPONSE']._serialized_start=1535
+  _globals['_STREAMMARKETDATARESPONSE']._serialized_end=1821
+  _globals['_ASSET']._serialized_start=1824
+  _globals['_ASSET']._serialized_end=2164
+  _globals['_LISTASSETSREQUEST']._serialized_start=2166
+  _globals['_LISTASSETSREQUEST']._serialized_end=2228
+  _globals['_LISTASSETSRESPONSE']._serialized_start=2230
+  _globals['_LISTASSETSRESPONSE']._serialized_end=2316
+  _globals['_GETCORPORATEACTIONSREQUEST']._serialized_start=2318
+  _globals['_GETCORPORATEACTIONSREQUEST']._serialized_end=2412
+  _globals['_GETCORPORATEACTIONSRESPONSE']._serialized_start=2414
+  _globals['_GETCORPORATEACTIONSRESPONSE']._serialized_end=2504
+  _globals['_GETFEEDSTATUSREQUEST']._serialized_start=2506
+  _globals['_GETFEEDSTATUSREQUEST']._serialized_end=2528
+  _globals['_GETFEEDSTATUSRESPONSE']._serialized_start=2530
+  _globals['_GETFEEDSTATUSRESPONSE']._serialized_end=2601
+  _globals['_BROKERMARKETDATASERVICE']._serialized_start=2789
+  _globals['_BROKERMARKETDATASERVICE']._serialized_end=3370
 # @@protoc_insertion_point(module_scope)

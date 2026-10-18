@@ -1,6 +1,8 @@
 syntax = "proto3";
 
 // Alternative and context data produced by `context-data` (bus subjects ctx.<kind>, lake).
+// marketdata, the only lake writer (D4), persists every event on ctx.> to the `context` dataset
+// (ADR-0029). Point-in-time rules per kind are in docs/business-logic/context-data.md (CX-).
 package tb.context.v1;
 
 import "google/protobuf/struct.proto";
@@ -8,12 +10,24 @@ import "tb/common/v1/common.proto";
 
 enum ContextKind {
   CONTEXT_KIND_UNSPECIFIED = 0;
+  // Alpaca (Benzinga) headline with symbols; text is untrusted.
   CONTEXT_KIND_NEWS = 1;
+  // ALFRED/FRED observation of one series period at one vintage.
   CONTEXT_KIND_MACRO = 2;
+  // FMP earnings schedule or result for one instrument and report.
   CONTEXT_KIND_EARNINGS = 3;
+  // FMP economic-calendar event (schedule, consensus, actual).
   CONTEXT_KIND_CALENDAR = 4;
+  // FMP financial-statement snapshot (one fetch, restated in place by the vendor).
   CONTEXT_KIND_FUNDAMENTALS = 5;
+  // Point-in-time regime labels (versioned).
   CONTEXT_KIND_REGIME = 6;
+  // FINRA consolidated short interest for one settlement date.
+  CONTEXT_KIND_SHORT_INTEREST = 7;
+  // SEC EDGAR filing metadata (form, accession, acceptance time).
+  CONTEXT_KIND_FILING = 8;
+  // Sentiment score of one news item by one model version, with its contamination flag.
+  CONTEXT_KIND_NEWS_SENTIMENT = 9;
 }
 
 message ContextEvent {
@@ -23,8 +37,14 @@ message ContextEvent {
   tb.common.v1.Provenance provenance = 4;
   // Kind-specific payload. Text in here is untrusted input (prompt-injection risk for the assistant).
   google.protobuf.Struct payload = 5;
-  // Source identifier, e.g. "alpaca.news", "fmp", "fred".
+  // Source identifier, e.g. "alpaca.news", "fmp", "alfred", "finra", "edgar".
   string source = 6;
   // Vintage for revised series (rule DF-010); empty for unrevised data.
   string vintage = 7;
+  // Stable identity of the logical record across snapshots and revisions (e.g. the news ID, the
+  // series and period, the filing accession). Point-in-time reads keep, per record_key and
+  // instrument, the version with the latest available_at <= as_of (CX-002).
+  string record_key = 8;
+  // Ticker symbols as reported by the source (instrument_ids are resolved as of event time).
+  repeated string symbols = 9;
 }

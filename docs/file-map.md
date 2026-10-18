@@ -70,7 +70,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/research-report.md` | Exists | Deep research report (executive summary, decisions that differ from defaults); index for `docs/research/` |
 | `docs/research/` | Exists | Research sections `01`–`10`; `09-decisions.md` resolves D1–D27 and proposes D28–D31 (accepted by the owner) |
 | `docs/glossary.md` | Exists | Domain terms |
-| `docs/decisions.md` | Exists | Decision register D1–D34: status (Accepted (research) / Accepted), chosen option, ADR or research link |
+| `docs/decisions.md` | Exists | Decision register D1–D51: status (Accepted (research) / Accepted), chosen option, ADR or research link |
 | `docs/architecture/overview.md` | Exists | Components, data flows, the two loops, cross-cutting design, bus subjects |
 | `docs/architecture/service-agents.md` | Exists | Convention and template for per-service `AGENTS.md` |
 | `docs/business-logic/README.md` | Exists | Index of domain docs, rule-ID scheme, how to write rules |
@@ -118,6 +118,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0026-strategy-runtime-and-orb-baseline.md` | Exists | ADR (D44): strategy API in `tbcore.strategy`, Python strategy runtime publishing intents on the bus, ORB baseline |
 | `docs/adr/0027-monitoring-ops-slice.md` | Exists | ADR (D45): Alertmanager as the only router, monitor bridge for bus alerts, daily reports, trading rules and dashboard |
 | `docs/adr/0028-ui-trading-slice-charts-and-bff.md` | Exists | ADR (D46, settles D12 price charts): Lightweight Charts under the strict CSP, protojson BFF resources typed by generated `*Json` types, new owner actions, SSE chart stream |
+| `docs/adr/0032-context-data-pipeline-and-point-in-time-rules.md` | Exists | ADR (D50): context data through `ctx.<kind>` into the lake via marketdata, record keys, snapshot stamping, per-source availability rules, sources, `tbcore.context` |
 | `docs/adr/0008-event-bus-nats-jetstream.md` | Exists | ADR (D2): NATS JetStream, `sync_interval: always`, stream layout, outbox |
 | `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, IBKR weekly 2FA / manual VNC login / gateway outages (`ibkr-weekly-2fa.md`), broker outage, market data (stale, slow, gaps, reconciliation breaches, corporate-action disputes), IBKR weekly 2FA, ledger reconciliation break, kill switches, halts, and dead-man alerts |
 | `docs/threat-model.md` | Exists | Assets, actors, entry points, STRIDE table mapped to SE-/OP- rules, residual risks |

@@ -91,6 +91,268 @@ func (FeedState) EnumDescriptor() ([]byte, []int) {
 	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{0}
 }
 
+type GetNewsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Empty means all symbols.
+	Symbols []string `protobuf:"bytes,1,rep,name=symbols,proto3" json:"symbols,omitempty"`
+	// UTC ns, inclusive start and exclusive end on the article's first-publication time.
+	Start     int64  `protobuf:"varint,2,opt,name=start,proto3" json:"start,omitempty"`
+	End       int64  `protobuf:"varint,3,opt,name=end,proto3" json:"end,omitempty"`
+	PageToken string `protobuf:"bytes,4,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	// Maximum articles per page (server caps it at the vendor limit, 50 for Alpaca).
+	Limit uint32 `protobuf:"varint,5,opt,name=limit,proto3" json:"limit,omitempty"`
+	// Return the article body (large; only when licensed and enabled, CX-010).
+	IncludeContent bool `protobuf:"varint,6,opt,name=include_content,json=includeContent,proto3" json:"include_content,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetNewsRequest) Reset() {
+	*x = GetNewsRequest{}
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetNewsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetNewsRequest) ProtoMessage() {}
+
+func (x *GetNewsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetNewsRequest.ProtoReflect.Descriptor instead.
+func (*GetNewsRequest) Descriptor() ([]byte, []int) {
+	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *GetNewsRequest) GetSymbols() []string {
+	if x != nil {
+		return x.Symbols
+	}
+	return nil
+}
+
+func (x *GetNewsRequest) GetStart() int64 {
+	if x != nil {
+		return x.Start
+	}
+	return 0
+}
+
+func (x *GetNewsRequest) GetEnd() int64 {
+	if x != nil {
+		return x.End
+	}
+	return 0
+}
+
+func (x *GetNewsRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+func (x *GetNewsRequest) GetLimit() uint32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *GetNewsRequest) GetIncludeContent() bool {
+	if x != nil {
+		return x.IncludeContent
+	}
+	return false
+}
+
+type NewsArticle struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Vendor article ID (stable across updates).
+	Id       string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Headline string `protobuf:"bytes,2,opt,name=headline,proto3" json:"headline,omitempty"`
+	Summary  string `protobuf:"bytes,3,opt,name=summary,proto3" json:"summary,omitempty"`
+	// HTML body when requested, else empty.
+	Content string `protobuf:"bytes,4,opt,name=content,proto3" json:"content,omitempty"`
+	Author  string `protobuf:"bytes,5,opt,name=author,proto3" json:"author,omitempty"`
+	// Upstream provider, e.g. "benzinga".
+	Source  string   `protobuf:"bytes,6,opt,name=source,proto3" json:"source,omitempty"`
+	Url     string   `protobuf:"bytes,7,opt,name=url,proto3" json:"url,omitempty"`
+	Symbols []string `protobuf:"bytes,8,rep,name=symbols,proto3" json:"symbols,omitempty"`
+	// First publication time (UTC ns). Point-in-time availability derives from this (CX-010).
+	CreatedAt int64 `protobuf:"varint,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Last vendor update (UTC ns); never used for availability.
+	UpdatedAt     int64 `protobuf:"varint,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NewsArticle) Reset() {
+	*x = NewsArticle{}
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NewsArticle) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NewsArticle) ProtoMessage() {}
+
+func (x *NewsArticle) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NewsArticle.ProtoReflect.Descriptor instead.
+func (*NewsArticle) Descriptor() ([]byte, []int) {
+	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *NewsArticle) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *NewsArticle) GetHeadline() string {
+	if x != nil {
+		return x.Headline
+	}
+	return ""
+}
+
+func (x *NewsArticle) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *NewsArticle) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+func (x *NewsArticle) GetAuthor() string {
+	if x != nil {
+		return x.Author
+	}
+	return ""
+}
+
+func (x *NewsArticle) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *NewsArticle) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *NewsArticle) GetSymbols() []string {
+	if x != nil {
+		return x.Symbols
+	}
+	return nil
+}
+
+func (x *NewsArticle) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *NewsArticle) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+type GetNewsResponse struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Articles []*NewsArticle         `protobuf:"bytes,1,rep,name=articles,proto3" json:"articles,omitempty"`
+	// Empty when there are no more pages.
+	NextPageToken string `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetNewsResponse) Reset() {
+	*x = GetNewsResponse{}
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetNewsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetNewsResponse) ProtoMessage() {}
+
+func (x *GetNewsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetNewsResponse.ProtoReflect.Descriptor instead.
+func (*GetNewsResponse) Descriptor() ([]byte, []int) {
+	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetNewsResponse) GetArticles() []*NewsArticle {
+	if x != nil {
+		return x.Articles
+	}
+	return nil
+}
+
+func (x *GetNewsResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
 type GetHistoricalBarsRequest struct {
 	state     protoimpl.MessageState `protogen:"open.v1"`
 	Symbols   []string               `protobuf:"bytes,1,rep,name=symbols,proto3" json:"symbols,omitempty"`
@@ -109,7 +371,7 @@ type GetHistoricalBarsRequest struct {
 
 func (x *GetHistoricalBarsRequest) Reset() {
 	*x = GetHistoricalBarsRequest{}
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[0]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -121,7 +383,7 @@ func (x *GetHistoricalBarsRequest) String() string {
 func (*GetHistoricalBarsRequest) ProtoMessage() {}
 
 func (x *GetHistoricalBarsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[0]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -134,7 +396,7 @@ func (x *GetHistoricalBarsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetHistoricalBarsRequest.ProtoReflect.Descriptor instead.
 func (*GetHistoricalBarsRequest) Descriptor() ([]byte, []int) {
-	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{0}
+	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetHistoricalBarsRequest) GetSymbols() []string {
@@ -197,7 +459,7 @@ type GetHistoricalBarsResponse struct {
 
 func (x *GetHistoricalBarsResponse) Reset() {
 	*x = GetHistoricalBarsResponse{}
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[1]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -209,7 +471,7 @@ func (x *GetHistoricalBarsResponse) String() string {
 func (*GetHistoricalBarsResponse) ProtoMessage() {}
 
 func (x *GetHistoricalBarsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[1]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -222,7 +484,7 @@ func (x *GetHistoricalBarsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetHistoricalBarsResponse.ProtoReflect.Descriptor instead.
 func (*GetHistoricalBarsResponse) Descriptor() ([]byte, []int) {
-	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{1}
+	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetHistoricalBarsResponse) GetBars() []*v1.Bar {
@@ -251,7 +513,7 @@ type Subscription struct {
 
 func (x *Subscription) Reset() {
 	*x = Subscription{}
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[2]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -263,7 +525,7 @@ func (x *Subscription) String() string {
 func (*Subscription) ProtoMessage() {}
 
 func (x *Subscription) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[2]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -276,7 +538,7 @@ func (x *Subscription) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Subscription.ProtoReflect.Descriptor instead.
 func (*Subscription) Descriptor() ([]byte, []int) {
-	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{2}
+	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Subscription) GetBars() []string {
@@ -320,7 +582,7 @@ type StreamMarketDataRequest struct {
 
 func (x *StreamMarketDataRequest) Reset() {
 	*x = StreamMarketDataRequest{}
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[3]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -332,7 +594,7 @@ func (x *StreamMarketDataRequest) String() string {
 func (*StreamMarketDataRequest) ProtoMessage() {}
 
 func (x *StreamMarketDataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[3]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -345,7 +607,7 @@ func (x *StreamMarketDataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamMarketDataRequest.ProtoReflect.Descriptor instead.
 func (*StreamMarketDataRequest) Descriptor() ([]byte, []int) {
-	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{3}
+	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *StreamMarketDataRequest) GetFeed() string {
@@ -384,7 +646,7 @@ type FeedStatus struct {
 
 func (x *FeedStatus) Reset() {
 	*x = FeedStatus{}
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[4]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -396,7 +658,7 @@ func (x *FeedStatus) String() string {
 func (*FeedStatus) ProtoMessage() {}
 
 func (x *FeedStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[4]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -409,7 +671,7 @@ func (x *FeedStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedStatus.ProtoReflect.Descriptor instead.
 func (*FeedStatus) Descriptor() ([]byte, []int) {
-	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{4}
+	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *FeedStatus) GetFeed() string {
@@ -477,7 +739,7 @@ type StreamMarketDataResponse struct {
 
 func (x *StreamMarketDataResponse) Reset() {
 	*x = StreamMarketDataResponse{}
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[5]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -489,7 +751,7 @@ func (x *StreamMarketDataResponse) String() string {
 func (*StreamMarketDataResponse) ProtoMessage() {}
 
 func (x *StreamMarketDataResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[5]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -502,7 +764,7 @@ func (x *StreamMarketDataResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamMarketDataResponse.ProtoReflect.Descriptor instead.
 func (*StreamMarketDataResponse) Descriptor() ([]byte, []int) {
-	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{5}
+	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *StreamMarketDataResponse) GetEvent() isStreamMarketDataResponse_Event {
@@ -614,7 +876,7 @@ type Asset struct {
 
 func (x *Asset) Reset() {
 	*x = Asset{}
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[6]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -626,7 +888,7 @@ func (x *Asset) String() string {
 func (*Asset) ProtoMessage() {}
 
 func (x *Asset) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[6]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -639,7 +901,7 @@ func (x *Asset) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Asset.ProtoReflect.Descriptor instead.
 func (*Asset) Descriptor() ([]byte, []int) {
-	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{6}
+	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Asset) GetSymbol() string {
@@ -729,7 +991,7 @@ type ListAssetsRequest struct {
 
 func (x *ListAssetsRequest) Reset() {
 	*x = ListAssetsRequest{}
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[7]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -741,7 +1003,7 @@ func (x *ListAssetsRequest) String() string {
 func (*ListAssetsRequest) ProtoMessage() {}
 
 func (x *ListAssetsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[7]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -754,7 +1016,7 @@ func (x *ListAssetsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAssetsRequest.ProtoReflect.Descriptor instead.
 func (*ListAssetsRequest) Descriptor() ([]byte, []int) {
-	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{7}
+	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListAssetsRequest) GetIncludeInactive() bool {
@@ -774,7 +1036,7 @@ type ListAssetsResponse struct {
 
 func (x *ListAssetsResponse) Reset() {
 	*x = ListAssetsResponse{}
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[8]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -786,7 +1048,7 @@ func (x *ListAssetsResponse) String() string {
 func (*ListAssetsResponse) ProtoMessage() {}
 
 func (x *ListAssetsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[8]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -799,7 +1061,7 @@ func (x *ListAssetsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAssetsResponse.ProtoReflect.Descriptor instead.
 func (*ListAssetsResponse) Descriptor() ([]byte, []int) {
-	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{8}
+	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ListAssetsResponse) GetAssets() []*Asset {
@@ -828,7 +1090,7 @@ type GetCorporateActionsRequest struct {
 
 func (x *GetCorporateActionsRequest) Reset() {
 	*x = GetCorporateActionsRequest{}
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[9]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -840,7 +1102,7 @@ func (x *GetCorporateActionsRequest) String() string {
 func (*GetCorporateActionsRequest) ProtoMessage() {}
 
 func (x *GetCorporateActionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[9]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -853,7 +1115,7 @@ func (x *GetCorporateActionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCorporateActionsRequest.ProtoReflect.Descriptor instead.
 func (*GetCorporateActionsRequest) Descriptor() ([]byte, []int) {
-	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{9}
+	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetCorporateActionsRequest) GetSymbols() []string {
@@ -886,7 +1148,7 @@ type GetCorporateActionsResponse struct {
 
 func (x *GetCorporateActionsResponse) Reset() {
 	*x = GetCorporateActionsResponse{}
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[10]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -898,7 +1160,7 @@ func (x *GetCorporateActionsResponse) String() string {
 func (*GetCorporateActionsResponse) ProtoMessage() {}
 
 func (x *GetCorporateActionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[10]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -911,7 +1173,7 @@ func (x *GetCorporateActionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCorporateActionsResponse.ProtoReflect.Descriptor instead.
 func (*GetCorporateActionsResponse) Descriptor() ([]byte, []int) {
-	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{10}
+	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetCorporateActionsResponse) GetActions() []*v1.CorporateAction {
@@ -929,7 +1191,7 @@ type GetFeedStatusRequest struct {
 
 func (x *GetFeedStatusRequest) Reset() {
 	*x = GetFeedStatusRequest{}
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[11]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -941,7 +1203,7 @@ func (x *GetFeedStatusRequest) String() string {
 func (*GetFeedStatusRequest) ProtoMessage() {}
 
 func (x *GetFeedStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[11]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -954,7 +1216,7 @@ func (x *GetFeedStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFeedStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetFeedStatusRequest) Descriptor() ([]byte, []int) {
-	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{11}
+	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{14}
 }
 
 type GetFeedStatusResponse struct {
@@ -966,7 +1228,7 @@ type GetFeedStatusResponse struct {
 
 func (x *GetFeedStatusResponse) Reset() {
 	*x = GetFeedStatusResponse{}
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[12]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -978,7 +1240,7 @@ func (x *GetFeedStatusResponse) String() string {
 func (*GetFeedStatusResponse) ProtoMessage() {}
 
 func (x *GetFeedStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tb_broker_v1_market_data_proto_msgTypes[12]
+	mi := &file_tb_broker_v1_market_data_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -991,7 +1253,7 @@ func (x *GetFeedStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFeedStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetFeedStatusResponse) Descriptor() ([]byte, []int) {
-	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{12}
+	return file_tb_broker_v1_market_data_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetFeedStatusResponse) GetFeeds() []*FeedStatus {
@@ -1005,7 +1267,32 @@ var File_tb_broker_v1_market_data_proto protoreflect.FileDescriptor
 
 const file_tb_broker_v1_market_data_proto_rawDesc = "" +
 	"\n" +
-	"\x1etb/broker/v1/market_data.proto\x12\ftb.broker.v1\x1a!tb/marketdata/v1/marketdata.proto\"\xe0\x01\n" +
+	"\x1etb/broker/v1/market_data.proto\x12\ftb.broker.v1\x1a!tb/marketdata/v1/marketdata.proto\"\xb0\x01\n" +
+	"\x0eGetNewsRequest\x12\x18\n" +
+	"\asymbols\x18\x01 \x03(\tR\asymbols\x12\x14\n" +
+	"\x05start\x18\x02 \x01(\x03R\x05start\x12\x10\n" +
+	"\x03end\x18\x03 \x01(\x03R\x03end\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x04 \x01(\tR\tpageToken\x12\x14\n" +
+	"\x05limit\x18\x05 \x01(\rR\x05limit\x12'\n" +
+	"\x0finclude_content\x18\x06 \x01(\bR\x0eincludeContent\"\x87\x02\n" +
+	"\vNewsArticle\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\bheadline\x18\x02 \x01(\tR\bheadline\x12\x18\n" +
+	"\asummary\x18\x03 \x01(\tR\asummary\x12\x18\n" +
+	"\acontent\x18\x04 \x01(\tR\acontent\x12\x16\n" +
+	"\x06author\x18\x05 \x01(\tR\x06author\x12\x16\n" +
+	"\x06source\x18\x06 \x01(\tR\x06source\x12\x10\n" +
+	"\x03url\x18\a \x01(\tR\x03url\x12\x18\n" +
+	"\asymbols\x18\b \x03(\tR\asymbols\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\t \x01(\x03R\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\n" +
+	" \x01(\x03R\tupdatedAt\"p\n" +
+	"\x0fGetNewsResponse\x125\n" +
+	"\barticles\x18\x01 \x03(\v2\x19.tb.broker.v1.NewsArticleR\barticles\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xe0\x01\n" +
 	"\x18GetHistoricalBarsRequest\x12\x18\n" +
 	"\asymbols\x18\x01 \x03(\tR\asymbols\x129\n" +
 	"\ttimeframe\x18\x02 \x01(\x0e2\x1b.tb.marketdata.v1.TimeframeR\ttimeframe\x12\x14\n" +
@@ -1082,14 +1369,15 @@ const file_tb_broker_v1_market_data_proto_rawDesc = "" +
 	"\x14FEED_STATE_CONNECTED\x10\x02\x12\x1b\n" +
 	"\x17FEED_STATE_DISCONNECTED\x10\x03\x12\x1f\n" +
 	"\x1bFEED_STATE_CONNECTION_LIMIT\x10\x04\x12\x1a\n" +
-	"\x16FEED_STATE_AUTH_FAILED\x10\x052\xfd\x03\n" +
+	"\x16FEED_STATE_AUTH_FAILED\x10\x052\xc5\x04\n" +
 	"\x17BrokerMarketDataService\x12d\n" +
 	"\x11GetHistoricalBars\x12&.tb.broker.v1.GetHistoricalBarsRequest\x1a'.tb.broker.v1.GetHistoricalBarsResponse\x12e\n" +
 	"\x10StreamMarketData\x12%.tb.broker.v1.StreamMarketDataRequest\x1a&.tb.broker.v1.StreamMarketDataResponse(\x010\x01\x12O\n" +
 	"\n" +
 	"ListAssets\x12\x1f.tb.broker.v1.ListAssetsRequest\x1a .tb.broker.v1.ListAssetsResponse\x12j\n" +
 	"\x13GetCorporateActions\x12(.tb.broker.v1.GetCorporateActionsRequest\x1a).tb.broker.v1.GetCorporateActionsResponse\x12X\n" +
-	"\rGetFeedStatus\x12\".tb.broker.v1.GetFeedStatusRequest\x1a#.tb.broker.v1.GetFeedStatusResponseB\xbc\x01\n" +
+	"\rGetFeedStatus\x12\".tb.broker.v1.GetFeedStatusRequest\x1a#.tb.broker.v1.GetFeedStatusResponse\x12F\n" +
+	"\aGetNews\x12\x1c.tb.broker.v1.GetNewsRequest\x1a\x1d.tb.broker.v1.GetNewsResponseB\xbc\x01\n" +
 	"\x10com.tb.broker.v1B\x0fMarketDataProtoP\x01ZEgithub.com/illyanyc/strawberry/contracts/gen/go/tb/broker/v1;brokerv1\xa2\x02\x03TBX\xaa\x02\fTb.Broker.V1\xca\x02\fTb\\Broker\\V1\xe2\x02\x18Tb\\Broker\\V1\\GPBMetadata\xea\x02\x0eTb::Broker::V1b\x06proto3"
 
 var (
@@ -1105,57 +1393,63 @@ func file_tb_broker_v1_market_data_proto_rawDescGZIP() []byte {
 }
 
 var file_tb_broker_v1_market_data_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_tb_broker_v1_market_data_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_tb_broker_v1_market_data_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_tb_broker_v1_market_data_proto_goTypes = []any{
 	(FeedState)(0),                      // 0: tb.broker.v1.FeedState
-	(*GetHistoricalBarsRequest)(nil),    // 1: tb.broker.v1.GetHistoricalBarsRequest
-	(*GetHistoricalBarsResponse)(nil),   // 2: tb.broker.v1.GetHistoricalBarsResponse
-	(*Subscription)(nil),                // 3: tb.broker.v1.Subscription
-	(*StreamMarketDataRequest)(nil),     // 4: tb.broker.v1.StreamMarketDataRequest
-	(*FeedStatus)(nil),                  // 5: tb.broker.v1.FeedStatus
-	(*StreamMarketDataResponse)(nil),    // 6: tb.broker.v1.StreamMarketDataResponse
-	(*Asset)(nil),                       // 7: tb.broker.v1.Asset
-	(*ListAssetsRequest)(nil),           // 8: tb.broker.v1.ListAssetsRequest
-	(*ListAssetsResponse)(nil),          // 9: tb.broker.v1.ListAssetsResponse
-	(*GetCorporateActionsRequest)(nil),  // 10: tb.broker.v1.GetCorporateActionsRequest
-	(*GetCorporateActionsResponse)(nil), // 11: tb.broker.v1.GetCorporateActionsResponse
-	(*GetFeedStatusRequest)(nil),        // 12: tb.broker.v1.GetFeedStatusRequest
-	(*GetFeedStatusResponse)(nil),       // 13: tb.broker.v1.GetFeedStatusResponse
-	(v1.Timeframe)(0),                   // 14: tb.marketdata.v1.Timeframe
-	(*v1.Bar)(nil),                      // 15: tb.marketdata.v1.Bar
-	(*v1.Quote)(nil),                    // 16: tb.marketdata.v1.Quote
-	(*v1.Trade)(nil),                    // 17: tb.marketdata.v1.Trade
-	(*v1.CorporateAction)(nil),          // 18: tb.marketdata.v1.CorporateAction
+	(*GetNewsRequest)(nil),              // 1: tb.broker.v1.GetNewsRequest
+	(*NewsArticle)(nil),                 // 2: tb.broker.v1.NewsArticle
+	(*GetNewsResponse)(nil),             // 3: tb.broker.v1.GetNewsResponse
+	(*GetHistoricalBarsRequest)(nil),    // 4: tb.broker.v1.GetHistoricalBarsRequest
+	(*GetHistoricalBarsResponse)(nil),   // 5: tb.broker.v1.GetHistoricalBarsResponse
+	(*Subscription)(nil),                // 6: tb.broker.v1.Subscription
+	(*StreamMarketDataRequest)(nil),     // 7: tb.broker.v1.StreamMarketDataRequest
+	(*FeedStatus)(nil),                  // 8: tb.broker.v1.FeedStatus
+	(*StreamMarketDataResponse)(nil),    // 9: tb.broker.v1.StreamMarketDataResponse
+	(*Asset)(nil),                       // 10: tb.broker.v1.Asset
+	(*ListAssetsRequest)(nil),           // 11: tb.broker.v1.ListAssetsRequest
+	(*ListAssetsResponse)(nil),          // 12: tb.broker.v1.ListAssetsResponse
+	(*GetCorporateActionsRequest)(nil),  // 13: tb.broker.v1.GetCorporateActionsRequest
+	(*GetCorporateActionsResponse)(nil), // 14: tb.broker.v1.GetCorporateActionsResponse
+	(*GetFeedStatusRequest)(nil),        // 15: tb.broker.v1.GetFeedStatusRequest
+	(*GetFeedStatusResponse)(nil),       // 16: tb.broker.v1.GetFeedStatusResponse
+	(v1.Timeframe)(0),                   // 17: tb.marketdata.v1.Timeframe
+	(*v1.Bar)(nil),                      // 18: tb.marketdata.v1.Bar
+	(*v1.Quote)(nil),                    // 19: tb.marketdata.v1.Quote
+	(*v1.Trade)(nil),                    // 20: tb.marketdata.v1.Trade
+	(*v1.CorporateAction)(nil),          // 21: tb.marketdata.v1.CorporateAction
 }
 var file_tb_broker_v1_market_data_proto_depIdxs = []int32{
-	14, // 0: tb.broker.v1.GetHistoricalBarsRequest.timeframe:type_name -> tb.marketdata.v1.Timeframe
-	15, // 1: tb.broker.v1.GetHistoricalBarsResponse.bars:type_name -> tb.marketdata.v1.Bar
-	3,  // 2: tb.broker.v1.StreamMarketDataRequest.subscribe:type_name -> tb.broker.v1.Subscription
-	3,  // 3: tb.broker.v1.StreamMarketDataRequest.unsubscribe:type_name -> tb.broker.v1.Subscription
-	0,  // 4: tb.broker.v1.FeedStatus.state:type_name -> tb.broker.v1.FeedState
-	15, // 5: tb.broker.v1.StreamMarketDataResponse.bar:type_name -> tb.marketdata.v1.Bar
-	15, // 6: tb.broker.v1.StreamMarketDataResponse.updated_bar:type_name -> tb.marketdata.v1.Bar
-	16, // 7: tb.broker.v1.StreamMarketDataResponse.quote:type_name -> tb.marketdata.v1.Quote
-	17, // 8: tb.broker.v1.StreamMarketDataResponse.trade:type_name -> tb.marketdata.v1.Trade
-	5,  // 9: tb.broker.v1.StreamMarketDataResponse.status:type_name -> tb.broker.v1.FeedStatus
-	7,  // 10: tb.broker.v1.ListAssetsResponse.assets:type_name -> tb.broker.v1.Asset
-	18, // 11: tb.broker.v1.GetCorporateActionsResponse.actions:type_name -> tb.marketdata.v1.CorporateAction
-	5,  // 12: tb.broker.v1.GetFeedStatusResponse.feeds:type_name -> tb.broker.v1.FeedStatus
-	1,  // 13: tb.broker.v1.BrokerMarketDataService.GetHistoricalBars:input_type -> tb.broker.v1.GetHistoricalBarsRequest
-	4,  // 14: tb.broker.v1.BrokerMarketDataService.StreamMarketData:input_type -> tb.broker.v1.StreamMarketDataRequest
-	8,  // 15: tb.broker.v1.BrokerMarketDataService.ListAssets:input_type -> tb.broker.v1.ListAssetsRequest
-	10, // 16: tb.broker.v1.BrokerMarketDataService.GetCorporateActions:input_type -> tb.broker.v1.GetCorporateActionsRequest
-	12, // 17: tb.broker.v1.BrokerMarketDataService.GetFeedStatus:input_type -> tb.broker.v1.GetFeedStatusRequest
-	2,  // 18: tb.broker.v1.BrokerMarketDataService.GetHistoricalBars:output_type -> tb.broker.v1.GetHistoricalBarsResponse
-	6,  // 19: tb.broker.v1.BrokerMarketDataService.StreamMarketData:output_type -> tb.broker.v1.StreamMarketDataResponse
-	9,  // 20: tb.broker.v1.BrokerMarketDataService.ListAssets:output_type -> tb.broker.v1.ListAssetsResponse
-	11, // 21: tb.broker.v1.BrokerMarketDataService.GetCorporateActions:output_type -> tb.broker.v1.GetCorporateActionsResponse
-	13, // 22: tb.broker.v1.BrokerMarketDataService.GetFeedStatus:output_type -> tb.broker.v1.GetFeedStatusResponse
-	18, // [18:23] is the sub-list for method output_type
-	13, // [13:18] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	2,  // 0: tb.broker.v1.GetNewsResponse.articles:type_name -> tb.broker.v1.NewsArticle
+	17, // 1: tb.broker.v1.GetHistoricalBarsRequest.timeframe:type_name -> tb.marketdata.v1.Timeframe
+	18, // 2: tb.broker.v1.GetHistoricalBarsResponse.bars:type_name -> tb.marketdata.v1.Bar
+	6,  // 3: tb.broker.v1.StreamMarketDataRequest.subscribe:type_name -> tb.broker.v1.Subscription
+	6,  // 4: tb.broker.v1.StreamMarketDataRequest.unsubscribe:type_name -> tb.broker.v1.Subscription
+	0,  // 5: tb.broker.v1.FeedStatus.state:type_name -> tb.broker.v1.FeedState
+	18, // 6: tb.broker.v1.StreamMarketDataResponse.bar:type_name -> tb.marketdata.v1.Bar
+	18, // 7: tb.broker.v1.StreamMarketDataResponse.updated_bar:type_name -> tb.marketdata.v1.Bar
+	19, // 8: tb.broker.v1.StreamMarketDataResponse.quote:type_name -> tb.marketdata.v1.Quote
+	20, // 9: tb.broker.v1.StreamMarketDataResponse.trade:type_name -> tb.marketdata.v1.Trade
+	8,  // 10: tb.broker.v1.StreamMarketDataResponse.status:type_name -> tb.broker.v1.FeedStatus
+	10, // 11: tb.broker.v1.ListAssetsResponse.assets:type_name -> tb.broker.v1.Asset
+	21, // 12: tb.broker.v1.GetCorporateActionsResponse.actions:type_name -> tb.marketdata.v1.CorporateAction
+	8,  // 13: tb.broker.v1.GetFeedStatusResponse.feeds:type_name -> tb.broker.v1.FeedStatus
+	4,  // 14: tb.broker.v1.BrokerMarketDataService.GetHistoricalBars:input_type -> tb.broker.v1.GetHistoricalBarsRequest
+	7,  // 15: tb.broker.v1.BrokerMarketDataService.StreamMarketData:input_type -> tb.broker.v1.StreamMarketDataRequest
+	11, // 16: tb.broker.v1.BrokerMarketDataService.ListAssets:input_type -> tb.broker.v1.ListAssetsRequest
+	13, // 17: tb.broker.v1.BrokerMarketDataService.GetCorporateActions:input_type -> tb.broker.v1.GetCorporateActionsRequest
+	15, // 18: tb.broker.v1.BrokerMarketDataService.GetFeedStatus:input_type -> tb.broker.v1.GetFeedStatusRequest
+	1,  // 19: tb.broker.v1.BrokerMarketDataService.GetNews:input_type -> tb.broker.v1.GetNewsRequest
+	5,  // 20: tb.broker.v1.BrokerMarketDataService.GetHistoricalBars:output_type -> tb.broker.v1.GetHistoricalBarsResponse
+	9,  // 21: tb.broker.v1.BrokerMarketDataService.StreamMarketData:output_type -> tb.broker.v1.StreamMarketDataResponse
+	12, // 22: tb.broker.v1.BrokerMarketDataService.ListAssets:output_type -> tb.broker.v1.ListAssetsResponse
+	14, // 23: tb.broker.v1.BrokerMarketDataService.GetCorporateActions:output_type -> tb.broker.v1.GetCorporateActionsResponse
+	16, // 24: tb.broker.v1.BrokerMarketDataService.GetFeedStatus:output_type -> tb.broker.v1.GetFeedStatusResponse
+	3,  // 25: tb.broker.v1.BrokerMarketDataService.GetNews:output_type -> tb.broker.v1.GetNewsResponse
+	20, // [20:26] is the sub-list for method output_type
+	14, // [14:20] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_tb_broker_v1_market_data_proto_init() }
@@ -1163,7 +1457,7 @@ func file_tb_broker_v1_market_data_proto_init() {
 	if File_tb_broker_v1_market_data_proto != nil {
 		return
 	}
-	file_tb_broker_v1_market_data_proto_msgTypes[5].OneofWrappers = []any{
+	file_tb_broker_v1_market_data_proto_msgTypes[8].OneofWrappers = []any{
 		(*StreamMarketDataResponse_Bar)(nil),
 		(*StreamMarketDataResponse_UpdatedBar)(nil),
 		(*StreamMarketDataResponse_Quote)(nil),
@@ -1176,7 +1470,7 @@ func file_tb_broker_v1_market_data_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tb_broker_v1_market_data_proto_rawDesc), len(file_tb_broker_v1_market_data_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   13,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
