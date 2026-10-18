@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import json
 import logging
 import os
 import signal
@@ -18,6 +19,8 @@ import threading
 import time
 from datetime import UTC, datetime
 from datetime import time as dtime
+from pathlib import Path
+from typing import Any
 from zoneinfo import ZoneInfo
 
 import nats
@@ -160,11 +163,25 @@ async def run(
     await nc.drain()
 
 
+def load_runner(registry: str, research: str = "") -> Runner:
+    """The seed registry plus the optimizer's research deployments (EX-056): shadow and paper entries
+    only; a research entry can never host a live strategy (N4, SM-004)."""
+    data: dict[str, Any] = json.loads(Path(registry).read_text(encoding="utf-8"))
+    if research and Path(research).exists():
+        extra = json.loads(Path(research).read_text(encoding="utf-8")).get("strategies", [])
+        known = {e["strategy_id"] for e in data.get("strategies", [])}
+        data["strategies"] = [
+            *data.get("strategies", []),
+            *[e for e in extra if e.get("mode") in ("shadow", "paper") and e.get("strategy_id") not in known],
+        ]
+    return Runner.from_registry_data(data)
+
+
 def main() -> None:
     settings = ServiceSettings(service="strategy-runtime")
     configure(settings.service, settings.log_level)
     registry = os.environ.get("TB_STRATEGY_REGISTRY", "/etc/tb/strategies.json")
-    runner = Runner.from_registry(registry)
+    runner = load_runner(registry, os.environ.get("TB_RESEARCH_REGISTRY", ""))
     user = os.environ.get("TB_NATS_USER", "strategy_runtime")
     secrets_dir = settings.secrets_dir
     password = ""

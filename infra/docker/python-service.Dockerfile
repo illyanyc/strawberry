@@ -31,7 +31,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 FROM ${PYTHON_IMAGE}
 # /var/lib/broker-gateway-ibkr is the IBKR adapter's execution cursor; a named volume mounted there
 # inherits this ownership on first use, so the read-only, non-root container can write it.
-RUN groupadd --system --gid 10001 app && useradd --system --uid 10001 --gid app --no-create-home app && \
+# libgomp1: LightGBM's wheel links the system OpenMP runtime, and every service that hosts
+# tbcore strategies loads it (model strategies, SM-015).
+RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* && \
+    groupadd --system --gid 10001 app && useradd --system --uid 10001 --gid app --no-create-home app && \
     install -d -o 10001 -g 10001 -m 0700 /var/lib/broker-gateway-ibkr
 COPY --from=build /app /app
 ENV PATH=/app/.venv/bin:$PATH PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1

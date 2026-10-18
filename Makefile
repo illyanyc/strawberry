@@ -15,6 +15,7 @@ export TB_HOST_GID ?= $(shell id -g)
 export TB_SECRETS_DIR ?= $(CURDIR)/.secrets
 export TB_LAKE_DIR ?= $(CURDIR)/data/lake
 export TB_ARTIFACTS_DIR ?= $(CURDIR)/data/mlflow-artifacts
+export TB_ML_ARTIFACTS_DIR ?= $(CURDIR)/data/ml-artifacts
 export TB_BACKUP_DIR ?= $(CURDIR)/backups
 export TB_VERSION ?= dev
 # NATIVE_ML=1 publishes Postgres/NATS on 127.0.0.1 for native macOS ML workers (D29, ADR-0013).
@@ -42,7 +43,7 @@ bootstrap: dirs secrets build ## First run on a clean clone: data dirs, secrets,
 
 .PHONY: dirs
 dirs:
-	@mkdir -p data/lake data/mlflow-artifacts backups/metrics
+	@mkdir -p data/lake data/mlflow-artifacts data/ml-artifacts backups/metrics
 
 .PHONY: secrets
 secrets: dirs ## Generate any missing secrets into .secrets/ (idempotent; never overwrites)
@@ -150,6 +151,10 @@ test-ibkr-contract: ## Shared Go broker contract suite (BR-001) against the IBKR
 paper-gate: ## Phase 2 gate: five simulated ORB sessions through runtime, OMS, simulators, ledger (writes paper-gate-evidence.json)
 	cd tests/paper && TB_PAPER_GATE_REQUIRED=1 TB_PAPER_EVIDENCE=$(CURDIR)/paper-gate-evidence.json TB_PAPER_RECORDING=$(CURDIR)/paper-gate.tbrec \
 	  go test -count=1 -run 'TestGate2' -v -timeout 20m ./... 2>&1 | grep -E '^(=== RUN|--- |    gate_test|PASS|FAIL|ok)'
+
+.PHONY: research-gate
+research-gate: ## Gate 4 (sections 10, 11): owner training, studies, holdout, and promotion over real ml/optimizer/holdout gRPC (writes research-gate-evidence.json)
+	TB_RESEARCH_GATE=1 TB_RESEARCH_EVIDENCE=$(CURDIR)/research-gate-evidence.json uv run pytest tests/research -q -p no:cacheprovider
 
 .PHONY: parity-gate
 parity-gate: ## Gate 3 parity (BT-070/071): replay the paper-gate bus recording (run make paper-gate first) with recorded and modeled fills

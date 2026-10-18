@@ -15,6 +15,7 @@ Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes t
 | out | NATS (JetStream) | `ord.intent` (`Nats-Msg-Id` = intent ID) | `tb.orders.v1.OrderIntent` |
 | out | NATS (core) | `sys.health.strategy-runtime` | `tb.signals.v1.RuntimeHeartbeat` |
 | in | file | registry seed (`TB_STRATEGY_REGISTRY`) shared with execution | `infra/compose/strategies.json` |
+| in | file | research deployments (`TB_RESEARCH_REGISTRY`, written by the optimizer): shadow/paper model strategies, never live (EX-056) | same entry format, runtime classes `model_signal`/`meta_filter` (SM-015) |
 | in | NATS (ordered consumers, stream `CONTEXT`) | `ctx.calendar`, `ctx.earnings` (only when a hosted strategy has `runtime.blackout`) | `tb.context.v1.ContextEvent`, CX-016 |
 | in | filesystem | lake (read-only): stored calendar and earnings versions at start and hourly (the bus keeps 7 days) | `tbcore.context.ContextStore`, CX-016 |
 
@@ -31,6 +32,7 @@ Runs runtime-hosted strategies (`tbcore.strategy`) on final bars and publishes t
 | `TB_STRATEGY_REGISTRY` | `/etc/tb/strategies.json` | Strategies with a `runtime` block and mode paper/shadow/live are hosted |
 | `TB_NATS_URL` / `TB_NATS_USER` | `nats://nats:4222` / `strategy_runtime` | Password from secret `nats_strategy_runtime_password`; empty user = no auth (tests only) |
 | `TB_HEARTBEAT_INTERVAL` | `5` | Seconds |
+| `TB_RESEARCH_REGISTRY` | empty (Compose: `/data/ml-artifacts/deploy/research-strategies.json`) | Optimizer deployments added at start (shadow/paper only); model bundles are read from the read-only ML artifacts mount |
 | `TB_LAKE_DIR` | empty (Compose: `/data/lake`, read-only, marketdata's UID) | Scheduled events for blackouts; without it only bus events are used |
 | `TB_OPS_DISABLED` | — | `1` skips the ops listener (paper harness) |
 

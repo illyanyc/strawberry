@@ -137,3 +137,42 @@ def write(path: str | Path, result: BacktestResult, **kw: object) -> Path:
     p = Path(path)
     p.write_text(render(result, **kw), encoding="utf-8")  # type: ignore[arg-type]
     return p
+
+
+def render_series(
+    title: str,
+    subtitle: str,
+    returns: np.ndarray,
+    returns_2x: np.ndarray | None = None,
+    summary: Mapping[str, object] | None = None,
+    tables: Mapping[str, pl.DataFrame] | None = None,
+    warnings: list[str] | None = None,
+) -> str:
+    """Tearsheet from session returns (fraction of allocation) for evaluations without an event-driven
+    result, such as a training run's vectorized out-of-fold evaluation (ML-012). Same style and
+    guarantees as ``render``: inline SVG, no scripts, no external resources."""
+    r = np.asarray(returns, dtype=np.float64)
+    eq = 1.0 + np.cumsum(r)
+    peak = np.maximum.accumulate(eq) if eq.size else eq
+    dd = 1.0 - eq / peak if eq.size else eq
+    parts = [
+        "<!doctype html><html><head><meta charset='utf-8'>",
+        f"<title>{html.escape(title)}</title><style>{STYLE}</style></head><body>",
+        f"<h1>{html.escape(title)}</h1><p class='muted'>{html.escape(subtitle)}</p>",
+    ]
+    if warnings:
+        parts.append(
+            "<h2>Warnings</h2><ul>" + "".join(f"<li class='warn'>{html.escape(w)}</li>" for w in warnings) + "</ul>"
+        )
+    parts += ["<h2>Equity (1 + cumulative session return)</h2>", _svg_line(eq)]
+    parts += ["<h2>Drawdown</h2>", _svg_line(-dd, color="#dc2626", fill=True)]
+    if returns_2x is not None and np.asarray(returns_2x).size == r.size and r.size:
+        parts += ["<h2>Equity at 2x costs</h2>", _svg_line(1.0 + np.cumsum(np.asarray(returns_2x)), color="#a16207")]
+    if summary:
+        parts += ["<h2>Summary</h2>", _kv(summary)]
+    for name, frame in (tables or {}).items():
+        if frame.height:
+            parts += [f"<h2>{html.escape(name)}</h2>", _table(frame)]
+    dd_max = float(dd.max()) if dd.size else 0.0
+    parts.append(f"<p class='muted'>{r.size} sessions · max drawdown {dd_max:.2%}</p></body></html>")
+    return "".join(parts)

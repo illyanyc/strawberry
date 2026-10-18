@@ -114,7 +114,7 @@ func TestSE032SchemaIsolation(t *testing.T) {
 	_, connect := setup(t)
 	ctx := context.Background()
 	deny := map[string][]string{
-		"svc_api_gateway": {`SELECT * FROM secrets.broker_credentials`},
+		"svc_api_gateway": {`SELECT * FROM secrets.broker_credentials`, `SELECT * FROM research.docs`, `SELECT * FROM holdout.docs`},
 		"svc_ops":         {`SELECT * FROM secrets.broker_credentials`, `SELECT * FROM auth.sessions`},
 		"svc_marketdata":  {`SELECT * FROM secrets.broker_credentials`, `SELECT * FROM auth.sessions`, `SELECT * FROM audit.events`},
 		"svc_broker_gateway": {`SELECT * FROM auth.sessions`, `SELECT * FROM config.settings`,
@@ -123,6 +123,10 @@ func TestSE032SchemaIsolation(t *testing.T) {
 		"svc_execution": {`SELECT * FROM broker.executions`, `SELECT * FROM broker.outbox`,
 			`INSERT INTO refdata.instruments (instrument_id, asset_class) VALUES ('x', 'us_equity')`},
 		"svc_ledger": {`SELECT * FROM marketdata.lake_files`, `DELETE FROM refdata.corporate_actions`},
+		// SE-035 / EX-012: only svc_holdout reaches the sealed holdout; research records are ml/optimizer only.
+		"svc_optimizer": {`SELECT * FROM holdout.docs`},
+		"svc_ml":        {`SELECT * FROM holdout.docs`, `SELECT * FROM secrets.broker_credentials`},
+		"svc_holdout":   {`SELECT * FROM research.docs`},
 	}
 	for role, queries := range deny {
 		pool := connect(role)
@@ -141,6 +145,9 @@ func TestSE032SchemaIsolation(t *testing.T) {
 		"svc_ledger":         `SELECT count(*) FROM refdata.corporate_actions`,
 		"svc_broker_gateway": `SELECT count(*) FROM refdata.broker_ids`,
 		"svc_ops":            `SELECT count(*) FROM marketdata.lake_files`,
+		"svc_ml":             `SELECT count(*) FROM research.docs`,
+		"svc_optimizer":      `SELECT count(*) FROM research.docs`,
+		"svc_holdout":        `SELECT count(*) FROM holdout.docs`,
 	} {
 		if _, err := connect(role).Exec(ctx, q); err != nil {
 			t.Errorf("%s: %q should be allowed: %v", role, q, err)
@@ -155,5 +162,16 @@ func TestSE032SchemaIsolation(t *testing.T) {
 		if _, err := connect(role).Exec(ctx, q); err != nil {
 			t.Errorf("%s: %q should be allowed: %v", role, q, err)
 		}
+	}
+	// EX-I1 / EX-I2: research and holdout records are append-only, even for their writers.
+	opt := connect("svc_optimizer")
+	if _, err := opt.Exec(ctx, `INSERT INTO research.docs (kind, id, created_at, updated_at, payload) VALUES ('trial', 't1', 1, 1, '\x00')`); err != nil {
+		t.Fatalf("svc_optimizer insert: %v", err)
+	}
+	if _, err := opt.Exec(ctx, `DELETE FROM research.docs WHERE id = 't1'`); err == nil {
+		t.Error("research.docs delete should be refused")
+	}
+	if _, err := connect("svc_holdout").Exec(ctx, `DELETE FROM holdout.docs`); err == nil {
+		t.Error("holdout.docs delete should be refused")
 	}
 }

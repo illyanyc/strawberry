@@ -301,3 +301,91 @@ paths:
         - { name: instrument_id, in: query, required: true, schema: { type: string, pattern: '^[A-Za-z0-9_-]{1,64}$' } }
         - { name: timeframe, in: query, required: true, schema: { enum: ['1m', '5m', '15m', '30m', '1h', '1d'] } }
       responses: { '200': { description: text/event-stream } }
+  # ---- research (section 14 Phase 4 slice: training, experiments, tearsheets; ADR-0035) ----
+  # Bodies and responses are the canonical protojson of tb.ml.v1 / tb.optimizer.v1 messages. The
+  # gateway sets the caller (actor owner, step-up attestation only while a passkey step-up is fresh).
+  /api/v1/research/families:
+    get: { responses: { '200': { description: tb.ml.v1.ListModelFamiliesResponse (hyperparameter JSON Schemas for forms, UI-023) } } }
+  /api/v1/research/feature-sets:
+    get: { responses: { '200': { description: tb.ml.v1.ListFeatureSetsResponse } } }
+  /api/v1/research/label-presets:
+    get: { responses: { '200': { description: tb.ml.v1.ListLabelPresetsResponse } } }
+  /api/v1/research/training/estimate:
+    post: { description: 'Body tb.ml.v1.TrainingConfig; validation errors or the cost estimate (ML-031).', responses: { '200': { description: tb.ml.v1.EstimateTrainingJobResponse } } }
+  /api/v1/research/training/jobs:
+    get: { responses: { '200': { description: tb.ml.v1.ListJobsResponse } } }
+    post: { description: 'Body tb.ml.v1.SubmitTrainingJobRequest (config, confirmOverBudget).', responses: { '200': { description: tb.ml.v1.SubmitTrainingJobResponse } } }
+  /api/v1/research/training/jobs/{id}:
+    get: { responses: { '200': { description: tb.ml.v1.GetJobResponse } } }
+  /api/v1/research/training/jobs/{id}/cancel:
+    post: { responses: { '200': { description: tb.ml.v1.CancelJobResponse } } }
+  /api/v1/research/training/jobs/{id}/stream:
+    get: { description: 'SSE: `progress` (tb.ml.v1.JobProgress, id = seq; resume with Last-Event-ID), `done`.', responses: { '200': { description: text/event-stream } } }
+  /api/v1/research/runs:
+    get: { responses: { '200': { description: tb.ml.v1.ListRunsResponse } } }
+  /api/v1/research/runs/{id}:
+    get: { responses: { '200': { description: tb.ml.v1.GetRunResponse } } }
+  /api/v1/research/runs/{id}/diagnostics:
+    get: { responses: { '200': { description: tb.ml.v1.GetDiagnosticsResponse } } }
+  /api/v1/research/runs/{id}/model-card:
+    get: { responses: { '200': { description: tb.ml.v1.GetModelCardResponse } } }
+  /api/v1/research/runs/{id}/importance:
+    get: { parameters: [{ name: method, in: query, schema: { enum: [gain, permutation, shap] } }], responses: { '200': { description: tb.ml.v1.GetFeatureImportanceResponse } } }
+  /api/v1/research/runs/{id}/tearsheet:
+    get: { description: 'Static HTML document with a sandboxed CSP (no scripts, UI-025); open as its own page.', responses: { '200': { description: text/html } } }
+  /api/v1/research/runs/{id}/register:
+    post: { description: 'Body {"name"}.', responses: { '200': { description: tb.ml.v1.RegisterModelResponse } } }
+  /api/v1/research/runs/{id}/ablations:
+    post: { description: 'Body tb.ml.v1.SubmitAblationRequest (variants).', responses: { '200': { description: tb.ml.v1.SubmitAblationResponse } } }
+  /api/v1/research/lineages:
+    get: { responses: { '200': { description: tb.optimizer.v1.ListLineagesResponse } } }
+    post: { description: 'Body tb.optimizer.v1.Lineage.', responses: { '200': { description: tb.optimizer.v1.CreateLineageResponse } } }
+  /api/v1/research/lineages/{id}:
+    get: { responses: { '200': { description: tb.optimizer.v1.GetLineageResponse } } }
+  /api/v1/research/lineages/{id}/autonomy:
+    put: { description: 'Body tb.optimizer.v1.SetLineageAutonomyRequest; raising the level or budgets needs a passkey step-up (`analyst.autonomy.set`, EX-033).', responses: { '200': { description: tb.optimizer.v1.SetLineageAutonomyResponse }, '403': { $ref: '#/components/responses/Forbidden' } } }
+  /api/v1/research/lineages/{id}/cycles:
+    post: { description: 'Opens a MinBTL research cycle; passkey step-up (`research.cycle.open`, EX-025).', responses: { '200': { description: tb.optimizer.v1.OpenCycleResponse }, '403': { $ref: '#/components/responses/Forbidden' } } }
+  /api/v1/research/lineages/{id}/ledger:
+    get: { responses: { '200': { description: tb.optimizer.v1.GetTrialLedgerResponse } } }
+  /api/v1/research/lineages/{id}/stats:
+    get: { responses: { '200': { description: tb.optimizer.v1.GetCumulativeOverfittingStatsResponse } } }
+  /api/v1/research/lineages/{id}/holdout:
+    get: { responses: { '200': { description: tb.optimizer.v1.GetHoldoutStatusResponse (touch counter, UI-026) } } }
+  /api/v1/research/lineages/{id}/holdout/boundary:
+    post: { description: 'Body {"boundary"} (UTC ns, forward only); passkey step-up (`holdout.schedule`, EX-014).', responses: { '200': { description: tb.optimizer.v1.SetHoldoutBoundaryResponse }, '403': { $ref: '#/components/responses/Forbidden' } } }
+  /api/v1/research/lineages/{id}/retraining:
+    put: { description: 'Body tb.optimizer.v1.RetrainingPolicy.', responses: { '200': { description: tb.optimizer.v1.SetRetrainingPolicyResponse } } }
+  /api/v1/research/lineages/{id}/retrain:
+    post: { responses: { '200': { description: tb.optimizer.v1.TriggerRetrainResponse } } }
+  /api/v1/research/studies:
+    get: { responses: { '200': { description: tb.optimizer.v1.ListStudiesResponse } } }
+    post: { description: 'Body tb.optimizer.v1.StudySpec (with preregistration).', responses: { '200': { description: tb.optimizer.v1.CreateStudyResponse } } }
+  /api/v1/research/studies/{id}:
+    get: { responses: { '200': { description: tb.optimizer.v1.GetStudyResponse } } }
+  /api/v1/research/studies/{id}/{action}:
+    post: { description: 'action = start | pause | resume | stop.', responses: { '200': { description: tb.optimizer.v1.Study } } }
+  /api/v1/research/studies/{id}/trials:
+    get: { responses: { '200': { description: tb.optimizer.v1.ListTrialsResponse } } }
+  /api/v1/research/studies/{id}/diagnostics:
+    get: { responses: { '200': { description: tb.optimizer.v1.GetStudyDiagnosticsResponse } } }
+  /api/v1/research/studies/{id}/stream:
+    get: { description: 'SSE: `progress` (tb.optimizer.v1.StudyProgress), `done`.', responses: { '200': { description: text/event-stream } } }
+  /api/v1/research/candidates:
+    get: { parameters: [{ name: stage, in: query, schema: { enum: [validated, shadow, paper, live_eligible, retired] } }], responses: { '200': { description: tb.optimizer.v1.ListCandidatesResponse } } }
+  /api/v1/research/candidates/{id}:
+    get: { responses: { '200': { description: tb.optimizer.v1.GetCandidateResponse } } }
+  /api/v1/research/candidates/{id}/gate-report:
+    get: { responses: { '200': { description: tb.optimizer.v1.GetGateReportResponse } } }
+  /api/v1/research/candidates/{id}/evidence:
+    get: { parameters: [{ name: format, in: query, schema: { enum: [json, html] } }], responses: { '200': { description: tb.optimizer.v1.GetEvidencePackResponse or text/html } } }
+  /api/v1/research/candidates/{id}/graph:
+    get: { responses: { '200': { description: tb.optimizer.v1.GetLineageGraphResponse } } }
+  /api/v1/research/candidates/{id}/check:
+    post: { description: 'Body {"toStage"}; dry run of the permission table and gates (EX-032).', responses: { '200': { description: tb.optimizer.v1.CheckTransitionResponse } } }
+  /api/v1/research/candidates/{id}/promote:
+    post: { description: 'Body {"toStage": validated|shadow|paper|live_eligible}; paper and live_eligible need a passkey step-up (`model.promote`, N4); live is refused (section 15).', responses: { '200': { description: tb.optimizer.v1.PromoteCandidateResponse }, '403': { $ref: '#/components/responses/Forbidden' } } }
+  /api/v1/research/candidates/{id}/demote:
+    post: { description: 'Body {"toStage": paper|retired, "reason"}.', responses: { '200': { description: tb.optimizer.v1.DemoteCandidateResponse } } }
+  /api/v1/research/candidates/{id}/holdout:
+    post: { description: 'Body {"reason"}; passkey step-up (`holdout.evaluate`), one touch per family per quarter, pass/fail + DSR only (EX-011).', responses: { '200': { description: tb.optimizer.v1.EvaluateOnHoldoutResponse }, '403': { $ref: '#/components/responses/Forbidden' } } }

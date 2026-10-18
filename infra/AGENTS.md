@@ -60,4 +60,5 @@ Everything that builds, runs, observes, backs up, and hosts the stack. The same 
 - On a Linux VM with stale `iptables-legacy` rules (FORWARD DROP), containers cannot reach each other; fix the host firewall, not the Compose file.
 - GPU profile intentionally absent (D25): Metal is not reachable from containers on macOS.
 - IB Gateway is a third-party image that renders its IBC/jts config at start, so it is not read-only (non-root, cap-drop-all, `no-new-privileges`, pinned by digest). Restarting or recreating `ib-gateway-<env>` mid-week forces a fresh IBKR login with 2FA; restart the adapter instead.
+- Python images install `libgomp1` in the runtime stage: LightGBM (imported by every service that hosts `tbcore` strategies) links the system OpenMP library and fails at import without it.
 - Internal networks cannot publish ports, which is why `ibkr-vnc` also joins its own `ibkr-vnc` bridge network.

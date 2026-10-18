@@ -18,6 +18,8 @@ const nav = [
   { to: "/orders", label: "Orders", short: "Orders" },
   { to: "/charts", label: "Charts", short: "Charts" },
   { to: "/risk", label: "Risk & kill switches", short: "Risk" },
+  { to: "/training", label: "Training", short: "Train" },
+  { to: "/experiments", label: "Experiments", short: "Research" },
   { to: "/settings/security", label: "Security", short: "Security" },
   { to: "/settings/brokers", label: "Broker connections", short: "Brokers" },
   { to: "/settings/platform", label: "Platform settings", short: "Settings" },

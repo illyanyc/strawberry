@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"testing"
+	"time"
 
 	brokerv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/broker/v1"
 	commonv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/common/v1"
 	ledgerv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/ledger/v1"
 	ordersv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/orders/v1"
+	"github.com/illyanyc/strawberry/libs/go/calendar"
 )
 
 type nopLedger struct{}
@@ -114,5 +116,49 @@ func TestCompactKeepsWorkingAndRecentState(t *testing.T) {
 	}
 	if e.intents["i1"] != nil || e.intents["i2"] == nil || e.intents["i4"] == nil || e.fills["a|x2"] == nil || len(e.orderTimes["orb"]) != 1 {
 		t.Fatal("wrong intents, fills, or order times kept")
+	}
+}
+
+// RM-004: daily-bar freshness counts trading sessions, so a weekend or holiday is not a missing bar;
+// intraday bars keep the wall-clock bound (two intervals plus finality).
+func TestRM004DailyFreshnessCountsSessions(t *testing.T) {
+	cal := calendar.XNYS()
+	day, fin := int64(24*time.Hour), int64(time.Minute)
+	closeOf := func(d string) int64 {
+		s, ok := cal.Session(d)
+		if !ok {
+			t.Fatalf("no session %s", d)
+		}
+		return s.Close.UnixNano()
+	}
+	openOf := func(d string) int64 {
+		s, _ := cal.Session(d)
+		return s.Open.UnixNano() + fin
+	}
+	fresh := func(now, barClose, interval int64) bool { return now-barClose <= maxBarAge(cal, now, interval, fin) }
+	cases := []struct {
+		name     string
+		now, bar int64
+		want     bool
+	}{
+		{"monday open, friday bar", openOf("2026-02-09"), closeOf("2026-02-06"), true},
+		{"monday open, thursday bar (one bar missing)", openOf("2026-02-09"), closeOf("2026-02-05"), true},
+		{"monday open, wednesday bar (two missing)", openOf("2026-02-09"), closeOf("2026-02-04"), false},
+		{"after presidents day, friday bar", openOf("2026-02-17"), closeOf("2026-02-13"), true},
+		{"after presidents day, wednesday bar", openOf("2026-02-17"), closeOf("2026-02-11"), false},
+		{"mid-week, yesterday's bar", openOf("2026-02-11"), closeOf("2026-02-10"), true},
+		{"mid-week, three sessions old", openOf("2026-02-11"), closeOf("2026-02-06"), false},
+	}
+	for _, c := range cases {
+		if got := fresh(c.now, c.bar, day); got != c.want {
+			t.Errorf("%s: fresh=%v, want %v", c.name, got, c.want)
+		}
+	}
+	m15 := int64(15 * time.Minute)
+	if got := maxBarAge(cal, openOf("2026-02-09"), m15, fin); got != 2*m15+fin {
+		t.Errorf("intraday bound changed: %d", got)
+	}
+	if fresh(openOf("2026-02-09"), closeOf("2026-02-06"), m15) {
+		t.Error("a friday 15m bar must be stale at monday's open")
 	}
 }

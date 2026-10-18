@@ -33,21 +33,22 @@ type AlertPublisher interface {
 
 // Server is the HTTP gateway.
 type Server struct {
-	cfg     Config
-	store   *Store
-	pool    *pgxpool.Pool
-	wa      *webauthn.WebAuthn
-	keys    keys
-	audit   *audit.Writer
-	log     *slog.Logger
-	alerts  AlertPublisher
-	creds   CredentialClient
-	trading *TradingClients
-	market  MarketBus
-	web     *webUI
-	now     func() time.Time
-	proxies []netip.Prefix
-	routes  []route
+	cfg      Config
+	store    *Store
+	pool     *pgxpool.Pool
+	wa       *webauthn.WebAuthn
+	keys     keys
+	audit    *audit.Writer
+	log      *slog.Logger
+	alerts   AlertPublisher
+	creds    CredentialClient
+	trading  *TradingClients
+	research *ResearchClients
+	market   MarketBus
+	web      *webUI
+	now      func() time.Time
+	proxies  []netip.Prefix
+	routes   []route
 
 	limMu     sync.Mutex
 	limiters  map[string]*rate.Limiter
@@ -63,6 +64,7 @@ type Deps struct {
 	Alerts    AlertPublisher
 	Creds     CredentialClient
 	Trading   *TradingClients
+	Research  *ResearchClients
 	Market    MarketBus
 }
 
@@ -112,7 +114,7 @@ func New(cfg Config, d Deps) (*Server, error) {
 	}
 	s := &Server{
 		cfg: cfg, store: &Store{pool: d.Pool}, pool: d.Pool, wa: wa, keys: k, audit: audit.NewWriter(d.Pool),
-		log: d.Log, alerts: d.Alerts, creds: d.Creds, trading: d.Trading, market: d.Market, now: time.Now, limiters: map[string]*rate.Limiter{},
+		log: d.Log, alerts: d.Alerts, creds: d.Creds, trading: d.Trading, research: d.Research, market: d.Market, now: time.Now, limiters: map[string]*rate.Limiter{},
 		rateEvery: 200 * time.Millisecond, rateBurst: 30,
 	}
 	for _, p := range cfg.TrustedProxies {
@@ -180,6 +182,7 @@ func (s *Server) registerRoutes() {
 	priv("GET", "/api/v1/system/status", s.handleSystemStatus)
 	priv("GET", "/api/v1/events", s.handleEvents)
 	s.registerTradingRoutes(priv)
+	s.registerResearchRoutes(priv)
 }
 
 // Handler returns the full HTTP handler (API + static UI).

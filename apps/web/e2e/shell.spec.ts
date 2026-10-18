@@ -85,6 +85,8 @@ test("owner setup, passkey and TOTP login, step-up, credentials, audit", async (
     ["Strategies", "11-strategies"],
     ["Orders", "12-orders"],
     ["Charts", "13-charts"],
+    ["Training", "14-training"],
+    ["Experiments", "15-experiments"],
   ] as const) {
     await main.getByRole("link", { name: link, exact: true }).click();
     await expect(page.getByRole("heading", { name: link, exact: true })).toBeVisible();

@@ -12,9 +12,11 @@ import { PortfolioPage } from "@/routes/portfolio";
 import { RiskPage } from "@/routes/risk";
 import { LoginPage, SetupPage } from "@/routes/auth";
 import { DashboardPage } from "@/routes/dashboard";
+import { CandidatePage, ExperimentsPage, LineagePage, StudyPage } from "@/routes/experiments";
 import { SecurityPage } from "@/routes/security";
 import { BrokersPage, PlatformSettingsPage } from "@/routes/settings";
 import { StrategiesPage, StrategyDetailPage } from "@/routes/strategies";
+import { RunPage, TrainingJobPage, TrainingPage } from "@/routes/training";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 10_000, retry: 1, refetchOnWindowFocus: true } },
@@ -76,6 +78,13 @@ const ordersRoute = createRoute({ getParentRoute: () => appRoute, path: "/orders
 const orderTicketRoute = createRoute({ getParentRoute: () => appRoute, path: "/orders/new", component: OrderTicketPage });
 const chartsRoute = createRoute({ getParentRoute: () => appRoute, path: "/charts", component: ChartsPage });
 const riskRoute = createRoute({ getParentRoute: () => appRoute, path: "/risk", component: RiskPage });
+const trainingRoute = createRoute({ getParentRoute: () => appRoute, path: "/training", component: TrainingPage });
+const trainingJobRoute = createRoute({ getParentRoute: () => appRoute, path: "/training/jobs/$jobId", component: TrainingJobPage });
+const runRoute = createRoute({ getParentRoute: () => appRoute, path: "/training/runs/$runId", component: RunPage });
+const experimentsRoute = createRoute({ getParentRoute: () => appRoute, path: "/experiments", component: ExperimentsPage });
+const lineageRoute = createRoute({ getParentRoute: () => appRoute, path: "/experiments/lineages/$lineageId", component: LineagePage });
+const studyRoute = createRoute({ getParentRoute: () => appRoute, path: "/experiments/studies/$studyId", component: StudyPage });
+const candidateRoute = createRoute({ getParentRoute: () => appRoute, path: "/experiments/candidates/$candidateId", component: CandidatePage });
 
 const routeTree = rootRoute.addChildren([
   loginRoute,
@@ -89,6 +98,13 @@ const routeTree = rootRoute.addChildren([
     orderTicketRoute,
     chartsRoute,
     riskRoute,
+    trainingRoute,
+    trainingJobRoute,
+    runRoute,
+    experimentsRoute,
+    lineageRoute,
+    studyRoute,
+    candidateRoute,
     securityRoute,
     brokersRoute,
     platformRoute,

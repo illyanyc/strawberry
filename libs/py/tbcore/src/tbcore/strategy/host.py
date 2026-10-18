@@ -32,6 +32,14 @@ from tbcore.context.events import BlackoutStrategy, EventBlackout, InMemoryEvent
 from tbcore.context.store import ContextStore
 from tbcore.data.calendar import Calendar, xnys
 from tbcore.strategy import Bar, Intent, OpeningRangeBreakout, ORBParams, OwnPosition, Strategy, StrategyContext
+from tbcore.strategy.model_signal import (
+    MetaFilterStrategy,
+    ModelSignalParams,
+    ModelSignalStrategy,
+    ResidualReversal,
+    ResidualReversalParams,
+    score_source,
+)
 
 TIMEFRAMES = {
     marketdata_pb2.TIMEFRAME_1M: "1m",
@@ -51,8 +59,35 @@ MODES = {
     "backtest": common_pb2.MODE_BACKTEST,
 }
 StrategyFactory = Callable[[str, dict[str, object]], Strategy]
+
+
+def _primary(name: str, sid: str, params: dict[str, object]) -> Strategy:
+    if name == "orb":
+        return OpeningRangeBreakout(sid, ORBParams.from_dict(params))
+    if name == "residual_reversal":
+        return ResidualReversal(sid, ResidualReversalParams.from_dict(dict(params)))
+    raise ValueError(f"unknown primary rule {name!r}")
+
+
+def _model_signal(sid: str, params: dict[str, object]) -> Strategy:
+    return ModelSignalStrategy(
+        sid,
+        ModelSignalParams.from_dict(dict(params)),
+        score_source(dict(params), list(params.get("universe", []))),  # type: ignore[call-overload]
+    )
+
+
+def _meta_filter(sid: str, params: dict[str, object]) -> Strategy:
+    prim = _primary(str(params.get("primary_class", "orb")), sid, dict(params.get("primary_params", {})))  # type: ignore[call-overload]
+    return MetaFilterStrategy(sid, prim, score_source(dict(params), list(params.get("universe", []))))  # type: ignore[call-overload]
+
+
 CLASSES: dict[str, StrategyFactory] = {
-    "orb": lambda sid, params: OpeningRangeBreakout(sid, ORBParams.from_dict(params))
+    "orb": lambda sid, params: OpeningRangeBreakout(sid, ORBParams.from_dict(params)),
+    # Section 10 model strategies (ML-040..ML-042) and the swing primary rule (ML-016).
+    "model_signal": _model_signal,
+    "meta_filter": _meta_filter,
+    "residual_reversal": lambda sid, params: ResidualReversal(sid, ResidualReversalParams.from_dict(dict(params))),
 }
 
 

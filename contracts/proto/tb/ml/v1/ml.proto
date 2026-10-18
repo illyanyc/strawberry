@@ -3,12 +3,28 @@ syntax = "proto3";
 // Model registry and backtest run records.
 package tb.ml.v1;
 
+// ModelStage is the Phase 0 placeholder; use RegistryStage (EX-050).
 enum ModelStage {
   MODEL_STAGE_UNSPECIFIED = 0;
   MODEL_STAGE_CANDIDATE = 1;
   MODEL_STAGE_CHALLENGER = 2;
   MODEL_STAGE_CHAMPION = 3;
   MODEL_STAGE_ARCHIVED = 4;
+}
+
+// RegistryStage is the champion/challenger lifecycle (section 11, EX-050):
+// candidate → validated → shadow → paper → live_eligible → live → retired. The optimizer only marks
+// live_eligible; live is set by the section 15 go-live flow.
+enum RegistryStage {
+  REGISTRY_STAGE_UNSPECIFIED = 0;
+  REGISTRY_STAGE_CANDIDATE = 1;
+  // Gate report passed (EX-051).
+  REGISTRY_STAGE_VALIDATED = 2;
+  REGISTRY_STAGE_SHADOW = 3;
+  REGISTRY_STAGE_PAPER = 4;
+  REGISTRY_STAGE_LIVE_ELIGIBLE = 5;
+  REGISTRY_STAGE_LIVE = 6;
+  REGISTRY_STAGE_RETIRED = 7;
 }
 
 message ModelVersion {
@@ -25,6 +41,13 @@ message ModelVersion {
   string config_hash = 10;
   int64 seed = 11;
   string env_lock_hash = 12;
+  RegistryStage registry_stage = 13;
+  string name = 14;
+  string artifact_uri = 15;
+  // Model family task and timeframe, checked against the feature set at inference (ML-040).
+  string task = 16;
+  string timeframe = 17;
+  int64 created_at = 18;
 }
 
 message BacktestRun {
