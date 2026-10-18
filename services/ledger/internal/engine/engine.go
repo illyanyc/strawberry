@@ -435,11 +435,13 @@ func (e *Engine) equityPoints(acct string, ts int64, batch *Batch) {
 		o := a.Owners[id]
 		key := acct + "|" + id
 		st := e.equity[key]
+		v := a.Value(o)
 		if st == nil {
-			st = &equityState{lastBucket: -1}
+			// The first observation is the baseline until a session starts, so an owner first
+			// seen outside market hours never reports its whole equity as day P&L (RM-005).
+			st = &equityState{lastBucket: -1, dayStart: v.Equity, hwm: v.Equity}
 			e.equity[key] = st
 		}
-		v := a.Value(o)
 		if date != "" && st.dayDate != date {
 			st.dayDate, st.dayStart = date, v.Equity
 		}

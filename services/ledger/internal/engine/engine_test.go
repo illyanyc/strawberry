@@ -191,6 +191,34 @@ func TestRM005AllocationChangesAreNotDayPnL(t *testing.T) {
 	}
 }
 
+// RM-005, VP-024: an owner first seen outside a session gets its session start from that first
+// observation, so a fresh allocation never shows up as day P&L before the next session opens.
+func TestRM005FirstObservationOutsideSessionIsTheBaseline(t *testing.T) {
+	clk := &clock{}
+	clk.t.Store(time.Date(2026, 10, 14, 3, 40, 0, 0, time.UTC).UnixNano())
+	cfg := DefaultConfig()
+	cfg.Now = clk.now
+	e, err := New(context.Background(), cfg, NewMemory(), StaticResolver{"X": "INSTX"}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := &harness{t: t, e: e, clk: clk, pos: map[string]decimal.Decimal{}, cash: decimal.NewFromInt(100000)}
+	h.snapshot()
+	if err := e.RegisterOwner(context.Background(), "orb-1", "orbaaaa", acct, false, false, "test"); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := e.SetAllocation(context.Background(), "orb-1", acct, decimal.NewFromInt(10000), "owner", ""); err != nil {
+		t.Fatal(err)
+	}
+	clk.add(time.Minute)
+	h.snapshot()
+	for _, o := range e.AccountView(acct).GetOwners() {
+		if o.GetOwner() == "orb-1" && (o.GetDayPnl().GetValue() != "0" || o.GetHighWaterMark().GetValue() != "10000") {
+			t.Fatalf("out-of-session owner: day P&L %s, HWM %s; want 0 and 10000", o.GetDayPnl().GetValue(), o.GetHighWaterMark().GetValue())
+		}
+	}
+}
+
 // Encroachment within one snapshot cycle, halt, and audited resolution (VP-016, VP-019).
 func TestVP016EncroachmentThroughEngine(t *testing.T) {
 	mem := NewMemory()
