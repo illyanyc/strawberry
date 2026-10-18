@@ -165,13 +165,23 @@ func errCode(t *testing.T, rec *httptest.ResponseRecorder) string {
 	return s
 }
 
-// UI-006, RM-007: engaging needs no step-up (one confirmation, desktop or phone); release needs a
-// fresh passkey step-up from a desktop client, and the forwarded actor carries both facts.
+// UI-006, RM-007, RM-020: engaging needs no step-up from a desktop (one confirmation) and a fresh
+// passkey from a phone; release needs a fresh passkey step-up from a desktop client, and the
+// forwarded actor carries both facts.
 func TestRM007KillSwitchEngageAndDesktopPasskeyRelease(t *testing.T) {
 	rig := newTradingRig(t, "test")
 	s := rig.srv
-	if rec := rig.call(s.handleKillEngage, "POST", "/api/v1/kill-switches", `{"scope":"global","reason":"drill"}`, phoneUA, ""); rec.Code != 200 {
-		t.Fatalf("engage from phone: %d %s", rec.Code, rec.Body)
+	for _, stepUp := range []string{"", "totp"} {
+		if rec := rig.call(s.handleKillEngage, "POST", "/api/v1/kill-switches", `{"scope":"global","reason":"drill"}`, phoneUA, stepUp); rec.Code != 403 ||
+			errCode(t, rec) != "step_up_required" || !strings.Contains(rec.Body.String(), `"passkey"`) {
+			t.Fatalf("RM-020 engage from phone with step-up %q: %d %s", stepUp, rec.Code, rec.Body)
+		}
+	}
+	if len(rig.exec.triggers) != 0 {
+		t.Fatal("RM-020: no phone engagement may reach execution before the passkey step-up")
+	}
+	if rec := rig.call(s.handleKillEngage, "POST", "/api/v1/kill-switches", `{"scope":"global","reason":"drill"}`, phoneUA, "passkey"); rec.Code != 200 {
+		t.Fatalf("engage from phone after a passkey: %d %s", rec.Code, rec.Body)
 	}
 	if got := rig.exec.triggers[0]; got.GetScope() != ordersv1.KillSwitchScope_KILL_SWITCH_SCOPE_GLOBAL ||
 		got.GetAction() != ordersv1.KillSwitchAction_KILL_SWITCH_ACTION_CANCEL_OPEN || got.GetActor().GetName() != "owner" || !got.GetActor().GetMobile() {
@@ -179,6 +189,9 @@ func TestRM007KillSwitchEngageAndDesktopPasskeyRelease(t *testing.T) {
 	}
 	if rec := rig.call(s.handleKillEngage, "POST", "/", `{"scope":"strategy","target":"a.>"}`, desktopUA, ""); rec.Code != 400 {
 		t.Fatalf("bad target must be rejected: %d", rec.Code)
+	}
+	if rec := rig.call(s.handleKillEngage, "POST", "/", `{"scope":"strategy","target":"orb-15m","action":"freeze"}`, desktopUA, ""); rec.Code != 200 {
+		t.Fatalf("UI-006 desktop engage without step-up: %d %s", rec.Code, rec.Body)
 	}
 	rel := func(ua, stepUp string) *httptest.ResponseRecorder {
 		return rig.call(s.handleKillRelease, "POST", "/", `{"reason":"drill over"}`, ua, stepUp, "id", "K1")

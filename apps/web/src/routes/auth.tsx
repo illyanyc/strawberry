@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
+import { BrandMark } from "@/components/BrandMark";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Alert, Field } from "@/components/ui/form";
@@ -16,13 +17,11 @@ function message(e: unknown): string {
 
 function AuthFrame({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
-    <div className="flex min-h-full items-center justify-center p-4">
+    <div className="flex min-h-full items-center justify-center bg-[radial-gradient(ellipse_at_top,var(--color-panel-2),transparent_60%)] p-4">
       <div className="w-full max-w-md space-y-6">
-        <div className="text-center">
-          <div className="text-4xl" aria-hidden>
-            🍓
-          </div>
-          <h1 className="mt-2 text-xl font-semibold tracking-tight">{title}</h1>
+        <div className="flex flex-col items-center text-center">
+          <BrandMark className="size-12" />
+          <h1 className="mt-3 text-xl font-semibold tracking-tight">{title}</h1>
           <p className="mt-1 text-sm text-muted">{subtitle}</p>
         </div>
         {children}

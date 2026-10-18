@@ -1,6 +1,7 @@
 # Alert routing (D13, D22). Critical alerts page through Pushover emergency priority (repeats until
 # acknowledged). Fill in .secrets/pushover_user_key and pushover_app_token to enable delivery; until
-# then sends fail and are logged. Phase 5 adds Web Push via the monitor service.
+# then sends fail and are logged. Every notifying receiver also posts to the gateway's internal
+# webhook, which fans the group out as Web Push to the installed PWA (ADR-0052, SE-063).
 route:
   receiver: log-only
   group_by: [alertname, service]
@@ -38,6 +39,12 @@ receivers:
         priority: "0"
         title: '[WARNING] {{ .CommonLabels.alertname }}'
         message: '{{ range .Alerts }}{{ .Annotations.summary }}{{ "\n" }}{{ end }}'
+    webhook_configs:
+      - url: http://api-gateway:8082/internal/alertmanager/webhook
+        send_resolved: true
+        max_alerts: 20
+        http_config:
+          authorization: { type: Bearer, credentials_file: /run/secrets/alertmanager_webhook_token }
   - name: pushover-report
     pushover_configs:
       - user_key_file: /run/secrets/pushover_user_key
@@ -45,6 +52,12 @@ receivers:
         priority: "-1"
         title: '{{ .CommonLabels.alertname }}'
         message: '{{ range .Alerts }}{{ .Annotations.summary }}{{ "\n" }}{{ end }}'
+    webhook_configs:
+      - url: http://api-gateway:8082/internal/alertmanager/webhook
+        send_resolved: false
+        max_alerts: 20
+        http_config:
+          authorization: { type: Bearer, credentials_file: /run/secrets/alertmanager_webhook_token }
   - name: pushover-critical
     pushover_configs:
       - user_key_file: /run/secrets/pushover_user_key
@@ -55,6 +68,12 @@ receivers:
         title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
         message: '{{ range .Alerts }}{{ .Annotations.summary }}{{ "\n" }}{{ end }}'
         send_resolved: true
+    webhook_configs:
+      - url: http://api-gateway:8082/internal/alertmanager/webhook
+        send_resolved: true
+        max_alerts: 20
+        http_config:
+          authorization: { type: Bearer, credentials_file: /run/secrets/alertmanager_webhook_token }
 
 inhibit_rules:
   - source_matchers: [alertname="PostgresDown"]

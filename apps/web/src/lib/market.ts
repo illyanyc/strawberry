@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 
-import type { Bar, ExecutionReport, Timeframe } from "./trading";
+import type { Bar, ExecutionReport, Signal, Timeframe } from "./trading";
 
 export interface MarketHandlers {
   onBar: (bar: Bar) => void;
   onFill: (fill: ExecutionReport) => void;
+  /** A model or webhook signal for the instrument (UI-049). */
+  onSignal?: (signal: Signal) => void;
   /** The server dropped events (slow client) or the stream reconnected: reload history. */
   onResync: () => void;
   onSessionEnded: () => void;
@@ -12,7 +14,7 @@ export interface MarketHandlers {
 
 /**
  * Live chart data over SSE (`/api/v1/stream/market`, UI-012): final and corrected bars, partial
- * bars coalesced by the gateway to at most 4 Hz, and executions in the instrument. Reconnects are
+ * bars coalesced by the gateway to at most 4 Hz, executions and signals in the instrument. Reconnects are
  * left to EventSource; every reconnect after the first open triggers a history reload.
  */
 export function useMarketStream(instrumentId: string | null, timeframe: Timeframe, handlers: MarketHandlers): { connected: boolean } {
@@ -37,6 +39,7 @@ export function useMarketStream(instrumentId: string | null, timeframe: Timefram
     es.addEventListener("bar", (e) => h.current.onBar(parse<Bar>(e)));
     es.addEventListener("partial", (e) => h.current.onBar(parse<Bar>(e)));
     es.addEventListener("fill", (e) => h.current.onFill(parse<ExecutionReport>(e)));
+    es.addEventListener("signal", (e) => h.current.onSignal?.(parse<Signal>(e)));
     es.addEventListener("resync", () => h.current.onResync());
     es.addEventListener("session-ended", () => {
       es.close();

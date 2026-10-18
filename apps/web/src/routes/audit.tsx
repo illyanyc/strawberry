@@ -69,7 +69,7 @@ export function AuditPage() {
           ) : events.data.events.length === 0 ? (
             <p className="p-5 text-sm text-muted">No events yet.</p>
           ) : (
-            <table className="w-full text-left text-xs">
+            <table className="data-table text-xs">
               <thead className="border-b border-border text-muted">
                 <tr>
                   <th className="px-4 py-2 font-medium">#</th>

@@ -35,8 +35,10 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Canonical execution ID** | The `broker_exec_id` used to deduplicate fills; identical whether a fill arrives on the stream or from a REST resync (Alpaca: `<order_id>:<cumulative qty>`) (BR-008). |
 | **Centaur loop** | The research loop in which a classical optimizer (Optuna) searches and an LLM plans (hypotheses, search spaces, config diffs) without ever being the optimizer or the judge (research 03 §2.3, ADR-0041). |
 | **Champion / challenger** | The currently deployed model version for a strategy, and a candidate running in shadow or paper alongside it. |
+| **Cloudflare Access token** | The `Cf-Access-Jwt-Assertion` JWT Cloudflare Access adds for the origin after its policy passes; the gateway verifies its signature, audience, issuer, and expiry on the TradingView listener and the public UI hostname (SE-064). |
 | **Cold restart (IBC)** | IBC's Sunday-only full gateway restart at `ColdRestartTime` (default 17:00 ET): a fresh login, with an IBKR Mobile 2FA push for live; the platform's weekly IBKR login (IB-014). |
 | **Combinatorial purged cross-validation (CPCV)** | Selection splitter that cuts the history into N contiguous groups and tests every combination of k groups (purged and embargoed), yielding C(N−1, k−1) full out-of-sample paths (BT-033). |
+| **Command palette** | The ⌘K/Ctrl+K search dialog listing pages, a ticker's chart, and actions; built from the navigation registry (UI-042). |
 | **Compaction (lake)** | Merging a partition's staging and part files into one sorted part file with one row per natural key (ST-004). |
 | **Compose profile** | Named group of services in `infra/compose/docker-compose.yml` (`core`, `observability`, `ml`, `ml-workers`, `ops`, `remote-cloudflare`); `make up` starts `core,observability`. |
 | **Contaminated score** | A model-scored feature (news sentiment) for data published before that model's training cutoff; stored but excluded from features and backtests by default (CX-014, D31 rule 10). |
@@ -50,6 +52,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Dataset snapshot** | Immutable, content-addressed feature extract (`snapshots/<id>/`) whose ID hashes the feature set, universe, range, as-of, and exact input files (DF-009). |
 | **Dead-man check** | Heartbeat watch that contains risk when a component stops: execution latches cancel-open kill switches when the strategy runtime's heartbeat is lost; broker-gateway cancels working platform orders when execution's heartbeat is lost (RM-017). |
 | **Decimal (contract type)** | `tb.common.v1.Decimal`: an exact base-10 number carried as a string; the only representation for money and quantity in contracts. |
+| **Declarative Web Push** | A Web Push payload (`{"web_push": 8030, "notification": {...}}`) the browser can display without a service worker (Safari 18.4+); the gateway sends this shape to every browser (ADR-0052). |
 | **Deflated Sharpe ratio (DSR)** | Sharpe ratio corrected for the number of trials and non-normal returns; used to rank strategies honestly. |
 | **Demotion** | Automatic or manual move of a strategy to `paper` or `halted`. Re-promotion is always manual. |
 | **DiagnosticsReport** | Deterministic, size-limited report produced for every training run: data quality, feature shift and leakage flags, learning curves, fold metrics, importance stability, error slices, and rule-based findings with evidence (ML-020..ML-023). |
@@ -94,6 +97,7 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Model family** | One implementation of `tbcore.ml.Model` with a hyperparameter JSON Schema (ridge, LightGBM regression/LambdaRank/binary, rule + ML filter, ...) (ML-014). |
 | **Native ML worker** | ML/backtest/optimizer process run directly on macOS under launchd (MPS/MLX available) instead of in a container (D29). |
 | **Natural key (bar)** | `(instrument_id, timeframe, ts_open, feed)`: the identity used for idempotent writes and reader deduplication (ST-004). |
+| **Navigation registry** | `apps/web/src/lib/nav.ts`: the one list of pages from which the sidebar, phone tab bar, "More" sheet, palette, and shortcuts are built (UI-041). |
 | **Nested validation** | Inner CPCV selects hyperparameters on each outer fold's training window; the outer walk-forward tests the whole selection procedure; only the outer estimate is reported (EX-001). |
 | **Opening balance** | The first broker snapshot of an account, booked entirely to `manual` with the broker's average cost and cash (VP-015). |
 | **Opening-range breakout (ORB)** | The Phase 2 rule-based baseline: the first 15-minute bar's range defines the opening range; the first close above its high opens a long with a stop below the range and a 2R target; flat before the close (ADR-0026). |
@@ -144,20 +148,25 @@ Domain terms used in code and docs. Add terms in the same commit that introduces
 | **Session state (broker)** | Per-account adapter health: `disconnected`, `connecting`, `authenticated`, `syncing`, `ready`, `degraded`, `stopped`; only `ready` accepts orders (BR-010). |
 | **Setup token** | One-time, 30-minute token printed by `make setup-token` that authorizes registering the first owner (SE-007). |
 | **Shadow mode** | A model produces signals that are recorded but never sent as orders. |
+| **Signal overlay** | A chart marker (and, for models, a score line) drawn from `tb.signals.v1.Signal` messages on `sig.<strategy_id>.<instrument_id>`; information only, never an order (UI-049). |
 | **Simcore (`tb-simcore`)** | Go process that runs the production OMS engine, pre-trade gate, and ledger accounting core for the event-driven backtester over a stdio protobuf protocol; it makes every order-path decision while the backtester decides fills (ADR-0031, BT-003). |
 | **Snapshot stamping** | Setting a context version's `available_at`: rule time when first seen, fetch time when vendor-restated content changes, official time for authoritative histories (CX-004). |
 | **SPA test** | Hansen's test for superior predictive ability: whether any challenger beats the benchmark after accounting for the number of challengers; consistent p-value from the stationary bootstrap (BT-046). |
 | **Staging file** | Lake file with newly written rows, visible to readers at once and merged by compaction (ST-004). |
 | **Startup recovery** | The state after an execution restart in which no intent is approved until every ready account's open orders were reconciled with the broker (OE-020). |
+| **Status strip** | The row under the header showing execution state, account sessions, reconciliation, margin, day trades, halts, clock, runtime heartbeat, open orders, and feed freshness (UI-013). |
 | **Step-up auth** | Fresh re-authentication required for dangerous actions. |
 | **Strategy registry seed** | JSON file (`infra/compose/strategies.json`) shared by execution and the strategy runtime that registers strategies at startup; it never sets `live` and never changes an existing strategy's mode (SM-001). |
 | **Strategy runtime** | The Python service that runs `tbcore.strategy` strategies on final bars and publishes their intents on `ord.intent`; it sees only its strategies' own positions and never talks to brokers (ADR-0026, SM-014). |
 | **Syndicated duplicate** | A re-published copy of a news story (same or near-identical headline for the same instrument within 24 h); marked `duplicate_of` and counted once (CX-013). |
 | **Timing difference** | A broker vs ledger difference inside the reconciliation grace window (60 s, ≥ 2 snapshots); blocks only that instrument and becomes a break if it persists (VP-013). |
 | **Tool server** | The assistant component that executes every analyst read and write: forbidden-name denial, level check against the optimizer, budget check, holdout stripping, sanitization, audit (AN-060). |
+| **TradingView webhook strategy (`tv-<name>`)** | A strategy whose signals come from TradingView webhook alerts (runtime class `tradingview`); it has its own virtual ledger, allocation, and limits, and its intents pass the normal gate (SM-020). |
 | **Trial ledger** | The append-only record of every trial in a lineage (params, spec and pre-registration hashes, snapshot, commit, seed, source, status, out-of-fold returns) from which deflated statistics are computed (D31 rule 1, EX-020). |
 | **Triple-barrier label** | Label set by which of a profit-take, stop-loss, or time barrier is hit first. |
+| **VAPID** | Voluntary Application Server Identification (RFC 8292): the ES256-signed JWT and public key a Web Push sender presents to push services (SE-060). |
 | **Vintage** | The version of a revised series as published on a given date (ALFRED `realtime_start`); macro reads return the vintage known at `as_of` (DF-010). |
 | **Virtual portfolio (sub-portfolio)** | A strategy's own capital allocation, positions, lots, P&L, and limits, carved out of a real broker account. |
 | **Walk-forward** | Validation that repeatedly trains on a past window and tests on the following window. |
 | **Wash-sale flag** | Informational marker on a loss-realizing sale within 30 days of a purchase of the same instrument by any owner in any account (VP-022). |
+| **Web Push** | Browser push notifications through the vendor push services (FCM, Mozilla, Apple, Windows), encrypted end to end with RFC 8291; delivered to the installed PWA from Alertmanager via the gateway (ADR-0052). |

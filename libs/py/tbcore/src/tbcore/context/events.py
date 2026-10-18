@@ -147,6 +147,10 @@ class BlackoutStrategy:
         self.strategy_id = inner.strategy_id
         self.blocked: list[tuple[int, str, str]] = []  # (decision time, instrument, event name)
 
+    def filter_opens(self, ctx: StrategyContext, intents: list[Intent]) -> list[Intent]:
+        """Drop opening intents inside an active blackout (also used for webhook signals, SM-020)."""
+        return self._filter(ctx, intents)
+
     def _filter(self, ctx: StrategyContext, intents: list[Intent]) -> list[Intent]:
         out = []
         for it in intents:

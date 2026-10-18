@@ -53,6 +53,32 @@ type Config struct {
 	WebDir string `env:"TB_WEB_DIR" envDefault:"/app/web" json:"web_dir"`
 	// OwnerID is the single owner's ID (U7: single owner today, owner_id on every row).
 	OwnerID string `env:"TB_OWNER_ID" envDefault:"owner" json:"owner_id"`
+
+	// InternalAddr serves the Alertmanager → Web Push webhook on the backend network only (SE-063).
+	InternalAddr string `env:"TB_INTERNAL_HTTP_ADDR" envDefault:":8082" json:"internal_addr"`
+	// PushSubject is the VAPID contact (RFC 8292 "sub"): a mailto: or https: URL.
+	PushSubject string `env:"TB_PUSH_SUBJECT" envDefault:"mailto:owner@strawberry.invalid" json:"push_subject"`
+	// PushRedact keeps alert summaries off lock screens: severity and alert name only (SE-062).
+	PushRedact bool `env:"TB_PUSH_REDACT" envDefault:"true" json:"push_redact"`
+	// PushAllowedHosts are the push services subscriptions may point at (SE-061); empty = defaults.
+	PushAllowedHosts []string `env:"TB_PUSH_ALLOWED_HOSTS" envSeparator:"," json:"push_allowed_hosts"`
+
+	// TVWebhookAddr enables the TradingView webhook listener (empty = off, the default; D69).
+	TVWebhookAddr string `env:"TB_TV_WEBHOOK_ADDR" json:"tv_webhook_addr"`
+	// TVPublicURL is the dedicated Cloudflare Access hostname, for display (e.g. https://tv.example.com).
+	TVPublicURL string `env:"TB_TV_PUBLIC_URL" json:"tv_public_url"`
+	// TVAllowedIPs are accepted client addresses (CIDRs); default TradingView's published four.
+	TVAllowedIPs []string `env:"TB_TV_ALLOWED_IPS" envSeparator:"," json:"tv_allowed_ips"`
+	// TVTrustedProxies are peers (cloudflared) whose Cf-Connecting-Ip is the client address.
+	TVTrustedProxies []string      `env:"TB_TV_TRUSTED_PROXIES" envSeparator:"," json:"tv_trusted_proxies"`
+	TVMaxAge         time.Duration `env:"TB_TV_MAX_AGE" envDefault:"60s" json:"tv_max_age"`
+
+	// Cloudflare Access (SE-064): team domain, the webhook application's audience tag, and the UI
+	// application's audience tag plus the public hostnames it protects. Empty = not verified.
+	CFAccessTeam    string   `env:"TB_CF_ACCESS_TEAM" json:"cf_access_team"`
+	CFAccessTVAud   string   `env:"TB_CF_ACCESS_TV_AUD" json:"cf_access_tv_aud"`
+	CFAccessUIAud   string   `env:"TB_CF_ACCESS_UI_AUD" json:"cf_access_ui_aud"`
+	CFAccessUIHosts []string `env:"TB_CF_ACCESS_UI_HOSTS" envSeparator:"," json:"cf_access_ui_hosts"`
 }
 
 // Validate checks cross-field constraints.
@@ -85,6 +111,29 @@ func (c *Config) Validate() error {
 	}
 	if c.StepUpWindow <= 0 || c.StepUpWindow > 15*time.Minute {
 		return errors.New("TB_AUTH_STEP_UP_WINDOW must be in (0, 15m]")
+	}
+	if len(c.TVAllowedIPs) == 0 {
+		c.TVAllowedIPs = TradingViewIPs
+	}
+	for _, p := range append(append([]string{}, c.TVAllowedIPs...), c.TVTrustedProxies...) {
+		if _, err := netip.ParsePrefix(strings.TrimSpace(p)); err != nil {
+			return errors.New("TB_TV_ALLOWED_IPS and TB_TV_TRUSTED_PROXIES must be CIDRs")
+		}
+	}
+	if c.TVMaxAge <= 0 || c.TVMaxAge > 10*time.Minute {
+		return errors.New("TB_TV_MAX_AGE must be in (0, 10m]")
+	}
+	if c.TVWebhookAddr != "" && c.TVWebhookAddr == c.HTTPAddr {
+		return errors.New("TB_TV_WEBHOOK_ADDR must differ from TB_HTTP_ADDR (the webhook never shares the UI listener)")
+	}
+	if (c.CFAccessTVAud != "" || c.CFAccessUIAud != "") && !strings.HasSuffix(c.CFAccessTeam, ".cloudflareaccess.com") {
+		return errors.New("TB_CF_ACCESS_TEAM must be <team>.cloudflareaccess.com when an Access audience is set")
+	}
+	if c.CFAccessUIAud != "" && len(c.CFAccessUIHosts) == 0 {
+		return errors.New("TB_CF_ACCESS_UI_HOSTS must list the public hostnames protected by TB_CF_ACCESS_UI_AUD")
+	}
+	if c.PushSubject != "" && !strings.HasPrefix(c.PushSubject, "mailto:") && !strings.HasPrefix(c.PushSubject, "https://") {
+		return errors.New("TB_PUSH_SUBJECT must be a mailto: or https: URL")
 	}
 	return nil
 }

@@ -57,20 +57,38 @@ export function Switch({ checked, onChange, label, disabled }: { checked: boolea
   );
 }
 
-export function Badge({ tone = "neutral", children }: { tone?: "neutral" | "ok" | "warn" | "danger" | "paper" | "live"; children: ReactNode }) {
+export type BadgeTone = "neutral" | "ok" | "warn" | "danger" | "paper" | "live" | "info";
+
+export function Badge({ tone = "neutral", children, className }: { tone?: BadgeTone; children: ReactNode; className?: string }) {
   const tones = {
     neutral: "bg-panel-2 text-muted border-border",
     ok: "bg-ok/15 text-ok border-ok/30",
     warn: "bg-warn/15 text-warn border-warn/30",
     danger: "bg-live/15 text-live border-live/40",
     paper: "bg-paper/15 text-paper border-paper/30",
-    live: "bg-live text-white border-live",
+    live: "bg-live-bg text-white border-live-bg",
+    info: "bg-info/15 text-info border-info/30",
   } as const;
-  return <span className={cn("inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide", tones[tone])}>{children}</span>;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-1.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide [&_svg]:size-3",
+        tones[tone],
+        className,
+      )}
+    >
+      {children}
+    </span>
+  );
 }
 
-export function Alert({ tone = "danger", children }: { tone?: "danger" | "warn" | "ok"; children: ReactNode }) {
-  const tones = { danger: "border-live/40 bg-live/10 text-live", warn: "border-warn/40 bg-warn/10 text-warn", ok: "border-ok/40 bg-ok/10 text-ok" };
+export function Alert({ tone = "danger", children }: { tone?: "danger" | "warn" | "ok" | "info"; children: ReactNode }) {
+  const tones = {
+    danger: "border-live/40 bg-live/10 text-live",
+    warn: "border-warn/40 bg-warn/10 text-warn",
+    ok: "border-ok/40 bg-ok/10 text-ok",
+    info: "border-info/40 bg-info/10 text-info",
+  };
   return (
     <div role={tone === "danger" ? "alert" : "status"} className={cn("rounded-lg border px-3 py-2 text-sm", tones[tone])}>
       {children}

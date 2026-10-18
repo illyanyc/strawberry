@@ -100,6 +100,11 @@ export const seg = (id: string) => encodeURIComponent(id);
 
 /** The tearsheet is its own sandboxed document (UI-025): opened in a new tab, never inlined. */
 export const tearsheetUrl = (runId: string) => `${R}/runs/${seg(runId)}/tearsheet`;
+/**
+ * The same document for the in-app viewer (UI-047): the gateway allows framing by this origin only
+ * for `embed=1`, and the viewer's <iframe sandbox> grants nothing (no scripts, opaque origin).
+ */
+export const tearsheetEmbedUrl = (runId: string) => `${tearsheetUrl(runId)}?embed=1`;
 export const evidenceUrl = (candidateId: string) => `${R}/candidates/${seg(candidateId)}/evidence?format=html`;
 
 /** protojson doubles may be the strings "NaN" / "Infinity"; show them as such, never as a number. */

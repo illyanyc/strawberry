@@ -120,7 +120,7 @@ function OrdersTable({ orders, onTrace }: { orders: Order[]; onTrace: (c: string
   return (
     <>
       {cancel.isError && <Alert>{cancel.error instanceof ApiError ? cancel.error.message : "Cancel failed"}</Alert>}
-      <table className="w-full text-left text-sm" aria-label="Orders">
+      <table className="data-table" aria-label="Orders">
         <thead className="text-xs text-muted">
           <tr>
             <th className="py-2 pr-3 font-medium">Created</th>
@@ -175,7 +175,7 @@ function OrdersTable({ orders, onTrace }: { orders: Order[]; onTrace: (c: string
 
 function FillsTable({ fills, onTrace }: { fills: Fill[]; onTrace: (c: string) => void }) {
   return (
-    <table className="w-full text-left text-sm" aria-label="Fills">
+    <table className="data-table" aria-label="Fills">
       <thead className="text-xs text-muted">
         <tr>
           <th className="py-2 pr-3 font-medium">Time</th>

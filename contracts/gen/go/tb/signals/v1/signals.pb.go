@@ -4,7 +4,8 @@
 // 	protoc        (unknown)
 // source: tb/signals/v1/signals.proto
 
-// Model or rule signals (bus subject sig.<strategy_id>). Signals are never orders.
+// Model, rule, or webhook signals (bus subject sig.<strategy_id>.<instrument_id>, stream SIGNALS).
+// Signals are never orders: a strategy turns them into intents that pass the pre-trade gate.
 
 package signalsv1
 

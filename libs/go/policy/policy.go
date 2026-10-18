@@ -63,6 +63,11 @@ const (
 	ActAnalystAnalysis      Action = "analyst.analysis.request"
 	ActAnalystCodeReview    Action = "analyst.code.review"
 	ActAssistantChat        Action = "assistant.chat"
+	// Section 14 Phase 5: Web Push subscriptions (SE-060), the TradingView widget's CSP relaxation
+	// (SE-065), and the TradingView intake status page (UI-048).
+	ActNotificationsManage   Action = "notifications.manage"
+	ActUITradingViewWidget   Action = "ui.tradingview_widget.enable"
+	ActTradingViewStatusRead Action = "tradingview.status.read"
 )
 
 // stepUp says which fresh second factor an owner action needs.
@@ -129,12 +134,21 @@ var ownerActions = map[Action]stepUp{
 	ActAnalystAnalysis:      noStepUp,
 	ActAnalystCodeReview:    noStepUp,
 	ActAssistantChat:        noStepUp,
+	// Managing push subscriptions changes where alerts go, not risk; loading a third-party widget
+	// relaxes the CSP, so it needs a passkey (SE-065). The kill-switch entry above escalates on phones.
+	ActNotificationsManage:   noStepUp,
+	ActUITradingViewWidget:   stepUpPasskey,
+	ActTradingViewStatusRead: noStepUp,
 }
 
 // escalated reports actions whose step-up depends on the resource (live manual orders, promotion to
-// paper or live_eligible, raising analyst autonomy or budgets).
+// paper or live_eligible, raising analyst autonomy or budgets, engaging a kill switch from a phone).
 func escalated(action Action, res Resource) bool {
 	switch action {
+	case ActKillSwitchEngage:
+		// RM-020, UI-050: a phone halts only after a fresh passkey assertion (a lost or borrowed
+		// unlocked phone must not be able to flatten strategy positions); desktop stays one confirmation.
+		return res.Mode == "mobile"
 	case ActOrdersSubmitManual:
 		return strings.EqualFold(res.Mode, "live")
 	case ActModelPromote:
@@ -200,7 +214,8 @@ func (a Actor) String() string {
 
 // Resource carries attributes some decisions depend on.
 type Resource struct {
-	// Mode is "paper" or "live" when the action targets something with a mode.
+	// Mode is "paper" or "live" when the action targets something with a mode; "raise" for autonomy
+	// increases; "mobile" when the request comes from a phone (kill-switch engagement).
 	Mode string
 	// ID identifies the target, for audit and future per-resource rules.
 	ID string

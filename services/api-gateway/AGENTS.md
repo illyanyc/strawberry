@@ -2,10 +2,10 @@
 
 The only service reachable from outside the host. Owns owner authentication, sessions, CSRF, step-up, the REST + SSE API for the UI, and serving the static UI. It never holds broker credentials in storage, never returns them, and never decides authorization outside `policy.Authorize`.
 
-**Status:** In progress (Phase 0 auth slice; Phase 2 trading BFF)  ·  **Language/stack:** Go, go-webauthn, pquerna/otp, pgx, protojson ([ADR-0009](../../docs/adr/0009-owner-authentication.md), D15; [ADR-0004](../../docs/adr/0004-core-language-split.md), D1; [ADR-0028](../../docs/adr/0028-ui-trading-slice-charts-and-bff.md), D46)
+**Status:** In progress (Phase 0 auth slice; Phase 2 trading BFF; Phase 4 research and analyst BFF; Phase 5 Web Push, signals, TradingView intake)  ·  **Language/stack:** Go, go-webauthn, pquerna/otp, pgx, protojson ([ADR-0009](../../docs/adr/0009-owner-authentication.md), D15; [ADR-0004](../../docs/adr/0004-core-language-split.md), D1; [ADR-0028](../../docs/adr/0028-ui-trading-slice-charts-and-bff.md), D46)
 
 ## Responsibilities
-- Owns: auth/session/CSRF/step-up flows, settings API, audit viewer API, credential write-through to broker-gateway, SSE status stream, the trading BFF (accounts, portfolio, breaks, strategies, limits, orders, intents, fills, trace, kill switches, instruments, bars) and the SSE chart stream, static UI.
+- Owns: auth/session/CSRF/step-up flows, settings API, audit viewer API, credential write-through to broker-gateway, SSE status stream (with feed freshness), the trading BFF (accounts, portfolio, breaks, strategies, limits, orders, intents, fills, trace, kill switches, instruments, bars) and the SSE chart stream (bars, fills, signals), signals for chart overlays, Web Push (subscriptions, delivery, the Alertmanager webhook), the TradingView webhook intake, Cloudflare Access verification, static UI.
 - Does not own: credential encryption or storage (broker-gateway), trading state, ownership, risk decisions (execution and ledger decide; the gateway authorizes the owner and shapes requests).
 
 ## Interfaces
@@ -20,8 +20,13 @@ The only service reachable from outside the host. Owns owner authentication, ses
 | out | gRPC | `tb.optimizer.v1.OptimizerService` (lineages, autonomy, cycles, studies + stream, trials, diagnostics, ledger, stats, candidates, gate report, evidence, graph, check/promote/demote, retraining) and `HoldoutService` (status, boundary, evaluate; audience `holdout`) | `contracts/proto/tb/optimizer/v1/` |
 | out | gRPC | `tb.analyst.v1.AnalystService` (journal, rounds, status, review + record launches, pause, analysis requests, trial ledger, code proposals, chat); approved level-0 actions go to ml/optimizer through the research clients as the owner (AN-060) | `contracts/proto/tb/analyst/v1/analyst.proto` |
 | out | NATS | `alert.security` | `tb.alerts.v1.Alert` |
-| in | NATS (core subscribe) | `md.bar.<tf>.<id>`, `md.bar.correction.*`, `md.bar.partial.*`, `exec.>` for the chart stream | `tb.marketdata.v1.Bar`, `tb.orders.v1.ExecutionReport` |
-| out | Postgres | schemas `auth`, `config` (CRUD), `audit` (append + read) | `libs/go/db/migrations/` |
+| out | NATS (JetStream) | `sig.tv-<name>.<instrument_id>` (TradingView signals, dedupe ID = idempotency key) | `tb.signals.v1.Signal` |
+| in | NATS (ordered consumers on stream `SIGNALS`) | `sig.*.<instrument_id>` for `/api/v1/signals` | `tb.signals.v1.Signal` |
+| in | HTTP (internal listener `:8082`, backend only) | `POST /internal/alertmanager/webhook` (bearer token) | Alertmanager webhook v4 |
+| in | HTTP (TradingView listener, optional) | `POST /webhooks/tradingview/{name}` | JSON alert body (`contracts/openapi/gateway.yaml` description) |
+| out | HTTPS | Web Push to allowlisted push services; Cloudflare Access keys from `https://<team>/cdn-cgi/access/certs` | RFC 8291/8292; JWKS |
+| in | NATS (core subscribe) | `md.bar.<tf>.<id>`, `md.bar.correction.*`, `md.bar.partial.*`, `exec.>`, `sig.*.<id>` for the chart stream; `exec.>` for fill pushes | `tb.marketdata.v1.Bar`, `tb.orders.v1.ExecutionReport`, `tb.signals.v1.Signal` |
+| out | Postgres | schemas `auth` (incl. `push_subscriptions`), `config` (CRUD), `audit` (append + read) | `libs/go/db/migrations/` |
 
 ## Business rules enforced here
 - `SE-004` public allowlist → `internal/gateway/server.go` (`registerRoutes`, `wrap`); test `TestSE004RouteInventory`
@@ -33,6 +38,8 @@ The only service reachable from outside the host. Owns owner authentication, ses
 - All of the above end to end: `TestSEAuthEndToEnd`, `TestSSEStreamRequiresSessionAndEndsOnRevoke`
 - `EX-052`/`EX-011`/`EX-033`/`EX-025` research step-ups (promotion to paper or live_eligible, holdout evaluation and boundary, raising analyst autonomy, opening a cycle), `UI-025` sandboxed tearsheets → `internal/gateway/research.go`; `research_test.go` (`TestEX052*`, `TestUI025*`)
 - `RM-007` (kill release desktop + passkey, allocation increase, limit loosening), `VP-019` break resolution step-up, `SE-003` live/unknown-account manual orders, `UI-006`, `UI-012`..`UI-016` → `internal/gateway/trading.go`, `stream.go`; `trading_test.go` (`TestRM007*`, `TestVP019*`, `TestUI0*`)
+- `SE-060`..`SE-063` Web Push (VAPID, RFC 8291, sealed subscriptions, push-host allowlist, redaction, internal Alertmanager webhook) → `internal/webpush`, `internal/gateway/push.go`; `webpush_test.go`, `push_test.go`
+- `SE-064` TradingView intake and the Cloudflare Access gate, `SE-065` widget CSP, `UI-047` tearsheet embed, `UI-049` signals, `UI-051` freshness, `RM-020` phone halt step-up → `internal/gateway/tradingview.go`, `server.go`, `signals.go`, `research.go`, `trading.go`, `internal/cfaccess`; `tradingview_test.go`, `cfaccess_test.go`, `trading_test.go`
 - `AN-060` (owner submits approved analyst actions at level 0, caller always replaced by the owner), `AN-061` (raising analyst autonomy or budgets needs a passkey step-up; audited before the change), `AN-073` (proposal review), `AN-080` (chat) → `internal/gateway/analyst.go`; `analyst_test.go` (`TestAN060*`, `TestAN061*`)
 
 ## Layout
@@ -53,6 +60,11 @@ The only service reachable from outside the host. Owns owner authentication, ses
 | `internal/gateway/analyst.go` | Analyst BFF: AnalystService client; approvals with owner submission of prepared launches through the research clients, pause, analysis requests, proposals, chat (autonomy changes use the research autonomy route) |
 | `internal/gateway/stream.go` | SSE chart stream (`/api/v1/stream/market`): bars, coalesced partials, executions |
 | `internal/gateway/static.go` | SPA file server with index fallback |
+| `internal/gateway/signals.go` | `/api/v1/signals` (recent signals of an instrument from the SIGNALS stream) and the `SignalBus` interface |
+| `internal/gateway/push.go` | Web Push: subscription API, delivery fan-out, fill notifications, Alertmanager webhook on the internal listener, Postgres store |
+| `internal/gateway/tradingview.go` | TradingView webhook listener (verification chain, audit, signal publication), per-strategy secrets, `/api/v1/tradingview` status |
+| `internal/webpush/` | RFC 8291 encryption, RFC 8292 VAPID, sender, push-host allowlist (standard library only) |
+| `internal/cfaccess/` | Cloudflare Access JWT verifier (RS256 via the team's published keys, audience, issuer, expiry) |
 | `internal/gateway/*_test.go` | Route inventory, CSRF/headers, static UI serving, end-to-end integration tests (passkeys via `libs/go/webauthntest`), trading handlers against fake gRPC clients and a fake bus |
 
 ## Configuration
@@ -71,10 +83,15 @@ The only service reachable from outside the host. Owns owner authentication, ses
 | `TB_ML_ADDR` / `TB_OPTIMIZER_ADDR` / `TB_HOLDOUT_ADDR` | `ml:9090` / `optimizer:9091` / `optimizer:9092` | Research services (profile `ml-workers`; native macOS workers need an address the Colima VM can reach) |
 | `TB_ASSISTANT_ADDR` | `assistant:9090` | AnalystService for the analyst page (routes answer 503 `assistant_unavailable` while down) |
 | `TB_WEB_DIR` | `/app/web` | Static SPA build |
-| Secrets | — | `gateway_auth_key`, `pg_svc_api_gateway_password`, `nats_api_gateway_password`, `svc_api_gateway_ed25519` |
+| `TB_INTERNAL_HTTP_ADDR` | `:8082` | Internal listener: Alertmanager → Web Push webhook (backend network only) |
+| `TB_PUSH_SUBJECT` / `TB_PUSH_REDACT` / `TB_PUSH_ALLOWED_HOSTS` | `mailto:owner@strawberry.invalid` / `true` / FCM, Mozilla, Apple, Windows | VAPID contact; lock-screen redaction; push-service hosts (SE-061) |
+| `TB_TV_WEBHOOK_ADDR` | empty (off) | TradingView listener (e.g. `:8090`); must differ from `TB_HTTP_ADDR` |
+| `TB_TV_PUBLIC_URL` / `TB_TV_ALLOWED_IPS` / `TB_TV_TRUSTED_PROXIES` / `TB_TV_MAX_AGE` | — / TradingView's four IPs / — / `60s` | Display URL; client allowlist; peers whose `Cf-Connecting-Ip` counts (cloudflared); alert age window |
+| `TB_CF_ACCESS_TEAM` / `TB_CF_ACCESS_TV_AUD` / `TB_CF_ACCESS_UI_AUD` / `TB_CF_ACCESS_UI_HOSTS` | empty | Cloudflare Access verification for the webhook application and the public UI hostnames (SE-064) |
+| Secrets | — | `gateway_auth_key`, `pg_svc_api_gateway_password`, `nats_api_gateway_password`, `svc_api_gateway_ed25519`, `webpush_vapid_key`, `alertmanager_webhook_token`, `tv_webhook_key` |
 
 ## Run and test
-- Run: `make up` (Compose). First owner: `make setup-token`, then open http://localhost:8080.
+- Run: `make up` (Compose). First owner: `make setup-token`, then open http://localhost:8080. TradingView secrets: `make tv-secret NAME=<name>`.
 - Test: `go test -race ./...` (unit); integration needs Postgres: `make test-integration`.
 
 ## Operational notes
@@ -89,4 +106,7 @@ The only service reachable from outside the host. Owns owner authentication, ses
 - Trading responses are canonical protojson (camelCase, `EmitUnpopulated`); the UI types them with the generated `*Json` types. Request bodies the gateway defines (ticket, kill, mode, allocation, break resolution) stay snake_case.
 - Identifiers that reach gRPC or bus subjects are regex-validated (`[A-Za-z0-9_-]{1,64}`, no dots or wildcards) before use.
 - "Mobile" is detected from `Sec-CH-UA-Mobile` or the user agent; it only tightens (release refused, phone orders need `mobile.order_entry_enabled`), so spoofing it gains nothing.
-- The chart stream needs the gateway NATS user's `md.bar.>` and `exec.>` subscribe permissions (`tools/tbctl/secrets.go`); on an existing install run `make secrets` (rewrites `nats_users.conf`) and restart `nats`.
+- Web Push is disabled (Notifications page says so) until `webpush_vapid_key` exists; existing installs run `make secrets && make migrate` and restart api-gateway and Alertmanager.
+- The TradingView listener never shares the UI address (config validation); it is off unless `TB_TV_WEBHOOK_ADDR` is set and `tv_webhook_key` exists.
+- Kill-switch engagement from a phone needs a fresh passkey (RM-020); the UI's step-up dialog retries it.
+- The chart stream needs the gateway NATS user's `md.bar.>`, `exec.>`, and `sig.>` subscribe permissions, and `/api/v1/signals` its SIGNALS-stream consumer permissions (`tools/tbctl/secrets.go`); on an existing install run `make secrets` (rewrites `nats_users.conf`) and restart `nats`.

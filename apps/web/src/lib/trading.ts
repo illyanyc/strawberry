@@ -17,7 +17,7 @@ import type {
   ListAccountsResponseJson,
   OwnerViewJson,
 } from "@strawberry/contracts/tb/ledger/v1/ledger_service_pb";
-import type { BarJson, GetBarsResponseJson, ResolveSymbolsResponseJson } from "@strawberry/contracts/tb/marketdata/v1/marketdata_pb";
+import type { BarJson, FeedStatusJson, GetBarsResponseJson, GetFeedStatusResponseJson, ResolveSymbolsResponseJson } from "@strawberry/contracts/tb/marketdata/v1/marketdata_pb";
 import type {
   FillJson,
   GetRiskLimitsResponseJson,
@@ -36,6 +36,7 @@ import type {
   TradingStatusJson,
 } from "@strawberry/contracts/tb/orders/v1/execution_pb";
 import type { ExecutionReportJson, OrderJson, RiskCheckJson } from "@strawberry/contracts/tb/orders/v1/orders_pb";
+import type { SignalJson } from "@strawberry/contracts/tb/signals/v1/signals_pb";
 
 /**
  * The gateway marshals with `EmitUnpopulated` (ADR-0028), so scalars, enums, and lists are always
@@ -75,6 +76,13 @@ export type Bar = Emitted<BarJson>;
 export type BarsResponse = Emitted<GetBarsResponseJson>;
 export type ExecutionReport = Emitted<ExecutionReportJson>;
 export type ResolveResponse = Emitted<ResolveSymbolsResponseJson>;
+export type FeedStatus = Emitted<FeedStatusJson>;
+export type Signal = Emitted<SignalJson>;
+/** GET /api/v1/signals (UI-049). */
+export interface SignalsResponse {
+  signals: Signal[];
+}
+export type FeedStatusResponse = Emitted<GetFeedStatusResponseJson>;
 
 /** The gateway's own order-ticket body (UI-015; contracts/openapi ManualOrder). */
 export interface ManualTicket {
@@ -120,4 +128,19 @@ const TERMINAL = new Set(["ORDER_STATE_FILLED", "ORDER_STATE_CANCELED", "ORDER_S
 
 export function isTerminal(state: string | undefined): boolean {
   return state !== undefined && TERMINAL.has(state);
+}
+
+/** Age in seconds between a UTC-ns timestamp and `nowMs`, or null when the timestamp is unset. */
+export function ageSeconds(ns: string | undefined, nowMs: number): number | null {
+  const ms = nsToMs(ns);
+  return ms === 0 ? null : Math.max(0, Math.round((nowMs - ms) / 1000));
+}
+
+/** Compact age label: "12s", "4m", "3h", "2d". */
+export function ageLabel(seconds: number | null): string {
+  if (seconds === null) return "never";
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+  return `${Math.floor(seconds / 86400)}d`;
 }

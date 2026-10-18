@@ -51,7 +51,10 @@ flowchart LR
   CTX -- ctx.kind --> BUS
   BUS -- ctx.> sink --> MD
   LAKE -. ref + stored versions .-> CTX
-  TV --> GW
+  TV -- Cloudflare Access → :8090 --> GW
+  GW -- sig.tv-name.instrument --> BUS
+  BUS -- sig.tv-* --> SR[strategy-runtime]
+  SR -- ord.intent --> BUS
   BUS --> FS --> ML
   FS --> RD
   ML -- signals --> BUS
@@ -67,6 +70,9 @@ flowchart LR
   GW <--> UI
   GW --> BUS
   GW --> PG
+  MON -- alerts --> AMG[Alertmanager]
+  AMG -- webhook :8082 --> GW
+  GW -- Web Push --> UI
 ```
 
 ## The two loops
@@ -168,16 +174,20 @@ flowchart TB
   end
   PH -- Tailscale --> TS --> GW
   PH -. optional Cloudflare Access .-> CF[cloudflared] --> GW
+  TVW[TradingView] -. optional Access Service Auth hostname .-> CF -. :8090 webhook listener .-> GW
   GW --> BG
   GW --> PG
   GW --> NATS
   AM -- critical --> PO[Pushover]
+  AM -- webhook :8082 internal listener --> GW
+  GW -- Web Push via FCM / Apple / Mozilla --> PH
   LD --> VM
   MDS --- DATA
   MLP --- DATA
 ```
 
 - Only the gateway and Grafana publish ports, on `127.0.0.1` (SE-051, OP-041).
+- The gateway has two more listeners that are never published (ADR-0051, ADR-0052): `:8082` on the backend network for Alertmanager's Web Push webhook (bearer token, SE-063), and the optional `:8090` TradingView webhook listener reached only by `cloudflared` for a dedicated Access hostname (SE-064). Web Push leaves through the gateway's `edge` network to the browser vendors' push services (allowlisted hosts, SE-061).
 - The AI analyst (`assistant`) is only on the internal `research` network, which no order-path service joins (AN-032); it reaches LLM providers only through `llm-egress` (AN-053); candidate code runs in `analyst-sandbox` with no network, exchanging files with `candidate-checker` (also no network) over the `analyst-jobs` volume (AN-071). `make up NATIVE_ML=1` additionally exposes Postgres and NATS on loopback for native workers (D29).
 - The same Compose file runs on a Linux droplet later (D21); the `ml-workers` profile replaces native launchd workers there.
 
@@ -204,7 +214,7 @@ flowchart LR
 md.bar.<timeframe>.<instrument_id>   md.quote.<instrument_id>   md.trade.<instrument_id>
 md.bar.partial.<tf>.<instrument_id>  md.bar.correction.<tf>.<instrument_id>   ref.corporate_action.<instrument_id>
 ctx.<kind>                            feat.<feature_set>.<instrument_id>
-sig.<strategy_id>                     ord.intent   ord.decision   ord.update.<broker_account>   ord.order.<broker_account>
+sig.<strategy_id>.<instrument_id>     ord.intent   ord.decision   ord.update.<broker_account>   ord.order.<broker_account>
 exec.<broker_account>                 acct.snapshot.<broker_account>
 ledger.update.<broker_account>        recon.result.<broker_account>   recon.request.<broker_account>
 risk.kill                             alert.<severity>           sys.health.<service>
@@ -221,5 +231,9 @@ Context data (section 09, ADR-0032) flows context-data → `ctx.<kind>` (durable
 `ord.update.<acct>` carries the broker's view (`tb.broker.v1.BrokerOrderUpdate`) from the adapters; the OMS's own `Order` state is published by execution on `ord.order.<acct>`, risk decisions on `ord.decision`, and strategy intents arrive on `ord.intent` (section 07). Execution's and the strategy runtime's heartbeats on `sys.health.execution` / `sys.health.strategy-runtime` feed the dead-man checks (RM-017). The strategy runtime (ADR-0026) consumes `md.bar.*` and its own strategies' `ledger.update.*` and publishes intents on `ord.intent`; it never talks to brokers. Broker adapters publish `ord.update.*`, `exec.*`, `acct.snapshot.*`, and `recon.request.*` through a Postgres transactional outbox (schema `broker`), so a crash never loses or double-publishes an execution (ADR-0018). `recon.request.<acct>` follows every reconnect resync (OE-008).
 
 Final bars (`md.bar.*`) are published 60 s after the bar closes, deduplicated by `Nats-Msg-Id`; partial bars are UI-only and never stored; corrections of final bars carry a higher `revision` (MD-002, DF-007). `ref.corporate_action.*` lives in the durable `REF` stream for the ledger; `sys.health.<source>` carries `SourceHealth` for each data source (ADR-0022).
+
+Signals (ADR-0050) use `sig.<strategy_id>.<instrument_id>` in the 30-day `SIGNALS` stream: the strategy runtime publishes model strategies' scorings, and api-gateway publishes TradingView webhook signals as `sig.tv-<name>.<instrument>` (ADR-0051). The gateway reads an instrument's recent signals for chart overlays with a short-lived ordered consumer filtered to `sig.*.<instrument>` and forwards live ones on the chart SSE stream; the strategy runtime consumes `sig.<tv-strategy>.>` (new messages only) and turns them into intents for that strategy, which pass the normal pre-trade gate (SM-020).
+
+Notifications (ADR-0052): Alertmanager's notifying receivers send to Pushover and to the gateway's internal webhook, which fans each alert group out as Web Push to the owner's subscribed browsers and installed PWA; with `alerts.push_fills_enabled` the gateway also pushes executions it sees on `exec.>`.
 
 Update this doc when a data flow, subject, store, or trust boundary changes.

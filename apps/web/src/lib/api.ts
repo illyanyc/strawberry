@@ -7,7 +7,7 @@
  *   (SE-003); a 401 invokes the unauthenticated handler.
  */
 
-import type { TradingCore } from "./trading";
+import type { FeedStatusResponse, TradingCore } from "./trading";
 
 export type StepUpMethod = "passkey" | "any";
 
@@ -115,4 +115,7 @@ export interface TradingStatus {
   /** Execution's TradingStatus; null when execution is unreachable (shown as unknown, UI-013). */
   trading: TradingCore | null;
   trading_error?: string;
+  /** Marketdata's feed status; null when marketdata is unreachable (shown as unknown, UI-013). */
+  feeds?: FeedStatusResponse | null;
+  feeds_error?: string;
 }

@@ -65,7 +65,7 @@ export function AnalystPage() {
       <QueryState q={lineages} empty="No research lineage yet. Lineages are created in Experiments (section 11)." isEmpty={(d) => d.lineages.length === 0}>
         {() =>
           current ? (
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <div className="space-y-6 lg:col-span-1">
                 <LoopCard status={current} />
                 <LedgerCard lineage={selected} />
@@ -204,7 +204,7 @@ export function LedgerCard({ lineage }: { lineage: string }) {
                 </dd>
               </dl>
               <div className="max-h-72 overflow-auto">
-                <table className="w-full text-left text-xs" aria-label="Trials">
+                <table className="data-table text-xs" aria-label="Trials">
                   <thead className="text-muted">
                     <tr>
                       <th className="py-1">Trial</th>

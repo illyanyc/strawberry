@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 
 import { Num, OwnershipTable, QueryState, Signed } from "@/components/trading";
@@ -7,12 +7,9 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
 import { Alert, Badge, Field } from "@/components/ui/form";
 import { api, ApiError } from "@/lib/api";
-import { dec, enumLabel, type AccountsResponse, type AccountView, type LedgerBreak } from "@/lib/trading";
+import { useAccounts } from "@/lib/queries";
+import { dec, enumLabel, type AccountView, type LedgerBreak } from "@/lib/trading";
 import { formatNs } from "@/lib/utils";
-
-export function useAccounts() {
-  return useQuery({ queryKey: ["accounts"], queryFn: () => api<AccountsResponse>("/api/v1/accounts"), refetchInterval: 15_000 });
-}
 
 /** Portfolio (UI-016): per account, real positions split by owner, cash buckets, reconciliation, breaks. */
 export function PortfolioPage() {
@@ -58,7 +55,7 @@ function AccountPanel({ view }: { view: AccountView }) {
   const env = enumLabel(snap?.mode, "MODE_");
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Equity (broker)" value={<Num d={snap?.equity} />} />
         <Stat label="Cash (broker)" value={<Num d={snap?.cash} />} />
         <Stat label="Unallocated cash" value={<Num d={view.unallocatedCash} />} />
@@ -81,7 +78,7 @@ function AccountPanel({ view }: { view: AccountView }) {
       <Card>
         <CardHeader title="Owners" description="Virtual portfolios inside this account; manual is everything not placed by a strategy." />
         <CardBody className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="data-table">
             <thead className="text-xs text-muted">
               <tr>
                 <th className="py-2 pr-4 font-medium">Owner</th>
@@ -209,7 +206,7 @@ function ResolveDialog({ brk, account, onClose }: { brk: LedgerBreak; account: s
           ))}
         </fieldset>
         {resolution === "transfer_to_manual" && (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="From strategy" value={fromOwner} onChange={(e) => setFromOwner(e.target.value)} />
             <Field label="Quantity" inputMode="decimal" value={qty} onChange={(e) => setQty(e.target.value)} />
           </div>
@@ -241,7 +238,7 @@ function ShadowLots({ view }: { view: AccountView }) {
         ) : (
           <details>
             <summary className="cursor-pointer text-sm text-muted">Show {rows.reduce((n, r) => n + r.brokerLots.length, 0)} lots</summary>
-            <table className="mt-3 w-full text-left text-xs">
+            <table className="data-table mt-3 text-xs">
               <thead className="text-muted">
                 <tr>
                   <th className="py-1 pr-3 font-medium">Symbol</th>

@@ -40,6 +40,7 @@ from tbcore.strategy.model_signal import (
     ResidualReversalParams,
     score_source,
 )
+from tbcore.strategy.tradingview import ExternalSignal, TradingViewParams, TradingViewStrategy
 
 TIMEFRAMES = {
     marketdata_pb2.TIMEFRAME_1M: "1m",
@@ -88,6 +89,14 @@ CLASSES: dict[str, StrategyFactory] = {
     "model_signal": _model_signal,
     "meta_filter": _meta_filter,
     "residual_reversal": lambda sid, params: ResidualReversal(sid, ResidualReversalParams.from_dict(dict(params))),
+    # Section 14 Phase 5: TradingView webhook strategies (SM-020, ADR-0051); instruments are bound
+    # from the registry entry in Runner.from_registry_data.
+    "tradingview": lambda sid, params: TradingViewStrategy(sid, TradingViewParams.from_dict(dict(params)), []),
+}
+DIRECTIONS = {
+    signals_pb2.DIRECTION_LONG: "long",
+    signals_pb2.DIRECTION_SHORT: "short",
+    signals_pb2.DIRECTION_FLAT: "flat",
 }
 
 
@@ -162,6 +171,8 @@ class Runner:
     last_bar_available_at: int = 0
     # Mode stamped on intents; None = the strategy's registry mode (live -> LIVE, otherwise PAPER).
     intent_mode: str | None = None
+    # Webhook signals dropped by their strategy (stale, no fresh bar, not allowed; SM-020).
+    signals_dropped: int = 0
 
     @classmethod
     def from_registry(cls, path: str | Path, calendar: Calendar | None = None) -> Runner:
@@ -185,6 +196,12 @@ class Runner:
                 raise ValueError(f"strategy {e['strategy_id']}: unknown runtime class {rt.get('class')!r}")
             sid = e["strategy_id"]
             impl: Strategy = make(sid, rt.get("params", {}))
+            if isinstance(impl, TradingViewStrategy):
+                if not sid.startswith("tv-"):
+                    raise ValueError(
+                        f"strategy {sid}: runtime class tradingview needs a tv-<name> strategy ID (SM-020)"
+                    )
+                impl.instruments = set(rt.get("instruments", []))
             if rt.get("blackout"):
                 # CX-016: no new positions around scheduled events; the same wrapper runs in backtests.
                 impl = BlackoutStrategy(impl, EventBlackout.from_dict(rt["blackout"]), r.events)
@@ -285,6 +302,34 @@ class Runner:
         self.intents_published += len(out)
         return out
 
+    def signal_subjects(self) -> list[str]:
+        """Bus subjects of the hosted webhook strategies' signals (sig.<tv-strategy>.>)."""
+        return sorted(f"sig.{h.strategy_id}.>" for h in self.hosted if _webhook(h.impl) is not None)
+
+    def on_signal(self, sig: signals_pb2.Signal, now_ns: int) -> list[orders_pb2.OrderIntent]:
+        """Dispatch a webhook signal to its own tv-<name> strategy only (SM-020); the decision time is
+        the later of the signal's as_of and ``now_ns`` (it cannot act on data from the future)."""
+        out: list[orders_pb2.OrderIntent] = []
+        for h in self.hosted:
+            tv = _webhook(h.impl)
+            if h.strategy_id != sig.strategy_id or tv is None:
+                continue
+            direction = DIRECTIONS.get(sig.direction)
+            if direction is None:
+                self.signals_dropped += 1
+                continue
+            h.ctx.now = max(now_ns, sig.as_of)
+            ext = ExternalSignal(sig.signal_id, sig.instrument_id, direction, sig.as_of, sig.correlation_id)
+            before = len(tv.dropped)
+            intents = tv.on_signal(h.ctx, ext)
+            if isinstance(h.impl, BlackoutStrategy):
+                intents = h.impl.filter_opens(h.ctx, intents)  # CX-016 applies to webhook opens too
+            for it in intents:
+                out.append(self.to_proto(h, it, h.ctx.now))
+            self.signals_dropped += len(tv.dropped) - before
+        self.intents_published += len(out)
+        return out
+
     def to_proto(self, h: Hosted, it: Intent, decision_time: int) -> orders_pb2.OrderIntent:
         if it.kind == "open" and it.stop_loss is None:
             raise ValueError("open intents must carry a stop (N5)")
@@ -329,6 +374,11 @@ class Runner:
             sent_at=now_ns,
             version=version,
         )
+
+
+def _webhook(impl: Strategy) -> TradingViewStrategy | None:
+    inner = getattr(impl, "inner", impl)  # BlackoutStrategy wraps the strategy
+    return inner if isinstance(inner, TradingViewStrategy) else None
 
 
 def bar_from_proto(b: marketdata_pb2.Bar) -> Bar:

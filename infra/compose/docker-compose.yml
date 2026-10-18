@@ -133,6 +133,11 @@ secrets:
   pushover_user_key: { file: "${TB_SECRETS_DIR:-../../.secrets}/pushover_user_key" }
   pushover_app_token: { file: "${TB_SECRETS_DIR:-../../.secrets}/pushover_app_token" }
   cloudflared_tunnel_token: { file: "${TB_SECRETS_DIR:-../../.secrets}/cloudflared_tunnel_token" }
+  # Phase 5 UI: Web Push VAPID key and the Alertmanager → gateway webhook token (ADR-0052); the
+  # TradingView webhook key that derives per-strategy secrets (ADR-0051).
+  webpush_vapid_key: { file: "${TB_SECRETS_DIR:-../../.secrets}/webpush_vapid_key" }
+  alertmanager_webhook_token: { file: "${TB_SECRETS_DIR:-../../.secrets}/alertmanager_webhook_token" }
+  tv_webhook_key: { file: "${TB_SECRETS_DIR:-../../.secrets}/tv_webhook_key" }
   # IBKR login (IB-070): deploy-time files mounted only into the matching ib-gateway container.
   ibkr_paper_username: { file: "${TB_SECRETS_DIR:-../../.secrets}/ibkr_paper_username" }
   ibkr_paper_password: { file: "${TB_SECRETS_DIR:-../../.secrets}/ibkr_paper_password" }
@@ -255,7 +260,22 @@ services:
       TB_ASSISTANT_ADDR: ${TB_ASSISTANT_ADDR:-assistant:9090}
       TB_OPTIMIZER_ADDR: ${TB_OPTIMIZER_ADDR:-optimizer:9091}
       TB_ML_ADDR: ${TB_ML_ADDR:-ml:9090}
-    secrets: [pg_svc_api_gateway_password, gateway_auth_key, nats_api_gateway_password, svc_api_gateway_ed25519]
+      # Section 14 Phase 5: Web Push (lock-screen redaction on by default) and the internal
+      # Alertmanager webhook listener (backend network only, never published; ADR-0052).
+      TB_INTERNAL_HTTP_ADDR: ":8082"
+      TB_PUSH_SUBJECT: ${TB_PUSH_SUBJECT:-mailto:owner@strawberry.invalid}
+      TB_PUSH_REDACT: ${TB_PUSH_REDACT:-true}
+      # TradingView webhook intake (ADR-0051): off unless TB_TV_WEBHOOK_ADDR is set (":8090"); reached
+      # only by cloudflared on the edge network through a dedicated Cloudflare Access hostname.
+      TB_TV_WEBHOOK_ADDR: ${TB_TV_WEBHOOK_ADDR:-}
+      TB_TV_PUBLIC_URL: ${TB_TV_PUBLIC_URL:-}
+      TB_TV_TRUSTED_PROXIES: ${TB_TV_TRUSTED_PROXIES:-}
+      TB_CF_ACCESS_TEAM: ${TB_CF_ACCESS_TEAM:-}
+      TB_CF_ACCESS_TV_AUD: ${TB_CF_ACCESS_TV_AUD:-}
+      TB_CF_ACCESS_UI_AUD: ${TB_CF_ACCESS_UI_AUD:-}
+      TB_CF_ACCESS_UI_HOSTS: ${TB_CF_ACCESS_UI_HOSTS:-}
+    secrets: [pg_svc_api_gateway_password, gateway_auth_key, nats_api_gateway_password, svc_api_gateway_ed25519,
+              webpush_vapid_key, alertmanager_webhook_token, tv_webhook_key]
     networks: [backend, edge, research]
     healthcheck: *go-healthcheck
     depends_on:
@@ -781,7 +801,7 @@ services:
     profiles: [observability]
     image: prom/alertmanager:v0.34.1@sha256:e9733bafb1bdef9b00e25a21f8f99dc26a22224bf16641ad754d1649f4c3357a
     command: ["--config.file=/etc/alertmanager/alertmanager.yml", "--storage.path=/alertmanager"]
-    secrets: [pushover_user_key, pushover_app_token]
+    secrets: [pushover_user_key, pushover_app_token, alertmanager_webhook_token]
     volumes:
       - ../observability/alertmanager:/etc/alertmanager:ro
       - alertmanager-data:/alertmanager

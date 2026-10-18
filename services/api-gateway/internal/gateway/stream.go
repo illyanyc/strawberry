@@ -11,6 +11,7 @@ import (
 
 	mdv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/marketdata/v1"
 	ordersv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/orders/v1"
+	signalsv1 "github.com/illyanyc/strawberry/contracts/gen/go/tb/signals/v1"
 )
 
 // MarketBus delivers bus messages to the chart stream (plain NATS subscriptions on subjects that
@@ -28,7 +29,8 @@ type sseEvent struct {
 }
 
 // handleMarketStream streams one chart's live data over SSE (D14, UI-012): final and corrected
-// bars (`bar`), the coalesced partial bar (`partial`), and executions in the instrument (`fill`).
+// bars (`bar`), the coalesced partial bar (`partial`), executions in the instrument (`fill`), and
+// model or webhook signals for it (`signal`, UI-049).
 // The session is re-checked like /api/v1/events. If the client falls behind, the stream ends with
 // `resync` so the UI reloads history instead of silently missing bars.
 func (s *Server) handleMarketStream(w http.ResponseWriter, r *http.Request, rc *reqCtx) {
@@ -77,6 +79,12 @@ func (s *Server) handleMarketStream(w http.ResponseWriter, r *http.Request, rc *
 			var e ordersv1.ExecutionReport
 			if proto.Unmarshal(data, &e) == nil && e.GetInstrumentId() == id {
 				emit("fill", &e)
+			}
+		},
+		"sig.*." + id: func(data []byte) {
+			var sg signalsv1.Signal
+			if proto.Unmarshal(data, &sg) == nil && sg.GetInstrumentId() == id {
+				emit("signal", &sg)
 			}
 		},
 	}

@@ -85,7 +85,7 @@ export function ExperimentsPage() {
         <CardBody className="overflow-x-auto">
           <QueryState q={lineages} empty="No lineages yet. Create one to run studies." isEmpty={(d) => d.lineages.length === 0}>
             {(d) => (
-              <table className="w-full text-left text-sm">
+              <table className="data-table">
                 <thead className="text-xs text-muted">
                   <tr>
                     <th className="py-2 pr-3 font-medium">Lineage</th>
@@ -146,7 +146,7 @@ function NewLineage() {
       <CardHeader title="New lineage" description="Starts at analyst level 0 (suggest only). The holdout boundary is fixed for its studies." />
       <CardBody>
         <form
-          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
+          className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5"
           onSubmit={(e) => {
             e.preventDefault();
             create.mutate();
@@ -207,7 +207,7 @@ export function LineagePage() {
                 </span>
                 {l.universe.startsWith("synthetic:") && <Badge tone="neutral">synthetic data</Badge>}
               </div>
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <Card>
                   <CardHeader title="Trial ledger" description="Abandoned and failed trials count too; each holdout look adds trials." />
                   <CardBody className="space-y-3 text-sm">
@@ -268,7 +268,7 @@ export function LineagePage() {
         <CardBody className="overflow-x-auto">
           <QueryState q={studies} empty="No studies yet." isEmpty={(d) => d.studies.length === 0}>
             {(d) => (
-              <table className="w-full text-left text-sm">
+              <table className="data-table">
                 <thead className="text-xs text-muted">
                   <tr>
                     <th className="py-2 pr-3 font-medium">Study</th>
@@ -327,7 +327,7 @@ function Counts({ label, m }: { label: string; m: Record<string, number> }) {
 
 function CandidateTable({ candidates, champion }: { candidates: Candidate[]; champion: string }) {
   return (
-    <table className="w-full text-left text-sm">
+    <table className="data-table">
       <thead className="text-xs text-muted">
         <tr>
           <th className="py-2 pr-3 font-medium">Candidate</th>
@@ -618,7 +618,7 @@ function NewStudy({ lineage }: { lineage: Lineage }) {
             if (valid) create.mutate();
           }}
         >
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Field label="Name" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} />
             <Select label="Objective metric" value={metric} onChange={setMetric} options={METRICS.map((m) => ({ value: m, label: m }))} />
             <Field label="Trial budget" inputMode="numeric" value={trials} onChange={(e) => setTrials(e.target.value.trim())} />
@@ -769,7 +769,7 @@ export function StudyPage() {
               </div>
               {act.isError && <Alert>{errMsg(act.error, "Study action failed")}</Alert>}
               {s.message && <Alert tone={s.status === "STUDY_STATUS_FAILED" ? "danger" : "warn"}>{s.message}</Alert>}
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <Card>
                   <CardHeader title="Progress" description={stream.done ? "Stream ended." : stream.connected ? "Live." : "Connecting…"} />
                   <CardBody className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
@@ -843,7 +843,7 @@ export function StudyPage() {
       <QueryState q={diag} empty="" isEmpty={(d) => d.diagnostics === null}>
         {({ diagnostics: g }) =>
           g && (
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <Card>
                 <CardHeader title="Convergence" description={`Best so far, raw vs deflated for the trial count. Plateau near trial ${g.plateauEstimate}.`} />
                 <CardBody>
@@ -869,7 +869,7 @@ export function StudyPage() {
                       .sort((a, b) => b.value - a.value)}
                   />
                   {g.paramStability.length > 0 && (
-                    <table className="w-full text-left text-xs">
+                    <table className="data-table text-xs">
                       <thead className="text-muted">
                         <tr>
                           <th className="py-1 pr-3 font-medium">Parameter</th>
@@ -911,7 +911,7 @@ export function StudyPage() {
 function ParetoTable({ points }: { points: NonNullable<StudyDiagnosticsResponse["diagnostics"]>["paretoFront"] }) {
   const keys = [...new Set(points.flatMap((p) => Object.keys(kv(p.values))))].sort();
   return (
-    <table className="w-full text-left text-xs">
+    <table className="data-table text-xs">
       <thead className="text-muted">
         <tr>
           <th className="py-1 pr-3 font-medium">Trial</th>
@@ -959,7 +959,7 @@ function TrialsView({ trials }: { trials: Trial[] }) {
     <>
       <ParallelCoordinates rows={rows} axes={axes} metric="inner" label="Parallel coordinates of trial parameters and the inner metric" />
       <div className="max-h-96 overflow-auto">
-        <table className="w-full text-left text-xs">
+        <table className="data-table text-xs">
           <thead className="sticky top-0 bg-panel text-muted">
             <tr>
               <th className="py-1 pr-3 font-medium">#</th>
@@ -1037,7 +1037,7 @@ export function CandidatePage() {
         </CardBody>
       </Card>
       {c && (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <PromotionCard candidate={c} />
           <HoldoutEvaluateCard candidate={c} />
         </div>
@@ -1088,7 +1088,7 @@ export function GateReportView({ report }: { report: NonNullable<GateReportRespo
         {o && <Metric label="Outer Sharpe (ann.)" v={`${fmt(o.sharpeAnnualized, 2)} [${fmt(o.ciLow, 2)}, ${fmt(o.ciHigh, 2)}]`} />}
         {o && <Metric label="Net return · max DD" v={`${pct(o.netReturn)} · ${pct(o.maxDrawdown)}`} />}
       </div>
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <MiniTable
           title="Walk-forward"
           head={["Fold", "Sharpe", "Net", "Trades"]}
@@ -1114,7 +1114,7 @@ function MiniTable({ title, head, rows }: { title: string; head: string[]; rows:
       {rows.length === 0 ? (
         <p className="text-xs text-muted">—</p>
       ) : (
-        <table className="w-full text-left text-xs">
+        <table className="data-table text-xs">
           <thead className="text-muted">
             <tr>
               {head.map((h) => (
@@ -1306,7 +1306,7 @@ function ChampionChallenger({ candidate }: { candidate: Candidate }) {
     <Card>
       <CardHeader title="Champion vs challenger" description="Backtest estimates from the gate reports and results so far from each one's paper or shadow strategy (ledger values)." />
       <CardBody className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
+        <table className="data-table">
           <thead className="text-xs text-muted">
             <tr>
               <th className="py-2 pr-3 font-medium" />

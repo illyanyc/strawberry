@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Alert, Badge, Field, Switch } from "@/components/ui/form";
 import { api, ApiError } from "@/lib/api";
+import { setTheme } from "@/lib/theme";
 import { formatTime } from "@/lib/utils";
 
 interface Setting {
@@ -18,7 +19,12 @@ const descriptions: Record<string, { label: string; detail: string; danger?: boo
   "trading.live_enabled": { label: "Global live-trading flag", detail: "Allows live adapters to start. Strategies still need individual promotion (Phase 6).", danger: true },
   "mobile.order_entry_enabled": { label: "Mobile order entry", detail: "Off by default (U6). Enabling needs a passkey.", danger: true },
   "assistant.write_tools_enabled": { label: "Assistant write tools", detail: "Lets the AI assistant launch experiments (Phase 4).", danger: true },
-  "alerts.push_fills_enabled": { label: "Push notifications for fills", detail: "Web Push for every fill (Phase 5)." },
+  "alerts.push_fills_enabled": { label: "Push notifications for fills", detail: "Web Push for every fill to every subscribed device (Notifications page)." },
+  "ui.tradingview_widget_enabled": {
+    label: "TradingView chart widget",
+    detail: "Lets the Charts page frame TradingView's own chart (adds frame-src s.tradingview.com to the CSP; TradingView then sees the symbols you open). Enabling needs a passkey.",
+    danger: true,
+  },
 };
 
 function errText(e: unknown) {
@@ -83,7 +89,7 @@ export function PlatformSettingsPage() {
               key={t}
               variant={theme?.value === t ? "primary" : "secondary"}
               onClick={() => {
-                document.documentElement.className = t;
+                setTheme(t);
                 put.mutate({ key: "ui.theme", value: t, version: theme?.version ?? 0 });
               }}
             >
@@ -175,7 +181,7 @@ export function BrokersPage() {
         <CardHeader title="Add or rotate a credential" />
         <CardBody>
           <form
-            className="grid gap-4 sm:grid-cols-2"
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2"
             onSubmit={(e) => {
               e.preventDefault();
               setSaved(null);

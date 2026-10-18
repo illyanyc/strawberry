@@ -102,6 +102,11 @@ seed: ## Load development seed data (none in Phase 0; the dev universe arrives w
 setup-token: ## Print a one-time first-run setup token (terminal only, never logged)
 	@$(COMPOSE) exec api-gateway /app/service setup-token
 
+.PHONY: tv-secret
+tv-secret: ## Print the TradingView webhook secret of strategy tv-NAME (terminal only; SE-064)
+	@test -n "$(NAME)" || { echo "usage: make tv-secret NAME=<name>   (strategy tv-<name>)"; exit 1; }
+	@$(COMPOSE) exec api-gateway /app/service tv-secret $(NAME)
+
 .PHONY: audit-verify
 audit-verify: ## Recompute the audit hash chain (SE-022); non-zero exit if broken
 	$(COMPOSE) run --rm ops audit verify
