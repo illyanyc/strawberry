@@ -44,6 +44,7 @@ const (
 	ExecutionService_ReleaseKillSwitch_FullMethodName = "/tb.orders.v1.ExecutionService/ReleaseKillSwitch"
 	ExecutionService_ListKillSwitches_FullMethodName  = "/tb.orders.v1.ExecutionService/ListKillSwitches"
 	ExecutionService_GetTradingStatus_FullMethodName  = "/tb.orders.v1.ExecutionService/GetTradingStatus"
+	ExecutionService_DemoteStrategy_FullMethodName    = "/tb.orders.v1.ExecutionService/DemoteStrategy"
 )
 
 // ExecutionServiceClient is the client API for ExecutionService service.
@@ -76,6 +77,11 @@ type ExecutionServiceClient interface {
 	ReleaseKillSwitch(ctx context.Context, in *ReleaseKillSwitchRequest, opts ...grpc.CallOption) (*ReleaseKillSwitchResponse, error)
 	ListKillSwitches(ctx context.Context, in *ListKillSwitchesRequest, opts ...grpc.CallOption) (*ListKillSwitchesResponse, error)
 	GetTradingStatus(ctx context.Context, in *GetTradingStatusRequest, opts ...grpc.CallOption) (*GetTradingStatusResponse, error)
+	// Automatic containment (section 13, RM-018, SM-006): only ever reduces risk. live → paper
+	// through a latched strategy kill switch with action demote_to_paper; shadow or paper → halted
+	// with the strategy's open non-protective orders canceled; halted or disabled → unchanged.
+	// Callers: monitor, api-gateway. Idempotent; re-promotion is always a manual owner action.
+	DemoteStrategy(ctx context.Context, in *DemoteStrategyRequest, opts ...grpc.CallOption) (*DemoteStrategyResponse, error)
 }
 
 type executionServiceClient struct {
@@ -246,6 +252,16 @@ func (c *executionServiceClient) GetTradingStatus(ctx context.Context, in *GetTr
 	return out, nil
 }
 
+func (c *executionServiceClient) DemoteStrategy(ctx context.Context, in *DemoteStrategyRequest, opts ...grpc.CallOption) (*DemoteStrategyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DemoteStrategyResponse)
+	err := c.cc.Invoke(ctx, ExecutionService_DemoteStrategy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ExecutionServiceServer is the server API for ExecutionService service.
 // All implementations must embed UnimplementedExecutionServiceServer
 // for forward compatibility.
@@ -276,6 +292,11 @@ type ExecutionServiceServer interface {
 	ReleaseKillSwitch(context.Context, *ReleaseKillSwitchRequest) (*ReleaseKillSwitchResponse, error)
 	ListKillSwitches(context.Context, *ListKillSwitchesRequest) (*ListKillSwitchesResponse, error)
 	GetTradingStatus(context.Context, *GetTradingStatusRequest) (*GetTradingStatusResponse, error)
+	// Automatic containment (section 13, RM-018, SM-006): only ever reduces risk. live → paper
+	// through a latched strategy kill switch with action demote_to_paper; shadow or paper → halted
+	// with the strategy's open non-protective orders canceled; halted or disabled → unchanged.
+	// Callers: monitor, api-gateway. Idempotent; re-promotion is always a manual owner action.
+	DemoteStrategy(context.Context, *DemoteStrategyRequest) (*DemoteStrategyResponse, error)
 	mustEmbedUnimplementedExecutionServiceServer()
 }
 
@@ -333,6 +354,9 @@ func (UnimplementedExecutionServiceServer) ListKillSwitches(context.Context, *Li
 }
 func (UnimplementedExecutionServiceServer) GetTradingStatus(context.Context, *GetTradingStatusRequest) (*GetTradingStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetTradingStatus not implemented")
+}
+func (UnimplementedExecutionServiceServer) DemoteStrategy(context.Context, *DemoteStrategyRequest) (*DemoteStrategyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DemoteStrategy not implemented")
 }
 func (UnimplementedExecutionServiceServer) mustEmbedUnimplementedExecutionServiceServer() {}
 func (UnimplementedExecutionServiceServer) testEmbeddedByValue()                          {}
@@ -643,6 +667,24 @@ func _ExecutionService_GetTradingStatus_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ExecutionService_DemoteStrategy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DemoteStrategyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExecutionServiceServer).DemoteStrategy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExecutionService_DemoteStrategy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExecutionServiceServer).DemoteStrategy(ctx, req.(*DemoteStrategyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ExecutionService_ServiceDesc is the grpc.ServiceDesc for ExecutionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -713,6 +755,10 @@ var ExecutionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTradingStatus",
 			Handler:    _ExecutionService_GetTradingStatus_Handler,
+		},
+		{
+			MethodName: "DemoteStrategy",
+			Handler:    _ExecutionService_DemoteStrategy_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

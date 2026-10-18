@@ -40,6 +40,11 @@ service ExecutionService {
   rpc ReleaseKillSwitch(ReleaseKillSwitchRequest) returns (ReleaseKillSwitchResponse);
   rpc ListKillSwitches(ListKillSwitchesRequest) returns (ListKillSwitchesResponse);
   rpc GetTradingStatus(GetTradingStatusRequest) returns (GetTradingStatusResponse);
+  // Automatic containment (section 13, RM-018, SM-006): only ever reduces risk. live → paper
+  // through a latched strategy kill switch with action demote_to_paper; shadow or paper → halted
+  // with the strategy's open non-protective orders canceled; halted or disabled → unchanged.
+  // Callers: monitor, api-gateway. Idempotent; re-promotion is always a manual owner action.
+  rpc DemoteStrategy(DemoteStrategyRequest) returns (DemoteStrategyResponse);
 }
 
 // StrategyMode is a strategy's trading mode (SM-012). `live` is only reachable through section 15.
@@ -310,6 +315,25 @@ message SetStrategyModeRequest {
 
 message SetStrategyModeResponse {
   Strategy strategy = 1;
+}
+
+message DemoteStrategyRequest {
+  string strategy_id = 1;
+  string reason = 2;
+  // Monitoring report or containment action the demotion is based on (audited).
+  string evidence_id = 3;
+  Actor actor = 4;
+  string correlation_id = 5;
+}
+
+message DemoteStrategyResponse {
+  Strategy strategy = 1;
+  StrategyMode from = 2;
+  // False when the strategy was already halted or disabled.
+  bool changed = 3;
+  // Set for live → paper (the latched strategy kill switch).
+  string kill_switch_event_id = 4;
+  int32 orders_canceled = 5;
 }
 
 message GetRiskLimitsRequest {
