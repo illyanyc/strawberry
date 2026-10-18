@@ -115,6 +115,7 @@ All notable changes to this project. Format: [Keep a Changelog](https://keepacha
 
 ### Fixed
 
+- `tests/paper` `TestGate2EveryDecisionAudited` read the OMS memory store's audit slice while the engine's tick goroutine appended to it (data race under `-race`); it now reads `oms.Memory.AuditSnapshot()` under the store lock. The Postgres docstore test creates every role it grants.
 - `tbcore.validation.bootstrap_ci` raised `IndexError` when every resampled Sharpe was undefined (flat equity of a strategy that never traded); it now returns NaN bounds (BT-047).
 - execution: `submit` read an order's state after releasing the engine lock while a broker update could change it (data race seen by `go test -race` in the Gate 2 restart and kill-switch tests); the state is now captured under the lock (OE-012).
 - Ledger day P&L counted allocation changes as profit or loss (equity minus a session-start equity that ignored capital flows): an allocation increase could hide a same-day loss from the RM-005 daily-loss check, and a decrease could trigger a false halt. Allocation changes now shift the session-start equity and high-water mark in the same transaction, and an owner first seen outside a session takes that first observation as its baseline instead of zero (RM-005, VP-024). Found from the stack-smoke Portfolio screenshot (new strategy showed +10000 day P&L).
