@@ -87,7 +87,7 @@ function layout(page) {
   <a class="skip" href="#main">Skip to content</a>
   <header class="site">
     <div class="wrap">
-      <a class="brand" href="/" aria-label="Strwbrry home">${logo}<span>Strwbrry</span></a>
+      <a class="brand" href="/" aria-label="Strwbrry home">${logo}<svg class="wordmark" viewBox="0 0 156 32" aria-hidden="true"><use href="#wordmark"/></svg></a>
       <nav class="primary" aria-label="Primary">${nav}</nav>
       <div class="nav-cta">
         <a class="btn" href="${app}/sign-in">Sign in</a>
@@ -227,19 +227,68 @@ const helpArticles = [
 ];
 
 const plans = [
-  ["Free", "0", "Paper, one strategy, to see the product. Five backtests a month. No analyst runs. Charts, portfolio, orders, risk, and the kill switch. An Alpaca paper key is allowed. A live key is refused."],
-  ["Research", "29", "Paper only. Five strategies, 40 backtests a month, 20 analyst runs a month. Unused runs do not roll over. A 14-day trial needs a card and does not enable live trading. Bring your own FMP key if you have one."],
-  ["Live", "79", "Everything in Research, plus your own Alpaca live account. Strategy capital cap $25,000. Ten strategies, 100 backtests a month, 60 analyst runs. No trial. Live still needs a promotion, a second factor, and the live flag."],
-  ["Desk", "149", "Live capital cap $100,000. Twenty-five strategies, 300 backtests a month, 200 analyst runs. Email support at the address on this site. No phone. Hosted IBKR is not included."],
+  ["Free", "0"],
+  ["Research", "29"],
+  ["Live", "79"],
+  ["Desk", "149"],
 ];
 
-const fixture = `<figure class="fixture" aria-label="Sample dashboard layout. Not an account.">
-  <figcaption class="note">Sample layout with fixture labels. Not a customer account.</figcaption>
-  <div class="bar"><span class="chip">PAPER</span><span class="chip">fixture</span><span class="chip">kill switch</span></div>
-  <div class="cols">
-    <div class="pane">Strategies<br/>sample-orb · paper · cap fixture</div>
-    <div class="pane">Orders<br/>none</div>
+const dashboard = `<figure class="dash-figure">
+  <div class="dash">
+    <div class="dash-banner">PAPER · ENV: PAPER</div>
+    <div class="dash-top">
+      <svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 14 47 21 54 32 47 49 32 56 17 49 10 32 17 21Z" fill="#e23d4a"/><rect x="30" y="2" width="4" height="12" fill="#8fbf9f"/><polygon points="30,9 15,3 19,14" fill="#8fbf9f"/><polygon points="34,9 49,3 45,14" fill="#8fbf9f"/><g fill="#1e1e1e"><rect x="26" y="23" width="6" height="6"/><rect x="36" y="23" width="6" height="6"/><rect x="31" y="33" width="6" height="6"/><rect x="26" y="43" width="6" height="6"/><rect x="36" y="43" width="6" height="6"/></g></svg>
+      <span class="name">Strwbrry</span>
+      <span class="stale">Status stale</span>
+      <span class="spacer"></span>
+      <span class="kill">Kill switch</span>
+    </div>
+    <div class="dash-status">
+      <span>Running</span><span>alpaca-paper · ready</span><span>recon ok</span><span>0 open orders</span>
+    </div>
+    <div class="dash-body">
+      <aside class="dash-side" aria-hidden="true">
+        <p>Overview</p>
+        <ul><li class="on">Dashboard</li><li>Set up</li><li>Portfolio overview</li></ul>
+        <p>Trading</p>
+        <ul><li>Portfolio</li><li>Strategies</li><li>Orders</li><li>Charts</li></ul>
+        <p>Operations</p>
+        <ul><li>Risk &amp; kill switches</li><li>Monitoring</li></ul>
+      </aside>
+      <div class="dash-main">
+        <p class="dash-kicker">Sunday, October 18</p>
+        <h2>Welcome, Ada</h2>
+        <p class="sub">Accounts, strategies, and trading state at a glance. Manual holdings and each strategy's virtual portfolio are shown separately.</p>
+        <div class="dash-actions"><span>Connections</span><span>Charts</span><span class="go">Manual order</span></div>
+        <div class="dash-grid">
+          <div>
+            <h3>Accounts</h3>
+            <div class="acct">
+              <div class="row"><span>alpaca-paper</span><span class="pill">RECON OK</span></div>
+              <p class="note">Equity</p>
+              <p class="eq">25000.00</p>
+              <div class="metrics"><span>Cash<b>18420.15</b></span><span>Buying power<b>18420.15</b></span><span>Manual day P&amp;L<b>0.00</b></span></div>
+            </div>
+            <div class="pane stack">
+              <h3>Strategies</h3>
+              <p class="note">Each strategy trades only its own virtual portfolio.</p>
+              <div class="row"><strong>Opening range (sample)</strong><span class="pill paper">PAPER</span></div>
+              <p class="note">alpaca-paper · day</p>
+              <svg viewBox="0 0 240 48" width="100%" height="48" aria-hidden="true"><polyline fill="none" stroke="#3fa266" stroke-width="1.5" points="0,36 36,34 72,38 108,28 144,22 180,24 240,12"/></svg>
+              <dl class="strat"><dt>Allocation</dt><dd>5000.00</dd><dt>Equity</dt><dd>5128.40</dd><dt>Day P&amp;L</dt><dd class="up">+18.40</dd></dl>
+            </div>
+          </div>
+          <div class="pane">
+            <h3>Trading state</h3>
+            <p><span class="pill">RUNNING</span> <span class="pill paper">PAPER</span> 0 open orders</p>
+            <p class="note">No kill switch or halt is active.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tabs" aria-hidden="true"><span class="on">Home</span><span>Portfolio</span><span>Strategies</span><span>Charts</span><span>More</span></div>
   </div>
+  <figcaption class="note">Sample paper session. Not a customer account. Live trading is off.</figcaption>
 </figure>`;
 
 const pages = [];
@@ -261,13 +310,12 @@ pages.push({
 <h1>Paper trade, then live trade, your own account.</h1>
 <p class="lede">Strwbrry is software that researches and runs strategies on a brokerage account you connect. You set the capital cap. You can halt it. Strwbrry does not hold the cash or the securities.</p>
 <p><a class="btn primary" href="${app}/sign-up">Create a free account</a> <a class="btn" href="/pricing">View pricing</a></p>
+${dashboard}
 <div class="grid">
   <section class="card"><h3>Virtual portfolios</h3><p>Each strategy trades only the quantity in its own book. It cannot sell a position that belongs to you or to another strategy.</p></section>
   <section class="card"><h3>Risk check before every order</h3><p>No order is sent to a broker without a recorded risk decision. There is no bypass from the dashboard.</p></section>
   <section class="card"><h3>Kill switch on every screen</h3><p>Halt from the header, including on a phone. Releasing the halt needs a fresh second factor on a desktop.</p></section>
 </div>
-<h2>What the dashboard is for</h2>
-${fixture}
 <p class="note">Read the <a href="/legal/risk-disclosure">risk disclosure</a> before you connect a live account. Paper results are not live results.</p>`,
 });
 
@@ -283,16 +331,24 @@ pages.push({
     itemListElement: plans.map(([name, price]) => ({ "@type": "Offer", name, price, priceCurrency: "USD" })),
   },
   body: `<h1>Pricing</h1>
-<p class="lede">Four monthly plans, in US dollars. Tax is not included. Annual billing is off. A failed payment stops new entries. It does not flatten positions or disable the kill switch.</p>
-<div class="grid">
-${plans
-  .map(
-    ([name, price, copy]) => `<section class="card"><h2>${name}</h2><p class="price">$${price}<span class="note"> / month</span></p><p>${copy}</p></section>`,
-  )
-  .join("")}
+<p class="lede">Monthly, in US dollars. Tax is not included. Annual billing is off. A failed payment stops new entries. It does not flatten positions or disable the kill switch.</p>
+<div class="compare-wrap">
+<table class="compare">
+  <thead><tr><th></th><th>Free</th><th>Research</th><th>Live</th><th>Desk</th></tr></thead>
+  <tbody>
+    <tr><th>Price</th><td class="num">$0</td><td class="num">$29</td><td class="num">$79</td><td class="num">$149</td></tr>
+    <tr><th>Strategies</th><td class="num">1</td><td class="num">5</td><td class="num">10</td><td class="num">25</td></tr>
+    <tr><th>Backtests / month</th><td class="num">5</td><td class="num">40</td><td class="num">100</td><td class="num">300</td></tr>
+    <tr><th>Analyst runs</th><td class="num">0</td><td class="num">20</td><td class="num">60</td><td class="num">200</td></tr>
+    <tr><th>Live key</th><td>No</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+    <tr><th>Capital cap</th><td>—</td><td>—</td><td class="num">$25,000</td><td class="num">$100,000</td></tr>
+    <tr><th>Trial</th><td>—</td><td>14 days</td><td>—</td><td>—</td></tr>
+    <tr><th>Support</th><td>—</td><td>—</td><td>—</td><td>Email</td></tr>
+  </tbody>
+</table>
 </div>
 <p><a class="btn primary" href="${app}/sign-up">Start Research trial</a> <a class="btn" href="${app}/sign-up">Stay on Free</a></p>
-<p class="note">The Research trial is 14 days and needs a card when billing is connected. The trial does not enable live trading. Switching to Live during a trial is not offered. Card numbers stay with the card processor. Strwbrry does not store them. See <a href="/help/billing-and-failed-payments">what a failed payment does</a>.</p>`,
+<p class="note">The Research trial needs a card when billing is connected and does not enable live trading. A live key still needs a promotion, a second factor, and the live flag. Unused runs do not roll over. Card numbers stay with the card processor. See <a href="/help/billing-and-failed-payments">what a failed payment does</a>. Hosted IBKR is not included.</p>`,
 });
 
 pages.push({
