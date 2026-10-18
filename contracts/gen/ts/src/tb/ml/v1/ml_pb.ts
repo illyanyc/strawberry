@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file tb/ml/v1/ml.proto.
  */
 export const file_tb_ml_v1_ml: GenFile = /*@__PURE__*/
-  fileDesc("ChF0Yi9tbC92MS9tbC5wcm90bxIIdGIubWwudjEi6QIKDE1vZGVsVmVyc2lvbhIQCghtb2RlbF9pZBgBIAEoCRIPCgd2ZXJzaW9uGAIgASgJEg4KBmZhbWlseRgDIAEoCRIXCg90cmFpbmluZ19ydW5faWQYBCABKAkSGwoTZGF0YXNldF9zbmFwc2hvdF9pZBgFIAEoCRIWCg5mZWF0dXJlX3NldF9pZBgGIAEoCRI0CgdtZXRyaWNzGAcgAygLMiMudGIubWwudjEuTW9kZWxWZXJzaW9uLk1ldHJpY3NFbnRyeRIjCgVzdGFnZRgIIAEoDjIULnRiLm1sLnYxLk1vZGVsU3RhZ2USEwoLY29kZV9jb21taXQYCSABKAkSEwoLY29uZmlnX2hhc2gYCiABKAkSDAoEc2VlZBgLIAEoAxIVCg1lbnZfbG9ja19oYXNoGAwgASgJGi4KDE1ldHJpY3NFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAE6AjgBIuECCgtCYWNrdGVzdFJ1bhIOCgZydW5faWQYASABKAkSHAoUc3RyYXRlZ3lfY29uZmlnX2hhc2gYAiABKAkSGAoQZGF0YV9zbmFwc2hvdF9pZBgDIAEoCRISCgpjb3N0X21vZGVsGAQgASgJEjMKB21ldHJpY3MYBSADKAsyIi50Yi5tbC52MS5CYWNrdGVzdFJ1bi5NZXRyaWNzRW50cnkSGwoTdHJhZGVzX2FydGlmYWN0X3VyaRgGIAEoCRITCgtjb2RlX2NvbW1pdBgHIAEoCRIMCgRzZWVkGAggASgDEhsKE3N1cnZpdm9yc2hpcF9zdGF0dXMYCSABKAkSEAoId2FybmluZ3MYCiADKAkSDgoGZW5naW5lGAsgASgJEhIKCmZpbGxfbW9kZWwYDCABKAkaLgoMTWV0cmljc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoAToCOAEqlAEKCk1vZGVsU3RhZ2USGwoXTU9ERUxfU1RBR0VfVU5TUEVDSUZJRUQQABIZChVNT0RFTF9TVEFHRV9DQU5ESURBVEUQARIaChZNT0RFTF9TVEFHRV9DSEFMTEVOR0VSEAISGAoUTU9ERUxfU1RBR0VfQ0hBTVBJT04QAxIYChRNT0RFTF9TVEFHRV9BUkNISVZFRBAEQpgBCgxjb20udGIubWwudjFCB01sUHJvdG9QAVo9Z2l0aHViLmNvbS9pbGx5YW55Yy9zdHJhd2JlcnJ5L2NvbnRyYWN0cy9nZW4vZ28vdGIvbWwvdjE7bWx2MaICA1RNWKoCCFRiLk1sLlYxygIIVGJcTWxcVjHiAhRUYlxNbFxWMVxHUEJNZXRhZGF0YeoCClRiOjpNbDo6VjFiBnByb3RvMw");
+  fileDesc("ChF0Yi9tbC92MS9tbC5wcm90bxIIdGIubWwudjEi8wMKDE1vZGVsVmVyc2lvbhIQCghtb2RlbF9pZBgBIAEoCRIPCgd2ZXJzaW9uGAIgASgJEg4KBmZhbWlseRgDIAEoCRIXCg90cmFpbmluZ19ydW5faWQYBCABKAkSGwoTZGF0YXNldF9zbmFwc2hvdF9pZBgFIAEoCRIWCg5mZWF0dXJlX3NldF9pZBgGIAEoCRI0CgdtZXRyaWNzGAcgAygLMiMudGIubWwudjEuTW9kZWxWZXJzaW9uLk1ldHJpY3NFbnRyeRIjCgVzdGFnZRgIIAEoDjIULnRiLm1sLnYxLk1vZGVsU3RhZ2USEwoLY29kZV9jb21taXQYCSABKAkSEwoLY29uZmlnX2hhc2gYCiABKAkSDAoEc2VlZBgLIAEoAxIVCg1lbnZfbG9ja19oYXNoGAwgASgJEi8KDnJlZ2lzdHJ5X3N0YWdlGA0gASgOMhcudGIubWwudjEuUmVnaXN0cnlTdGFnZRIMCgRuYW1lGA4gASgJEhQKDGFydGlmYWN0X3VyaRgPIAEoCRIMCgR0YXNrGBAgASgJEhEKCXRpbWVmcmFtZRgRIAEoCRISCgpjcmVhdGVkX2F0GBIgASgDGi4KDE1ldHJpY3NFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAE6AjgBIuECCgtCYWNrdGVzdFJ1bhIOCgZydW5faWQYASABKAkSHAoUc3RyYXRlZ3lfY29uZmlnX2hhc2gYAiABKAkSGAoQZGF0YV9zbmFwc2hvdF9pZBgDIAEoCRISCgpjb3N0X21vZGVsGAQgASgJEjMKB21ldHJpY3MYBSADKAsyIi50Yi5tbC52MS5CYWNrdGVzdFJ1bi5NZXRyaWNzRW50cnkSGwoTdHJhZGVzX2FydGlmYWN0X3VyaRgGIAEoCRITCgtjb2RlX2NvbW1pdBgHIAEoCRIMCgRzZWVkGAggASgDEhsKE3N1cnZpdm9yc2hpcF9zdGF0dXMYCSABKAkSEAoId2FybmluZ3MYCiADKAkSDgoGZW5naW5lGAsgASgJEhIKCmZpbGxfbW9kZWwYDCABKAkaLgoMTWV0cmljc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoAToCOAEqlAEKCk1vZGVsU3RhZ2USGwoXTU9ERUxfU1RBR0VfVU5TUEVDSUZJRUQQABIZChVNT0RFTF9TVEFHRV9DQU5ESURBVEUQARIaChZNT0RFTF9TVEFHRV9DSEFMTEVOR0VSEAISGAoUTU9ERUxfU1RBR0VfQ0hBTVBJT04QAxIYChRNT0RFTF9TVEFHRV9BUkNISVZFRBAEKvcBCg1SZWdpc3RyeVN0YWdlEh4KGlJFR0lTVFJZX1NUQUdFX1VOU1BFQ0lGSUVEEAASHAoYUkVHSVNUUllfU1RBR0VfQ0FORElEQVRFEAESHAoYUkVHSVNUUllfU1RBR0VfVkFMSURBVEVEEAISGQoVUkVHSVNUUllfU1RBR0VfU0hBRE9XEAMSGAoUUkVHSVNUUllfU1RBR0VfUEFQRVIQBBIgChxSRUdJU1RSWV9TVEFHRV9MSVZFX0VMSUdJQkxFEAUSFwoTUkVHSVNUUllfU1RBR0VfTElWRRAGEhoKFlJFR0lTVFJZX1NUQUdFX1JFVElSRUQQB0KYAQoMY29tLnRiLm1sLnYxQgdNbFByb3RvUAFaPWdpdGh1Yi5jb20vaWxseWFueWMvc3RyYXdiZXJyeS9jb250cmFjdHMvZ2VuL2dvL3RiL21sL3YxO21sdjGiAgNUTViqAghUYi5NbC5WMcoCCFRiXE1sXFYx4gIUVGJcTWxcVjFcR1BCTWV0YWRhdGHqAgpUYjo6TWw6OlYxYgZwcm90bzM");
 
 /**
  * @generated from message tb.ml.v1.ModelVersion
@@ -79,6 +79,38 @@ export type ModelVersion = Message<"tb.ml.v1.ModelVersion"> & {
    * @generated from field: string env_lock_hash = 12;
    */
   envLockHash: string;
+
+  /**
+   * @generated from field: tb.ml.v1.RegistryStage registry_stage = 13;
+   */
+  registryStage: RegistryStage;
+
+  /**
+   * @generated from field: string name = 14;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string artifact_uri = 15;
+   */
+  artifactUri: string;
+
+  /**
+   * Model family task and timeframe, checked against the feature set at inference (ML-040).
+   *
+   * @generated from field: string task = 16;
+   */
+  task: string;
+
+  /**
+   * @generated from field: string timeframe = 17;
+   */
+  timeframe: string;
+
+  /**
+   * @generated from field: int64 created_at = 18;
+   */
+  createdAt: bigint;
 };
 
 /**
@@ -146,6 +178,38 @@ export type ModelVersionJson = {
    * @generated from field: string env_lock_hash = 12;
    */
   envLockHash?: string;
+
+  /**
+   * @generated from field: tb.ml.v1.RegistryStage registry_stage = 13;
+   */
+  registryStage?: RegistryStageJson;
+
+  /**
+   * @generated from field: string name = 14;
+   */
+  name?: string;
+
+  /**
+   * @generated from field: string artifact_uri = 15;
+   */
+  artifactUri?: string;
+
+  /**
+   * Model family task and timeframe, checked against the feature set at inference (ML-040).
+   *
+   * @generated from field: string task = 16;
+   */
+  task?: string;
+
+  /**
+   * @generated from field: string timeframe = 17;
+   */
+  timeframe?: string;
+
+  /**
+   * @generated from field: int64 created_at = 18;
+   */
+  createdAt?: string;
 };
 
 /**
@@ -305,6 +369,8 @@ export const BacktestRunSchema: GenMessage<BacktestRun, {jsonType: BacktestRunJs
   messageDesc(file_tb_ml_v1_ml, 1);
 
 /**
+ * ModelStage is the Phase 0 placeholder; use RegistryStage (EX-050).
+ *
  * @generated from enum tb.ml.v1.ModelStage
  */
 export enum ModelStage {
@@ -335,6 +401,8 @@ export enum ModelStage {
 }
 
 /**
+ * ModelStage is the Phase 0 placeholder; use RegistryStage (EX-050).
+ *
  * @generated from enum tb.ml.v1.ModelStage
  */
 export type ModelStageJson = "MODEL_STAGE_UNSPECIFIED" | "MODEL_STAGE_CANDIDATE" | "MODEL_STAGE_CHALLENGER" | "MODEL_STAGE_CHAMPION" | "MODEL_STAGE_ARCHIVED";
@@ -344,4 +412,70 @@ export type ModelStageJson = "MODEL_STAGE_UNSPECIFIED" | "MODEL_STAGE_CANDIDATE"
  */
 export const ModelStageSchema: GenEnum<ModelStage, ModelStageJson> = /*@__PURE__*/
   enumDesc(file_tb_ml_v1_ml, 0);
+
+/**
+ * RegistryStage is the champion/challenger lifecycle (section 11, EX-050):
+ * candidate → validated → shadow → paper → live_eligible → live → retired. The optimizer only marks
+ * live_eligible; live is set by the section 15 go-live flow.
+ *
+ * @generated from enum tb.ml.v1.RegistryStage
+ */
+export enum RegistryStage {
+  /**
+   * @generated from enum value: REGISTRY_STAGE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: REGISTRY_STAGE_CANDIDATE = 1;
+   */
+  CANDIDATE = 1,
+
+  /**
+   * Gate report passed (EX-051).
+   *
+   * @generated from enum value: REGISTRY_STAGE_VALIDATED = 2;
+   */
+  VALIDATED = 2,
+
+  /**
+   * @generated from enum value: REGISTRY_STAGE_SHADOW = 3;
+   */
+  SHADOW = 3,
+
+  /**
+   * @generated from enum value: REGISTRY_STAGE_PAPER = 4;
+   */
+  PAPER = 4,
+
+  /**
+   * @generated from enum value: REGISTRY_STAGE_LIVE_ELIGIBLE = 5;
+   */
+  LIVE_ELIGIBLE = 5,
+
+  /**
+   * @generated from enum value: REGISTRY_STAGE_LIVE = 6;
+   */
+  LIVE = 6,
+
+  /**
+   * @generated from enum value: REGISTRY_STAGE_RETIRED = 7;
+   */
+  RETIRED = 7,
+}
+
+/**
+ * RegistryStage is the champion/challenger lifecycle (section 11, EX-050):
+ * candidate → validated → shadow → paper → live_eligible → live → retired. The optimizer only marks
+ * live_eligible; live is set by the section 15 go-live flow.
+ *
+ * @generated from enum tb.ml.v1.RegistryStage
+ */
+export type RegistryStageJson = "REGISTRY_STAGE_UNSPECIFIED" | "REGISTRY_STAGE_CANDIDATE" | "REGISTRY_STAGE_VALIDATED" | "REGISTRY_STAGE_SHADOW" | "REGISTRY_STAGE_PAPER" | "REGISTRY_STAGE_LIVE_ELIGIBLE" | "REGISTRY_STAGE_LIVE" | "REGISTRY_STAGE_RETIRED";
+
+/**
+ * Describes the enum tb.ml.v1.RegistryStage.
+ */
+export const RegistryStageSchema: GenEnum<RegistryStage, RegistryStageJson> = /*@__PURE__*/
+  enumDesc(file_tb_ml_v1_ml, 1);
 

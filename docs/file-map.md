@@ -90,6 +90,8 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/business-logic/monitoring.md` | Exists | `MN-` rules: alert rules and runbooks, bus alert forwarding, routing and quiet hours, daily reports, pipeline dead-man |
 | `docs/business-logic/context-data.md` | Exists | `CX-` rules: context sources, availability per source, record keys and snapshot stamping, untrusted text, quarantined sentiment and contamination, event blackouts, regimes, context features, freshness; source catalog (cost, latency, history, licence) |
 | `docs/business-logic/backtesting.md` | Exists | `BT-` rules: fills, costs and the dated fee schedule, event-driven and vectorized tiers, splitters with purging and embargo, DSR/PBO/SPA statistics, reports, leakage suite, parity, scorer and evaluator isolation |
+| `docs/business-logic/ml.md` | Exists | `ML-` rules: labels and sample weights, dataset builder, fold-fitted preprocessing, model zoo, jobs and workers, cost guard, devices and burst hook, run tracking, diagnostics thresholds and size limits, analyst launches, inference parity |
+| `docs/business-logic/optimization.md` | Exists | `EX-` rules: nested validation, trial ledger and lineage statistics, MinBTL cycles, pre-registration, holdout service, gate reports, registry stages, analyst permission table, evidence packs, retraining, budgets |
 | `docs/business-logic/security.md` | Exists | `SE-` rules: policy, step-up, sessions, CSRF, secrets, credential encryption, redaction, audit, DB privileges |
 | `docs/adr/README.md` | Exists | ADR process and index |
 | `docs/adr/template.md` | Exists | ADR template |
@@ -127,6 +129,7 @@ Status: **Exists** = in the repo now. **Planned** = target layout from the build
 | `docs/adr/0032-context-data-pipeline-and-point-in-time-rules.md` | Exists | ADR (D50): context data through `ctx.<kind>` into the lake via marketdata, record keys, snapshot stamping, per-source availability rules, sources, `tbcore.context` |
 | `docs/adr/0033-quarantined-news-sentiment.md` | Exists | ADR (D51): quarantined news scoring (lexicon baseline, optional local model), contamination flags |
 | `docs/adr/0034-evaluator-isolation-scorer-and-leakage-suite.md` | Exists | ADR (D52): scorer outside `tbcore`, analyst sees pass/fail + DSR, evaluator manifest and import ban, leakage suite, point-in-time lint |
+| `docs/adr/0035-ml-and-optimizer-contracts-and-analyst-tool-apis.md` | Exists | ADR (D53): `MLService`, `OptimizerService`, separate `HoldoutService`, analyst tool APIs, actor from the service token, permission table in the optimizer |
 | `docs/runbooks/` | Exists | Mac Mini host, backup/restore, service down, clock skew, disk full, secrets and keys, security incidents, IBKR weekly 2FA / manual VNC login / gateway outages (`ibkr-weekly-2fa.md`), broker outage, market data (stale, slow, gaps, reconciliation breaches, corporate-action disputes), context data (stale sources, poison events, backfills, scoring model), IBKR weekly 2FA, ledger reconciliation break, kill switches, halts, and dead-man alerts |
 | `docs/threat-model.md` | Exists | Assets, actors, entry points, STRIDE table mapped to SE-/OP- rules, residual risks |
 
@@ -139,7 +142,7 @@ Internal layout and conventions: [`contracts/AGENTS.md`](../contracts/AGENTS.md)
 | `contracts/AGENTS.md` | Exists | Agent notes: layout, conventions, regeneration, gotchas |
 | `contracts/buf.yaml` | Exists | buf module, lint (STANDARD) and breaking (FILE) config |
 | `contracts/buf.gen.yaml` | Exists | Local-plugin codegen to Go, Python, TypeScript |
-| `contracts/proto/` | Exists | Protobuf schemas `tb.<domain>.v1`: common, marketdata (`MarketDataService`), context, features, signals, orders (`ExecutionService` in `orders/v1/execution.proto`), ledger (`LedgerService` in `ledger/v1/ledger_service.proto`), ml, backtest (`backtest/v1/simcore.proto`: simcore protocol and `RecordedMessage` bus recordings), alerts, audit, broker (credentials RPC, `BrokerGatewayService`, `BrokerMarketDataService`) |
+| `contracts/proto/` | Exists | Protobuf schemas `tb.<domain>.v1`: common, marketdata (`MarketDataService`), context, features, signals, orders (`ExecutionService` in `orders/v1/execution.proto`), ledger (`LedgerService` in `ledger/v1/ledger_service.proto`), ml (`ml.proto` registry records, `training.proto` training configs/runs/`DiagnosticsReport`, `ml_service.proto` `MLService`), optimizer (`optimizer/v1/optimizer.proto` `OptimizerService`, `holdout.proto` `HoldoutService`), backtest (`backtest/v1/simcore.proto`: simcore protocol and `RecordedMessage` bus recordings), alerts, audit, broker (credentials RPC, `BrokerGatewayService`, `BrokerMarketDataService`) |
 | `contracts/gen/go/` | Exists | Generated Go module (messages + gRPC) plus hand-written `go.mod` and `contracts_test.go` |
 | `contracts/gen/python/` | Exists | Generated Python package `tbcontracts` (`tb.*_pb2` + `.pyi`) plus hand-written `pyproject.toml` |
 | `contracts/gen/ts/` | Exists | Generated TypeScript package `@strawberry/contracts` plus hand-written `package.json`, `tsconfig.json`, `test/` |

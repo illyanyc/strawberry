@@ -1,0 +1,108 @@
+# Optimization, experiments, holdout, and the registry
+
+**Prefix:** `EX-`  ·  **Owners:** `services/optimizer` (studies, trial ledger, gates, registry, holdout service), `services/backtest` (scorer), `services/ml` (training)  ·  **Related:** [ML](ml.md), [backtesting](backtesting.md), [strategies and model lifecycle](strategies-and-model-lifecycle.md), D31, ADR-0035, ADR-0038, ADR-0039, ADR-0040
+
+## Scope
+
+Optuna studies with nested validation, research lineages with one trial ledger, research cycles budgeted by MinBTL, pre-registration, the sealed holdout service, gate reports, registry stages and champion/challenger, the analyst permission table, evidence packs, retraining, and compute budgets. The live switch is section 15; the analyst's reasoning is section 12; scoring thresholds are the scorer's (BT-080).
+
+## Concepts and states
+
+- **Lineage:** every trial for one strategy family on one data domain (timeframe + universe). Holds the holdout boundary, the analyst autonomy level and budget, promotion limits, the current research cycle, and the paper champion.
+- **Research cycle:** a MinBTL-budgeted window of effective trials; when spent, only the owner opens the next (D31 rule 3).
+- **Trial:** one evaluated configuration (owner study, analyst round, retrain, single run), whatever its status.
+- **Candidate:** the final selection of a study, refit on the whole study period, with its gate report.
+- **Registry stages:**
+
+```mermaid
+stateDiagram-v2
+  [*] --> candidate
+  candidate --> validated: gate report passes
+  validated --> shadow: deploy challenger
+  shadow --> paper: gates + SPA vs champion (+ owner step-up for a new spec)
+  paper --> live_eligible: owner step-up + graduation evidence
+  live_eligible --> live: section 15 only
+  shadow --> retired
+  paper --> paper: demotion keeps paper
+  paper --> retired: demotion
+  live --> paper: demotion (section 13/15)
+```
+
+## Rules
+
+| ID | Rule | Status | Code / tests |
+|---|---|---|---|
+| EX-001 | Reported study performance MUST be the outer walk-forward estimate of the whole selection procedure: for each outer fold, an inner Optuna sub-study selects parameters by inner CPCV on that fold's training window only, the selection is refit on the window and tested on the fold, and the test results are stitched. The best inner metric is shown only as "inner". | Specified | — |
+| EX-002 | The deployable candidate MUST come from a final sub-study (`outer_fold = -1`) over the whole study period, refit on it. | Specified | — |
+| EX-003 | Trials are scored by the vectorized out-of-fold portfolio evaluator; the top `event_driven_top_k` (default 1) candidates MUST be rerun event-driven before any gate (BT-006). | Specified | — |
+| EX-004 | Pruned, failed, and abandoned trials MUST still be written to the ledger with their status. | Specified | — |
+| EX-005 | A study with `objective.extra_metrics` MUST report the Pareto front (non-dominated trials over the objective and extra metrics). | Specified | — |
+| EX-006 | Search spaces MUST come from the family hyperparameter schemas plus feature-set, label-spec, timeframe, universe, and rule dimensions; family-specific parameters are conditional; every trial records which dimensions the study varied. | Specified | — |
+| EX-010 | Each lineage MUST fix a holdout boundary at creation (default: newest data minus `TB_HOLDOUT_MONTHS` = 12 months); training and study periods MUST end at or before it, and `CheckDataAccess` refuses (and audits) any other request. | Specified | — |
+| EX-011 | `EvaluateOnHoldout` MUST require actor `owner` from api-gateway with a step-up no older than `TB_HOLDOUT_STEPUP_MAX_AGE` (300 s), a non-empty reason, and at most one touch per family per calendar quarter; it returns pass/fail and DSR only and writes an audit record. | Specified | — |
+| EX-012 | The analyst MUST NOT reach holdout data or results: the holdout service allowlist excludes `assistant`, results live only in the holdout store, and no analyst-readable message carries a holdout result. Analyst attempts are denied and audited. | Specified | — |
+| EX-013 | Every holdout evaluation MUST be counted on the lineage ledger (`holdout_evaluations`) and add `TB_HOLDOUT_TRIAL_INFLATION` (1) trial to the lineage count; the UI shows the counter. | Specified | — |
+| EX-014 | Only the owner (step-up) may move a boundary, only forward; the previous holdout becomes ordinary data and is listed in `retired_boundaries`. A boundary never moves backward. | Specified | — |
+| EX-015 | Holdout evaluation MUST use the candidate's frozen model and pipeline (no refit) through the same evaluator as the gate. | Specified | — |
+| EX-020 | Every trial MUST be written to its lineage's ledger whatever its source (owner, analyst, schedule) or status, with spec hash, pre-registration hash, dataset snapshot, code commit, seed, params, and its out-of-fold session-return series. | Specified | — |
+| EX-021 | Lineage statistics MUST cover all trials in the lineage: `n_trials` (plus holdout inflation), effective N by ONC over the trials' out-of-fold return matrix aligned on the union of sessions (missing sessions = 0 return), cross-trial Sharpe variance, DSR of the best trial and of each candidate, and PBO by CSCV (S = 16). Gate reports and analyst tools expose only these lineage-level deflated numbers for decisions. | Specified | — |
+| EX-022 | Completed studies MUST publish `optimizer.study.completed`; candidate evaluations publish `backtest.completed`. | Specified | — |
+| EX-023 | `significance_reachable` MUST be false when the Sharpe needed for DSR ≥ 0.95 at the cycle's maximum effective N exceeds the best trial Sharpe plus two cross-trial standard deviations. | Specified | — |
+| EX-024 | Each candidate MUST get a gate report: outer estimate with bootstrap CI, DSR, PBO, SPA and Romano–Wolf against the champion (when one exists), walk-forward and regime breakdowns, net results at 1×, 1.5×, and 2× costs, parameter stability (neighbor trials), leakage-suite result, survivorship status, and the scorer verdict (BT-080). | Specified | — |
+| EX-025 | A research cycle's effective-trial budget MUST be the largest N with MinBTL(N, `target_sharpe`) ≤ available years of study data; when the cycle's effective trials reach it the cycle is `spent` and new studies or analyst launches in the lineage are refused until the owner opens a new cycle. | Specified | — |
+| EX-026 | A study MUST have a pre-registration (hypothesis, metric, universe, period, stop rule) before it starts; its hash is stamped on every trial, and a different metric needs a new study. | Specified | — |
+| EX-030 | The actor MUST be resolved from the calling service: `assistant` → `analyst` (whatever the request says), `api-gateway` → the claimed owner with its step-up attestation, `ml`/`optimizer` internal → `schedule` or `system`. | Specified | — |
+| EX-031 | Registry transitions MUST follow the permission table below, enforced in the optimizer for every caller (table-driven test). | Specified | — |
+| EX-032 | `CheckTransition` MUST return exactly the decision `PromoteCandidate` would make, without side effects. | Specified | — |
+| EX-033 | Raising a lineage's autonomy level MUST need owner step-up; lowering is immediate. At level 2 the analyst's paper promotions are limited by `PromotionLimits` (defaults: 1 per 14 days, ≥ 10 shadow sessions, 14-day cooldown after any demotion) and never change the paper allocation. | Specified | — |
+| EX-034 | `NominateLiveEligible` MUST notify the owner (`alert.info`) and never change a stage. | Specified | — |
+| EX-035 | Gate reports returned to the analyst MUST have `reasons` and `thresholds` cleared (pass/fail and DSR stay, BT-080). | Specified | — |
+| EX-036 | Analyst launches MUST stay within the lineage analyst budget (trials, CPU hours) and the global analyst budget; an alert fires at 80 % and launches are refused at 100 %. | Specified | — |
+| EX-040 | Retrain triggers (scheduled, drift, performance) MUST produce a challenger study with the same spec and an extended window, never an in-place model change; when the lineage autonomy is ≥ 1 the trigger is routed to the analyst (`monitor.retrain_suggested.<lineage>`), otherwise the default policy runs. The champion is replaced only if the challenger passes the same gates (and EX-052 for paper). | Specified | — |
+| EX-041 | Retrain trials are ledgered with source `schedule` like any other; scheduled refits of an unchanged spec add little effective N because ONC clusters them with their parent. | Specified | — |
+| EX-050 | Every stage change MUST be audited and published on `ml.registry.stage_changed`. | Specified | — |
+| EX-051 | `candidate → validated` MUST require a passing scorer verdict on event-driven evidence with the leakage suite passed. | Specified | — |
+| EX-052 | `shadow → paper` MUST require: validated, a current passing gate report, SPA or Romano–Wolf p ≤ 0.05 against the paper champion when one exists, survivorship status `complete`, and a generated evidence pack. A **new spec** (lineage without a paper champion) additionally needs owner approval with step-up. Candidates trained on synthetic data are never `live_eligible`. | Specified | — |
+| EX-053 | `paper → live_eligible` MUST require owner step-up, non-synthetic data, and graduation evidence (≥ `TB_GRADUATION_MIN_SESSIONS` = 20 paper sessions recorded on the candidate, SM-005). | Specified | — |
+| EX-054 | The optimizer MUST NOT set `live`; that is section 15 only. | Specified | — |
+| EX-055 | Demotion (section 13 input or owner) moves a candidate to `paper` or `retired` and marks it demoted; re-promotion of a demoted candidate is owner-only. | Specified | — |
+| EX-056 | A lineage has at most one paper champion; challengers deploy to `shadow` with a registry entry in mode `shadow` next to the champion on the same bars. | Specified | — |
+| EX-057 | Every human-gated promotion MUST generate a one-page evidence pack (markdown + HTML) and record its hash in the audit event. | Specified | — |
+| EX-060 | Studies MUST stop at their budget (trials, wall time, CPU hours); lineage and global budgets cap the sum. | Specified | — |
+| EX-061 | Optimization work MUST run at lower priority than live services (worker threads capped by `TB_OPT_MAX_THREADS`) and in queue order live retrain > owner > analyst. | Specified | — |
+
+### Permission table (EX-031)
+
+| Transition | Owner | Analyst L0 | Analyst L1 | Analyst L2 |
+|---|---|---|---|---|
+| `candidate → validated` (gates pass) | yes | no | yes (automatic on gate pass) | yes |
+| `validated → shadow` | yes | no | yes | yes |
+| `shadow → paper` (replace paper champion) | yes (step-up for a new spec) | no | no | yes, within promotion limits, after the minimum shadow period, never a new spec |
+| `paper → live_eligible` | yes, step-up | no | no | nominate only |
+| `live_eligible → live` | section 15 only | no | no | no |
+| `EvaluateOnHoldout` | yes, step-up | never | never | never |
+| Re-promote a demoted candidate | yes | no | no | no |
+
+## Invariants
+
+| ID | Invariant | Checked by |
+|---|---|---|
+| EX-I1 | The ledger's trial count for a lineage never decreases. | Ledger store test |
+| EX-I2 | Holdout touch count per family and quarter is ≤ 1 and never decreases (SM-I3). | Holdout test |
+| EX-I3 | No analyst-readable record contains a holdout result. | Holdout isolation test |
+
+## Edge cases
+
+| Scenario | Expected behavior | Rules |
+|---|---|---|
+| Pure-noise data | Best inner metric looks good; outer estimate near zero; DSR far below 0.95; no candidate validated | EX-001, EX-021 |
+| Study stopped mid-trial | Running trial stored as `abandoned` and counted | EX-004, EX-020 |
+| Second holdout request in the same quarter | Refused with the next allowed quarter; audited | EX-011 |
+| Analyst asks to promote a challenger to paper in a lineage with no paper champion | Denied (new spec needs owner) | EX-052, EX-031 |
+| Demoted candidate, analyst level 2 | Re-promotion denied | EX-055 |
+| Cycle budget spent | New study refused with `cycle_spent`; owner may open a new cycle | EX-025 |
+
+## Open questions
+
+- Graduation evidence comes from section 15 (paper P&L, divergence) once built; until then the owner records paper sessions on the candidate.
+- Prefect flow deployment for studies (D10) is Planned; studies run on the optimizer worker's queue (ADR-0038).

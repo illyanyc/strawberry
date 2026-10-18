@@ -23,6 +23,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// ModelStage is the Phase 0 placeholder; use RegistryStage (EX-050).
 type ModelStage int32
 
 const (
@@ -78,6 +79,74 @@ func (ModelStage) EnumDescriptor() ([]byte, []int) {
 	return file_tb_ml_v1_ml_proto_rawDescGZIP(), []int{0}
 }
 
+// RegistryStage is the champion/challenger lifecycle (section 11, EX-050):
+// candidate → validated → shadow → paper → live_eligible → live → retired. The optimizer only marks
+// live_eligible; live is set by the section 15 go-live flow.
+type RegistryStage int32
+
+const (
+	RegistryStage_REGISTRY_STAGE_UNSPECIFIED RegistryStage = 0
+	RegistryStage_REGISTRY_STAGE_CANDIDATE   RegistryStage = 1
+	// Gate report passed (EX-051).
+	RegistryStage_REGISTRY_STAGE_VALIDATED     RegistryStage = 2
+	RegistryStage_REGISTRY_STAGE_SHADOW        RegistryStage = 3
+	RegistryStage_REGISTRY_STAGE_PAPER         RegistryStage = 4
+	RegistryStage_REGISTRY_STAGE_LIVE_ELIGIBLE RegistryStage = 5
+	RegistryStage_REGISTRY_STAGE_LIVE          RegistryStage = 6
+	RegistryStage_REGISTRY_STAGE_RETIRED       RegistryStage = 7
+)
+
+// Enum value maps for RegistryStage.
+var (
+	RegistryStage_name = map[int32]string{
+		0: "REGISTRY_STAGE_UNSPECIFIED",
+		1: "REGISTRY_STAGE_CANDIDATE",
+		2: "REGISTRY_STAGE_VALIDATED",
+		3: "REGISTRY_STAGE_SHADOW",
+		4: "REGISTRY_STAGE_PAPER",
+		5: "REGISTRY_STAGE_LIVE_ELIGIBLE",
+		6: "REGISTRY_STAGE_LIVE",
+		7: "REGISTRY_STAGE_RETIRED",
+	}
+	RegistryStage_value = map[string]int32{
+		"REGISTRY_STAGE_UNSPECIFIED":   0,
+		"REGISTRY_STAGE_CANDIDATE":     1,
+		"REGISTRY_STAGE_VALIDATED":     2,
+		"REGISTRY_STAGE_SHADOW":        3,
+		"REGISTRY_STAGE_PAPER":         4,
+		"REGISTRY_STAGE_LIVE_ELIGIBLE": 5,
+		"REGISTRY_STAGE_LIVE":          6,
+		"REGISTRY_STAGE_RETIRED":       7,
+	}
+)
+
+func (x RegistryStage) Enum() *RegistryStage {
+	p := new(RegistryStage)
+	*p = x
+	return p
+}
+
+func (x RegistryStage) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (RegistryStage) Descriptor() protoreflect.EnumDescriptor {
+	return file_tb_ml_v1_ml_proto_enumTypes[1].Descriptor()
+}
+
+func (RegistryStage) Type() protoreflect.EnumType {
+	return &file_tb_ml_v1_ml_proto_enumTypes[1]
+}
+
+func (x RegistryStage) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use RegistryStage.Descriptor instead.
+func (RegistryStage) EnumDescriptor() ([]byte, []int) {
+	return file_tb_ml_v1_ml_proto_rawDescGZIP(), []int{1}
+}
+
 type ModelVersion struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	ModelId           string                 `protobuf:"bytes,1,opt,name=model_id,json=modelId,proto3" json:"model_id,omitempty"`
@@ -89,10 +158,17 @@ type ModelVersion struct {
 	Metrics           map[string]float64     `protobuf:"bytes,7,rep,name=metrics,proto3" json:"metrics,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
 	Stage             ModelStage             `protobuf:"varint,8,opt,name=stage,proto3,enum=tb.ml.v1.ModelStage" json:"stage,omitempty"`
 	// Reproducibility inputs (N5).
-	CodeCommit    string `protobuf:"bytes,9,opt,name=code_commit,json=codeCommit,proto3" json:"code_commit,omitempty"`
-	ConfigHash    string `protobuf:"bytes,10,opt,name=config_hash,json=configHash,proto3" json:"config_hash,omitempty"`
-	Seed          int64  `protobuf:"varint,11,opt,name=seed,proto3" json:"seed,omitempty"`
-	EnvLockHash   string `protobuf:"bytes,12,opt,name=env_lock_hash,json=envLockHash,proto3" json:"env_lock_hash,omitempty"`
+	CodeCommit    string        `protobuf:"bytes,9,opt,name=code_commit,json=codeCommit,proto3" json:"code_commit,omitempty"`
+	ConfigHash    string        `protobuf:"bytes,10,opt,name=config_hash,json=configHash,proto3" json:"config_hash,omitempty"`
+	Seed          int64         `protobuf:"varint,11,opt,name=seed,proto3" json:"seed,omitempty"`
+	EnvLockHash   string        `protobuf:"bytes,12,opt,name=env_lock_hash,json=envLockHash,proto3" json:"env_lock_hash,omitempty"`
+	RegistryStage RegistryStage `protobuf:"varint,13,opt,name=registry_stage,json=registryStage,proto3,enum=tb.ml.v1.RegistryStage" json:"registry_stage,omitempty"`
+	Name          string        `protobuf:"bytes,14,opt,name=name,proto3" json:"name,omitempty"`
+	ArtifactUri   string        `protobuf:"bytes,15,opt,name=artifact_uri,json=artifactUri,proto3" json:"artifact_uri,omitempty"`
+	// Model family task and timeframe, checked against the feature set at inference (ML-040).
+	Task          string `protobuf:"bytes,16,opt,name=task,proto3" json:"task,omitempty"`
+	Timeframe     string `protobuf:"bytes,17,opt,name=timeframe,proto3" json:"timeframe,omitempty"`
+	CreatedAt     int64  `protobuf:"varint,18,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -209,6 +285,48 @@ func (x *ModelVersion) GetEnvLockHash() string {
 		return x.EnvLockHash
 	}
 	return ""
+}
+
+func (x *ModelVersion) GetRegistryStage() RegistryStage {
+	if x != nil {
+		return x.RegistryStage
+	}
+	return RegistryStage_REGISTRY_STAGE_UNSPECIFIED
+}
+
+func (x *ModelVersion) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ModelVersion) GetArtifactUri() string {
+	if x != nil {
+		return x.ArtifactUri
+	}
+	return ""
+}
+
+func (x *ModelVersion) GetTask() string {
+	if x != nil {
+		return x.Task
+	}
+	return ""
+}
+
+func (x *ModelVersion) GetTimeframe() string {
+	if x != nil {
+		return x.Timeframe
+	}
+	return ""
+}
+
+func (x *ModelVersion) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
 }
 
 type BacktestRun struct {
@@ -350,7 +468,7 @@ var File_tb_ml_v1_ml_proto protoreflect.FileDescriptor
 
 const file_tb_ml_v1_ml_proto_rawDesc = "" +
 	"\n" +
-	"\x11tb/ml/v1/ml.proto\x12\btb.ml.v1\"\xfa\x03\n" +
+	"\x11tb/ml/v1/ml.proto\x12\btb.ml.v1\"\xc2\x05\n" +
 	"\fModelVersion\x12\x19\n" +
 	"\bmodel_id\x18\x01 \x01(\tR\amodelId\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\tR\aversion\x12\x16\n" +
@@ -366,7 +484,14 @@ const file_tb_ml_v1_ml_proto_rawDesc = "" +
 	" \x01(\tR\n" +
 	"configHash\x12\x12\n" +
 	"\x04seed\x18\v \x01(\x03R\x04seed\x12\"\n" +
-	"\renv_lock_hash\x18\f \x01(\tR\venvLockHash\x1a:\n" +
+	"\renv_lock_hash\x18\f \x01(\tR\venvLockHash\x12>\n" +
+	"\x0eregistry_stage\x18\r \x01(\x0e2\x17.tb.ml.v1.RegistryStageR\rregistryStage\x12\x12\n" +
+	"\x04name\x18\x0e \x01(\tR\x04name\x12!\n" +
+	"\fartifact_uri\x18\x0f \x01(\tR\vartifactUri\x12\x12\n" +
+	"\x04task\x18\x10 \x01(\tR\x04task\x12\x1c\n" +
+	"\ttimeframe\x18\x11 \x01(\tR\ttimeframe\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x12 \x01(\x03R\tcreatedAt\x1a:\n" +
 	"\fMetricsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x01\"\x82\x04\n" +
@@ -396,7 +521,16 @@ const file_tb_ml_v1_ml_proto_rawDesc = "" +
 	"\x15MODEL_STAGE_CANDIDATE\x10\x01\x12\x1a\n" +
 	"\x16MODEL_STAGE_CHALLENGER\x10\x02\x12\x18\n" +
 	"\x14MODEL_STAGE_CHAMPION\x10\x03\x12\x18\n" +
-	"\x14MODEL_STAGE_ARCHIVED\x10\x04B\x98\x01\n" +
+	"\x14MODEL_STAGE_ARCHIVED\x10\x04*\xf7\x01\n" +
+	"\rRegistryStage\x12\x1e\n" +
+	"\x1aREGISTRY_STAGE_UNSPECIFIED\x10\x00\x12\x1c\n" +
+	"\x18REGISTRY_STAGE_CANDIDATE\x10\x01\x12\x1c\n" +
+	"\x18REGISTRY_STAGE_VALIDATED\x10\x02\x12\x19\n" +
+	"\x15REGISTRY_STAGE_SHADOW\x10\x03\x12\x18\n" +
+	"\x14REGISTRY_STAGE_PAPER\x10\x04\x12 \n" +
+	"\x1cREGISTRY_STAGE_LIVE_ELIGIBLE\x10\x05\x12\x17\n" +
+	"\x13REGISTRY_STAGE_LIVE\x10\x06\x12\x1a\n" +
+	"\x16REGISTRY_STAGE_RETIRED\x10\aB\x98\x01\n" +
 	"\fcom.tb.ml.v1B\aMlProtoP\x01Z=github.com/illyanyc/strawberry/contracts/gen/go/tb/ml/v1;mlv1\xa2\x02\x03TMX\xaa\x02\bTb.Ml.V1\xca\x02\bTb\\Ml\\V1\xe2\x02\x14Tb\\Ml\\V1\\GPBMetadata\xea\x02\n" +
 	"Tb::Ml::V1b\x06proto3"
 
@@ -412,24 +546,26 @@ func file_tb_ml_v1_ml_proto_rawDescGZIP() []byte {
 	return file_tb_ml_v1_ml_proto_rawDescData
 }
 
-var file_tb_ml_v1_ml_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_tb_ml_v1_ml_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_tb_ml_v1_ml_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_tb_ml_v1_ml_proto_goTypes = []any{
 	(ModelStage)(0),      // 0: tb.ml.v1.ModelStage
-	(*ModelVersion)(nil), // 1: tb.ml.v1.ModelVersion
-	(*BacktestRun)(nil),  // 2: tb.ml.v1.BacktestRun
-	nil,                  // 3: tb.ml.v1.ModelVersion.MetricsEntry
-	nil,                  // 4: tb.ml.v1.BacktestRun.MetricsEntry
+	(RegistryStage)(0),   // 1: tb.ml.v1.RegistryStage
+	(*ModelVersion)(nil), // 2: tb.ml.v1.ModelVersion
+	(*BacktestRun)(nil),  // 3: tb.ml.v1.BacktestRun
+	nil,                  // 4: tb.ml.v1.ModelVersion.MetricsEntry
+	nil,                  // 5: tb.ml.v1.BacktestRun.MetricsEntry
 }
 var file_tb_ml_v1_ml_proto_depIdxs = []int32{
-	3, // 0: tb.ml.v1.ModelVersion.metrics:type_name -> tb.ml.v1.ModelVersion.MetricsEntry
+	4, // 0: tb.ml.v1.ModelVersion.metrics:type_name -> tb.ml.v1.ModelVersion.MetricsEntry
 	0, // 1: tb.ml.v1.ModelVersion.stage:type_name -> tb.ml.v1.ModelStage
-	4, // 2: tb.ml.v1.BacktestRun.metrics:type_name -> tb.ml.v1.BacktestRun.MetricsEntry
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	1, // 2: tb.ml.v1.ModelVersion.registry_stage:type_name -> tb.ml.v1.RegistryStage
+	5, // 3: tb.ml.v1.BacktestRun.metrics:type_name -> tb.ml.v1.BacktestRun.MetricsEntry
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_tb_ml_v1_ml_proto_init() }
@@ -442,7 +578,7 @@ func file_tb_ml_v1_ml_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tb_ml_v1_ml_proto_rawDesc), len(file_tb_ml_v1_ml_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,

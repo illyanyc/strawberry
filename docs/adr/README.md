@@ -50,3 +50,4 @@ Write an ADR when a choice is hard to reverse, affects more than one service, or
 | [0032](0032-context-data-pipeline-and-point-in-time-rules.md) | Context data through the bus into the lake, with record keys, snapshot stamping, and per-source availability rules | Accepted | 2026-10-18 |
 | [0033](0033-quarantined-news-sentiment.md) | News sentiment through a quarantined local model, with a lexicon baseline and contamination flags | Accepted | 2026-10-18 |
 | [0034](0034-evaluator-isolation-scorer-and-leakage-suite.md) | Evaluator isolation, the D31 promotion scorer, and the leakage suite with a point-in-time lint | Accepted | 2026-10-18 |
+| [0035](0035-ml-and-optimizer-contracts-and-analyst-tool-apis.md) | ML and optimizer contracts, the separate holdout service, and the analyst tool APIs with server-side actor resolution | Accepted | 2026-10-18 |

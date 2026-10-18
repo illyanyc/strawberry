@@ -14,14 +14,33 @@ class ModelStage(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     MODEL_STAGE_CHALLENGER: _ClassVar[ModelStage]
     MODEL_STAGE_CHAMPION: _ClassVar[ModelStage]
     MODEL_STAGE_ARCHIVED: _ClassVar[ModelStage]
+
+class RegistryStage(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    REGISTRY_STAGE_UNSPECIFIED: _ClassVar[RegistryStage]
+    REGISTRY_STAGE_CANDIDATE: _ClassVar[RegistryStage]
+    REGISTRY_STAGE_VALIDATED: _ClassVar[RegistryStage]
+    REGISTRY_STAGE_SHADOW: _ClassVar[RegistryStage]
+    REGISTRY_STAGE_PAPER: _ClassVar[RegistryStage]
+    REGISTRY_STAGE_LIVE_ELIGIBLE: _ClassVar[RegistryStage]
+    REGISTRY_STAGE_LIVE: _ClassVar[RegistryStage]
+    REGISTRY_STAGE_RETIRED: _ClassVar[RegistryStage]
 MODEL_STAGE_UNSPECIFIED: ModelStage
 MODEL_STAGE_CANDIDATE: ModelStage
 MODEL_STAGE_CHALLENGER: ModelStage
 MODEL_STAGE_CHAMPION: ModelStage
 MODEL_STAGE_ARCHIVED: ModelStage
+REGISTRY_STAGE_UNSPECIFIED: RegistryStage
+REGISTRY_STAGE_CANDIDATE: RegistryStage
+REGISTRY_STAGE_VALIDATED: RegistryStage
+REGISTRY_STAGE_SHADOW: RegistryStage
+REGISTRY_STAGE_PAPER: RegistryStage
+REGISTRY_STAGE_LIVE_ELIGIBLE: RegistryStage
+REGISTRY_STAGE_LIVE: RegistryStage
+REGISTRY_STAGE_RETIRED: RegistryStage
 
 class ModelVersion(_message.Message):
-    __slots__ = ("model_id", "version", "family", "training_run_id", "dataset_snapshot_id", "feature_set_id", "metrics", "stage", "code_commit", "config_hash", "seed", "env_lock_hash")
+    __slots__ = ("model_id", "version", "family", "training_run_id", "dataset_snapshot_id", "feature_set_id", "metrics", "stage", "code_commit", "config_hash", "seed", "env_lock_hash", "registry_stage", "name", "artifact_uri", "task", "timeframe", "created_at")
     class MetricsEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -41,6 +60,12 @@ class ModelVersion(_message.Message):
     CONFIG_HASH_FIELD_NUMBER: _ClassVar[int]
     SEED_FIELD_NUMBER: _ClassVar[int]
     ENV_LOCK_HASH_FIELD_NUMBER: _ClassVar[int]
+    REGISTRY_STAGE_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    ARTIFACT_URI_FIELD_NUMBER: _ClassVar[int]
+    TASK_FIELD_NUMBER: _ClassVar[int]
+    TIMEFRAME_FIELD_NUMBER: _ClassVar[int]
+    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
     model_id: str
     version: str
     family: str
@@ -53,7 +78,13 @@ class ModelVersion(_message.Message):
     config_hash: str
     seed: int
     env_lock_hash: str
-    def __init__(self, model_id: _Optional[str] = ..., version: _Optional[str] = ..., family: _Optional[str] = ..., training_run_id: _Optional[str] = ..., dataset_snapshot_id: _Optional[str] = ..., feature_set_id: _Optional[str] = ..., metrics: _Optional[_Mapping[str, float]] = ..., stage: _Optional[_Union[ModelStage, str]] = ..., code_commit: _Optional[str] = ..., config_hash: _Optional[str] = ..., seed: _Optional[int] = ..., env_lock_hash: _Optional[str] = ...) -> None: ...
+    registry_stage: RegistryStage
+    name: str
+    artifact_uri: str
+    task: str
+    timeframe: str
+    created_at: int
+    def __init__(self, model_id: _Optional[str] = ..., version: _Optional[str] = ..., family: _Optional[str] = ..., training_run_id: _Optional[str] = ..., dataset_snapshot_id: _Optional[str] = ..., feature_set_id: _Optional[str] = ..., metrics: _Optional[_Mapping[str, float]] = ..., stage: _Optional[_Union[ModelStage, str]] = ..., code_commit: _Optional[str] = ..., config_hash: _Optional[str] = ..., seed: _Optional[int] = ..., env_lock_hash: _Optional[str] = ..., registry_stage: _Optional[_Union[RegistryStage, str]] = ..., name: _Optional[str] = ..., artifact_uri: _Optional[str] = ..., task: _Optional[str] = ..., timeframe: _Optional[str] = ..., created_at: _Optional[int] = ...) -> None: ...
 
 class BacktestRun(_message.Message):
     __slots__ = ("run_id", "strategy_config_hash", "data_snapshot_id", "cost_model", "metrics", "trades_artifact_uri", "code_commit", "seed", "survivorship_status", "warnings", "engine", "fill_model")

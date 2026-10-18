@@ -1,0 +1,231 @@
+syntax = "proto3";
+
+// MLService is served by the `ml` worker (section 10, ADR-0035, ADR-0036). Callers (service tokens,
+// SE-040): api-gateway (UI, owner actor), optimizer (studies, retrains), assistant (actor forced to
+// `analyst`, EX-031). Every diagnostics read excludes the sealed holdout by construction (ML-020) and
+// returns size-limited payloads (ML-021). Analyst launches are tagged, budgeted, and written to the
+// lineage trial ledger (ML-024).
+package tb.ml.v1;
+
+import "tb/ml/v1/ml.proto";
+import "tb/ml/v1/training.proto";
+import "tb/signals/v1/signals.proto";
+
+service MLService {
+  rpc ListModelFamilies(ListModelFamiliesRequest) returns (ListModelFamiliesResponse);
+  rpc ListFeatureSets(ListFeatureSetsRequest) returns (ListFeatureSetsResponse);
+  rpc ListLabelPresets(ListLabelPresetsRequest) returns (ListLabelPresetsResponse);
+  // Validates the config and returns the cost estimate shown before launch (ML-031).
+  rpc EstimateTrainingJob(EstimateTrainingJobRequest) returns (EstimateTrainingJobResponse);
+  rpc SubmitTrainingJob(SubmitTrainingJobRequest) returns (SubmitTrainingJobResponse);
+  rpc GetJob(GetJobRequest) returns (GetJobResponse);
+  rpc ListJobs(ListJobsRequest) returns (ListJobsResponse);
+  rpc StreamJobProgress(StreamJobProgressRequest) returns (stream StreamJobProgressResponse);
+  rpc CancelJob(CancelJobRequest) returns (CancelJobResponse);
+  rpc GetRun(GetRunRequest) returns (GetRunResponse);
+  rpc ListRuns(ListRunsRequest) returns (ListRunsResponse);
+  rpc RegisterModel(RegisterModelRequest) returns (RegisterModelResponse);
+  // Batch path for swing; uses the persisted pipeline and fails closed on a feature-set mismatch (ML-040).
+  rpc Predict(PredictRequest) returns (PredictResponse);
+  rpc GetModelCard(GetModelCardRequest) returns (GetModelCardResponse);
+
+  // Diagnostics and analyst tools (holdout excluded by construction).
+  rpc GetDiagnostics(GetDiagnosticsRequest) returns (GetDiagnosticsResponse);
+  rpc GetLearningCurves(GetLearningCurvesRequest) returns (GetLearningCurvesResponse);
+  rpc GetFeatureImportance(GetFeatureImportanceRequest) returns (GetFeatureImportanceResponse);
+  rpc GetErrorSlices(GetErrorSlicesRequest) returns (GetErrorSlicesResponse);
+  rpc GetDatasetProfile(GetDatasetProfileRequest) returns (GetDatasetProfileResponse);
+  // Same folds, seeds, and snapshot as the base run (ML-025).
+  rpc SubmitAblation(SubmitAblationRequest) returns (SubmitAblationResponse);
+  rpc AnnotateRun(AnnotateRunRequest) returns (AnnotateRunResponse);
+}
+
+message ListModelFamiliesRequest {}
+
+message ListModelFamiliesResponse {
+  repeated ModelFamily families = 1;
+}
+
+message ListFeatureSetsRequest {}
+
+message ListFeatureSetsResponse {
+  repeated FeatureSetInfo feature_sets = 1;
+}
+
+message ListLabelPresetsRequest {}
+
+message ListLabelPresetsResponse {
+  repeated LabelPreset presets = 1;
+}
+
+message EstimateTrainingJobRequest {
+  TrainingConfig config = 1;
+  CallerContext caller = 2;
+}
+
+message EstimateTrainingJobResponse {
+  JobEstimate estimate = 1;
+  // Validation errors (schema, holdout overlap, unknown family); empty when valid.
+  repeated string errors = 2;
+}
+
+message SubmitTrainingJobRequest {
+  TrainingConfig config = 1;
+  CallerContext caller = 2;
+  // Required when the estimate is over the configured budget (ML-031).
+  bool confirm_over_budget = 3;
+}
+
+message SubmitTrainingJobResponse {
+  TrainingJob job = 1;
+}
+
+message GetJobRequest {
+  string job_id = 1;
+}
+
+message GetJobResponse {
+  TrainingJob job = 1;
+}
+
+message ListJobsRequest {
+  string lineage_id = 1;
+  int32 limit = 2;
+}
+
+message ListJobsResponse {
+  repeated TrainingJob jobs = 1;
+}
+
+message StreamJobProgressRequest {
+  string job_id = 1;
+  // Resume after this sequence number.
+  int64 after_seq = 2;
+}
+
+message StreamJobProgressResponse {
+  JobProgress progress = 1;
+}
+
+message CancelJobRequest {
+  string job_id = 1;
+  CallerContext caller = 2;
+}
+
+message CancelJobResponse {
+  TrainingJob job = 1;
+}
+
+message GetRunRequest {
+  string run_id = 1;
+}
+
+message GetRunResponse {
+  TrainingRun run = 1;
+}
+
+message ListRunsRequest {
+  string lineage_id = 1;
+  string family = 2;
+  int32 limit = 3;
+}
+
+message ListRunsResponse {
+  repeated TrainingRun runs = 1;
+}
+
+message RegisterModelRequest {
+  string run_id = 1;
+  string name = 2;
+  CallerContext caller = 3;
+}
+
+message RegisterModelResponse {
+  ModelVersion model_version = 1;
+}
+
+message PredictRequest {
+  string model_version = 1;
+  repeated string instrument_ids = 2;
+  int64 as_of = 3;
+  string strategy_id = 4;
+}
+
+message PredictResponse {
+  repeated tb.signals.v1.Signal signals = 1;
+}
+
+message GetModelCardRequest {
+  string run_id = 1;
+}
+
+message GetModelCardResponse {
+  ModelCard card = 1;
+}
+
+message GetDiagnosticsRequest {
+  string run_id = 1;
+  CallerContext caller = 2;
+}
+
+message GetDiagnosticsResponse {
+  DiagnosticsReport report = 1;
+}
+
+message GetLearningCurvesRequest {
+  string run_id = 1;
+  CallerContext caller = 2;
+}
+
+message GetLearningCurvesResponse {
+  LearningCurves curves = 1;
+}
+
+message GetFeatureImportanceRequest {
+  string run_id = 1;
+  // gain | permutation | shap
+  string method = 2;
+  CallerContext caller = 3;
+}
+
+message GetFeatureImportanceResponse {
+  FeatureImportance importance = 1;
+}
+
+message GetErrorSlicesRequest {
+  string run_id = 1;
+  string slice_by = 2;
+  CallerContext caller = 3;
+}
+
+message GetErrorSlicesResponse {
+  repeated ErrorSlice slices = 1;
+}
+
+message GetDatasetProfileRequest {
+  string snapshot_id = 1;
+  CallerContext caller = 2;
+}
+
+message GetDatasetProfileResponse {
+  DatasetProfile profile = 1;
+}
+
+message SubmitAblationRequest {
+  string run_id = 1;
+  repeated AblationVariant variants = 2;
+  CallerContext caller = 3;
+}
+
+message SubmitAblationResponse {
+  repeated TrainingJob jobs = 1;
+}
+
+message AnnotateRunRequest {
+  string run_id = 1;
+  // Stored as untrusted text; never interpreted as instructions (section 12 input hygiene).
+  string note = 2;
+  CallerContext caller = 3;
+}
+
+message AnnotateRunResponse {}

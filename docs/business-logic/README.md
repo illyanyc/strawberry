@@ -18,6 +18,8 @@ The specification of how the platform behaves, by domain. **These docs are the s
 | Monitoring and alerting | [monitoring.md](monitoring.md) | `MN-` | `monitor`, `infra/observability`, every service (metrics, bus alerts) |
 | Context data | [context-data.md](context-data.md) | `CX-` | `context-data`, `marketdata` (sink), `libs/py/tbcore/context`, `strategy-runtime` (blackout) |
 | Backtesting and validation | [backtesting.md](backtesting.md) | `BT-` | `libs/py/tbcore` (`backtest`, `validation`, `parity`), `services/backtest`, `services/execution/cmd/tb-simcore` |
+| ML training and diagnostics | [ml.md](ml.md) | `ML-` | `libs/py/tbcore` (`ml`, `labels`), `services/ml`, `services/strategy-runtime` (shadow inference) |
+| Optimization, experiments, holdout, registry | [optimization.md](optimization.md) | `EX-` | `services/optimizer` (studies, trial ledger, gates, registry, holdout), `services/backtest` (scorer) |
 | Security | [security.md](security.md) | `SE-` | `libs/go` (policy, audit, secrets, svcauth, db), `api-gateway`, `broker-gateway` |
 
 New domain: copy [`_template.md`](_template.md), pick a two-letter prefix, add it to this table and to `.cursor/rules/documentation-discipline.mdc`.

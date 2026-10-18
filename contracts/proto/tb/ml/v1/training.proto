@@ -1,0 +1,551 @@
+syntax = "proto3";
+
+// Training configs, jobs, runs, datasets, and the DiagnosticsReport (section 10, ADR-0035, ADR-0036).
+// Rules ML-* in docs/business-logic/ml.md. These messages are the stable interface the AI Research
+// Analyst (section 12) reads; payloads are aggregated and size-limited (ML-021), never raw feature
+// matrices, and never cover the sealed holdout period (ML-020, EX-010).
+package tb.ml.v1;
+
+import "google/protobuf/struct.proto";
+
+// Actor is who launched or requested an action (D31 rule 1: every trial records its source).
+enum Actor {
+  ACTOR_UNSPECIFIED = 0;
+  ACTOR_OWNER = 1;
+  // The AI Research Analyst (section 12). Forced by the server for calls from service `assistant`,
+  // whatever the request claims (EX-031).
+  ACTOR_ANALYST = 2;
+  // Scheduled or drift-triggered retraining (EX-040).
+  ACTOR_SCHEDULE = 3;
+  // Platform automation (tests, migrations).
+  ACTOR_SYSTEM = 4;
+}
+
+// StepUp is set by api-gateway after a fresh passkey assertion (SE-030); services trust it only
+// from the api-gateway service identity (EX-031).
+message StepUp {
+  string method = 1;
+  int64 verified_at = 2;
+  string session_id = 3;
+}
+
+// CallerContext travels with every write and with every analyst read (audit, budgets, permissions).
+message CallerContext {
+  Actor actor = 1;
+  string actor_id = 2;
+  // Section 12 round that launched the action (ML-024).
+  string analyst_round_id = 3;
+  string reason = 4;
+  StepUp step_up = 5;
+  string correlation_id = 6;
+}
+
+// Period is a half-open UTC interval [start, end) in ns.
+message Period {
+  int64 start = 1;
+  int64 end = 2;
+}
+
+message FeatureSetRef {
+  string name = 1;
+  int32 version = 2;
+  // Content hash of the resolved feature set (DF-003); filled by the server.
+  string hash = 3;
+}
+
+// LabelSpec selects a label from tbcore.labels (D24; DF-014..DF-016, ML-001..ML-004).
+message LabelSpec {
+  // residual_return (default, D24) | residual_rank (swing, per-date rank) | triple_barrier | meta_label
+  string kind = 1;
+  // Horizon in decision bars (intraday, capped at the close) or sessions (swing).
+  int32 horizon = 2;
+  // Benchmark instrument_id (SPY or sector ETF); empty = raw returns.
+  string benchmark = 3;
+  int32 vol_window = 4;
+  // Triple barrier / meta-label barrier widths in trailing-volatility units.
+  double pt = 5;
+  double sl = 6;
+  // Relevance buckets for LambdaRank (swing); 0 = default 5.
+  int32 rank_buckets = 7;
+}
+
+message UniverseSpec {
+  // Named point-in-time universe (refdata) or explicit instrument IDs.
+  string name = 1;
+  repeated string instrument_ids = 2;
+  // Market benchmark used by features and labels.
+  string benchmark = 3;
+}
+
+// SplitterSpec selects a tbcore.validation splitter (SM-002: no random k-fold).
+message SplitterSpec {
+  // walk_forward | purged_kfold | cpcv
+  string kind = 1;
+  int32 n_splits = 2;
+  // Walk-forward windows in eras (sessions).
+  int32 train_eras = 3;
+  int32 test_eras = 4;
+  bool anchored = 5;
+  // CPCV groups (N) and test groups (k).
+  int32 n_groups = 6;
+  int32 n_test_groups = 7;
+  // Embargo in decision bars; the server raises it to at least the label horizon (ML-005).
+  int32 embargo_bars = 8;
+}
+
+message SampleWeighting {
+  // none | uniqueness | return | time_decay (ML-003)
+  string method = 1;
+  // time_decay: weight of the oldest sample relative to the newest (0 < c <= 1).
+  double decay = 2;
+}
+
+// Resources requested by a job (ML-030); device auto picks cpu | mps | mlx on the native worker and
+// cloud_gpu only through the configured burst hook (D25, ML-032).
+message Resources {
+  int32 cpu_threads = 1;
+  int32 memory_mb = 2;
+  string device = 3;
+  int64 max_wall_seconds = 4;
+}
+
+// PrimaryRule is the rule whose signals an ML filter (meta-label model) sizes or filters (D23).
+message PrimaryRule {
+  // orb (intraday) | residual_reversal (swing)
+  string rule = 1;
+  google.protobuf.Struct params = 2;
+  // Minimum filter probability to take a primary signal.
+  double threshold = 3;
+}
+
+// EvaluationSpec controls the standard evaluation of every run (ML-012).
+message EvaluationSpec {
+  // Fraction of the cross-section taken per decision (top quantile by score).
+  double top_quantile = 1;
+  bool long_only = 2;
+  double cost_multiplier = 3;
+  // Rerun out-of-fold signals through the event-driven backtester and write a tearsheet (BT-006).
+  bool event_backtest = 4;
+}
+
+// TrainingConfig is serializable and versioned; its hash identifies the run's inputs (ML-010).
+message TrainingConfig {
+  string name = 1;
+  // ModelFamily.family
+  string family = 2;
+  // Validated against the family's hyperparameter JSON Schema (ML-011).
+  google.protobuf.Struct hyperparams = 3;
+  FeatureSetRef feature_set = 4;
+  LabelSpec label = 5;
+  UniverseSpec universe = 6;
+  // 15m (intraday) | 1d (swing)
+  string timeframe = 7;
+  // Must end at or before the lineage's holdout boundary (ML-020).
+  Period period = 8;
+  SplitterSpec splitter = 9;
+  SampleWeighting sample_weighting = 10;
+  int64 seed = 11;
+  Resources resources = 12;
+  PrimaryRule primary = 13;
+  string lineage_id = 14;
+  // lake | synthetic:<preset> (dev and tests only; never live-eligible, EX-052)
+  string data_source = 15;
+  EvaluationSpec evaluation = 16;
+}
+
+enum JobStatus {
+  JOB_STATUS_UNSPECIFIED = 0;
+  JOB_STATUS_QUEUED = 1;
+  JOB_STATUS_RUNNING = 2;
+  JOB_STATUS_SUCCEEDED = 3;
+  JOB_STATUS_FAILED = 4;
+  JOB_STATUS_CANCELED = 5;
+}
+
+// JobEstimate is shown before launch (cost guard, ML-031).
+message JobEstimate {
+  int64 rows = 1;
+  int32 fits = 2;
+  double cpu_seconds = 3;
+  double gpu_seconds = 4;
+  int32 memory_mb = 5;
+  bool over_budget = 6;
+  string device = 7;
+}
+
+message TrainingJob {
+  string job_id = 1;
+  string run_id = 2;
+  TrainingConfig config = 3;
+  JobStatus status = 4;
+  int64 submitted_at = 5;
+  int64 started_at = 6;
+  int64 finished_at = 7;
+  CallerContext launched_by = 8;
+  // live_retrain > owner > analyst (EX-061).
+  int32 priority = 9;
+  double progress = 10;
+  string message = 11;
+  JobEstimate estimate = 12;
+  string error = 13;
+  // dataset | fold | evaluate | backtest | diagnostics | done
+  string phase = 14;
+  // training | ablation | retrain
+  string kind = 15;
+  string base_run_id = 16;
+}
+
+// JobProgress is one streamed update (fold, boosting step, metrics, log line).
+message JobProgress {
+  string job_id = 1;
+  int64 seq = 2;
+  int64 at = 3;
+  string phase = 4;
+  int32 fold = 5;
+  int32 n_folds = 6;
+  int32 step = 7;
+  map<string, double> metrics = 8;
+  string log = 9;
+  JobStatus status = 10;
+  double progress = 11;
+}
+
+message Reproducibility {
+  string code_commit = 1;
+  string config_hash = 2;
+  string env_lock_hash = 3;
+  map<string, string> library_versions = 4;
+  string hardware = 5;
+  int64 seed = 6;
+  double runtime_seconds = 7;
+  int32 threads = 8;
+}
+
+message DatasetManifest {
+  string snapshot_id = 1;
+  string feature_set_id = 2;
+  string feature_set_hash = 3;
+  string label_spec_hash = 4;
+  string timeframe = 5;
+  Period period = 6;
+  int64 rows = 7;
+  int32 instruments = 8;
+  int32 eras = 9;
+  // Rows removed and why (warmup, missing_label, missing_feature, holdout).
+  map<string, int64> rows_dropped = 10;
+  // Label distribution summary (mean/std or class shares).
+  map<string, double> label_summary = 11;
+  repeated string features = 12;
+  string data_source = 13;
+  int64 created_at = 14;
+  // Mean label uniqueness (concurrency-adjusted, ML-003).
+  double avg_uniqueness = 15;
+}
+
+message FoldMetrics {
+  int32 fold = 1;
+  int64 train_rows = 2;
+  int64 test_rows = 3;
+  Period train = 4;
+  Period test = 5;
+  // ML metrics, train_* and val_* (ic, rank_ic, mse, auc, logloss, brier, ndcg).
+  map<string, double> metrics = 6;
+  // Linked after-cost backtest metrics of the fold (net_return, sharpe, turnover, cost_drag, trades).
+  map<string, double> backtest = 7;
+  int32 best_iteration = 8;
+}
+
+// TrainingRun is the record of one finished job (also an MLflow run, ML-013).
+message TrainingRun {
+  string run_id = 1;
+  string job_id = 2;
+  TrainingConfig config = 3;
+  DatasetManifest dataset = 4;
+  repeated FoldMetrics folds = 5;
+  // Stitched out-of-sample metrics over all test folds.
+  map<string, double> oos_metrics = 6;
+  string artifact_uri = 7;
+  string model_card_uri = 8;
+  string tearsheet_uri = 9;
+  string diagnostics_report_id = 10;
+  string mlflow_run_id = 11;
+  Reproducibility repro = 12;
+  JobStatus status = 13;
+  string base_run_id = 14;
+  string lineage_id = 15;
+  string trial_id = 16;
+  CallerContext launched_by = 17;
+  int64 created_at = 18;
+  repeated string notes = 19;
+}
+
+message ModelFamily {
+  string family = 1;
+  // 1 = MVP (no_skill, ridge, logistic, LightGBM), 2 = rule + ML filter; 3..5 Planned.
+  int32 tier = 2;
+  // regression | ranking | classification | rule_filter
+  string task = 3;
+  string description = 4;
+  // JSON Schema (draft 2020-12) of the hyperparameters; the UI renders forms from it.
+  string hyperparam_schema_json = 5;
+  int32 cpu_threads_hint = 6;
+  int32 memory_mb_hint = 7;
+  bool supports_gpu = 8;
+  repeated string devices = 9;
+  // intraday | swing | both
+  string horizon = 10;
+  bool experimental = 11;
+}
+
+message FeatureSetInfo {
+  string name = 1;
+  int32 version = 2;
+  string hash = 3;
+  repeated string features = 4;
+  string description = 5;
+  int32 max_lookback = 6;
+}
+
+message LabelPreset {
+  string name = 1;
+  LabelSpec spec = 2;
+  string timeframe = 3;
+  string description = 4;
+}
+
+message ModelCard {
+  string run_id = 1;
+  string markdown = 2;
+  map<string, string> fields = 3;
+}
+
+// ---- Diagnostics (ML-020..ML-026) ----
+
+message FeatureStat {
+  string feature = 1;
+  double missing_rate = 2;
+  double mean = 3;
+  double std = 4;
+  double p01 = 5;
+  double p99 = 6;
+  double outlier_rate = 7;
+}
+
+message LabelFoldStat {
+  int32 fold = 1;
+  double mean = 2;
+  double std = 3;
+  double skew = 4;
+  double positive_rate = 5;
+  int64 n = 6;
+}
+
+message DataQuality {
+  repeated FoldMetrics rows_per_fold = 1;
+  repeated FeatureStat features = 2;
+  repeated LabelFoldStat labels = 3;
+  double avg_uniqueness = 4;
+  map<string, int64> rows_dropped = 5;
+}
+
+message ShiftStat {
+  string feature = 1;
+  int32 fold = 2;
+  double psi = 3;
+  double ks = 4;
+}
+
+message FeatureCluster {
+  repeated string features = 1;
+  double max_abs_corr = 2;
+}
+
+message StationarityResult {
+  string feature = 1;
+  double adf_stat = 2;
+  double critical_5pct = 3;
+  bool stationary = 4;
+}
+
+message LeakageFlag {
+  string feature = 1;
+  // dominant_importance | single_feature_skill | future_correlation
+  string reason = 2;
+  double value = 3;
+  double threshold = 4;
+}
+
+message FeatureDiagnostics {
+  repeated ShiftStat shift = 1;
+  repeated FeatureCluster clusters = 2;
+  repeated StationarityResult stationarity = 3;
+  repeated LeakageFlag leakage_flags = 4;
+}
+
+message CurvePoint {
+  int32 step = 1;
+  double train_metric = 2;
+  double val_metric = 3;
+}
+
+message FoldCurve {
+  int32 fold = 1;
+  string metric = 2;
+  repeated CurvePoint points = 3;
+  int32 best_step = 4;
+}
+
+message SizePoint {
+  int64 train_rows = 1;
+  double train_metric = 2;
+  double val_metric = 3;
+}
+
+message LearningCurves {
+  repeated FoldCurve per_fold = 1;
+  repeated SizePoint size_curve = 2;
+  // Mean (train - validation) gap at the chosen step.
+  double overfitting_gap = 3;
+}
+
+message FoldImportance {
+  int32 fold = 1;
+  map<string, double> values = 2;
+}
+
+message ImportanceStability {
+  string feature = 1;
+  double mean = 2;
+  double std = 3;
+  double sign_flip_rate = 4;
+  double rank_std = 5;
+}
+
+message Interaction {
+  string feature_a = 1;
+  string feature_b = 2;
+  double value = 3;
+}
+
+message FeatureImportance {
+  // gain | permutation | shap
+  string method = 1;
+  repeated FoldImportance per_fold = 2;
+  repeated ImportanceStability stability = 3;
+  repeated Interaction top_interactions = 4;
+}
+
+message ErrorSlice {
+  // regime | time_of_day | symbol | sector | vol_bucket | label_class
+  string slice_by = 1;
+  string slice = 2;
+  int64 n = 3;
+  double metric = 4;
+  double calibration_error = 5;
+  double vs_overall = 6;
+  string metric_name = 7;
+}
+
+message WorstSample {
+  string instrument_id = 1;
+  int64 decision_time = 2;
+  double label = 3;
+  double prediction = 4;
+  string regime = 5;
+}
+
+enum Severity {
+  SEVERITY_UNSPECIFIED = 0;
+  SEVERITY_INFO = 1;
+  SEVERITY_WARNING = 2;
+  SEVERITY_CRITICAL = 3;
+}
+
+message Evidence {
+  string name = 1;
+  double value = 2;
+  double threshold = 3;
+  // Report or artifact reference (report_id#path).
+  string ref = 4;
+}
+
+// Finding is a rule-based flag with its evidence (ML-023); the analyst interprets, never recomputes.
+message Finding {
+  // overfitting | underfitting | instability | regime_dependence | data_starved | leakage_suspicion
+  // | calibration | distribution_shift | cost_sensitivity | no_skill
+  string code = 1;
+  Severity severity = 2;
+  string message = 3;
+  repeated Evidence evidence = 4;
+}
+
+message DiagnosticsReport {
+  string report_id = 1;
+  string run_id = 2;
+  int64 created_at = 3;
+  DataQuality data_quality = 4;
+  FeatureDiagnostics feature_diagnostics = 5;
+  LearningCurves learning_curves = 6;
+  repeated FoldMetrics fold_metrics = 7;
+  FeatureImportance importance = 8;
+  repeated ErrorSlice error_slices = 9;
+  repeated WorstSample worst_samples = 10;
+  repeated Finding findings = 11;
+  // Thresholds used for the findings (config, ML-023).
+  map<string, double> thresholds = 12;
+  // Always true: diagnostics read only training and validation folds (ML-020).
+  bool holdout_excluded = 13;
+  // True when lists were cut to the size limits (ML-021).
+  bool truncated = 14;
+  string family = 15;
+  string task = 16;
+}
+
+message DatasetProfile {
+  string snapshot_id = 1;
+  int64 rows = 2;
+  int32 instruments = 3;
+  int32 eras = 4;
+  Period period = 5;
+  repeated FeatureStat features = 6;
+  map<string, double> label_summary = 7;
+  double avg_uniqueness = 8;
+  map<string, int64> rows_dropped = 9;
+}
+
+// AblationVariant changes one factor of the base run; folds, seeds, and the dataset snapshot are
+// reused so differences are attributable (ML-025).
+message AblationVariant {
+  string name = 1;
+  repeated string drop_feature_groups = 2;
+  repeated string add_feature_groups = 3;
+  LabelSpec label = 4;
+  google.protobuf.Struct hyperparams = 5;
+}
+
+// Bus subject ml.run.completed (ML-022); the analyst is triggered from it.
+message MLRunCompleted {
+  string run_id = 1;
+  string job_id = 2;
+  string report_id = 3;
+  string lineage_id = 4;
+  string trial_id = 5;
+  Actor launched_by = 6;
+  string analyst_round_id = 7;
+  JobStatus status = 8;
+  int64 completed_at = 9;
+  string correlation_id = 10;
+  string base_run_id = 11;
+  string kind = 12;
+}
+
+// Bus subject backtest.completed: the standard evaluation of a run or candidate (ML-012, EX-022).
+message BacktestCompleted {
+  string backtest_id = 1;
+  string run_id = 2;
+  string candidate_id = 3;
+  string report_uri = 4;
+  string tearsheet_uri = 5;
+  int64 completed_at = 6;
+  string correlation_id = 7;
+}

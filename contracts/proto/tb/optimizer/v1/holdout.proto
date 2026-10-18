@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+// HoldoutService guards the sealed final holdout (N2, D31 rule 5, ADR-0039; rules EX-010..EX-015).
+// It is the only path to holdout data. Results are pass/fail + DSR, returned only to the owner and
+// stored where actor `analyst` cannot read them. Callers: api-gateway (owner, step-up attested),
+// ml and optimizer (CheckDataAccess only). The assistant is never on the allowlist (EX-012).
+package tb.optimizer.v1;
+
+import "tb/ml/v1/training.proto";
+
+service HoldoutService {
+  // Data API boundary: refuses any request whose period reaches the boundary unless it comes from
+  // the evaluation path itself (EX-010).
+  rpc CheckDataAccess(CheckDataAccessRequest) returns (CheckDataAccessResponse);
+  // Owner only, step-up required, reason required, at most one touch per family per quarter (EX-011).
+  rpc EvaluateOnHoldout(EvaluateOnHoldoutRequest) returns (EvaluateOnHoldoutResponse);
+  rpc GetHoldoutStatus(GetHoldoutStatusRequest) returns (GetHoldoutStatusResponse);
+  // Rolls the boundary forward (audited owner action with step-up); never reopens a spent holdout (EX-014).
+  rpc SetHoldoutBoundary(SetHoldoutBoundaryRequest) returns (SetHoldoutBoundaryResponse);
+}
+
+message HoldoutTouch {
+  string candidate_id = 1;
+  string family = 2;
+  // e.g. 2026Q4
+  string quarter = 3;
+  int64 at = 4;
+  string actor_id = 5;
+  string reason = 6;
+}
+
+message HoldoutResult {
+  string candidate_id = 1;
+  bool passed = 2;
+  double dsr = 3;
+  int64 evaluated_at = 4;
+  string family = 5;
+  string quarter = 6;
+}
+
+message HoldoutStatus {
+  string lineage_id = 1;
+  string family = 2;
+  int64 boundary = 3;
+  repeated HoldoutTouch touches = 4;
+  int32 touches_this_quarter = 5;
+  int32 remaining_this_quarter = 6;
+  // Every evaluation inflates the lineage's trial count by this many trials (EX-013).
+  int32 trial_inflation_per_touch = 7;
+  repeated int64 retired_boundaries = 8;
+}
+
+message CheckDataAccessRequest {
+  string lineage_id = 1;
+  tb.ml.v1.Period period = 2;
+  tb.ml.v1.CallerContext caller = 3;
+}
+
+message CheckDataAccessResponse {
+  bool allowed = 1;
+  string reason = 2;
+  int64 boundary = 3;
+}
+
+message EvaluateOnHoldoutRequest {
+  string candidate_id = 1;
+  string reason = 2;
+  tb.ml.v1.CallerContext caller = 3;
+}
+
+message EvaluateOnHoldoutResponse {
+  HoldoutResult result = 1;
+}
+
+message GetHoldoutStatusRequest {
+  string lineage_id = 1;
+}
+
+message GetHoldoutStatusResponse {
+  HoldoutStatus status = 1;
+}
+
+message SetHoldoutBoundaryRequest {
+  string lineage_id = 1;
+  int64 boundary = 2;
+  tb.ml.v1.CallerContext caller = 3;
+}
+
+message SetHoldoutBoundaryResponse {
+  HoldoutStatus status = 1;
+}

@@ -76,6 +76,8 @@ Rules: [orders and execution](../business-logic/orders-and-execution.md), [risk]
 data snapshot → features + labels → train → backtest + validation → optimize → register → shadow/paper → live → monitor → retrain.
 Rules: [data and features](../business-logic/data-and-features.md), [strategies and model lifecycle](../business-logic/strategies-and-model-lifecycle.md), [backtesting](../business-logic/backtesting.md).
 
+**ML and optimization services** ([ADR-0035](../adr/0035-ml-and-optimizer-contracts-and-analyst-tool-apis.md)): `ml` (`MLService`) builds datasets, trains, evaluates, and writes a `DiagnosticsReport` for every run; `optimizer` (`OptimizerService`) runs nested Optuna studies, keeps one trial ledger per research lineage, scores candidates through the backtest scorer, and owns the registry stages and the analyst permission table; `HoldoutService` is the only path to the sealed holdout and never accepts the assistant. api-gateway calls them as the owner (with step-up attestations); the assistant calls them as actor `analyst`, which the services derive from its service token. Rules: [ML](../business-logic/ml.md), [optimization](../business-logic/optimization.md).
+
 **Backtests reuse the trading path** ([ADR-0031](../adr/0031-two-tier-backtester-and-simcore.md)): the event-driven tier replays lake bars or a recorded bus stream (`RecordedMessage`) through the live runtime core (`tbcore.strategy.host`) and sends each `OrderIntent` to `tb-simcore`, a Go process that runs the production OMS engine and pre-trade gate with the ledger's accounting core behind a passive simulated broker; the backtester's fill and cost models (or recorded executions) decide fills. The vectorized tier screens signal matrices with the same cost model.
 
 ## Cross-cutting design
@@ -107,7 +109,8 @@ Rules: [data and features](../business-logic/data-and-features.md), [strategies 
 | `tb.orders.v1` | `ExecutionService` (submit/preview intents, orders, intents, fills, trace, strategy registry and modes, risk limits, kill switches, trading status) ([ADR-0025](../adr/0025-oms-risk-gate-and-kill-switches.md), [OE-](../business-logic/orders-and-execution.md), [RM-](../business-logic/risk-management.md)) | execution → api-gateway |
 | `tb.ledger.v1` | `AccountSnapshot`, `StrategyPosition`, `LedgerEntry`, `LedgerUpdate`, `ReconciliationResult` (breaks, halted pairs), `Break` | broker-gateway, ledger → UI, execution, monitor, strategy-runtime |
 | `tb.ledger.v1` | `LedgerService` (account view by owner, strategy portfolio, ownership constraints, capital and reservations, owners and allocations, reconcile, breaks, equity curve, owner and broker-shadow lots, wash-sale flags, reconciliation reports) ([ADR-0024](../adr/0024-virtual-ledgers-and-reconciliation.md), [VP-](../business-logic/virtual-portfolios-and-attribution.md)) | ledger → execution, api-gateway |
-| `tb.ml.v1` | `ModelVersion`, `BacktestRun` | ml, backtest, optimizer → registry, UI |
+| `tb.ml.v1` | `ModelVersion` (with `RegistryStage`), `BacktestRun`; `MLService` (training jobs, runs, model cards, prediction, diagnostics and analyst tools), `TrainingConfig`, `DiagnosticsReport`, `MLRunCompleted`, `BacktestCompleted` ([ADR-0035](../adr/0035-ml-and-optimizer-contracts-and-analyst-tool-apis.md), [ML-](../business-logic/ml.md)) | ml, backtest, optimizer → registry, UI, assistant |
+| `tb.optimizer.v1` | `OptimizerService` (lineages, cycles, studies, trial ledger, overfitting statistics, gate reports, registry transitions, evidence packs, retraining), `HoldoutService`, `StudyCompleted`, `StageChanged` ([ADR-0035](../adr/0035-ml-and-optimizer-contracts-and-analyst-tool-apis.md), [EX-](../business-logic/optimization.md)) | optimizer → api-gateway, assistant (no holdout), UI |
 | `tb.backtest.v1` | `SimRequest`/`SimResponse` (simcore protocol over stdio, length-delimited) and `RecordedMessage` (bus recordings for replay and parity) ([ADR-0031](../adr/0031-two-tier-backtester-and-simcore.md), [BT-](../business-logic/backtesting.md)) | `tbcore.backtest` ↔ `tb-simcore`; recorder → backtester |
 | `tb.alerts.v1` | `Alert` | any → monitor → channels |
 | `tb.audit.v1` | `AuditEvent` | all → audit store |
@@ -189,6 +192,8 @@ sig.<strategy_id>                     ord.intent   ord.decision   ord.update.<br
 exec.<broker_account>                 acct.snapshot.<broker_account>
 ledger.update.<broker_account>        recon.result.<broker_account>   recon.request.<broker_account>
 risk.kill                             alert.<severity>           sys.health.<service>
+ml.run.completed                      backtest.completed         optimizer.study.completed   ml.registry.stage_changed
+monitor.retrain_suggested.<lineage>
 ```
 
 Context data (section 09, ADR-0032) flows context-data → `ctx.<kind>` (durable stream `CONTEXT`, `Nats-Msg-Id` per version) → marketdata's context sink, which stays the only lake writer and compacts `context/kind=…` partitions (CX-003, ST-011). Alpaca news reaches context-data through `BrokerMarketDataService.GetNews` on broker-gateway (credential custody, BR-022); FMP, FRED/ALFRED, FINRA, and SEC EDGAR are called directly from context-data. Readers use `tbcore.context.ContextStore` (point-in-time per `record_key`). Source health goes to `sys.health.ctx.<job>`. strategy-runtime reads `ctx.calendar`/`ctx.earnings` and the lake for `EventBlackout` (CX-016).

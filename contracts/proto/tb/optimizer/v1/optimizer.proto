@@ -1,0 +1,811 @@
+syntax = "proto3";
+
+// OptimizerService is served by the `optimizer` worker (section 11, ADR-0035, ADR-0038, ADR-0040):
+// studies, research lineages with one trial ledger, lineage-level overfitting statistics, gate
+// reports, the registry and champion/challenger, and server-side enforcement of the analyst's
+// permissions (EX-031..EX-034). Rules EX-* in docs/business-logic/optimization.md.
+//
+// Callers (service tokens, SE-040): api-gateway (owner actor, step-up attested), assistant (actor
+// forced to `analyst`), ml (trial writes for analyst/owner training runs). The holdout is a separate
+// service (holdout.proto) that the assistant can never call (EX-012).
+package tb.optimizer.v1;
+
+import "google/protobuf/struct.proto";
+import "tb/ml/v1/ml.proto";
+import "tb/ml/v1/training.proto";
+
+service OptimizerService {
+  rpc CreateLineage(CreateLineageRequest) returns (CreateLineageResponse);
+  rpc GetLineage(GetLineageRequest) returns (GetLineageResponse);
+  rpc ListLineages(ListLineagesRequest) returns (ListLineagesResponse);
+  // Raising the level needs owner step-up; lowering is instant for anyone allowed (EX-033).
+  rpc SetLineageAutonomy(SetLineageAutonomyRequest) returns (SetLineageAutonomyResponse);
+  // Opens a research cycle with a MinBTL-derived effective-trial budget (D31 rule 3); owner only.
+  rpc OpenCycle(OpenCycleRequest) returns (OpenCycleResponse);
+
+  rpc CreateStudy(CreateStudyRequest) returns (CreateStudyResponse);
+  rpc StartStudy(StartStudyRequest) returns (StartStudyResponse);
+  rpc PauseStudy(PauseStudyRequest) returns (PauseStudyResponse);
+  rpc ResumeStudy(ResumeStudyRequest) returns (ResumeStudyResponse);
+  rpc StopStudy(StopStudyRequest) returns (StopStudyResponse);
+  rpc GetStudy(GetStudyRequest) returns (GetStudyResponse);
+  rpc ListStudies(ListStudiesRequest) returns (ListStudiesResponse);
+  rpc StreamStudyProgress(StreamStudyProgressRequest) returns (stream StreamStudyProgressResponse);
+  rpc ListTrials(ListTrialsRequest) returns (ListTrialsResponse);
+  // Records an externally run trial (a training run launched outside a study) in its lineage (EX-020).
+  rpc RecordTrial(RecordTrialRequest) returns (RecordTrialResponse);
+
+  // Diagnostics and analyst tools (holdout excluded by construction).
+  rpc GetStudyDiagnostics(GetStudyDiagnosticsRequest) returns (GetStudyDiagnosticsResponse);
+  rpc GetTrialLedger(GetTrialLedgerRequest) returns (GetTrialLedgerResponse);
+  rpc GetCumulativeOverfittingStats(GetCumulativeOverfittingStatsRequest) returns (GetCumulativeOverfittingStatsResponse);
+  // Analyst callers get an AnalystGateView-filtered report: no failure reasons or thresholds (EX-035).
+  rpc GetGateReport(GetGateReportRequest) returns (GetGateReportResponse);
+  rpc GetWalkForwardBreakdown(GetWalkForwardBreakdownRequest) returns (GetWalkForwardBreakdownResponse);
+  rpc GetRegimeBreakdown(GetRegimeBreakdownRequest) returns (GetRegimeBreakdownResponse);
+  rpc GetCostSensitivity(GetCostSensitivityRequest) returns (GetCostSensitivityResponse);
+
+  rpc ListCandidates(ListCandidatesRequest) returns (ListCandidatesResponse);
+  rpc GetCandidate(GetCandidateRequest) returns (GetCandidateResponse);
+  // Dry run of the permission table and gates for (caller, candidate, to_stage) (EX-032).
+  rpc CheckTransition(CheckTransitionRequest) returns (CheckTransitionResponse);
+  // Requires gate checks; paper (new spec) and live_eligible require owner step-up (EX-051..EX-054).
+  rpc PromoteCandidate(PromoteCandidateRequest) returns (PromoteCandidateResponse);
+  rpc DeployChallengerShadow(DeployChallengerShadowRequest) returns (DeployChallengerShadowResponse);
+  // Notifies the owner; never changes a stage (EX-034).
+  rpc NominateLiveEligible(NominateLiveEligibleRequest) returns (NominateLiveEligibleResponse);
+  // Monitoring demotion input (section 13): moves to paper or retired; re-promotion is manual (EX-055).
+  rpc DemoteCandidate(DemoteCandidateRequest) returns (DemoteCandidateResponse);
+  rpc GetEvidencePack(GetEvidencePackRequest) returns (GetEvidencePackResponse);
+  rpc GetLineageGraph(GetLineageGraphRequest) returns (GetLineageGraphResponse);
+
+  rpc SetRetrainingPolicy(SetRetrainingPolicyRequest) returns (SetRetrainingPolicyResponse);
+  rpc TriggerRetrain(TriggerRetrainRequest) returns (TriggerRetrainResponse);
+}
+
+// Budget limits a study, a lineage, or the analyst (EX-060).
+message Budget {
+  int32 max_trials = 1;
+  int64 max_wall_seconds = 2;
+  double max_cpu_hours = 3;
+  double max_gpu_hours = 4;
+}
+
+message BudgetUsage {
+  int32 trials = 1;
+  int64 wall_seconds = 2;
+  double cpu_hours = 3;
+  double gpu_hours = 4;
+}
+
+// PromotionLimits for analyst level 2 (EX-033); config, audited.
+message PromotionLimits {
+  int32 max_promotions_per_window = 1;
+  int64 window_seconds = 2;
+  int32 min_shadow_sessions = 3;
+  int64 cooldown_after_demotion_seconds = 4;
+}
+
+// Lineage groups every trial for one strategy family on one data domain (EX-020).
+message Lineage {
+  string lineage_id = 1;
+  string name = 2;
+  // Strategy family (model family or rule + filter), e.g. lgbm_regression or orb_meta.
+  string family = 3;
+  string timeframe = 4;
+  string universe = 5;
+  // 0 suggest-only (default) | 1 auto-run on paper | 2 auto-promote within limits (section 12).
+  int32 autonomy_level = 6;
+  Budget analyst_budget = 7;
+  BudgetUsage analyst_used = 8;
+  PromotionLimits promotion_limits = 9;
+  // Holdout boundary (UTC ns) fixed for the lineage's studies; data at or after it is refused (EX-010).
+  int64 holdout_boundary = 10;
+  int64 created_at = 11;
+  string current_cycle_id = 12;
+  string champion_candidate_id = 13;
+}
+
+enum CycleStatus {
+  CYCLE_STATUS_UNSPECIFIED = 0;
+  CYCLE_STATUS_OPEN = 1;
+  // Effective-trial budget spent; only the owner can open a new cycle (D31 rule 3).
+  CYCLE_STATUS_SPENT = 2;
+  CYCLE_STATUS_CLOSED = 3;
+}
+
+message ResearchCycle {
+  string cycle_id = 1;
+  string lineage_id = 2;
+  int64 opened_at = 3;
+  tb.ml.v1.CallerContext opened_by = 4;
+  double effective_trial_budget = 5;
+  double effective_trials_used = 6;
+  CycleStatus status = 7;
+  // Years of data available and the target annual Sharpe the budget was derived from (MinBTL).
+  double available_years = 8;
+  double target_sharpe = 9;
+}
+
+// PreRegistration is fixed before launch (D31 rule 4); switching the metric later is a new trial.
+message PreRegistration {
+  string hypothesis = 1;
+  string metric = 2;
+  string universe = 3;
+  tb.ml.v1.Period period = 4;
+  string stop_rule = 5;
+}
+
+message ParamSpace {
+  string name = 1;
+  // float | log_float | int | categorical
+  string kind = 2;
+  double low = 3;
+  double high = 4;
+  repeated string choices = 5;
+  double step = 6;
+  // Only for these families (conditional spaces); empty = all.
+  repeated string families = 7;
+}
+
+message Objective {
+  // Inner metric used for selection: sharpe (default) | ic | rank_ic | net_return.
+  string metric = 1;
+  // maximize | minimize
+  string direction = 2;
+  // Extra objectives for a multi-objective study (Pareto front): max_drawdown, turnover.
+  repeated string extra_metrics = 3;
+}
+
+// NestedEvaluation: inner CPCV selects, outer walk-forward estimates (D31 rule 6, EX-001).
+message NestedEvaluation {
+  tb.ml.v1.SplitterSpec outer = 1;
+  tb.ml.v1.SplitterSpec inner = 2;
+  double cost_multiplier = 3;
+  // Top candidates rerun event-driven before any gate (BT-006).
+  int32 event_driven_top_k = 4;
+}
+
+message StudySpec {
+  string name = 1;
+  string lineage_id = 2;
+  repeated string families = 3;
+  repeated ParamSpace search_space = 4;
+  repeated tb.ml.v1.FeatureSetRef feature_sets = 5;
+  repeated tb.ml.v1.LabelSpec label_specs = 6;
+  string timeframe = 7;
+  tb.ml.v1.UniverseSpec universe = 8;
+  // Must end at or before the lineage holdout boundary (EX-010).
+  tb.ml.v1.Period period = 9;
+  Objective objective = 10;
+  NestedEvaluation evaluation = 11;
+  // tpe (default) | random
+  string sampler = 12;
+  // none | median | asha
+  string pruner = 13;
+  Budget budget = 14;
+  int64 seed = 15;
+  PreRegistration preregistration = 16;
+  // Template for fields the search does not vary (resources, evaluation, data source, primary rule).
+  tb.ml.v1.TrainingConfig base_config = 17;
+  // training (default) | retrain
+  string kind = 18;
+}
+
+enum StudyStatus {
+  STUDY_STATUS_UNSPECIFIED = 0;
+  STUDY_STATUS_CREATED = 1;
+  STUDY_STATUS_RUNNING = 2;
+  STUDY_STATUS_PAUSED = 3;
+  STUDY_STATUS_COMPLETED = 4;
+  STUDY_STATUS_STOPPED = 5;
+  STUDY_STATUS_FAILED = 6;
+}
+
+enum TrialStatus {
+  TRIAL_STATUS_UNSPECIFIED = 0;
+  TRIAL_STATUS_RUNNING = 1;
+  TRIAL_STATUS_COMPLETE = 2;
+  TRIAL_STATUS_PRUNED = 3;
+  TRIAL_STATUS_FAILED = 4;
+  // Started and never finished (stopped study, crash); still counted (D31 rule 1).
+  TRIAL_STATUS_ABANDONED = 5;
+}
+
+// Trial is one ledger row (D31 rule 1, EX-020): every evaluated configuration in a lineage.
+message Trial {
+  string trial_id = 1;
+  string lineage_id = 2;
+  string cycle_id = 3;
+  string study_id = 4;
+  int32 number = 5;
+  // Outer walk-forward fold whose inner study proposed it; -1 = final selection on the whole period.
+  int32 outer_fold = 6;
+  string spec_hash = 7;
+  string preregistration_hash = 8;
+  google.protobuf.Struct params = 9;
+  string data_snapshot_id = 10;
+  string code_commit = 11;
+  int64 seed = 12;
+  tb.ml.v1.Actor source = 13;
+  TrialStatus status = 14;
+  // Inner (selection) metric; never an expected-performance estimate.
+  double inner_metric = 15;
+  // Sharpe of the trial's out-of-fold session returns (per-session, not annualized).
+  double sharpe = 16;
+  int32 n_obs = 17;
+  // Artifact path of the out-of-fold session return series.
+  string oof_returns_ref = 18;
+  double compute_seconds = 19;
+  int64 created_at = 20;
+  repeated string run_ids = 21;
+  // hyperparams | features | labels | universes | timeframes | rules (what this trial varied).
+  repeated string dimensions = 22;
+  string analyst_round_id = 23;
+  string config_hash = 24;
+}
+
+message StudyBest {
+  string trial_id = 1;
+  int32 outer_fold = 2;
+  double inner_metric = 3;
+  google.protobuf.Struct params = 4;
+}
+
+// OuterEstimate: the honest estimate of the whole selection procedure (EX-001).
+message OuterEstimate {
+  double sharpe = 1;
+  double sharpe_annualized = 2;
+  double ci_low = 3;
+  double ci_high = 4;
+  double net_return = 5;
+  double max_drawdown = 6;
+  int32 n_obs = 7;
+  double positive_fold_fraction = 8;
+  int32 trades = 9;
+}
+
+message Study {
+  string study_id = 1;
+  StudySpec spec = 2;
+  string spec_hash = 3;
+  StudyStatus status = 4;
+  int64 created_at = 5;
+  int64 started_at = 6;
+  int64 finished_at = 7;
+  int32 trials_completed = 8;
+  int32 trials_pruned = 9;
+  int32 trials_failed = 10;
+  // Trials in the whole lineage (EX-021).
+  int32 trial_count_total = 11;
+  BudgetUsage budget_used = 12;
+  // Best trials by the inner metric (labeled inner; never reported as expected performance).
+  repeated StudyBest best_trials = 13;
+  OuterEstimate outer_estimate = 14;
+  string gate_report_id = 15;
+  string candidate_id = 16;
+  tb.ml.v1.CallerContext created_by = 17;
+  string cycle_id = 18;
+  string message = 19;
+  // Study-level PBO (CSCV, S = 16) over the final selection's trials.
+  double pbo = 20;
+  double deflated_sharpe = 21;
+}
+
+message StudyProgress {
+  string study_id = 1;
+  int64 seq = 2;
+  int64 at = 3;
+  StudyStatus status = 4;
+  int32 trials_completed = 5;
+  int32 outer_fold = 6;
+  double best_inner = 7;
+  string message = 8;
+  Trial trial = 9;
+}
+
+message TrialLedger {
+  string lineage_id = 1;
+  int32 trials_total = 2;
+  // owner | analyst | schedule | abandoned
+  map<string, int32> by_source = 3;
+  map<string, int32> by_dimension = 4;
+  map<string, int32> by_status = 5;
+  int32 holdout_evaluations = 6;
+  repeated ResearchCycle cycles = 7;
+}
+
+message CumulativeOverfittingStats {
+  string lineage_id = 1;
+  int32 n_trials = 2;
+  double n_effective = 3;
+  double sr_variance = 4;
+  string best_trial_id = 5;
+  double best_sharpe = 6;
+  double deflated_sharpe_prob = 7;
+  double pbo = 8;
+  // Sessions of track record needed for the best Sharpe to be significant at 95 %.
+  double min_track_record_length = 9;
+  double min_backtest_length_years = 10;
+  double available_years = 11;
+  // False when more trials can no longer lift the DSR above the gate (EX-023); analyst stop rule.
+  bool significance_reachable = 12;
+  double dsr_threshold = 13;
+}
+
+message ConvergencePoint {
+  int32 trial = 1;
+  double best_raw = 2;
+  double best_deflated = 3;
+}
+
+message ParamStability {
+  string param = 1;
+  double best_value = 2;
+  double neighbor_mean = 3;
+  double neighbor_std = 4;
+}
+
+message ParetoPoint {
+  string trial_id = 1;
+  map<string, double> values = 2;
+}
+
+message StudyDiagnostics {
+  string study_id = 1;
+  repeated ConvergencePoint convergence = 2;
+  // Trial number after which the best inner metric stopped improving by more than epsilon.
+  int32 plateau_estimate = 3;
+  map<string, double> param_importance = 4;
+  repeated ParamStability param_stability = 5;
+  repeated ParetoPoint pareto_front = 6;
+  double pruned_rate = 7;
+  double failure_rate = 8;
+}
+
+message FoldResult {
+  int32 fold = 1;
+  tb.ml.v1.Period test = 2;
+  double sharpe = 3;
+  double net_return = 4;
+  int32 trades = 5;
+  double max_drawdown = 6;
+}
+
+message RegimeResult {
+  string regime = 1;
+  int32 n = 2;
+  double sharpe = 3;
+  double net_return = 4;
+  double pnl_share = 5;
+}
+
+message CostSensitivity {
+  // Net return at 1x, 1.5x, 2x costs (EX-024).
+  map<string, double> net_return = 1;
+  map<string, double> sharpe = 2;
+}
+
+// GateReport per candidate (EX-024). Analyst callers receive it with reasons and thresholds cleared
+// (EX-035; the scorer stays untouchable, D31 rule 9).
+message GateReport {
+  string report_id = 1;
+  string candidate_id = 2;
+  int64 created_at = 3;
+  bool passed = 4;
+  repeated string reasons = 5;
+  OuterEstimate outer = 6;
+  double dsr = 7;
+  double n_effective = 8;
+  double pbo = 9;
+  double spa_p = 10;
+  double romano_wolf_p = 11;
+  repeated FoldResult walk_forward = 12;
+  repeated RegimeResult regimes = 13;
+  CostSensitivity cost_sensitivity = 14;
+  repeated ParamStability param_stability = 15;
+  bool leakage_passed = 16;
+  string survivorship_status = 17;
+  repeated string warnings = 18;
+  map<string, double> thresholds = 19;
+  // event | vectorized: only event-driven evidence may pass (BT-006).
+  string engine = 20;
+  string champion_candidate_id = 21;
+}
+
+message Candidate {
+  string candidate_id = 1;
+  string lineage_id = 2;
+  string study_id = 3;
+  string run_id = 4;
+  tb.ml.v1.ModelVersion model_version = 5;
+  tb.ml.v1.TrainingConfig config = 6;
+  tb.ml.v1.RegistryStage stage = 7;
+  int64 created_at = 8;
+  string gate_report_id = 9;
+  // Trained on synthetic data: never live_eligible (EX-052).
+  bool synthetic_data = 10;
+  // Strategy registry entry (infra/compose/strategies.json format) used for shadow/paper deployment.
+  string registry_entry_json = 11;
+  string strategy_id = 12;
+  int64 stage_changed_at = 13;
+  // Sessions observed in shadow (EX-033 minimum shadow period).
+  int32 shadow_sessions = 14;
+  bool demoted = 15;
+  // training | retrain
+  string origin = 16;
+}
+
+message PermissionDecision {
+  bool allowed = 1;
+  string reason = 2;
+  bool requires_step_up = 3;
+  repeated string failed_gates = 4;
+}
+
+message EvidencePack {
+  string candidate_id = 1;
+  string markdown = 2;
+  string html = 3;
+  int64 created_at = 4;
+}
+
+message GraphNode {
+  string id = 1;
+  // dataset | feature_set | label | study | trial | run | backtest | candidate | model_version
+  string kind = 2;
+  string label = 3;
+}
+
+message GraphEdge {
+  string from = 1;
+  string to = 2;
+  string kind = 3;
+}
+
+message LineageGraph {
+  repeated GraphNode nodes = 1;
+  repeated GraphEdge edges = 2;
+}
+
+message RetrainingPolicy {
+  string lineage_id = 1;
+  string strategy_id = 2;
+  // scheduled | drift | performance
+  repeated string triggers = 3;
+  // Scheduled cadence (default 7 days intraday, 30 days swing).
+  int64 cadence_seconds = 4;
+  double psi_threshold = 5;
+  double ic_floor = 6;
+  bool enabled = 7;
+  // Extra history appended to the study window on each retrain.
+  int64 extend_seconds = 8;
+}
+
+// Bus subject optimizer.study.completed.
+message StudyCompleted {
+  string study_id = 1;
+  string lineage_id = 2;
+  StudyStatus status = 3;
+  string candidate_id = 4;
+  string gate_report_id = 5;
+  int64 completed_at = 6;
+  tb.ml.v1.Actor launched_by = 7;
+  string analyst_round_id = 8;
+  string correlation_id = 9;
+}
+
+// Bus subject ml.registry.stage_changed.
+message StageChanged {
+  string candidate_id = 1;
+  string lineage_id = 2;
+  tb.ml.v1.RegistryStage from_stage = 3;
+  tb.ml.v1.RegistryStage to_stage = 4;
+  tb.ml.v1.CallerContext caller = 5;
+  int64 changed_at = 6;
+  string reason = 7;
+}
+
+message CreateLineageRequest {
+  Lineage lineage = 1;
+  tb.ml.v1.CallerContext caller = 2;
+}
+
+message CreateLineageResponse {
+  Lineage lineage = 1;
+}
+
+message GetLineageRequest {
+  string lineage_id = 1;
+}
+
+message GetLineageResponse {
+  Lineage lineage = 1;
+}
+
+message ListLineagesRequest {}
+
+message ListLineagesResponse {
+  repeated Lineage lineages = 1;
+}
+
+message SetLineageAutonomyRequest {
+  string lineage_id = 1;
+  int32 level = 2;
+  Budget analyst_budget = 3;
+  PromotionLimits promotion_limits = 4;
+  tb.ml.v1.CallerContext caller = 5;
+}
+
+message SetLineageAutonomyResponse {
+  Lineage lineage = 1;
+}
+
+message OpenCycleRequest {
+  string lineage_id = 1;
+  double target_sharpe = 2;
+  tb.ml.v1.CallerContext caller = 3;
+}
+
+message OpenCycleResponse {
+  ResearchCycle cycle = 1;
+}
+
+message CreateStudyRequest {
+  StudySpec spec = 1;
+  tb.ml.v1.CallerContext caller = 2;
+}
+
+message CreateStudyResponse {
+  Study study = 1;
+}
+
+message StartStudyRequest {
+  string study_id = 1;
+  Budget budget = 2;
+  tb.ml.v1.CallerContext caller = 3;
+}
+
+message StartStudyResponse {
+  Study study = 1;
+}
+
+message PauseStudyRequest {
+  string study_id = 1;
+  tb.ml.v1.CallerContext caller = 2;
+}
+
+message PauseStudyResponse {
+  Study study = 1;
+}
+
+message ResumeStudyRequest {
+  string study_id = 1;
+  tb.ml.v1.CallerContext caller = 2;
+}
+
+message ResumeStudyResponse {
+  Study study = 1;
+}
+
+message StopStudyRequest {
+  string study_id = 1;
+  tb.ml.v1.CallerContext caller = 2;
+}
+
+message StopStudyResponse {
+  Study study = 1;
+}
+
+message GetStudyRequest {
+  string study_id = 1;
+}
+
+message GetStudyResponse {
+  Study study = 1;
+}
+
+message ListStudiesRequest {
+  string lineage_id = 1;
+  int32 limit = 2;
+}
+
+message ListStudiesResponse {
+  repeated Study studies = 1;
+}
+
+message StreamStudyProgressRequest {
+  string study_id = 1;
+  int64 after_seq = 2;
+}
+
+message StreamStudyProgressResponse {
+  StudyProgress progress = 1;
+}
+
+message ListTrialsRequest {
+  string study_id = 1;
+  string lineage_id = 2;
+  int32 limit = 3;
+}
+
+message ListTrialsResponse {
+  repeated Trial trials = 1;
+}
+
+message RecordTrialRequest {
+  Trial trial = 1;
+  tb.ml.v1.CallerContext caller = 2;
+}
+
+message RecordTrialResponse {
+  Trial trial = 1;
+}
+
+message GetStudyDiagnosticsRequest {
+  string study_id = 1;
+  tb.ml.v1.CallerContext caller = 2;
+}
+
+message GetStudyDiagnosticsResponse {
+  StudyDiagnostics diagnostics = 1;
+}
+
+message GetTrialLedgerRequest {
+  string lineage_id = 1;
+  tb.ml.v1.CallerContext caller = 2;
+}
+
+message GetTrialLedgerResponse {
+  TrialLedger ledger = 1;
+}
+
+message GetCumulativeOverfittingStatsRequest {
+  string lineage_id = 1;
+  tb.ml.v1.CallerContext caller = 2;
+}
+
+message GetCumulativeOverfittingStatsResponse {
+  CumulativeOverfittingStats stats = 1;
+}
+
+message GetGateReportRequest {
+  string candidate_id = 1;
+  tb.ml.v1.CallerContext caller = 2;
+}
+
+message GetGateReportResponse {
+  GateReport report = 1;
+}
+
+message GetWalkForwardBreakdownRequest {
+  string candidate_id = 1;
+  tb.ml.v1.CallerContext caller = 2;
+}
+
+message GetWalkForwardBreakdownResponse {
+  repeated FoldResult folds = 1;
+}
+
+message GetRegimeBreakdownRequest {
+  string candidate_id = 1;
+  tb.ml.v1.CallerContext caller = 2;
+}
+
+message GetRegimeBreakdownResponse {
+  repeated RegimeResult regimes = 1;
+}
+
+message GetCostSensitivityRequest {
+  string candidate_id = 1;
+  tb.ml.v1.CallerContext caller = 2;
+}
+
+message GetCostSensitivityResponse {
+  CostSensitivity sensitivity = 1;
+}
+
+message ListCandidatesRequest {
+  string lineage_id = 1;
+  tb.ml.v1.RegistryStage stage = 2;
+}
+
+message ListCandidatesResponse {
+  repeated Candidate candidates = 1;
+}
+
+message GetCandidateRequest {
+  string candidate_id = 1;
+}
+
+message GetCandidateResponse {
+  Candidate candidate = 1;
+}
+
+message CheckTransitionRequest {
+  string candidate_id = 1;
+  tb.ml.v1.RegistryStage to_stage = 2;
+  tb.ml.v1.CallerContext caller = 3;
+}
+
+message CheckTransitionResponse {
+  PermissionDecision decision = 1;
+}
+
+message PromoteCandidateRequest {
+  string candidate_id = 1;
+  tb.ml.v1.RegistryStage to_stage = 2;
+  tb.ml.v1.CallerContext caller = 3;
+}
+
+message PromoteCandidateResponse {
+  Candidate candidate = 1;
+  PermissionDecision decision = 2;
+}
+
+message DeployChallengerShadowRequest {
+  string candidate_id = 1;
+  tb.ml.v1.CallerContext caller = 2;
+}
+
+message DeployChallengerShadowResponse {
+  Candidate candidate = 1;
+  PermissionDecision decision = 2;
+}
+
+message NominateLiveEligibleRequest {
+  string candidate_id = 1;
+  string rationale = 2;
+  tb.ml.v1.CallerContext caller = 3;
+}
+
+message NominateLiveEligibleResponse {
+  PermissionDecision decision = 1;
+}
+
+message DemoteCandidateRequest {
+  string candidate_id = 1;
+  tb.ml.v1.RegistryStage to_stage = 2;
+  string reason = 3;
+  tb.ml.v1.CallerContext caller = 4;
+}
+
+message DemoteCandidateResponse {
+  Candidate candidate = 1;
+}
+
+message GetEvidencePackRequest {
+  string candidate_id = 1;
+}
+
+message GetEvidencePackResponse {
+  EvidencePack pack = 1;
+}
+
+message GetLineageGraphRequest {
+  string candidate_id = 1;
+  string model_version = 2;
+}
+
+message GetLineageGraphResponse {
+  LineageGraph graph = 1;
+}
+
+message SetRetrainingPolicyRequest {
+  RetrainingPolicy policy = 1;
+  tb.ml.v1.CallerContext caller = 2;
+}
+
+message SetRetrainingPolicyResponse {
+  RetrainingPolicy policy = 1;
+}
+
+message TriggerRetrainRequest {
+  string lineage_id = 1;
+  string reason = 2;
+  tb.ml.v1.CallerContext caller = 3;
+}
+
+message TriggerRetrainResponse {
+  Study study = 1;
+}
