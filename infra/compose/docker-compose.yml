@@ -486,7 +486,7 @@ services:
   # fresh login with 2FA: prefer `docker compose restart broker-gateway-ibkr-*` for adapter issues.
   ib-gateway-paper: &ib-gateway
     profiles: [ibkr]
-    image: ghcr.io/gnzsnz/ib-gateway:10.50.1f@sha256:1e2236804ac949b789197c225a048c0c891c9958f948c87166226e5b647ff581
+    image: ghcr.io/gnzsnz/ib-gateway:10.51.1d@sha256:1e058a950e9cae7cbea367a751f744ed14312332bfdad2052c0c4f27bdd9b667
     restart: unless-stopped
     init: true
     cap_drop: [ALL]
@@ -595,7 +595,7 @@ services:
   # only while needed, without restarting the gateway. Reach it over SSH on Tailscale.
   ibkr-vnc:
     profiles: [ibkr-vnc]
-    image: ghcr.io/gnzsnz/ib-gateway:10.50.1f@sha256:1e2236804ac949b789197c225a048c0c891c9958f948c87166226e5b647ff581
+    image: ghcr.io/gnzsnz/ib-gateway:10.51.1d@sha256:1e058a950e9cae7cbea367a751f744ed14312332bfdad2052c0c4f27bdd9b667
     restart: "no"
     init: true
     read_only: true
