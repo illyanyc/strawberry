@@ -8,7 +8,7 @@ dependencies = [
   "uvicorn==0.54.0",
   "prometheus-client==0.26.0",
   "pydantic==2.14.1",
-  "pydantic-settings==2.16.0",
+  "pydantic-settings==2.16.1",
   "tbcontracts",
   # Storage and feature store (section 03, ADR-0020): pinned majors (DuckDB 1.5.x, Polars 1.x).
   "duckdb==1.5.6",
