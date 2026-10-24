@@ -12,7 +12,7 @@ dependencies = [
   "tbcontracts",
   # Storage and feature store (section 03, ADR-0020): pinned majors (DuckDB 1.5.x, Polars 1.x).
   "duckdb==1.5.6",
-  "polars==1.44.2",
+  "polars==2.0.0",
   "pyarrow==26.0.0",
   "numpy==2.5.4",
   # Service-token signing for Python gRPC clients (tbcore.svcauth, SE-040).
