@@ -857,7 +857,7 @@ services:
   alloy:
     <<: *hardening
     profiles: [observability]
-    image: grafana/alloy:v1.20.1@sha256:2aa2099af76c0098d4af7a4d6e48f86cb66dc1a000222ad927a1c67c6542d13f
+    image: grafana/alloy:v1.21.0@sha256:9726bfba078de9bc2212c60c6e643238c700b4fe0868ea78cbe03163d03d95bf
     # Reads container logs and cAdvisor stats through the Docker socket (read-only mount). Justified
     # exception: observability only, internal network, no published ports (ADR-0014).
     command: ["run", "/etc/alloy/config.alloy", "--storage.path=/tmp/alloy", "--server.http.listen-addr=0.0.0.0:12345"]
